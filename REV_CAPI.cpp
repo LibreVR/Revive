@@ -339,6 +339,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 				inputState->Buttons |= ovrButton_Y;
 
 			// Convert the axes
+			// TODO: Implement deadzone?
 			inputState->IndexTrigger[ovrHand_Left] = input.Gamepad.bLeftTrigger / 255.0f;
 			inputState->IndexTrigger[ovrHand_Right] = input.Gamepad.bRightTrigger / 255.0f;
 			inputState->Thumbstick[ovrHand_Left].x = input.Gamepad.sThumbLX / 32768.0f;
@@ -372,7 +373,30 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 	return types;
 }
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude) { REV_UNIMPLEMENTED_RUNTIME; }
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
+{
+	// TODO: Disable the rumbler after a nominal amount of time.
+	// TODO: Implement Oculus Touch support.
+
+	if (controllerType == ovrControllerType_XBox)
+	{
+		XINPUT_VIBRATION vibration;
+		ZeroMemory(&vibration, sizeof(XINPUT_VIBRATION));
+		if (frequency > 0.0f)
+		{
+			// The right motor is the high-frequency motor, the left motor is the low-frequency motor.
+			if (frequency > 0.5f)
+				vibration.wRightMotorSpeed = WORD(65535.0f * amplitude);
+			else
+				vibration.wLeftMotorSpeed = WORD(65535.0f * amplitude);
+		}
+		XInputSetState(0, &vibration);
+
+		return ovrSuccess;
+	}
+
+	return ovrError_DeviceUnavailable;
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session, ovrTextureSwapChain chain, int* out_Length) { REV_UNIMPLEMENTED_RUNTIME; }
 
