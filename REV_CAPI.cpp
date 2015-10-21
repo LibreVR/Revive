@@ -3,12 +3,14 @@
 #include "Extras/OVR_Math.h"
 
 #include "openvr.h"
+#include <DXGI.h>
 
 #include "REV_Assert.h"
 #include "REV_Error.h"
 
 vr::EVRInitError g_InitError = vr::VRInitError_None;
 vr::IVRSystem* g_VRSystem = nullptr;
+IDXGIFactory* g_pFactory = nullptr;
 
 struct ovrHmdStruct
 {
@@ -18,11 +20,17 @@ struct ovrHmdStruct
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
 	g_VRSystem = vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
+
+	HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)(&g_pFactory));
+	if (FAILED(hr))
+		return ovrError_IncompatibleGPU;
+
 	return EVR_InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
+	g_pFactory->Release();
 	vr::VR_Shutdown();
 }
 
@@ -117,6 +125,23 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new struct ovrHmdStruct();
 	session->compositor = (vr::IVRCompositor*)VR_GetGenericInterface(vr::IVRCompositor_Version, &g_InitError);
+
+	// Get the LUID for the adapter
+	int32_t index;
+	IDXGIAdapter* adapter;
+	DXGI_ADAPTER_DESC desc;
+	g_VRSystem->GetDXGIOutputInfo(&index);
+	HRESULT hr = g_pFactory->EnumAdapters(index, &adapter);
+	if (FAILED(hr))
+		return ovrError_MismatchedAdapters;
+
+	HRESULT hr = adapter->GetDesc(&desc);
+	if (FAILED(hr))
+		return ovrError_MismatchedAdapters;
+
+	// Copy the LUID into the structure
+	memcpy(pLuid, &desc.AdapterLuid, sizeof(LUID));
+
 	return EVR_InitErrorToOvrError(g_InitError);
 }
 
