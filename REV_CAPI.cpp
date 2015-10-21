@@ -26,7 +26,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	if (FAILED(hr))
 		return ovrError_IncompatibleGPU;
 
-	return EVR_InitErrorToOvrError(g_InitError);
+	return REV_InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
@@ -142,7 +142,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Copy the LUID into the structure
 	memcpy(pLuid, &desc.AdapterLuid, sizeof(LUID));
 
-	return EVR_InitErrorToOvrError(g_InitError);
+	return REV_InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
