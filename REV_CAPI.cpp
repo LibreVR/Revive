@@ -330,7 +330,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 		pose.TrackerFlags |= ovrTracker_PoseTracked;
 
 	// Convert the pose
-	OVR::Matrix4f matrix = REV_HmdMatrixToOVRMatrix(poses[index].mDeviceToAbsoluteTracking);
+	OVR::Matrix4f matrix;
+	if (poses[index].bPoseIsValid)
+		matrix = REV_HmdMatrixToOVRMatrix(poses[index].mDeviceToAbsoluteTracking);
 	OVR::Quatf quat = OVR::Quatf(matrix);
 	pose.Pose.Orientation = quat;
 	pose.Pose.Position = matrix.GetTranslation();
