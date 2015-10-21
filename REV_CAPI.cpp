@@ -229,11 +229,14 @@ OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session) { /* N
 
 ovrPoseStatef REV_TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, double time)
 {
-	ovrPoseStatef result;
+	ovrPoseStatef result = { 0 };
+	result.ThePose = OVR::Posef::Identity();
 
 	OVR::Matrix4f matrix;
 	if (pose.bPoseIsValid)
 		matrix = REV_HmdMatrixToOVRMatrix(pose.mDeviceToAbsoluteTracking);
+	else
+		return result;
 
 	result.ThePose.Orientation = OVR::Quatf(matrix);
 	result.ThePose.Position = matrix.GetTranslation();
@@ -265,7 +268,7 @@ unsigned int REV_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose)
 
 OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker)
 {
-	ovrTrackingState state;
+	ovrTrackingState state = { 0 };
 
 	// Gain focus for the compositor
 	session->compositor->WaitGetPoses(nullptr, 0, nullptr, 0);
@@ -287,7 +290,10 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	{
 		vr::TrackedDeviceIndex_t deviceIndex = hands[i];
 		if (deviceIndex == (uint32_t)-1)
+		{
+			state.HandPoses[i].ThePose = OVR::Posef::Identity();
 			continue;
+		}
 
 		state.HandPoses[i] = REV_TrackedDevicePoseToOVRPose(poses[deviceIndex], time);
 		state.HandStatusFlags[i] = REV_TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
@@ -302,7 +308,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsigned int trackerPoseIndex)
 {
-	ovrTrackerPose pose;
+	ovrTrackerPose pose = { 0 };
 
 	// Get the index for this tracker.
 	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount];
@@ -338,6 +344,8 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
+	memset(inputState, 0, sizeof(ovrInputState));
+
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
 
 	if (controllerType == ovrControllerType_XBox)
