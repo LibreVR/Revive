@@ -474,6 +474,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 
 OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
 {
+	if (!chain)
+		return;
+
 	if (chain->texture[0].eType == vr::API_DirectX)
 	{
 		for (int i = 0; i < chain->length; i++)
@@ -485,6 +488,9 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTex
 
 OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirrorTexture mirrorTexture)
 {
+	if (!mirrorTexture)
+		return;
+
 	if (mirrorTexture->texture.eType == vr::API_DirectX)
 		((ID3D11Texture2D*)mirrorTexture->texture.handle)->Release();
 
