@@ -7,8 +7,13 @@
 #include "REV_Assert.h"
 #include "REV_Error.h"
 
-vr::EVRInitError g_InitError;
-vr::IVRSystem* g_VRSystem;
+vr::EVRInitError g_InitError = vr::VRInitError_None;
+vr::IVRSystem* g_VRSystem = nullptr;
+
+struct ovrHmdStruct
+{
+	vr::IVRCompositor* compositor;
+};
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
@@ -107,9 +112,18 @@ OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsig
 	return desc;
 }
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid* pLuid) { REV_UNIMPLEMENTED_RUNTIME; }
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid* pLuid)
+{
+	// Initialize the opaque pointer with our own OpenVR-specific struct
+	ovrSession session = new struct ovrHmdStruct();
+	session->compositor = (vr::IVRCompositor*)VR_GetGenericInterface(vr::IVRCompositor_Version, &g_InitError);
+	return EVR_InitErrorToOvrError(g_InitError);
+}
 
-OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session) { REV_UNIMPLEMENTED; }
+OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
+{
+	delete session;
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessionStatus* sessionStatus) { REV_UNIMPLEMENTED_RUNTIME; }
 
