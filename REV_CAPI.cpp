@@ -145,6 +145,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	IDXGIAdapter* adapter;
 	DXGI_ADAPTER_DESC desc;
 	g_VRSystem->GetDXGIOutputInfo(&index);
+	if (index == -1)
+		index = 0;
+
 	HRESULT hr = g_pFactory->EnumAdapters(index, &adapter);
 	if (FAILED(hr))
 		return ovrError_MismatchedAdapters;
