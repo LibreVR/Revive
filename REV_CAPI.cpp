@@ -139,6 +139,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	if (g_InitError != vr::VRInitError_None)
 		return REV_InitErrorToOvrError(g_InitError);
 
+	// Get the overlay interface
+	session->overlay = (vr::IVROverlay*)VR_GetGenericInterface(vr::IVROverlay_Version, &g_InitError);
+	if (g_InitError != vr::VRInitError_None)
+		return REV_InitErrorToOvrError(g_InitError);
+
 	// Get the LUID for the adapter
 	int32_t index;
 	g_VRSystem->GetDXGIOutputInfo(&index);
@@ -497,36 +502,90 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrE
 	return desc;
 }
 
+vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain)
+{
+	vr::VRTextureBounds_t bounds;
+	float w = (float)swapChain->desc.Width;
+	float h = (float)swapChain->desc.Height;
+	bounds.uMin = viewport.Pos.x / w;
+	bounds.vMin = viewport.Pos.y / h;
+	bounds.uMax = viewport.Size.w / w;
+	bounds.vMax = viewport.Size.h / h;
+	return bounds;
+}
+
+vr::HmdMatrix34_t REV_OvrPoseToHmdMatrix(ovrPosef pose)
+{
+	vr::HmdMatrix34_t result;
+	OVR::Matrix4f matrix(pose);
+	memcpy(result.m, matrix.M, sizeof(result.m));
+	return result;
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	// TODO: Implement scaling through ApplyTransform().
-	// TODO: Implement support for overlay layers.
 
 	if (layerCount == 0)
 		return ovrError_InvalidParameter;
 
+	// The first layer is assumed to be the application scene.
 	_ASSERT(layerPtrList[0]->Type == ovrLayerType_EyeFov);
+	ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[0];
 
-	ovrLayerEyeFov* layer = (ovrLayerEyeFov*)layerPtrList[0];
+	// Other layers are interpreted as overlays.
+	for (size_t i = 1; i < layerCount && i < vr::k_unMaxOverlayCount; i++)
+	{
+		// Overlays are assumed to be monoscopic quads.
+		_ASSERT(layerPtrList[i]->Type == ovrLayerType_Quad);
 
+		ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
+
+		char keyName[vr::k_unVROverlayMaxKeyLength];
+		snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "Revive_%d", i);
+
+		// Look if the overlay already exists.
+		vr::VROverlayHandle_t overlay;
+		vr::EVROverlayError err = session->overlay->FindOverlay(keyName, &overlay);
+
+		// Create a new overlay if it doesn't exist.
+		if (err == vr::VROverlayError_UnknownOverlay)
+		{
+			char title[vr::k_unVROverlayMaxNameLength];
+			snprintf(title, vr::k_unVROverlayMaxNameLength, "Revive Layer %d", i);
+			session->overlay->CreateOverlay(keyName, title, &overlay);
+		}
+
+		// Transform the overlay.
+		vr::HmdMatrix34_t transform = REV_OvrPoseToHmdMatrix(layer->QuadPoseCenter);
+		session->overlay->SetOverlayWidthInMeters(overlay, layer->QuadSize.x);
+		if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
+			session->overlay->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
+		else
+			session->overlay->SetOverlayTransformAbsolute(overlay, session->compositor->GetTrackingSpace(), &transform);
+
+		// Set the texture and show the overlay.
+		vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture);
+		session->overlay->SetOverlayTextureBounds(overlay, &bounds);
+		session->overlay->SetOverlayTexture(overlay, &layer->ColorTexture->texture);
+
+		// TODO: Handle overlay errors.
+		// TODO: Hide layers no longer visible.
+		session->overlay->ShowOverlay(overlay);
+	}
+
+	// Submit the scene layer.
 	vr::EVRCompositorError err;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		vr::VRTextureBounds_t bounds;
-		ovrRecti* viewport = &layer->Viewport[i];
-		float w = (float)layer->ColorTexture[i]->desc.Width;
-		float h = (float)layer->ColorTexture[i]->desc.Height;
-		bounds.uMin = viewport->Pos.x / w;
-		bounds.vMin = viewport->Pos.y / h;
-		bounds.uMax = viewport->Size.w / w;
-		bounds.vMax = viewport->Size.h / h;
+		vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i]);
 
 		// TODO: Handle compositor errors.
-		err = session->compositor->Submit((vr::EVREye)i, &layer->ColorTexture[i]->texture, &bounds);
+		err = session->compositor->Submit((vr::EVREye)i, &sceneLayer->ColorTexture[i]->texture, &bounds);
 	}
 
-	session->lastFrame = *layer;
+	session->lastFrame = *sceneLayer;
 	return ovrSuccess;
 }
 

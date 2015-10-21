@@ -22,4 +22,5 @@ struct ovrHmdStruct
 	ovrLayerEyeFov lastFrame;
 	vr::IVRCompositor* compositor;
 	vr::IVRSettings* settings;
+	vr::IVROverlay* overlay;
 };
