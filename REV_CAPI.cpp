@@ -75,7 +75,10 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	return desc;
 }
 
-OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
+{
+	return g_VRSystem->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, nullptr, 0);
+}
 
 OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsigned int trackerDescIndex) { REV_UNIMPLEMENTED_STRUCT(ovrTrackerDesc); }
 
