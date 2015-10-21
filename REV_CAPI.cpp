@@ -519,7 +519,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	float time;
 	uint64_t frame;
 	g_VRSystem->GetTimeSinceLastVsync(&time, &frame);
-	_ASSERT(frameIndex == frame);
+	//_ASSERT(frameIndex == frame);
 
 	return time + fVsyncToPhotons;
 }
