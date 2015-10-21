@@ -271,13 +271,15 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	ovrTrackingState state = { 0 };
 
 	// Gain focus for the compositor
-	session->compositor->WaitGetPoses(nullptr, 0, nullptr, 0);
 	float time = (float)ovr_GetTimeInSeconds();
 
 	// Get the absolute tracking poses
 	vr::ETrackingUniverseOrigin origin = session->compositor->GetTrackingSpace();
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, (float)absTime, poses, vr::k_unMaxTrackedDeviceCount);
+	session->compositor->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+
+	// TODO: Get the poses through GetDeviceToAbsoluteTrackingPose with absTime.
+	//g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, (float)absTime, poses, vr::k_unMaxTrackedDeviceCount);
 
 	// Convert the head pose
 	state.HeadPose = REV_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], time);
