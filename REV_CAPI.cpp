@@ -460,7 +460,37 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrE
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
-	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount) { REV_UNIMPLEMENTED_RUNTIME; }
+	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+{
+	// TODO: Implement scaling through ApplyTransform().
+	// TODO: Implement support for overlay layers.
+
+	if (layerCount == 0)
+		return ovrError_InvalidParameter;
+
+	_ASSERT(layerPtrList[0]->Type == ovrLayerType_EyeFov);
+
+	ovrLayerEyeFov* layer = (ovrLayerEyeFov*)layerPtrList[0];
+
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		vr::VRTextureBounds_t bounds;
+		ovrRecti* viewport = &layer->Viewport[i];
+		float w = (float)layer->ColorTexture[i]->desc.Width;
+		float h = (float)layer->ColorTexture[i]->desc.Height;
+		bounds.uMin = viewport->Pos.x / w;
+		bounds.vMin = viewport->Pos.y / h;
+		bounds.uMax = viewport->Size.w / w;
+		bounds.vMax = viewport->Size.h / h;
+
+		// TODO: Handle compositor errors.
+		session->compositor->Submit((vr::EVREye)i, &layer->ColorTexture[i]->texture, &bounds);
+	}
+
+	session->compositor->PostPresentHandoff();
+
+	return ovrSuccess;
+}
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
 {

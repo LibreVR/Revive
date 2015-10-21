@@ -60,6 +60,9 @@
     <ClInclude Include="REV_Math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="REV_Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="REV_CAPI.cpp">
