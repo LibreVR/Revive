@@ -266,6 +266,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	for (int i = 0; i < ovrHand_Count; i++)
 	{
 		vr::TrackedDeviceIndex_t deviceIndex = hands[i];
+		if (deviceIndex == (uint32_t)-1)
+			continue;
+
 		state.HandPoses[i] = REV_TrackedDevicePoseToOVRPose(poses[deviceIndex], time);
 		state.HandStatusFlags[i] = REV_TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
