@@ -171,12 +171,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 			g_VRSystem->AcknowledgeQuit_Exiting();
 		}
 	}*/
+
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovrTrackingOrigin origin)
 {
 	// Both enums match exactly, so we can just cast them
 	session->compositor->SetTrackingSpace((vr::ETrackingUniverseOrigin)origin);
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession session)
@@ -185,9 +188,13 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 	return (ovrTrackingOrigin)session->compositor->GetTrackingSpace();
 }
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session) { REV_UNIMPLEMENTED_RUNTIME; }
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
+{
+	g_VRSystem->ResetSeatedZeroPose();
+	return ovrSuccess;
+}
 
-OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session) { REV_UNIMPLEMENTED; }
+OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session) { /* No such flag, do nothing */ }
 
 OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker) { REV_UNIMPLEMENTED_STRUCT(ovrTrackingState); }
 
