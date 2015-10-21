@@ -454,7 +454,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session,
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession session, ovrTextureSwapChain chain, int* out_Index)
 {
-	*out_Index = chain->index;
+	*out_Index = chain->current;
 	return ovrSuccess;
 }
 

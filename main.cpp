@@ -39,7 +39,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
     {
         case DLL_PROCESS_ATTACH:
 			Mhook_SetHook((PVOID*)&TrueLoadLibrary, HookLoadLibrary);
-			::CreateEventW(NULL, FALSE, vr::VR_IsHmdPresent(), OVR_HMD_CONNECTED_EVENT_NAME);
+			::SetEvent(::OpenEventW(NULL, FALSE, OVR_HMD_CONNECTED_EVENT_NAME));
             break;
 
 		case DLL_PROCESS_DETACH:
