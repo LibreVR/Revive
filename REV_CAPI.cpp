@@ -513,25 +513,28 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
 {
 	// TODO: Use GetFrameTiming for historic frames support.
+	float fDisplayFrequency = g_VRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
+	float fFrameDuration = 1.f / fDisplayFrequency;
 	float fVsyncToPhotons = g_VRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
 
 	// Get time in seconds
-	float time;
-	uint64_t frame;
-	g_VRSystem->GetTimeSinceLastVsync(&time, &frame);
-	//_ASSERT(frameIndex == frame);
+	float fSecondsSinceLastVsync;
+	uint64_t unFrame;
+	g_VRSystem->GetTimeSinceLastVsync(&fSecondsSinceLastVsync, &unFrame);
 
-	return time + fVsyncToPhotons;
+	return fFrameDuration - fSecondsSinceLastVsync + fVsyncToPhotons;
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 {
-	// TODO: Use high-resolution system time as specified.
+	float fDisplayFrequency = g_VRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
+
 	// Get time in seconds
-	float time;
-	uint64_t frame;
-	g_VRSystem->GetTimeSinceLastVsync(&time, &frame);
-	return time;
+	float fSecondsSinceLastVsync;
+	uint64_t unFrame;
+	g_VRSystem->GetTimeSinceLastVsync(&fSecondsSinceLastVsync, &unFrame);
+
+	return double(unFrame) / fDisplayFrequency + fSecondsSinceLastVsync;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal)
