@@ -16,17 +16,11 @@
 
 vr::EVRInitError g_InitError = vr::VRInitError_None;
 vr::IVRSystem* g_VRSystem = nullptr;
-IDXGIFactory* g_pFactory = nullptr;
 char* g_StringBuffer = nullptr;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
 	g_VRSystem = vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
-
-	HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)(&g_pFactory));
-	if (FAILED(hr))
-		return ovrError_IncompatibleGPU;
-
 	return REV_InitErrorToOvrError(g_InitError);
 }
 
@@ -37,7 +31,6 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 		delete g_StringBuffer;
 	g_StringBuffer = nullptr;
 
-	g_pFactory->Release();
 	vr::VR_Shutdown();
 }
 
@@ -148,23 +141,32 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 	// Get the LUID for the adapter
 	int32_t index;
-	IDXGIAdapter* adapter;
-	DXGI_ADAPTER_DESC desc;
 	g_VRSystem->GetDXGIOutputInfo(&index);
 	if (index == -1)
 		index = 0;
 
-	HRESULT hr = g_pFactory->EnumAdapters(index, &adapter);
+	// Create the DXGI factory
+	IDXGIFactory* pFactory;
+	HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)(&pFactory));
+	if (FAILED(hr))
+		return ovrError_IncompatibleGPU;
+
+	IDXGIAdapter* pAdapter;
+	hr = pFactory->EnumAdapters(index, &pAdapter);
 	if (FAILED(hr))
 		return ovrError_MismatchedAdapters;
 
-	hr = adapter->GetDesc(&desc);
+	DXGI_ADAPTER_DESC desc;
+	hr = pAdapter->GetDesc(&desc);
 	if (FAILED(hr))
 		return ovrError_MismatchedAdapters;
 
 	// Copy the LUID into the structure
 	memcpy(pLuid, &desc.AdapterLuid, sizeof(LUID));
 
+	// Cleanup and return
+	pFactory->Release();
+	pAdapter->Release();
 	*pSession = session;
 	return ovrSuccess;
 }
