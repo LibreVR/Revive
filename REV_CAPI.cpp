@@ -46,7 +46,7 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetVersionString()
 	return OVR_VERSION_STRING;
 }
 
-OVR_PUBLIC_FUNCTION(int) ovr_TraceMessage(int level, const char* message) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(int) ovr_TraceMessage(int level, const char* message) { return 0; /* Debugging feature */ }
 
 OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 {
