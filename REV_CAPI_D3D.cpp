@@ -56,7 +56,7 @@ DXGI_FORMAT ovr_TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int 
 
 UINT ovr_BindFlagsToD3DBindFlags(unsigned int flags)
 {
-	UINT result = 0;
+	UINT result = D3D11_BIND_SHADER_RESOURCE;
 	if (flags & ovrTextureBind_DX_RenderTarget)
 		result |= D3D11_BIND_RENDER_TARGET;
 	if (flags & ovrTextureBind_DX_UnorderedAccess)
