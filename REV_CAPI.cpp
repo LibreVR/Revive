@@ -567,6 +567,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
 
+			// Set the high quality overlay.
+			if (layer->Header.Flags & ovrLayerFlag_HighQuality)
+				session->overlay->SetHighQualityOverlay(overlay);
+
 			// Transform the overlay.
 			vr::HmdMatrix34_t transform = REV_OvrPoseToHmdMatrix(layer->QuadPoseCenter);
 			session->overlay->SetOverlayWidthInMeters(overlay, layer->QuadSize.x);
