@@ -430,7 +430,20 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirror
 
 OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeType eye, ovrFovPort fov, float pixelsPerDisplayPixel) { REV_UNIMPLEMENTED_STRUCT(ovrSizei); }
 
-OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrEyeType eyeType, ovrFovPort fov) { REV_UNIMPLEMENTED_STRUCT(ovrEyeRenderDesc); }
+OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrEyeType eyeType, ovrFovPort fov)
+{
+	ovrEyeRenderDesc desc;
+	desc.Eye = eyeType;
+
+	g_VRSystem->GetProjectionRaw((vr::EVREye)eyeType, &desc.Fov.LeftTan, &desc.Fov.RightTan, &desc.Fov.UpTan, &desc.Fov.DownTan);
+	OVR::Matrix4f HmdToEyeMatrix = REV_HmdMatrixToOVRMatrix(g_VRSystem->GetEyeToHeadTransform((vr::EVREye)eyeType));
+
+	desc.DistortedViewport = { 0 }; // TODO: Calculate distored viewport
+	desc.PixelsPerTanAngleAtCenter = { 0 }; // TODO: Calculate pixel pitch
+	desc.HmdToEyeOffset = HmdToEyeMatrix.GetTranslation();
+
+	return desc;
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount) { REV_UNIMPLEMENTED_RUNTIME; }
