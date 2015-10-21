@@ -6,8 +6,9 @@
 
 struct ovrTextureSwapChainData
 {
-	int length, index, current;
+	int length, index;
 	ovrTextureSwapChainDesc desc;
+	vr::Texture_t current;
 	vr::Texture_t texture[2];
 };
 

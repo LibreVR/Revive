@@ -93,7 +93,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
 	swapChain->length = 2;
 	swapChain->index = 0;
-	swapChain->current = 0;
 	swapChain->desc = *desc;
 
 	for (int i = 0; i < swapChain->length; i++)
@@ -104,6 +103,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		if (FAILED(hr))
 			return ovrError_RuntimeException;
 	}
+	swapChain->current = swapChain->texture[swapChain->index];
 
 	// Clean up and return
 	pDevice->Release();

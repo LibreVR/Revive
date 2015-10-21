@@ -467,7 +467,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, o
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
 {
-	chain->current = chain->index++;
+	chain->current = chain->texture[chain->index];
+	chain->index++;
 	chain->index %= chain->length;
 	return ovrSuccess;
 }
@@ -612,7 +613,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			ovrTextureSwapChain chain = layer->ColorTexture;
 			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
 			session->overlay->SetOverlayTextureBounds(overlay, &bounds);
-			session->overlay->SetOverlayTexture(overlay, &chain->texture[chain->current]);
+			session->overlay->SetOverlayTexture(overlay, &chain->current);
 
 			// TODO: Handle overlay errors.
 			session->overlay->ShowOverlay(overlay);
@@ -632,7 +633,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	{
 		ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
 		vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
-		vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &chain->texture[chain->current], &bounds);
+		vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &chain->current, &bounds);
 		if (err != vr::VRCompositorError_None)
 			return REV_CompositorErrorToOvrError(err);
 	}
