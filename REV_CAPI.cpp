@@ -243,10 +243,10 @@ ovrPoseStatef REV_TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, doubl
 	result.ThePose.Position = matrix.GetTranslation();
 	result.AngularVelocity = REV_HmdVectorToOVRVector(pose.vAngularVelocity);
 	result.LinearVelocity = REV_HmdVectorToOVRVector(pose.vVelocity);
-
 	// TODO: Calculate acceleration.
 	result.AngularAcceleration = ovrVector3f();
 	result.LinearAcceleration = ovrVector3f();
+	result.TimeInSeconds = time;
 
 	return result;
 }
