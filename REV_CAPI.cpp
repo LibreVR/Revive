@@ -544,7 +544,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		vr::VROverlayHandle_t overlay;
 		vr::EVROverlayError err = session->overlay->FindOverlay(keyName, &overlay);
 
-		// If this layer is defined in the list, show it. If not, hid the layer if it exists.
+		// If this layer is defined in the list, show it. If not, hide the layer if it exists.
 		if (i < layerCount)
 		{
 			// Create a new overlay if it doesn't exist.
@@ -553,6 +553,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 				char title[vr::k_unVROverlayMaxNameLength];
 				snprintf(title, vr::k_unVROverlayMaxNameLength, "Revive Layer %d", i);
 				session->overlay->CreateOverlay(keyName, title, &overlay);
+			}
+
+			// A layer was added, but not defined, hide it.
+			if (layerPtrList[i] == nullptr)
+			{
+				session->overlay->HideOverlay(overlay);
+				continue;
 			}
 
 			// Overlays are assumed to be monoscopic quads.
