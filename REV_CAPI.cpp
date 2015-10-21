@@ -159,6 +159,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Copy the LUID into the structure
 	memcpy(pLuid, &desc.AdapterLuid, sizeof(LUID));
 
+	*pSession = session;
 	return ovrSuccess;
 }
 
