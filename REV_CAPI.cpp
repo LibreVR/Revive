@@ -13,7 +13,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	return EVR_InitErrorToOvrError(err);
 }
 
-OVR_PUBLIC_FUNCTION(void) ovr_Shutdown() { REV_UNIMPLEMENTED; }
+OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
+{
+	vr::VR_Shutdown();
+}
 
 OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo) { REV_UNIMPLEMENTED; }
 
