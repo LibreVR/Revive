@@ -4,13 +4,13 @@
 #include "REV_Assert.h"
 #include "REV_Error.h"
 
+vr::EVRInitError g_InitError;
 vr::IVRSystem* g_VRSystem;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
-	vr::EVRInitError err;
-	g_VRSystem = vr::VR_Init(&err, vr::VRApplication_Scene);
-	return EVR_InitErrorToOvrError(err);
+	g_VRSystem = vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
+	return EVR_InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
@@ -18,7 +18,10 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 	vr::VR_Shutdown();
 }
 
-OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo) { REV_UNIMPLEMENTED; }
+OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
+{
+	VR_GetVRInitErrorAsEnglishDescription(g_InitError);
+}
 
 OVR_PUBLIC_FUNCTION(const char*) ovr_GetVersionString() { REV_UNIMPLEMENTED_NULL; }
 

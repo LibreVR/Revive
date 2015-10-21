@@ -24,7 +24,7 @@ ovrResult EVR_InitErrorToOvrError(vr::EVRInitError error)
 		case vr::VRInitError_Init_NoLogPath: return ovrError_Initialize;
 		case vr::VRInitError_Init_PathRegistryNotWritable: return ovrError_Initialize;
 		case vr::VRInitError_Init_AppInfoInitFailed: return ovrError_ServerStart;
-		case vr::VRInitError_Init_Retry: return ovrError_Reinitialization;
+		//case vr::VRInitError_Init_Retry: return ovrError_Reinitialization; // Internal
 		case vr::VRInitError_Init_InitCanceledByUser: return ovrError_Initialize;
 		case vr::VRInitError_Init_AnotherAppLaunching: return ovrError_ServerStart;
 		case vr::VRInitError_Init_SettingsInitFailed: return ovrError_Initialize;
