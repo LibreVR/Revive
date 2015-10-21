@@ -17,7 +17,7 @@ ovrResult REV_InitErrorToOvrError(vr::EVRInitError error)
 		case vr::VRInitError_Init_InterfaceNotFound: return ovrError_ServiceConnection;
 		case vr::VRInitError_Init_InvalidInterface: return ovrError_MismatchedAdapters;
 		case vr::VRInitError_Init_UserConfigDirectoryInvalid: return ovrError_Initialize;
-		case vr::VRInitError_Init_HmdNotFound: return ovrError_NoValidVRDisplaySystem;
+		case vr::VRInitError_Init_HmdNotFound: return ovrError_NoHmd;
 		case vr::VRInitError_Init_NotInitialized: return ovrError_Initialize;
 		case vr::VRInitError_Init_PathRegistryNotFound: return ovrError_Initialize;
 		case vr::VRInitError_Init_NoConfigPath: return ovrError_Initialize;
