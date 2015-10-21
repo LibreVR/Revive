@@ -261,16 +261,16 @@ int main()
 	ovrEyeRenderDesc render;
 	render = ovr_GetRenderDesc(session, ovrEye_Left, desc.DefaultEyeFov[ovrEye_Left]);
 	LOG_RESULT;
-	f << "ovr_GetRenderDesc(DefaultEyeFov[ovrEye_Left]): " << size << std::endl;
+	f << "ovr_GetRenderDesc(DefaultEyeFov[ovrEye_Left]): " << std::endl << render << std::endl;
 	render = ovr_GetRenderDesc(session, ovrEye_Right, desc.DefaultEyeFov[ovrEye_Right]);
 	LOG_RESULT;
-	f << "ovr_GetRenderDesc(DefaultEyeFov[ovrEye_Right]): " << size << std::endl;
+	f << "ovr_GetRenderDesc(DefaultEyeFov[ovrEye_Right]): " << std::endl << render << std::endl;
 	render = ovr_GetRenderDesc(session, ovrEye_Left, desc.MaxEyeFov[ovrEye_Left]);
 	LOG_RESULT;
-	f << "ovr_GetRenderDesc(MaxEyeFov[ovrEye_Left]): " << size << std::endl;
+	f << "ovr_GetRenderDesc(MaxEyeFov[ovrEye_Left]): " << std::endl << render << std::endl;
 	render = ovr_GetRenderDesc(session, ovrEye_Right, desc.MaxEyeFov[ovrEye_Right]);
 	LOG_RESULT;
-	f << "ovr_GetRenderDesc(MaxEyeFov[ovrEye_Right]): " << size << std::endl;
+	f << "ovr_GetRenderDesc(MaxEyeFov[ovrEye_Right]): " << std::endl << render << std::endl;
 
 	double displayTime = ovr_GetPredictedDisplayTime(session, 0);
 	LOG_RESULT;
