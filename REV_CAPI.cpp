@@ -135,7 +135,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	if (FAILED(hr))
 		return ovrError_MismatchedAdapters;
 
-	HRESULT hr = adapter->GetDesc(&desc);
+	hr = adapter->GetDesc(&desc);
 	if (FAILED(hr))
 		return ovrError_MismatchedAdapters;
 
