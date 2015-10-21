@@ -98,7 +98,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	swapChain->length = 1;
 	swapChain->index = 0;
 	swapChain->desc = *desc;
-	texture->QueryInterface(IID_IUnknown, &swapChain->texture.handle);
+	swapChain->texture.handle = texture;
 	swapChain->texture.eType = vr::API_DirectX;
 	swapChain->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 	*out_TextureSwapChain = swapChain;
@@ -111,7 +111,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
                                                                IID iid,
                                                                void** out_Buffer)
 {
-	IUnknown* texturePtr = (IUnknown*)chain->texture.handle;
+	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)chain->texture.handle;
 	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
@@ -149,7 +149,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	// TODO: Should add multiple buffers to swapchain?
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData();
 	mirrorTexture->desc = *desc;
-	texture->QueryInterface(IID_IUnknown, &mirrorTexture->texture.handle);
+	mirrorTexture->texture.handle = texture;
 	mirrorTexture->texture.eType = vr::API_DirectX;
 	mirrorTexture->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 	*out_MirrorTexture = mirrorTexture;
@@ -161,10 +161,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
                                                             IID iid,
                                                             void** out_Buffer)
 {
-	IUnknown* texturePtr = (IUnknown*)mirrorTexture->texture.handle;
-
-	ID3D11Texture2D* texture;
-	texturePtr->QueryInterface(&texture);
+	ID3D11Texture2D* texture = (ID3D11Texture2D*)mirrorTexture->texture.handle;
 	ID3D11Device* pDevice;
 	texture->GetDevice(&pDevice);
 	ID3D11DeviceContext* pContext;
@@ -180,7 +177,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 		pContext->CopySubresourceRegion(texture, 0, perEyeWidth * i, 0, 0, eyeTexture, 0, nullptr);
 	}
 
-	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
+	HRESULT hr = texture->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
 
