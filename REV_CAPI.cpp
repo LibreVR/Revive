@@ -10,13 +10,17 @@
 #include "REV_Error.h"
 #include "REV_Math.h"
 
+#define REV_SETTINGS_SECTION "Revive"
+
 vr::EVRInitError g_InitError = vr::VRInitError_None;
 vr::IVRSystem* g_VRSystem = nullptr;
 IDXGIFactory* g_pFactory = nullptr;
+char* g_StringBuffer = nullptr;
 
 struct ovrHmdStruct
 {
 	vr::IVRCompositor* compositor;
+	vr::IVRSettings* settings;
 };
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
@@ -32,6 +36,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
+	// Delete the global string property buffer.
+	if (g_StringBuffer)
+		delete g_StringBuffer;
+	g_StringBuffer = nullptr;
+
 	g_pFactory->Release();
 	vr::VR_Shutdown();
 }
@@ -125,7 +134,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 {
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new struct ovrHmdStruct();
+
+	// Get the compositor interface
 	session->compositor = (vr::IVRCompositor*)VR_GetGenericInterface(vr::IVRCompositor_Version, &g_InitError);
+	if (g_InitError != vr::VRInitError_None)
+		return REV_InitErrorToOvrError(g_InitError);
+
+	// Get the settings interface
+	session->settings = (vr::IVRSettings*)VR_GetGenericInterface(vr::IVRSettings_Version, &g_InitError);
+	if (g_InitError != vr::VRInitError_None)
+		return REV_InitErrorToOvrError(g_InitError);
 
 	// Get the LUID for the adapter
 	int32_t index;
@@ -143,7 +161,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Copy the LUID into the structure
 	memcpy(pLuid, &desc.AdapterLuid, sizeof(LUID));
 
-	return REV_InitErrorToOvrError(g_InitError);
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
@@ -439,22 +457,88 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 	return time;
 }
 
-OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal)
+{
+	return session->settings->GetBool(REV_SETTINGS_SECTION, propertyName, defaultVal);
+}
 
-OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propertyName, ovrBool value) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propertyName, ovrBool value)
+{
+	vr::EVRSettingsError error;
+	session->settings->SetBool(REV_SETTINGS_SECTION, propertyName, value, &error);
+	return error == vr::VRSettingsError_None;
+}
 
-OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName, int defaultVal) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName, int defaultVal)
+{
+	return session->settings->GetInt32(REV_SETTINGS_SECTION, propertyName, defaultVal);
+}
 
-OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* propertyName, int value) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* propertyName, int value)
+{
+	vr::EVRSettingsError error;
+	session->settings->SetInt32(REV_SETTINGS_SECTION, propertyName, value, &error);
+	return error == vr::VRSettingsError_None;
+}
 
-OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* propertyName, float defaultVal) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* propertyName, float defaultVal)
+{
+	return session->settings->GetFloat(REV_SETTINGS_SECTION, propertyName, defaultVal);
+}
 
-OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* propertyName, float value) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* propertyName, float value)
+{
+	vr::EVRSettingsError error;
+	session->settings->SetFloat(REV_SETTINGS_SECTION, propertyName, value, &error);
+	return error == vr::VRSettingsError_None;
+}
 
-OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const char* propertyName, float values[], unsigned int valuesCapacity) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const char* propertyName, float values[], unsigned int valuesCapacity)
+{
+	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
 
-OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* propertyName, const float values[], unsigned int valuesSize) { REV_UNIMPLEMENTED_NULL; }
+	for (int i = 0; i < valuesCapacity; i++)
+	{
+		vr::EVRSettingsError error;
+		snprintf(key, vr::k_unMaxSettingsKeyLength, "%s[%d]", propertyName, i);
+		values[i] = session->settings->GetFloat(REV_SETTINGS_SECTION, key, 0.0f, &error);
 
-OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* propertyName, const char* defaultVal) { REV_UNIMPLEMENTED_NULL; }
+		if (error != vr::VRSettingsError_None)
+			return i;
+	}
 
-OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* propertyName, const char* value) { REV_UNIMPLEMENTED_NULL; }
+	return valuesCapacity;
+}
+
+OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* propertyName, const float values[], unsigned int valuesSize)
+{
+	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
+
+	for (int i = 0; i < valuesSize; i++)
+	{
+		vr::EVRSettingsError error;
+		snprintf(key, vr::k_unMaxSettingsKeyLength, "%s[%d]", propertyName, i);
+		session->settings->SetFloat(REV_SETTINGS_SECTION, key, values[i], &error);
+
+		if (error != vr::VRSettingsError_None)
+			return false;
+	}
+
+	return true;
+}
+
+OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* propertyName, const char* defaultVal)
+{
+	if (g_StringBuffer == nullptr)
+		g_StringBuffer = new char[vr::k_unMaxPropertyStringSize];
+
+	session->settings->GetString(REV_SETTINGS_SECTION, propertyName, g_StringBuffer, vr::k_unMaxPropertyStringSize, defaultVal);
+	return g_StringBuffer;
+}
+
+OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* propertyName, const char* value)
+{
+	vr::EVRSettingsError error;
+	session->settings->SetString(REV_SETTINGS_SECTION, propertyName, value, &error);
+	return error == vr::VRSettingsError_None;
+}
