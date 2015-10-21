@@ -1,8 +1,16 @@
 #include "Extras/OVR_CAPI_Util.h"
 
+#include "openvr.h"
+
 #include "REV_Assert.h"
 
-OVR_PUBLIC_FUNCTION(ovrDetectResult) ovr_Detect(int timeoutMilliseconds) { REV_UNIMPLEMENTED_STRUCT(ovrDetectResult); }
+OVR_PUBLIC_FUNCTION(ovrDetectResult) ovr_Detect(int timeoutMilliseconds)
+{
+	ovrDetectResult result;
+	result.IsOculusHMDConnected = vr::VR_IsHmdPresent();
+	result.IsOculusServiceRunning = vr::VR_IsRuntimeInstalled();
+	return result;
+}
 
 OVR_PUBLIC_FUNCTION(ovrMatrix4f) ovrMatrix4f_Projection(ovrFovPort fov, float znear, float zfar, unsigned int projectionModFlags) { REV_UNIMPLEMENTED_STRUCT(ovrMatrix4f); }
 
