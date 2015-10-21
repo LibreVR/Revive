@@ -13,6 +13,5 @@ However you will still need to patch the application to actually load the Revive
 
 # To-Do List
 - Fix stereoscopy in Unity Engine games
-- Implement a DLL injection launcher
 - Implement OpenGL and DX12 support
 - Implement Oculus Touch support
