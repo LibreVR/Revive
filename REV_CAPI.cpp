@@ -537,7 +537,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	// Other layers are interpreted as overlays.
 	for (size_t i = 1; i < vr::k_unMaxOverlayCount + 1; i++)
 	{
-
 		char keyName[vr::k_unVROverlayMaxKeyLength];
 		snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "Revive_%d", i);
 
@@ -545,9 +544,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		vr::VROverlayHandle_t overlay;
 		vr::EVROverlayError err = session->overlay->FindOverlay(keyName, &overlay);
 
-		// Create a new overlay if it doesn't exist.
+		// If this layer is defined in the list, show it. If not, hid the layer if it exists.
 		if (i < layerCount)
 		{
+			// Create a new overlay if it doesn't exist.
 			if (err == vr::VROverlayError_UnknownOverlay)
 			{
 				char title[vr::k_unVROverlayMaxNameLength];
