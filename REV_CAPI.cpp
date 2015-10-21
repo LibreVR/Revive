@@ -1,4 +1,6 @@
 #include "OVR_CAPI.h"
+#include "OVR_Version.h"
+
 #include "openvr.h"
 
 #include "REV_Assert.h"
@@ -23,7 +25,10 @@ OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
 	VR_GetVRInitErrorAsEnglishDescription(g_InitError);
 }
 
-OVR_PUBLIC_FUNCTION(const char*) ovr_GetVersionString() { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(const char*) ovr_GetVersionString()
+{
+	return OVR_VERSION_STRING;
+}
 
 OVR_PUBLIC_FUNCTION(int) ovr_TraceMessage(int level, const char* message) { REV_UNIMPLEMENTED_NULL; }
 
