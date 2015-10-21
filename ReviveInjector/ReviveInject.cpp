@@ -21,15 +21,6 @@ int CreateProcessAndInject(char *programPath)
 		printf("Failed to get cwd\n");
 		return -1;
 	}
-	char *dllName =
-#if _WIN64
-		"LibRevive64_1.dll"; // TODO: FIXME
-#else
-		"LibRevive32_1.dll";
-#endif
-	char dllPath[MAX_PATH];
-	snprintf(dllPath, sizeof(dllPath), "%s\\%s", cwd, dllName);
-	int dllPathLength = sizeof(dllPath);
 
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -37,10 +28,31 @@ int CreateProcessAndInject(char *programPath)
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
 	// TODO: close the created process if something goes wrong
-	if (!CreateProcess(NULL, GetLPWSTR(programPath), NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &si, &pi)) {
+	if (!CreateProcess(NULL, GetLPWSTR(programPath), NULL, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &si, &pi))
+	{
 		printf("Failed to create process\n");
 		return -1;
 	}
+
+	const char *dllName;
+#if _WIN64
+	BOOL b32bit = FALSE;
+	if (!IsWow64Process(pi.hProcess, &b32bit))
+	{
+		printf("Failed to query bit depth\n");
+		return -1;
+	}
+
+	if (b32bit)
+		dllName = "LibRevive32_1.dll";
+	else
+		dllName = "LibRevive64_1.dll";
+#else
+	dllName ="LibRevive32_1.dll";
+#endif
+	char dllPath[MAX_PATH];
+	snprintf(dllPath, sizeof(dllPath), "%s\\%s", cwd, dllName);
+	int dllPathLength = sizeof(dllPath);
 
 	HMODULE hModule = GetModuleHandle(L"kernel32.dll");
 	LPVOID loadLibraryAddr = (LPVOID)GetProcAddress(hModule, "LoadLibraryA");
