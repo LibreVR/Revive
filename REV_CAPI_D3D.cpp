@@ -29,6 +29,18 @@ DXGI_FORMAT ovr_TextureFormatToDXGIFormat(ovrTextureFormat format)
 	}
 }
 
+UINT ovr_BindFlagsToD3DBindFlags(unsigned int flags)
+{
+	UINT result = 0;
+	if (flags & ovrTextureBind_DX_RenderTarget)
+		result |= D3D11_BIND_RENDER_TARGET;
+	if (flags & ovrTextureBind_DX_UnorderedAccess)
+		result |= D3D11_BIND_UNORDERED_ACCESS;
+	if (flags & ovrTextureBind_DX_DepthStencil)
+		result |= D3D11_BIND_DEPTH_STENCIL;
+	return result;
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
                                                             IUnknown* d3dPtr,
                                                             const ovrTextureSwapChainDesc* desc,
@@ -42,15 +54,19 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	// TODO: Implement support for texture flags.
 	ID3D11Texture2D* texture;
-	D3D11_TEXTURE2D_DESC texdesc = { 0 };
-	texdesc.Width = desc->Width;
-	texdesc.Height = desc->Height;
-	texdesc.MipLevels = desc->MipLevels;
-	texdesc.ArraySize = desc->ArraySize;
-	texdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format);
-	texdesc.Usage = D3D11_USAGE_DEFAULT;
-	texdesc.BindFlags = desc->BindFlags;
-	pDevice->CreateTexture2D(&texdesc, nullptr, &texture);
+	D3D11_TEXTURE2D_DESC tdesc = { 0 };
+	tdesc.Width = desc->Width;
+	tdesc.Height = desc->Height;
+	tdesc.MipLevels = desc->MipLevels;
+	tdesc.ArraySize = desc->ArraySize;
+	tdesc.SampleDesc.Count = 1;
+	tdesc.SampleDesc.Quality = 0;
+	tdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format);
+	tdesc.Usage = D3D11_USAGE_DEFAULT;
+	tdesc.BindFlags = ovr_BindFlagsToD3DBindFlags(desc->BindFlags);
+	hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
+	if (FAILED(hr))
+		return ovrError_RuntimeException;
 
 	// TODO: Should add multiple buffers to swapchain?
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
