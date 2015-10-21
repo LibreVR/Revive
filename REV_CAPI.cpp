@@ -516,7 +516,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrE
 	return desc;
 }
 
-vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain)
+vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags)
 {
 	vr::VRTextureBounds_t bounds;
 	float w = (float)swapChain->desc.Width;
@@ -525,6 +525,13 @@ vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureS
 	bounds.vMin = viewport.Pos.y / h;
 	bounds.uMax = viewport.Size.w / w;
 	bounds.vMax = viewport.Size.h / h;
+
+	if (flags & ovrLayerFlag_TextureOriginAtBottomLeft)
+	{
+		bounds.vMin = 1.0f - bounds.vMin;
+		bounds.vMax = 1.0f - bounds.vMax;
+	}
+
 	return bounds;
 }
 
@@ -595,7 +602,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 			// Set the texture and show the overlay.
 			ovrTextureSwapChain chain = layer->ColorTexture;
-			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture);
+			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
 			session->overlay->SetOverlayTextureBounds(overlay, &bounds);
 			session->overlay->SetOverlayTexture(overlay, &chain->texture[chain->current]);
 
@@ -616,7 +623,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
-		vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i]);
+		vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
 		vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &chain->texture[chain->current], &bounds);
 		if (err != vr::VRCompositorError_None)
 			return REV_CompositorErrorToOvrError(err);
