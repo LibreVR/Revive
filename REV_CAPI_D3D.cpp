@@ -4,10 +4,7 @@
 #include <d3d11.h>
 
 #include "REV_Assert.h"
-
-struct ovrTextureSwapChainData {
-	vr::Texture_t texture;
-};
+#include "REV_Common.h"
 
 DXGI_FORMAT ovr_TextureFormatToDXGIFormat(ovrTextureFormat format)
 {
@@ -57,6 +54,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	// TODO: Should add multiple buffers to swapchain?
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
+	swapChain->length = 1;
+	swapChain->index = 0;
+	swapChain->desc = *desc;
 	texture->QueryInterface(IID_IUnknown, &swapChain->texture.handle);
 	swapChain->texture.eType = vr::API_DirectX;
 	swapChain->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.

@@ -7,6 +7,7 @@
 #include <Xinput.h>
 
 #include "REV_Assert.h"
+#include "REV_Common.h"
 #include "REV_Error.h"
 #include "REV_Math.h"
 
@@ -16,12 +17,6 @@ vr::EVRInitError g_InitError = vr::VRInitError_None;
 vr::IVRSystem* g_VRSystem = nullptr;
 IDXGIFactory* g_pFactory = nullptr;
 char* g_StringBuffer = nullptr;
-
-struct ovrHmdStruct
-{
-	vr::IVRCompositor* compositor;
-	vr::IVRSettings* settings;
-};
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
@@ -416,15 +411,34 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ov
 	return ovrError_DeviceUnavailable;
 }
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session, ovrTextureSwapChain chain, int* out_Length) { REV_UNIMPLEMENTED_RUNTIME; }
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session, ovrTextureSwapChain chain, int* out_Length)
+{
+	*out_Length = chain->length;
+	return ovrSuccess;
+}
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession session, ovrTextureSwapChain chain, int* out_Index) { REV_UNIMPLEMENTED_RUNTIME; }
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession session, ovrTextureSwapChain chain, int* out_Index)
+{
+	*out_Index = chain->index;
+	return ovrSuccess;
+}
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, ovrTextureSwapChain chain, ovrTextureSwapChainDesc* out_Desc) { REV_UNIMPLEMENTED_RUNTIME; }
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, ovrTextureSwapChain chain, ovrTextureSwapChainDesc* out_Desc)
+{
+	out_Desc = &chain->desc;
+	return ovrSuccess;
+}
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ovrTextureSwapChain chain) { REV_UNIMPLEMENTED_RUNTIME; }
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
+{
+	// TODO: Should add multiple buffers to swapchain?
+	return ovrSuccess;
+}
 
-OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTextureSwapChain chain) { REV_UNIMPLEMENTED; }
+OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
+{
+	delete chain;
+}
 
 OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirrorTexture mirrorTexture) { REV_UNIMPLEMENTED; }
 
