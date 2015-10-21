@@ -248,3 +248,6 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# Ignore third-party library
+LibOVR/

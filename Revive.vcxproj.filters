@@ -13,5 +13,54 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\LibOVR">
+      <UniqueIdentifier>{65f0981f-e8d3-4a7b-b3a3-e714fcf5a578}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\LibOVR\Extra">
+      <UniqueIdentifier>{5d5ca7db-d5a5-48fa-913f-bca4b86d6d27}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LibOVR\Include\OVR_CAPI.h">
+      <Filter>Header Files\LibOVR</Filter>
+    </ClInclude>
+    <ClInclude Include="LibOVR\Include\OVR_CAPI_Audio.h">
+      <Filter>Header Files\LibOVR</Filter>
+    </ClInclude>
+    <ClInclude Include="LibOVR\Include\OVR_CAPI_D3D.h">
+      <Filter>Header Files\LibOVR</Filter>
+    </ClInclude>
+    <ClInclude Include="LibOVR\Include\OVR_CAPI_GL.h">
+      <Filter>Header Files\LibOVR</Filter>
+    </ClInclude>
+    <ClInclude Include="LibOVR\Include\OVR_CAPI_Keys.h">
+      <Filter>Header Files\LibOVR</Filter>
+    </ClInclude>
+    <ClInclude Include="LibOVR\Include\OVR_ErrorCode.h">
+      <Filter>Header Files\LibOVR</Filter>
+    </ClInclude>
+    <ClInclude Include="LibOVR\Include\OVR_Version.h">
+      <Filter>Header Files\LibOVR</Filter>
+    </ClInclude>
+    <ClInclude Include="LibOVR\Include\Extras\OVR_CAPI_Util.h">
+      <Filter>Header Files\LibOVR\Extra</Filter>
+    </ClInclude>
+    <ClInclude Include="REV_Assert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="REV_CAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_Audio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_D3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_GL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
