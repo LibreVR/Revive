@@ -510,14 +510,15 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrE
 {
 	ovrEyeRenderDesc desc;
 	desc.Eye = eyeType;
+	desc.Fov = fov;
 
-	g_VRSystem->GetProjectionRaw((vr::EVREye)eyeType, &desc.Fov.LeftTan, &desc.Fov.RightTan, &desc.Fov.UpTan, &desc.Fov.DownTan);
-	desc.Fov.LeftTan *= -1.0f;
-	desc.Fov.UpTan *= -1.0f;
 	OVR::Matrix4f HmdToEyeMatrix = REV_HmdMatrixToOVRMatrix(g_VRSystem->GetEyeToHeadTransform((vr::EVREye)eyeType));
+	float WidthTan = fov.LeftTan + fov.RightTan;
+	float HeightTan = fov.UpTan + fov.DownTan;
+	ovrSizei size = ovr_GetFovTextureSize(session, eyeType, fov, 1.0);
 
-	desc.DistortedViewport = { 0 }; // TODO: Calculate distored viewport
-	desc.PixelsPerTanAngleAtCenter = { 0 }; // TODO: Calculate pixel pitch
+	desc.DistortedViewport = OVR::Recti(eyeType == ovrEye_Right ? size.w : 0, 0, size.w, size.h);
+	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w / WidthTan, size.h / HeightTan);
 	desc.HmdToEyeOffset = HmdToEyeMatrix.GetTranslation();
 
 	return desc;

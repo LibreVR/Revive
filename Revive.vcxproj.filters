@@ -90,6 +90,9 @@
     <ClInclude Include="mhook\disasm-lib\misc.h">
       <Filter>Header Files\mhook</Filter>
     </ClInclude>
+    <ClInclude Include="openvr\headers\openvr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="REV_CAPI.cpp">
