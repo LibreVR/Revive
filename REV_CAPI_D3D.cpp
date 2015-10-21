@@ -173,20 +173,22 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
                                                             void** out_Buffer)
 {
 	ID3D11Texture2D* texture = (ID3D11Texture2D*)mirrorTexture->texture.handle;
+
 	ID3D11Device* pDevice;
 	texture->GetDevice(&pDevice);
 	ID3D11DeviceContext* pContext;
 	pDevice->GetImmediateContext(&pContext);
 
-	ovrLayerEyeFov* layer = &session->lastFrame;
 	int perEyeWidth = mirrorTexture->desc.Width / 2;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		ovrTextureSwapChain chain = layer->ColorTexture[i];
-		ID3D11Texture2D* eyeTexture;
-		IUnknown* eyeTexturePtr = (IUnknown*)chain->texture[chain->current].handle;
-		eyeTexturePtr->QueryInterface(&eyeTexture);
-		pContext->CopySubresourceRegion(texture, 0, perEyeWidth * i, 0, 0, eyeTexture, 0, nullptr);
+		ovrTextureSwapChain chain = session->ColorTexture[i];
+		if (chain)
+		{
+			// TODO: Support texture bounds.
+			ID3D11Texture2D* eyeTexture = (ID3D11Texture2D*)chain->current.handle;
+			pContext->CopySubresourceRegion(texture, 0, perEyeWidth * i, 0, 0, eyeTexture, 0, nullptr);
+		}
 	}
 
 	HRESULT hr = texture->QueryInterface(iid, out_Buffer);

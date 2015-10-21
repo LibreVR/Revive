@@ -128,6 +128,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 {
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new struct ovrHmdStruct();
+	memset(session->ColorTexture, 0, sizeof(ovrHmdStruct::ColorTexture));
 
 	// Get the compositor interface
 	session->compositor = (vr::IVRCompositor*)VR_GetGenericInterface(vr::IVRCompositor_Version, &g_InitError);
@@ -632,13 +633,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
+		session->ColorTexture[i] = chain;
 		vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
 		vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &chain->current, &bounds);
 		if (err != vr::VRCompositorError_None)
 			return REV_CompositorErrorToOvrError(err);
 	}
 
-	session->lastFrame = *sceneLayer;
 	return ovrSuccess;
 }
 

@@ -20,7 +20,7 @@ struct ovrMirrorTextureData
 
 struct ovrHmdStruct
 {
-	ovrLayerEyeFov lastFrame;
+	ovrTextureSwapChain ColorTexture[ovrEye_Count];
 	vr::IVRCompositor* compositor;
 	vr::IVRSettings* settings;
 	vr::IVROverlay* overlay;
