@@ -79,7 +79,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	// TODO: Implement support for texture flags.
 	ID3D11Texture2D* texture;
-	D3D11_TEXTURE2D_DESC tdesc = { 0 };
+	D3D11_TEXTURE2D_DESC tdesc;
 	tdesc.Width = desc->Width;
 	tdesc.Height = desc->Height;
 	tdesc.MipLevels = desc->MipLevels;
@@ -89,6 +89,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	tdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format, desc->MiscFlags);
 	tdesc.Usage = D3D11_USAGE_DEFAULT;
 	tdesc.BindFlags = ovr_BindFlagsToD3DBindFlags(desc->BindFlags);
+	tdesc.CPUAccessFlags = 0;
+	tdesc.MiscFlags = 0;
 	hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
@@ -135,7 +137,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 
 	// TODO: Implement support for texture flags.
 	ID3D11Texture2D* texture;
-	D3D11_TEXTURE2D_DESC tdesc = { 0 };
+	D3D11_TEXTURE2D_DESC tdesc;
 	tdesc.Width = desc->Width;
 	tdesc.Height = desc->Height;
 	tdesc.MipLevels = 1;
@@ -145,6 +147,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	tdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format, desc->MiscFlags);
 	tdesc.Usage = D3D11_USAGE_DEFAULT;
 	tdesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+	tdesc.CPUAccessFlags = 0;
+	tdesc.MiscFlags = 0;
 	hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
