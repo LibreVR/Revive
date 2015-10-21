@@ -101,6 +101,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	swapChain->texture.handle = texture;
 	swapChain->texture.eType = vr::API_DirectX;
 	swapChain->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+
+	// Clean up and return
+	pDevice->Release();
 	*out_TextureSwapChain = swapChain;
 	return ovrSuccess;
 }
@@ -152,6 +155,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	mirrorTexture->texture.handle = texture;
 	mirrorTexture->texture.eType = vr::API_DirectX;
 	mirrorTexture->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+
+	// Clean up and return
+	pDevice->Release();
 	*out_MirrorTexture = mirrorTexture;
 	return ovrSuccess;
 }
@@ -181,5 +187,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
 
+	// Clean up and return
+	pDevice->Release();
+	pContext->Release();
 	return ovrSuccess;
 }

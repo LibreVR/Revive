@@ -4,6 +4,7 @@
 
 #include "openvr.h"
 #include <DXGI.h>
+#include <d3d11.h>
 #include <Xinput.h>
 
 #include "REV_Assert.h"
@@ -450,13 +451,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 
 OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
 {
-	// TODO: Should delete texture to prevent resource leak?
+	if (chain->texture.eType == vr::API_DirectX)
+		((ID3D11Texture2D*)chain->texture.handle)->Release();
+
 	delete chain;
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirrorTexture mirrorTexture)
 {
-	// TODO: Should delete texture to prevent resource leak?
+	if (mirrorTexture->texture.eType == vr::API_DirectX)
+		((ID3D11Texture2D*)mirrorTexture->texture.handle)->Release();
+
 	delete mirrorTexture;
 }
 
