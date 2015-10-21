@@ -264,7 +264,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 	// Gain focus for the compositor
 	session->compositor->WaitGetPoses(nullptr, 0, nullptr, 0);
-	float time = ovr_GetTimeInSeconds();
+	float time = (float)ovr_GetTimeInSeconds();
 
 	// Get the absolute tracking poses
 	vr::ETrackingUniverseOrigin origin = session->compositor->GetTrackingSpace();
@@ -559,13 +559,13 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal)
 {
-	return session->settings->GetBool(REV_SETTINGS_SECTION, propertyName, defaultVal);
+	return session->settings->GetBool(REV_SETTINGS_SECTION, propertyName, !!defaultVal);
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propertyName, ovrBool value)
 {
 	vr::EVRSettingsError error;
-	session->settings->SetBool(REV_SETTINGS_SECTION, propertyName, value, &error);
+	session->settings->SetBool(REV_SETTINGS_SECTION, propertyName, !!value, &error);
 	return error == vr::VRSettingsError_None;
 }
 
@@ -597,7 +597,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const ch
 {
 	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
 
-	for (int i = 0; i < valuesCapacity; i++)
+	for (size_t i = 0; i < valuesCapacity; i++)
 	{
 		vr::EVRSettingsError error;
 		snprintf(key, vr::k_unMaxSettingsKeyLength, "%s[%d]", propertyName, i);
@@ -614,7 +614,7 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* p
 {
 	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
 
-	for (int i = 0; i < valuesSize; i++)
+	for (size_t i = 0; i < valuesSize; i++)
 	{
 		vr::EVRSettingsError error;
 		snprintf(key, vr::k_unMaxSettingsKeyLength, "%s[%d]", propertyName, i);
