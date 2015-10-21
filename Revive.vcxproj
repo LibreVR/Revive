@@ -86,7 +86,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>mhook\mhook-lib;openvr\headers;LibOVR\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>minhook\include;openvr\headers;LibOVR\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>openvr\lib\win32</AdditionalLibraryDirectories>
@@ -99,7 +99,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>mhook\mhook-lib;openvr\headers;LibOVR\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>minhook\include;openvr\headers;LibOVR\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>openvr\lib\win64</AdditionalLibraryDirectories>
@@ -114,7 +114,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>mhook\mhook-lib;openvr\headers;LibOVR\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>minhook\include;openvr\headers;LibOVR\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -131,7 +131,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>mhook\mhook-lib;openvr\headers;LibOVR\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>minhook\include;openvr\headers;LibOVR\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -141,12 +141,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="mhook\disasm-lib\cpu.h" />
-    <ClInclude Include="mhook\disasm-lib\disasm.h" />
-    <ClInclude Include="mhook\disasm-lib\disasm_x86.h" />
-    <ClInclude Include="mhook\disasm-lib\disasm_x86_tables.h" />
-    <ClInclude Include="mhook\disasm-lib\misc.h" />
-    <ClInclude Include="mhook\mhook-lib\mhook.h" />
     <ClInclude Include="openvr\headers\openvr.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="REV_Common.h" />
@@ -166,11 +160,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="mhook\disasm-lib\cpu.c" />
-    <ClCompile Include="mhook\disasm-lib\disasm.c" />
-    <ClCompile Include="mhook\disasm-lib\disasm_x86.c" />
-    <ClCompile Include="mhook\disasm-lib\misc.c" />
-    <ClCompile Include="mhook\mhook-lib\mhook.cpp" />
     <ClCompile Include="REV_CAPI.cpp" />
     <ClCompile Include="REV_CAPI_Audio.cpp" />
     <ClCompile Include="REV_CAPI_D3D.cpp" />
@@ -179,6 +168,11 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="minhook\build\VC15\libMinHook.vcxproj">
+      <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

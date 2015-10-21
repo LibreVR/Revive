@@ -1,6 +1,6 @@
 #include <Windows.h>
 #include <stdio.h>
-#include "mhook.h"
+#include "MinHook.h"
 #include "Shlwapi.h"
 
 #include <openvr.h>
@@ -14,8 +14,8 @@
 typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
 
-_LoadLibrary TrueLoadLibrary = (_LoadLibrary)GetProcAddress(GetModuleHandle(L"kernel32"), "LoadLibraryW");
-_OpenEvent TrueOpenEvent = (_OpenEvent)GetProcAddress(GetModuleHandle(L"kernel32"), "OpenEventW");
+_LoadLibrary TrueLoadLibrary;
+_OpenEvent TrueOpenEvent;
 
 HANDLE ReviveModule;
 
@@ -51,13 +51,17 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
     switch(ul_reason_for_call)
     {
         case DLL_PROCESS_ATTACH:
-			Mhook_SetHook((PVOID*)&TrueLoadLibrary, HookLoadLibrary);
-			Mhook_SetHook((PVOID*)&TrueOpenEvent, HookOpenEvent);
+			MH_Initialize();
+			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
+			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
+			MH_EnableHook(LoadLibraryW);
+			MH_EnableHook(OpenEventW);
             break;
 
 		case DLL_PROCESS_DETACH:
-			Mhook_Unhook((PVOID*)&HookLoadLibrary);
-			Mhook_Unhook((PVOID*)&HookOpenEvent);
+			MH_RemoveHook(LoadLibraryW);
+			MH_RemoveHook(OpenEventW);
+			MH_Uninitialize();
 
         default:
             break;

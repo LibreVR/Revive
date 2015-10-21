@@ -3,6 +3,7 @@
 #include "Extras/OVR_Math.h"
 
 #include "openvr.h"
+#include "MinHook.h"
 #include <DXGI.h>
 #include <d3d11.h>
 #include <Xinput.h>
@@ -20,7 +21,16 @@ char* g_StringBuffer = nullptr;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
+	MH_QueueDisableHook(LoadLibraryW);
+	MH_QueueDisableHook(OpenEventW);
+	MH_ApplyQueued();
+
 	g_VRSystem = vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
+
+	MH_QueueEnableHook(LoadLibraryW);
+	MH_QueueEnableHook(OpenEventW);
+	MH_ApplyQueued();
+
 	return REV_InitErrorToOvrError(g_InitError);
 }
 
