@@ -125,7 +125,28 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 	delete session;
 }
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessionStatus* sessionStatus) { REV_UNIMPLEMENTED_RUNTIME; }
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessionStatus* sessionStatus)
+{
+	// Fill in the status
+	sessionStatus->IsVisible = session->compositor->CanRenderScene();
+	sessionStatus->HmdPresent = g_VRSystem->IsTrackedDeviceConnected(vr::k_unTrackedDeviceIndex_Hmd);
+	sessionStatus->HmdMounted = sessionStatus->HmdPresent;
+	sessionStatus->DisplayLost = false;
+	sessionStatus->ShouldQuit = false;
+	sessionStatus->ShouldRecenter = false;
+
+	// Check for quit event
+	// TODO: Should we poll for events here?
+	/*vr::VREvent_t ev;
+	while (g_VRSystem->PollNextEvent(&ev, sizeof(vr::VREvent_t)))
+	{
+		if (ev.eventType == vr::VREvent_Quit)
+		{
+			sessionStatus->ShouldQuit = true;
+			g_VRSystem->AcknowledgeQuit_Exiting();
+		}
+	}*/
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovrTrackingOrigin origin) { REV_UNIMPLEMENTED_RUNTIME; }
 
