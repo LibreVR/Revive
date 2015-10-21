@@ -97,9 +97,8 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsigned int trackerDescIndex)
 {
 	// Get the index for this tracker.
-	uint32_t size = ovr_GetTrackerCount(session);
-	vr::TrackedDeviceIndex_t* trackers = new vr::TrackedDeviceIndex_t[size];
-	g_VRSystem->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, 2);
+	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount];
+	g_VRSystem->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
 	vr::TrackedDeviceIndex_t index = trackers[trackerDescIndex];
 
 	// Fill the descriptor
