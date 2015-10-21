@@ -173,9 +173,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	}*/
 }
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovrTrackingOrigin origin) { REV_UNIMPLEMENTED_RUNTIME; }
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovrTrackingOrigin origin)
+{
+	// Both enums match exactly, so we can just cast them
+	session->compositor->SetTrackingSpace((vr::ETrackingUniverseOrigin)origin);
+}
 
-OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession session) { REV_UNIMPLEMENTED_STRUCT(ovrTrackingOrigin); }
+OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession session)
+{
+	// Both enums match exactly, so we can just cast them
+	return (ovrTrackingOrigin)session->compositor->GetTrackingSpace();
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session) { REV_UNIMPLEMENTED_RUNTIME; }
 
