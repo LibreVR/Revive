@@ -139,6 +139,7 @@
     <ClInclude Include="LibOVR\Include\OVR_ErrorCode.h" />
     <ClInclude Include="LibOVR\Include\OVR_Version.h" />
     <ClInclude Include="REV_Assert.h" />
+    <ClInclude Include="REV_Error.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="REV_CAPI.cpp" />

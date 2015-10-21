@@ -48,6 +48,9 @@
     <ClInclude Include="REV_Assert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="REV_Error.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="REV_CAPI.cpp">

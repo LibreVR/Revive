@@ -1,8 +1,17 @@
 #include "OVR_CAPI.h"
+#include "openvr.h"
 
 #include "REV_Assert.h"
+#include "REV_Error.h"
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params) { REV_UNIMPLEMENTED_RUNTIME; }
+vr::IVRSystem* g_VRSystem;
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
+{
+	vr::EVRInitError err;
+	g_VRSystem = vr::VR_Init(&err, vr::VRApplication_Scene);
+	return EVR_InitErrorToOvrError(err);
+}
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown() { REV_UNIMPLEMENTED; }
 
