@@ -496,6 +496,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		session->compositor->Submit((vr::EVREye)i, &layer->ColorTexture[i]->texture, &bounds);
 	}
 
+	session->lastFrame = *layer;
 	session->compositor->PostPresentHandoff();
 
 	return ovrSuccess;

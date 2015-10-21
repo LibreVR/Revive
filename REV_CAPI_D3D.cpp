@@ -97,9 +97,67 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
                                                          IUnknown* d3dPtr,
                                                          const ovrMirrorTextureDesc* desc,
-                                                         ovrMirrorTexture* out_MirrorTexture) { REV_UNIMPLEMENTED_RUNTIME; }
+                                                         ovrMirrorTexture* out_MirrorTexture)
+{
+	// TODO: DX12 support.
+	ID3D11Device* pDevice;
+	HRESULT hr = d3dPtr->QueryInterface(&pDevice);
+	if (FAILED(hr))
+		return ovrError_RuntimeException;
+
+	// TODO: Implement support for texture flags.
+	ID3D11Texture2D* texture;
+	D3D11_TEXTURE2D_DESC tdesc = { 0 };
+	tdesc.Width = desc->Width;
+	tdesc.Height = desc->Height;
+	tdesc.MipLevels = 1;
+	tdesc.ArraySize = 1;
+	tdesc.SampleDesc.Count = 1;
+	tdesc.SampleDesc.Quality = 0;
+	tdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format);
+	tdesc.Usage = D3D11_USAGE_DEFAULT;
+	tdesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+	hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
+	if (FAILED(hr))
+		return ovrError_RuntimeException;
+
+	// TODO: Should add multiple buffers to swapchain?
+	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData();
+	mirrorTexture->desc = *desc;
+	texture->QueryInterface(IID_IUnknown, &mirrorTexture->texture.handle);
+	mirrorTexture->texture.eType = vr::API_DirectX;
+	mirrorTexture->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+	*out_MirrorTexture = mirrorTexture;
+	return ovrSuccess;
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
                                                             ovrMirrorTexture mirrorTexture,
                                                             IID iid,
-                                                            void** out_Buffer) { REV_UNIMPLEMENTED_RUNTIME; }
+                                                            void** out_Buffer)
+{
+	IUnknown* texturePtr = (IUnknown*)mirrorTexture->texture.handle;
+
+	ID3D11Texture2D* texture;
+	texturePtr->QueryInterface(&texture);
+	ID3D11Device* pDevice;
+	texture->GetDevice(&pDevice);
+	ID3D11DeviceContext* pContext;
+	pDevice->GetImmediateContext(&pContext);
+
+	ovrLayerEyeFov* layer = &session->lastFrame;
+	int perEyeWidth = mirrorTexture->desc.Width / 2;
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		ID3D11Texture2D* eyeTexture;
+		IUnknown* eyeTexturePtr = (IUnknown*)layer->ColorTexture[i]->texture.handle;
+		eyeTexturePtr->QueryInterface(&eyeTexture);
+		pContext->CopySubresourceRegion(texture, 0, perEyeWidth * i, 0, 0, eyeTexture, 0, nullptr);
+	}
+
+	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
+	if (FAILED(hr))
+		return ovrError_RuntimeException;
+
+	return ovrSuccess;
+}
