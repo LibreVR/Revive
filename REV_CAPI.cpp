@@ -12,7 +12,7 @@
 #include "REV_Error.h"
 #include "REV_Math.h"
 
-#define REV_SETTINGS_SECTION "Revive"
+#define REV_SETTINGS_SECTION "revive"
 
 vr::EVRInitError g_InitError = vr::VRInitError_None;
 vr::IVRSystem* g_VRSystem = nullptr;
@@ -646,6 +646,7 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propert
 {
 	vr::EVRSettingsError error;
 	session->settings->SetBool(REV_SETTINGS_SECTION, propertyName, !!value, &error);
+	session->settings->Sync();
 	return error == vr::VRSettingsError_None;
 }
 
@@ -658,6 +659,7 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* property
 {
 	vr::EVRSettingsError error;
 	session->settings->SetInt32(REV_SETTINGS_SECTION, propertyName, value, &error);
+	session->settings->Sync();
 	return error == vr::VRSettingsError_None;
 }
 
@@ -670,6 +672,7 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* proper
 {
 	vr::EVRSettingsError error;
 	session->settings->SetFloat(REV_SETTINGS_SECTION, propertyName, value, &error);
+	session->settings->Sync();
 	return error == vr::VRSettingsError_None;
 }
 
@@ -704,6 +707,7 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* p
 			return false;
 	}
 
+	session->settings->Sync();
 	return true;
 }
 
@@ -720,5 +724,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* prope
 {
 	vr::EVRSettingsError error;
 	session->settings->SetString(REV_SETTINGS_SECTION, propertyName, value, &error);
+	session->settings->Sync();
 	return error == vr::VRSettingsError_None;
 }
