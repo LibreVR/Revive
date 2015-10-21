@@ -253,8 +253,11 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 {
 	ovrTrackingState state;
 
-	// Get the absolute tracking poses
+	// Gain focus for the compositor
+	session->compositor->WaitGetPoses(nullptr, 0, nullptr, 0);
 	float time = ovr_GetTimeInSeconds();
+
+	// Get the absolute tracking poses
 	vr::ETrackingUniverseOrigin origin = session->compositor->GetTrackingSpace();
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, (float)absTime, poses, vr::k_unMaxTrackedDeviceCount);
@@ -489,6 +492,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 	ovrLayerEyeFov* layer = (ovrLayerEyeFov*)layerPtrList[0];
 
+	vr::EVRCompositorError err;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		vr::VRTextureBounds_t bounds;
@@ -501,7 +505,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		bounds.vMax = viewport->Size.h / h;
 
 		// TODO: Handle compositor errors.
-		session->compositor->Submit((vr::EVREye)i, &layer->ColorTexture[i]->texture, &bounds);
+		err = session->compositor->Submit((vr::EVREye)i, &layer->ColorTexture[i]->texture, &bounds);
 	}
 
 	session->lastFrame = *layer;
