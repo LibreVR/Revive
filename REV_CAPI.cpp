@@ -237,7 +237,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	uint64_t frame;
 	g_VRSystem->GetTimeSinceLastVsync(&time, &frame);
 
-	// Get the absolute tracking pose
+	// Get the absolute tracking poses
 	vr::ETrackingUniverseOrigin origin = session->compositor->GetTrackingSpace();
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, (float)absTime, poses, vr::k_unMaxTrackedDeviceCount);
@@ -263,7 +263,41 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	return state;
 }
 
-OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsigned int trackerPoseIndex) { REV_UNIMPLEMENTED_STRUCT(ovrTrackerPose); }
+OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsigned int trackerPoseIndex)
+{
+	ovrTrackerPose pose;
+
+	// Get the index for this tracker.
+	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount];
+	g_VRSystem->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
+	vr::TrackedDeviceIndex_t index = trackers[trackerPoseIndex];
+
+	// Get the absolute tracking poses
+	vr::ETrackingUniverseOrigin origin = session->compositor->GetTrackingSpace();
+	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+	g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, 0.0, poses, vr::k_unMaxTrackedDeviceCount);
+
+	// Set the flags
+	pose.TrackerFlags = 0;
+	if (poses[index].bDeviceIsConnected)
+		pose.TrackerFlags |= ovrTracker_Connected;
+	if (poses[index].bPoseIsValid)
+		pose.TrackerFlags |= ovrTracker_PoseTracked;
+
+	// Convert the pose
+	OVR::Matrix4f matrix = REV_HmdMatrixToOVRMatrix(poses[index].mDeviceToAbsoluteTracking);
+	OVR::Quatf quat = OVR::Quatf(matrix);
+	pose.Pose.Orientation = quat;
+	pose.Pose.Position = matrix.GetTranslation();
+
+	// Level the pose
+	float yaw;
+	quat.GetYawPitchRoll(&yaw, nullptr, nullptr);
+	pose.LeveledPose.Orientation = OVR::Quatf(OVR::Axis_Y, yaw);
+	pose.LeveledPose.Position = matrix.GetTranslation();
+
+	return pose;
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState) { REV_UNIMPLEMENTED_RUNTIME; }
 

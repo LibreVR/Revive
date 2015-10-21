@@ -18,5 +18,3 @@ OVR::Vector3f REV_HmdVectorToOVRVector(vr::HmdVector3_t v)
 	r.z = v.v[2];
 	return r;
 }
-
-
