@@ -356,7 +356,21 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 	return ovrError_DeviceUnavailable;
 }
 
-OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession session) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession session)
+{
+	unsigned int types = 0;
+
+	// Check for Xbox controller
+	XINPUT_STATE input;
+	if (XInputGetState(0, &input) == ERROR_SUCCESS)
+	{
+		types |= ovrControllerType_XBox;
+	}
+
+	// TODO: Implement Oculus Touch support.
+
+	return types;
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude) { REV_UNIMPLEMENTED_RUNTIME; }
 
