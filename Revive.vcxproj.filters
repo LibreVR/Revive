@@ -16,7 +16,7 @@
     <Filter Include="Header Files\LibOVR">
       <UniqueIdentifier>{65f0981f-e8d3-4a7b-b3a3-e714fcf5a578}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\LibOVR\Extra">
+    <Filter Include="Header Files\LibOVR\Extras">
       <UniqueIdentifier>{5d5ca7db-d5a5-48fa-913f-bca4b86d6d27}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -43,7 +43,7 @@
       <Filter>Header Files\LibOVR</Filter>
     </ClInclude>
     <ClInclude Include="LibOVR\Include\Extras\OVR_CAPI_Util.h">
-      <Filter>Header Files\LibOVR\Extra</Filter>
+      <Filter>Header Files\LibOVR\Extras</Filter>
     </ClInclude>
     <ClInclude Include="REV_Assert.h">
       <Filter>Header Files</Filter>
@@ -52,10 +52,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LibOVR\Include\Extras\OVR_Math.h">
-      <Filter>Header Files\LibOVR\Extra</Filter>
+      <Filter>Header Files\LibOVR\Extras</Filter>
     </ClInclude>
     <ClInclude Include="LibOVR\Include\Extras\OVR_StereoProjection.h">
-      <Filter>Header Files\LibOVR\Extra</Filter>
+      <Filter>Header Files\LibOVR\Extras</Filter>
     </ClInclude>
     <ClInclude Include="REV_Math.h">
       <Filter>Header Files</Filter>
@@ -72,6 +72,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="REV_CAPI_GL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
