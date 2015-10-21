@@ -4,6 +4,7 @@
 
 #include "openvr.h"
 #include <DXGI.h>
+#include <Xinput.h>
 
 #include "REV_Assert.h"
 #include "REV_Error.h"
@@ -232,12 +233,8 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 {
 	ovrTrackingState state;
 
-	// Get time in seconds
-	float time;
-	uint64_t frame;
-	g_VRSystem->GetTimeSinceLastVsync(&time, &frame);
-
 	// Get the absolute tracking poses
+	float time = ovr_GetTimeInSeconds();
 	vr::ETrackingUniverseOrigin origin = session->compositor->GetTrackingSpace();
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, (float)absTime, poses, vr::k_unMaxTrackedDeviceCount);
@@ -299,7 +296,65 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 	return pose;
 }
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState) { REV_UNIMPLEMENTED_RUNTIME; }
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
+{
+	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
+
+	if (controllerType == ovrControllerType_XBox)
+	{
+		// Use XInput for Xbox controllers
+		XINPUT_STATE input;
+		if (XInputGetState(0, &input) == ERROR_SUCCESS)
+		{
+			// Convert the buttons
+			WORD buttons = input.Gamepad.wButtons;
+			inputState->Buttons = 0;
+			if (buttons & XINPUT_GAMEPAD_DPAD_UP)
+				inputState->Buttons |= ovrButton_Up;
+			if (buttons & XINPUT_GAMEPAD_DPAD_DOWN)
+				inputState->Buttons |= ovrButton_Down;
+			if (buttons & XINPUT_GAMEPAD_DPAD_LEFT)
+				inputState->Buttons |= ovrButton_Left;
+			if (buttons & XINPUT_GAMEPAD_DPAD_RIGHT)
+				inputState->Buttons |= ovrButton_Right;
+			if (buttons & XINPUT_GAMEPAD_START)
+				inputState->Buttons |= ovrButton_Enter;
+			if (buttons & XINPUT_GAMEPAD_BACK)
+				inputState->Buttons |= ovrButton_Back;
+			if (buttons & XINPUT_GAMEPAD_LEFT_THUMB)
+				inputState->Buttons |= ovrButton_LThumb;
+			if (buttons & XINPUT_GAMEPAD_RIGHT_THUMB)
+				inputState->Buttons |= ovrButton_RThumb;
+			if (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER)
+				inputState->Buttons |= ovrButton_LShoulder;
+			if (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
+				inputState->Buttons |= ovrButton_RShoulder;
+			if (buttons & XINPUT_GAMEPAD_A)
+				inputState->Buttons |= ovrButton_A;
+			if (buttons & XINPUT_GAMEPAD_B)
+				inputState->Buttons |= ovrButton_B;
+			if (buttons & XINPUT_GAMEPAD_X)
+				inputState->Buttons |= ovrButton_X;
+			if (buttons & XINPUT_GAMEPAD_Y)
+				inputState->Buttons |= ovrButton_Y;
+
+			// Convert the axes
+			inputState->IndexTrigger[ovrHand_Left] = input.Gamepad.bLeftTrigger / 255.0f;
+			inputState->IndexTrigger[ovrHand_Right] = input.Gamepad.bRightTrigger / 255.0f;
+			inputState->Thumbstick[ovrHand_Left].x = input.Gamepad.sThumbLX / 32768.0f;
+			inputState->Thumbstick[ovrHand_Left].y = input.Gamepad.sThumbLY / 32768.0f;
+			inputState->Thumbstick[ovrHand_Right].x = input.Gamepad.sThumbRX / 32768.0f;
+			inputState->Thumbstick[ovrHand_Right].y = input.Gamepad.sThumbRY / 32768.0f;
+
+			inputState->ControllerType = ovrControllerType_XBox;
+			return ovrSuccess;
+		}
+	}
+
+	// TODO: Implement Oculus Touch support.
+
+	return ovrError_DeviceUnavailable;
+}
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession session) { REV_UNIMPLEMENTED_NULL; }
 
@@ -326,7 +381,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex) { REV_UNIMPLEMENTED_NULL; }
 
-OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds() { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
+{
+	// Get time in seconds
+	float time;
+	uint64_t frame;
+	g_VRSystem->GetTimeSinceLastVsync(&time, &frame);
+	return time;
+}
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal) { REV_UNIMPLEMENTED_NULL; }
 
