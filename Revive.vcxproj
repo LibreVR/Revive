@@ -131,6 +131,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="LibOVR\Include\Extras\OVR_CAPI_Util.h" />
+    <ClInclude Include="LibOVR\Include\Extras\OVR_Math.h" />
+    <ClInclude Include="LibOVR\Include\Extras\OVR_StereoProjection.h" />
     <ClInclude Include="LibOVR\Include\OVR_CAPI.h" />
     <ClInclude Include="LibOVR\Include\OVR_CAPI_Audio.h" />
     <ClInclude Include="LibOVR\Include\OVR_CAPI_D3D.h" />

@@ -51,6 +51,12 @@
     <ClInclude Include="REV_Error.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LibOVR\Include\Extras\OVR_Math.h">
+      <Filter>Header Files\LibOVR\Extra</Filter>
+    </ClInclude>
+    <ClInclude Include="LibOVR\Include\Extras\OVR_StereoProjection.h">
+      <Filter>Header Files\LibOVR\Extra</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="REV_CAPI.cpp">

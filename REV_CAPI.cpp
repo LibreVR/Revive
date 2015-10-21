@@ -1,5 +1,6 @@
 #include "OVR_CAPI.h"
 #include "OVR_Version.h"
+#include "Extras/OVR_Math.h"
 
 #include "openvr.h"
 
@@ -80,7 +81,31 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 	return g_VRSystem->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, nullptr, 0);
 }
 
-OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsigned int trackerDescIndex) { REV_UNIMPLEMENTED_STRUCT(ovrTrackerDesc); }
+OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsigned int trackerDescIndex)
+{
+	// Get the index for this tracker.
+	uint32_t size = ovr_GetTrackerCount(session);
+	vr::TrackedDeviceIndex_t* trackers = new vr::TrackedDeviceIndex_t[size];
+	g_VRSystem->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, 2);
+	vr::TrackedDeviceIndex_t index = trackers[trackerDescIndex];
+
+	// Fill the descriptor
+	ovrTrackerDesc desc;
+
+	// Calculate field-of-view
+	float left = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewLeftDegrees_Float);
+	float right = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewRightDegrees_Float);
+	float top = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewTopDegrees_Float);
+	float bottom = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewBottomDegrees_Float);
+	desc.FrustumHFovInRadians = OVR::DegreeToRad(left + right);
+	desc.FrustumVFovInRadians = OVR::DegreeToRad(top + bottom);
+
+	// Get range
+	desc.FrustumNearZInMeters = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
+	desc.FrustumFarZInMeters = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
+
+	return desc;
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid* pLuid) { REV_UNIMPLEMENTED_RUNTIME; }
 
