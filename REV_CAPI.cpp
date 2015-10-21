@@ -85,6 +85,8 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	{
 		ovrFovPort* eye = &desc.DefaultEyeFov[i];
 		g_VRSystem->GetProjectionRaw((vr::EVREye)i, &eye->LeftTan, &eye->RightTan, &eye->UpTan, &eye->DownTan);
+		eye->LeftTan *= -1;
+		eye->UpTan *= -1;
 		desc.MaxEyeFov[i] = *eye;
 	}
 
@@ -462,6 +464,8 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrE
 	desc.Eye = eyeType;
 
 	g_VRSystem->GetProjectionRaw((vr::EVREye)eyeType, &desc.Fov.LeftTan, &desc.Fov.RightTan, &desc.Fov.UpTan, &desc.Fov.DownTan);
+	desc.Fov.LeftTan *= -1;
+	desc.Fov.UpTan *= -1;
 	OVR::Matrix4f HmdToEyeMatrix = REV_HmdMatrixToOVRMatrix(g_VRSystem->GetEyeToHeadTransform((vr::EVREye)eyeType));
 
 	desc.DistortedViewport = { 0 }; // TODO: Calculate distored viewport
