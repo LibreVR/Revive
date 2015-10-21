@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="REV_Common.h" />
     <ClInclude Include="REV_Math.h" />
     <ClInclude Include="LibOVR\Include\Extras\OVR_CAPI_Util.h" />
@@ -162,6 +163,9 @@
     <ClCompile Include="REV_CAPI_D3D.cpp" />
     <ClCompile Include="REV_CAPI_GL.cpp" />
     <ClCompile Include="REV_CAPI_Util.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Revive.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
