@@ -276,10 +276,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	// Get the absolute tracking poses
 	vr::ETrackingUniverseOrigin origin = session->compositor->GetTrackingSpace();
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	session->compositor->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
-
-	// TODO: Get the poses through GetDeviceToAbsoluteTrackingPose with absTime.
-	//g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, (float)absTime, poses, vr::k_unMaxTrackedDeviceCount);
+	g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, (float)absTime, poses, vr::k_unMaxTrackedDeviceCount);
 
 	// Convert the head pose
 	state.HeadPose = REV_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], time);
@@ -549,6 +546,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	// TODO: Implement scaling through ApplyTransform().
+
+	// Call WaitGetPoses() to do some cleanup from the previous frame.
+	session->compositor->WaitGetPoses(nullptr, 0, nullptr, 0);
 
 	if (layerCount == 0)
 		return ovrError_InvalidParameter;
