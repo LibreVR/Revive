@@ -224,11 +224,15 @@ ovrPoseStatef REV_TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, doubl
 {
 	ovrPoseStatef result;
 
-	OVR::Matrix4f matrix = REV_HmdMatrixToOVRMatrix(pose.mDeviceToAbsoluteTracking);
+	OVR::Matrix4f matrix;
+	if (pose.bPoseIsValid)
+		matrix = REV_HmdMatrixToOVRMatrix(pose.mDeviceToAbsoluteTracking);
+
 	result.ThePose.Orientation = OVR::Quatf(matrix);
 	result.ThePose.Position = matrix.GetTranslation();
 	result.AngularVelocity = REV_HmdVectorToOVRVector(pose.vAngularVelocity);
 	result.LinearVelocity = REV_HmdVectorToOVRVector(pose.vVelocity);
+
 	// TODO: Calculate acceleration.
 	result.AngularAcceleration = ovrVector3f();
 	result.LinearAcceleration = ovrVector3f();
