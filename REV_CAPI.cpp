@@ -7,6 +7,7 @@
 
 #include "REV_Assert.h"
 #include "REV_Error.h"
+#include "REV_Math.h"
 
 vr::EVRInitError g_InitError = vr::VRInitError_None;
 vr::IVRSystem* g_VRSystem = nullptr;
@@ -195,7 +196,72 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 
 OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session) { /* No such flag, do nothing */ }
 
-OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker) { REV_UNIMPLEMENTED_STRUCT(ovrTrackingState); }
+ovrPoseStatef REV_TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, double time)
+{
+	ovrPoseStatef result;
+
+	OVR::Matrix4f matrix = REV_HmdMatrixToOVRMatrix(pose.mDeviceToAbsoluteTracking);
+	result.ThePose.Orientation = OVR::Quatf(matrix);
+	result.ThePose.Position = matrix.GetTranslation();
+	result.AngularVelocity = REV_HmdVectorToOVRVector(pose.vAngularVelocity);
+	result.LinearVelocity = REV_HmdVectorToOVRVector(pose.vVelocity);
+	// TODO: Calculate acceleration.
+	result.AngularAcceleration = ovrVector3f();
+	result.LinearAcceleration = ovrVector3f();
+
+	return result;
+}
+
+unsigned int REV_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose)
+{
+	unsigned int result = 0;
+
+	if (pose.bPoseIsValid)
+	{
+		if (pose.bDeviceIsConnected)
+			result |= ovrStatus_OrientationTracked;
+		if (pose.eTrackingResult != vr::TrackingResult_Calibrating_OutOfRange &&
+			pose.eTrackingResult != vr::TrackingResult_Running_OutOfRange)
+			result |= ovrStatus_PositionTracked;
+	}
+
+	return result;
+}
+
+OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker)
+{
+	ovrTrackingState state;
+
+	// Get time in seconds
+	float time;
+	uint64_t frame;
+	g_VRSystem->GetTimeSinceLastVsync(&time, &frame);
+
+	// Get the absolute tracking pose
+	vr::ETrackingUniverseOrigin origin = session->compositor->GetTrackingSpace();
+	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+	g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, (float)absTime, poses, vr::k_unMaxTrackedDeviceCount);
+
+	// Convert the head pose
+	state.HeadPose = REV_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], time);
+	state.StatusFlags = REV_TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
+
+	// Convert the hand poses
+	vr::TrackedDeviceIndex_t hands[] = { g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
+		g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
+	for (int i = 0; i < ovrHand_Count; i++)
+	{
+		vr::TrackedDeviceIndex_t deviceIndex = hands[i];
+		state.HandPoses[i] = REV_TrackedDevicePoseToOVRPose(poses[deviceIndex], time);
+		state.HandStatusFlags[i] = REV_TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
+	}
+
+	// TODO: It looks like this should be set to GetSeatedZeroPoseToStandingAbsoluteTrackingPose()?
+	state.CalibratedOrigin.Orientation = OVR::Quatf();
+	state.CalibratedOrigin.Position = OVR::Vector3f();
+
+	return state;
+}
 
 OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsigned int trackerPoseIndex) { REV_UNIMPLEMENTED_STRUCT(ovrTrackerPose); }
 

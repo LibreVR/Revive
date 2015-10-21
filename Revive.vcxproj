@@ -130,6 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="REV_Math.h" />
     <ClInclude Include="LibOVR\Include\Extras\OVR_CAPI_Util.h" />
     <ClInclude Include="LibOVR\Include\Extras\OVR_Math.h" />
     <ClInclude Include="LibOVR\Include\Extras\OVR_StereoProjection.h" />
