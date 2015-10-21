@@ -535,7 +535,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[0];
 
 	// Other layers are interpreted as overlays.
-	for (size_t i = 1; i < vr::k_unMaxOverlayCount; i++)
+	for (size_t i = 1; i < vr::k_unMaxOverlayCount + 1; i++)
 	{
 
 		char keyName[vr::k_unVROverlayMaxKeyLength];
