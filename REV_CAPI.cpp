@@ -417,7 +417,18 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrE
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount) { REV_UNIMPLEMENTED_RUNTIME; }
 
-OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex) { REV_UNIMPLEMENTED_NULL; }
+OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
+{
+	float fVsyncToPhotons = g_VRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
+
+	// Get time in seconds
+	float time;
+	uint64_t frame;
+	g_VRSystem->GetTimeSinceLastVsync(&time, &frame);
+	_ASSERT(frameIndex == frame);
+
+	return time + fVsyncToPhotons;
+}
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 {
