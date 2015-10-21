@@ -6,26 +6,51 @@
 #include "REV_Assert.h"
 #include "REV_Common.h"
 
-DXGI_FORMAT ovr_TextureFormatToDXGIFormat(ovrTextureFormat format)
+DXGI_FORMAT ovr_TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int flags)
 {
-	switch (format)
+	if (flags & ovrTextureMisc_DX_Typeless)
 	{
-		case OVR_FORMAT_UNKNOWN:				return DXGI_FORMAT_UNKNOWN;
-		case OVR_FORMAT_B5G6R5_UNORM:			return DXGI_FORMAT_B5G6R5_UNORM;
-		case OVR_FORMAT_B5G5R5A1_UNORM:			return DXGI_FORMAT_B5G5R5A1_UNORM;
-		case OVR_FORMAT_B4G4R4A4_UNORM:			return DXGI_FORMAT_B4G4R4A4_UNORM;
-		case OVR_FORMAT_R8G8B8A8_UNORM:			return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case OVR_FORMAT_R8G8B8A8_UNORM_SRGB:	return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		case OVR_FORMAT_B8G8R8A8_UNORM:			return DXGI_FORMAT_B8G8R8A8_UNORM;
-		case OVR_FORMAT_B8G8R8A8_UNORM_SRGB:	return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-		case OVR_FORMAT_B8G8R8X8_UNORM:			return DXGI_FORMAT_B8G8R8X8_UNORM;
-		case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:	return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
-		case OVR_FORMAT_R16G16B16A16_FLOAT:		return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		case OVR_FORMAT_D16_UNORM:				return DXGI_FORMAT_D16_UNORM;
-		case OVR_FORMAT_D24_UNORM_S8_UINT:		return DXGI_FORMAT_D24_UNORM_S8_UINT;
-		case OVR_FORMAT_D32_FLOAT:				return DXGI_FORMAT_D32_FLOAT;
-		case OVR_FORMAT_D32_FLOAT_S8X24_UINT:	return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-		default: return DXGI_FORMAT_UNKNOWN;
+		switch (format)
+		{
+			case OVR_FORMAT_UNKNOWN:				return DXGI_FORMAT_UNKNOWN;
+			//case OVR_FORMAT_B5G6R5_UNORM:			return DXGI_FORMAT_B5G6R5_TYPELESS;
+			//case OVR_FORMAT_B5G5R5A1_UNORM:		return DXGI_FORMAT_B5G5R5A1_TYPELESS;
+			//case OVR_FORMAT_B4G4R4A4_UNORM:		return DXGI_FORMAT_B4G4R4A4_TYPELESS;
+			case OVR_FORMAT_R8G8B8A8_UNORM:			return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+			case OVR_FORMAT_R8G8B8A8_UNORM_SRGB:	return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+			case OVR_FORMAT_B8G8R8A8_UNORM:			return DXGI_FORMAT_B8G8R8A8_TYPELESS;
+			case OVR_FORMAT_B8G8R8A8_UNORM_SRGB:	return DXGI_FORMAT_B8G8R8A8_TYPELESS;
+			case OVR_FORMAT_B8G8R8X8_UNORM:			return DXGI_FORMAT_B8G8R8X8_TYPELESS;
+			case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:	return DXGI_FORMAT_B8G8R8X8_TYPELESS;
+			case OVR_FORMAT_R16G16B16A16_FLOAT:		return DXGI_FORMAT_R16G16B16A16_TYPELESS;
+			case OVR_FORMAT_D16_UNORM:				return DXGI_FORMAT_R16_TYPELESS;
+			case OVR_FORMAT_D24_UNORM_S8_UINT:		return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+			case OVR_FORMAT_D32_FLOAT:				return DXGI_FORMAT_R32_TYPELESS;
+			case OVR_FORMAT_D32_FLOAT_S8X24_UINT:	return DXGI_FORMAT_X32_TYPELESS_G8X24_UINT;
+			default: return DXGI_FORMAT_UNKNOWN;
+		}
+	}
+	else
+	{
+		switch (format)
+		{
+			case OVR_FORMAT_UNKNOWN:				return DXGI_FORMAT_UNKNOWN;
+			case OVR_FORMAT_B5G6R5_UNORM:			return DXGI_FORMAT_B5G6R5_UNORM;
+			case OVR_FORMAT_B5G5R5A1_UNORM:			return DXGI_FORMAT_B5G5R5A1_UNORM;
+			case OVR_FORMAT_B4G4R4A4_UNORM:			return DXGI_FORMAT_B4G4R4A4_UNORM;
+			case OVR_FORMAT_R8G8B8A8_UNORM:			return DXGI_FORMAT_R8G8B8A8_UNORM;
+			case OVR_FORMAT_R8G8B8A8_UNORM_SRGB:	return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			case OVR_FORMAT_B8G8R8A8_UNORM:			return DXGI_FORMAT_B8G8R8A8_UNORM;
+			case OVR_FORMAT_B8G8R8A8_UNORM_SRGB:	return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+			case OVR_FORMAT_B8G8R8X8_UNORM:			return DXGI_FORMAT_B8G8R8X8_UNORM;
+			case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:	return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
+			case OVR_FORMAT_R16G16B16A16_FLOAT:		return DXGI_FORMAT_R16G16B16A16_FLOAT;
+			case OVR_FORMAT_D16_UNORM:				return DXGI_FORMAT_D16_UNORM;
+			case OVR_FORMAT_D24_UNORM_S8_UINT:		return DXGI_FORMAT_D24_UNORM_S8_UINT;
+			case OVR_FORMAT_D32_FLOAT:				return DXGI_FORMAT_D32_FLOAT;
+			case OVR_FORMAT_D32_FLOAT_S8X24_UINT:	return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+			default: return DXGI_FORMAT_UNKNOWN;
+		}
 	}
 }
 
@@ -61,7 +86,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	tdesc.ArraySize = desc->ArraySize;
 	tdesc.SampleDesc.Count = 1;
 	tdesc.SampleDesc.Quality = 0;
-	tdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format);
+	tdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format, desc->MiscFlags);
 	tdesc.Usage = D3D11_USAGE_DEFAULT;
 	tdesc.BindFlags = ovr_BindFlagsToD3DBindFlags(desc->BindFlags);
 	hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
@@ -114,7 +139,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	tdesc.ArraySize = 1;
 	tdesc.SampleDesc.Count = 1;
 	tdesc.SampleDesc.Quality = 0;
-	tdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format);
+	tdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format, desc->MiscFlags);
 	tdesc.Usage = D3D11_USAGE_DEFAULT;
 	tdesc.BindFlags = D3D11_BIND_RENDER_TARGET;
 	hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
