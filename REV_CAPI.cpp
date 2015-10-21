@@ -43,7 +43,9 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 
 OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
 {
-	VR_GetVRInitErrorAsEnglishDescription(g_InitError);
+	const char* error = VR_GetVRInitErrorAsEnglishDescription(g_InitError);
+	strncpy_s(errorInfo->ErrorString, error, sizeof(ovrErrorInfo::ErrorString));
+	errorInfo->Result = REV_InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(const char*) ovr_GetVersionString()
