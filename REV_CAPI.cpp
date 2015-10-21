@@ -437,6 +437,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
 {
+	// TODO: Use GetFrameTiming for historic frames support.
 	float fVsyncToPhotons = g_VRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
 
 	// Get time in seconds
@@ -450,6 +451,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 {
+	// TODO: Use high-resolution system time as specified.
 	// Get time in seconds
 	float time;
 	uint64_t frame;
