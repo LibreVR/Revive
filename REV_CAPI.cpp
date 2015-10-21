@@ -576,13 +576,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	}
 
 	// Submit the scene layer.
-	vr::EVRCompositorError err;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i]);
-
-		// TODO: Handle compositor errors.
-		err = session->compositor->Submit((vr::EVREye)i, &sceneLayer->ColorTexture[i]->texture, &bounds);
+		vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &sceneLayer->ColorTexture[i]->texture, &bounds);
+		if (err != vr::VRCompositorError_None)
+			return REV_CompositorErrorToOvrError(err);
 	}
 
 	session->lastFrame = *sceneLayer;

@@ -33,6 +33,21 @@ ovrResult REV_InitErrorToOvrError(vr::EVRInitError error)
 		case vr::VRInitError_Init_NoServerForBackgroundApp: return ovrError_ServerStart;
 		case vr::VRInitError_Init_NotSupportedWithCompositor: return ovrError_Initialize;
 		case vr::VRInitError_Init_NotAvailableToUtilityApps: return ovrError_Initialize;
-		default: return ovrError_Initialize;
+	}
+}
+
+ovrResult REV_CompositorErrorToOvrError(vr::EVRCompositorError error)
+{
+	switch (error)
+	{
+		case vr::VRCompositorError_None: return ovrSuccess;
+		case vr::VRCompositorError_IncompatibleVersion: return ovrError_ServiceError;
+		case vr::VRCompositorError_DoNotHaveFocus: return ovrSuccess_NotVisible;
+		case vr::VRCompositorError_InvalidTexture: return ovrError_TextureSwapChainInvalid;
+		case vr::VRCompositorError_IsNotSceneApplication: return ovrError_InvalidSession;
+		case vr::VRCompositorError_TextureIsOnWrongDevice: return ovrError_TextureSwapChainInvalid;
+		case vr::VRCompositorError_TextureUsesUnsupportedFormat: return ovrError_TextureSwapChainInvalid;
+		case vr::VRCompositorError_SharedTexturesNotSupported: return ovrError_TextureSwapChainInvalid;
+		case vr::VRCompositorError_IndexOutOfRange: return ovrError_InvalidParameter;
 	}
 }
