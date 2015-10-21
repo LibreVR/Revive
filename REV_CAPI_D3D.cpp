@@ -77,8 +77,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
 
-	// TODO: Implement support for texture flags.
-	ID3D11Texture2D* texture;
 	D3D11_TEXTURE2D_DESC tdesc;
 	tdesc.Width = desc->Width;
 	tdesc.Height = desc->Height;
@@ -91,18 +89,21 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	tdesc.BindFlags = ovr_BindFlagsToD3DBindFlags(desc->BindFlags);
 	tdesc.CPUAccessFlags = 0;
 	tdesc.MiscFlags = 0;
-	hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
-	if (FAILED(hr))
-		return ovrError_RuntimeException;
 
-	// TODO: Should add multiple buffers to swapchain?
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
-	swapChain->length = 1;
+	swapChain->length = 2;
 	swapChain->index = 0;
+	swapChain->current = 0;
 	swapChain->desc = *desc;
-	swapChain->texture.handle = texture;
-	swapChain->texture.eType = vr::API_DirectX;
-	swapChain->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+
+	for (int i = 0; i < swapChain->length; i++)
+	{
+		swapChain->texture[i].eType = vr::API_DirectX;
+		swapChain->texture[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+		hr = pDevice->CreateTexture2D(&tdesc, nullptr, (ID3D11Texture2D**)&swapChain->texture[i].handle);
+		if (FAILED(hr))
+			return ovrError_RuntimeException;
+	}
 
 	// Clean up and return
 	pDevice->Release();
@@ -116,7 +117,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
                                                                IID iid,
                                                                void** out_Buffer)
 {
-	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)chain->texture.handle;
+	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)chain->texture[index].handle;
 	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
@@ -181,8 +182,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	int perEyeWidth = mirrorTexture->desc.Width / 2;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
+		ovrTextureSwapChain chain = layer->ColorTexture[i];
 		ID3D11Texture2D* eyeTexture;
-		IUnknown* eyeTexturePtr = (IUnknown*)layer->ColorTexture[i]->texture.handle;
+		IUnknown* eyeTexturePtr = (IUnknown*)chain->texture[chain->current].handle;
 		eyeTexturePtr->QueryInterface(&eyeTexture);
 		pContext->CopySubresourceRegion(texture, 0, perEyeWidth * i, 0, 0, eyeTexture, 0, nullptr);
 	}

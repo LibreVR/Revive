@@ -466,14 +466,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, o
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
 {
-	// TODO: Should add multiple buffers to swapchain?
+	chain->current = chain->index++;
+	chain->index %= chain->length;
 	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
 {
-	if (chain->texture.eType == vr::API_DirectX)
-		((ID3D11Texture2D*)chain->texture.handle)->Release();
+	if (chain->texture[0].eType == vr::API_DirectX)
+	{
+		for (int i = 0; i < chain->length; i++)
+			((ID3D11Texture2D*)chain->texture[i].handle)->Release();
+	}
 
 	delete chain;
 }
@@ -588,9 +592,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 				session->overlay->SetOverlayTransformAbsolute(overlay, session->compositor->GetTrackingSpace(), &transform);
 
 			// Set the texture and show the overlay.
+			ovrTextureSwapChain chain = layer->ColorTexture;
 			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture);
 			session->overlay->SetOverlayTextureBounds(overlay, &bounds);
-			session->overlay->SetOverlayTexture(overlay, &layer->ColorTexture->texture);
+			session->overlay->SetOverlayTexture(overlay, &chain->texture[chain->current]);
 
 			// TODO: Handle overlay errors.
 			session->overlay->ShowOverlay(overlay);
@@ -608,8 +613,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	// Submit the scene layer.
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
+		ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
 		vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i]);
-		vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &sceneLayer->ColorTexture[i]->texture, &bounds);
+		vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &chain->texture[chain->current], &bounds);
 		if (err != vr::VRCompositorError_None)
 			return REV_CompositorErrorToOvrError(err);
 	}
