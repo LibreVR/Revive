@@ -146,7 +146,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	tdesc.SampleDesc.Quality = 0;
 	tdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format, desc->MiscFlags);
 	tdesc.Usage = D3D11_USAGE_DEFAULT;
-	tdesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+	tdesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	tdesc.CPUAccessFlags = 0;
 	tdesc.MiscFlags = 0;
 	hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
