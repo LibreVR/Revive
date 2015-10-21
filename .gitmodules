@@ -1,3 +1,6 @@
 [submodule "openvr"]
 	path = openvr
 	url = https://github.com/ValveSoftware/openvr.git
+[submodule "mhook"]
+	path = mhook
+	url = https://github.com/martona/mhook.git

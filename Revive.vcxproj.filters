@@ -19,6 +19,12 @@
     <Filter Include="Header Files\LibOVR\Extras">
       <UniqueIdentifier>{5d5ca7db-d5a5-48fa-913f-bca4b86d6d27}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\mhook">
+      <UniqueIdentifier>{a2391f4e-a4e9-4a2c-a593-b4c094b32faa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mhook">
+      <UniqueIdentifier>{719b043d-e44f-459b-9e90-8e9123adf60a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LibOVR\Include\OVR_CAPI.h">
@@ -66,6 +72,24 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mhook\mhook-lib\mhook.h">
+      <Filter>Header Files\mhook</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook\disasm-lib\cpu.h">
+      <Filter>Header Files\mhook</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook\disasm-lib\disasm.h">
+      <Filter>Header Files\mhook</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook\disasm-lib\disasm_x86.h">
+      <Filter>Header Files\mhook</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook\disasm-lib\disasm_x86_tables.h">
+      <Filter>Header Files\mhook</Filter>
+    </ClInclude>
+    <ClInclude Include="mhook\disasm-lib\misc.h">
+      <Filter>Header Files\mhook</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="REV_CAPI.cpp">
@@ -82,6 +106,24 @@
     </ClCompile>
     <ClCompile Include="REV_CAPI_Util.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mhook\mhook-lib\mhook.cpp">
+      <Filter>Source Files\mhook</Filter>
+    </ClCompile>
+    <ClCompile Include="mhook\disasm-lib\cpu.c">
+      <Filter>Source Files\mhook</Filter>
+    </ClCompile>
+    <ClCompile Include="mhook\disasm-lib\disasm.c">
+      <Filter>Source Files\mhook</Filter>
+    </ClCompile>
+    <ClCompile Include="mhook\disasm-lib\disasm_x86.c">
+      <Filter>Source Files\mhook</Filter>
+    </ClCompile>
+    <ClCompile Include="mhook\disasm-lib\misc.c">
+      <Filter>Source Files\mhook</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
