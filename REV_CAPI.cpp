@@ -541,8 +541,8 @@ vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureS
 	float h = (float)swapChain->desc.Height;
 	bounds.uMin = viewport.Pos.x / w;
 	bounds.vMin = viewport.Pos.y / h;
-	bounds.uMax = viewport.Size.w / w;
-	bounds.vMax = viewport.Size.h / h;
+	bounds.uMax = (viewport.Pos.x + viewport.Size.w) / w;
+	bounds.vMax = (viewport.Pos.y + viewport.Size.h) / h;
 
 	if (flags & ovrLayerFlag_TextureOriginAtBottomLeft)
 	{
@@ -573,7 +573,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		return ovrError_InvalidParameter;
 
 	// The first layer is assumed to be the application scene.
-	_ASSERT(layerPtrList[0]->Type == ovrLayerType_EyeFov);
+	if (layerPtrList[0]->Type != ovrLayerType_EyeFov)
+		return ovrSuccess_NotVisible;
 	ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[0];
 
 	// Other layers are interpreted as overlays.
