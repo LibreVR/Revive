@@ -285,9 +285,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	float time = (float)ovr_GetTimeInSeconds();
 
 	// Get the absolute tracking poses
-	vr::ETrackingUniverseOrigin origin = session->compositor->GetTrackingSpace();
-	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, (float)absTime, poses, vr::k_unMaxTrackedDeviceCount);
+	vr::TrackedDevicePose_t* poses = session->gamePoses;
 
 	// Convert the head pose
 	state.HeadPose = REV_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], time);
@@ -325,22 +323,17 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 	g_VRSystem->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
 	vr::TrackedDeviceIndex_t index = trackers[trackerPoseIndex];
 
-	// Get the absolute tracking poses
-	vr::ETrackingUniverseOrigin origin = session->compositor->GetTrackingSpace();
-	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	g_VRSystem->GetDeviceToAbsoluteTrackingPose(origin, 0.0, poses, vr::k_unMaxTrackedDeviceCount);
-
 	// Set the flags
 	pose.TrackerFlags = 0;
-	if (poses[index].bDeviceIsConnected)
+	if (session->poses[index].bDeviceIsConnected)
 		pose.TrackerFlags |= ovrTracker_Connected;
-	if (poses[index].bPoseIsValid)
+	if (session->poses[index].bPoseIsValid)
 		pose.TrackerFlags |= ovrTracker_PoseTracked;
 
 	// Convert the pose
 	OVR::Matrix4f matrix;
-	if (poses[index].bPoseIsValid)
-		matrix = REV_HmdMatrixToOVRMatrix(poses[index].mDeviceToAbsoluteTracking);
+	if (session->poses[index].bPoseIsValid)
+		matrix = REV_HmdMatrixToOVRMatrix(session->poses[index].mDeviceToAbsoluteTracking);
 	OVR::Quatf quat = OVR::Quatf(matrix);
 	pose.Pose.Orientation = quat;
 	pose.Pose.Position = matrix.GetTranslation();
@@ -567,7 +560,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	// TODO: Implement scaling through ApplyTransform().
 
 	// Call WaitGetPoses() to do some cleanup from the previous frame.
-	session->compositor->WaitGetPoses(nullptr, 0, nullptr, 0);
+	session->compositor->WaitGetPoses(session->poses, vr::k_unMaxTrackedDeviceCount, session->gamePoses, vr::k_unMaxTrackedDeviceCount);
 
 	if (layerCount == 0)
 		return ovrError_InvalidParameter;

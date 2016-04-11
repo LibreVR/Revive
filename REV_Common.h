@@ -21,6 +21,8 @@ struct ovrMirrorTextureData
 struct ovrHmdStruct
 {
 	ovrTextureSwapChain ColorTexture[ovrEye_Count];
+	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+	vr::TrackedDevicePose_t gamePoses[vr::k_unMaxTrackedDeviceCount];
 	vr::IVRCompositor* compositor;
 	vr::IVRSettings* settings;
 	vr::IVROverlay* overlay;
