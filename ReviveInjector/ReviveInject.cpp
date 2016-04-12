@@ -34,7 +34,8 @@ int CreateProcessAndInject(char *programPath)
 		return -1;
 	}
 
-	const char *dllName;
+	const char *dllName = "LibRevive32_1.dll";
+	const char *platform = "x86";
 #if _WIN64
 	BOOL b32bit = FALSE;
 	if (!IsWow64Process(pi.hProcess, &b32bit))
@@ -42,16 +43,13 @@ int CreateProcessAndInject(char *programPath)
 		printf("Failed to query bit depth\n");
 		return -1;
 	}
-
-	if (b32bit)
-		dllName = "LibRevive32_1.dll";
-	else
+	if (!b32bit) {
 		dllName = "LibRevive64_1.dll";
-#else
-	dllName ="LibRevive32_1.dll";
+		platform = "x64";
+	}
 #endif
 	char dllPath[MAX_PATH];
-	snprintf(dllPath, sizeof(dllPath), "%s\\%s", cwd, dllName);
+	snprintf(dllPath, sizeof(dllPath), "%s\\Revive\\%s\\%s", cwd, platform, dllName);
 	int dllPathLength = sizeof(dllPath);
 
 	HMODULE hModule = GetModuleHandle(L"kernel32.dll");
