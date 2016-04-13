@@ -18,6 +18,8 @@ Currently two games have been tested and are supported, it's important to note t
 
 ## Oculus Dreamdeck
 
+Credit goes to @rjoudrey for implementing the injector.
+
 1. [Download the Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.2/ReviveInjector.zip)
 
 2. Install Oculus Dreamdeck from Oculus Home, then go to `C:\Program Files (x86)\Oculus\Software\oculus-dreamdeck\WindowsNoEditor\Dreamdeck\Binaries\Win64`.
