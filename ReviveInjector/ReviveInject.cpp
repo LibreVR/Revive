@@ -31,6 +31,7 @@ int CreateProcessAndInject(char *programPath) {
 	}	
 	if (!InjectOpenVR(pi.hProcess, pi.hThread) ||
 		!InjectLibRevive(pi.hProcess, pi.hThread)) {
+		ResumeThread(pi.hThread);
 		return -1;
 	}
 	printf("Injected dlls succesfully\n");
