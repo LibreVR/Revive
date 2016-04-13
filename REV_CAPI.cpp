@@ -89,11 +89,12 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	// Get field-of-view
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		ovrFovPort* eye = &desc.DefaultEyeFov[i];
-		g_VRSystem->GetProjectionRaw((vr::EVREye)i, &eye->LeftTan, &eye->RightTan, &eye->UpTan, &eye->DownTan);
-		eye->LeftTan *= -1.0f;
-		eye->UpTan *= -1.0f;
-		desc.MaxEyeFov[i] = *eye;
+		ovrFovPort eye;
+		g_VRSystem->GetProjectionRaw((vr::EVREye)i, &eye.LeftTan, &eye.RightTan, &eye.UpTan, &eye.DownTan);
+		eye.LeftTan *= -1.0f;
+		eye.UpTan *= -1.0f;
+		desc.DefaultEyeFov[i] = eye;
+		desc.MaxEyeFov[i] = eye;
 	}
 
 	// Get display properties
@@ -506,6 +507,19 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 {
 	ovrSizei size;
 	g_VRSystem->GetRecommendedRenderTargetSize((uint32_t*)&size.w, (uint32_t*)&size.h);
+
+	float left, right, top, bottom;
+	g_VRSystem->GetProjectionRaw((vr::EVREye)eye, &left, &right, &top, &bottom);
+
+	float uMin = 0.5f + 0.5f * left / fov.LeftTan;
+	float uMax = 0.5f + 0.5f * right / fov.RightTan;
+	float vMin = 0.5f - 0.5f * bottom / fov.DownTan;
+	float vMax = 0.5f - 0.5f * top / fov.UpTan;
+
+	// Grow the recommended size to account for the overlapping fov
+	size.w = int(size.w / (uMax - uMin));
+	size.h = int(size.h / (vMax - vMin));
+
 	return size;
 }
 
@@ -518,7 +532,8 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrE
 	OVR::Matrix4f HmdToEyeMatrix = REV_HmdMatrixToOVRMatrix(g_VRSystem->GetEyeToHeadTransform((vr::EVREye)eyeType));
 	float WidthTan = fov.LeftTan + fov.RightTan;
 	float HeightTan = fov.UpTan + fov.DownTan;
-	ovrSizei size = ovr_GetFovTextureSize(session, eyeType, fov, 1.0);
+	ovrSizei size;
+	g_VRSystem->GetRecommendedRenderTargetSize((uint32_t*)&size.w, (uint32_t*)&size.h);
 
 	desc.DistortedViewport = OVR::Recti(eyeType == ovrEye_Right ? size.w : 0, 0, size.w, size.h);
 	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w / WidthTan, size.h / HeightTan);
@@ -640,6 +655,23 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
 		session->ColorTexture[i] = chain;
 		vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
+
+		float left, right, top, bottom;
+		g_VRSystem->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
+
+		// Shrink the bounds to account for the overlapping fov
+		ovrFovPort fov = sceneLayer->Fov[i];
+		float uMin = 0.5f + 0.5f * left / fov.LeftTan;
+		float uMax = 0.5f + 0.5f * right / fov.RightTan;
+		float vMin = 0.5f - 0.5f * bottom / fov.DownTan;
+		float vMax = 0.5f - 0.5f * top / fov.UpTan;
+
+		// Combine the fov bounds with the viewport bounds
+		bounds.uMin += uMin * bounds.uMax;
+		bounds.uMax *= uMax;
+		bounds.vMin += vMin * bounds.vMax;
+		bounds.vMax *= vMax;
+
 		vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &chain->current, &bounds);
 		if (err != vr::VRCompositorError_None)
 			return REV_CompositorErrorToOvrError(err);
