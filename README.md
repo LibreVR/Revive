@@ -8,7 +8,7 @@ Currently two games have been tested and are supported, it's important to note t
 
 ## Lucky's Tale
 
-1. [Download the Lucky's Tale patch here.](https://github.com/LibreVR/Revive/releases/download/0.2/ReviveLT.zip)
+1. [Download the Lucky's Tale patch here.](https://github.com/LibreVR/Revive/releases/download/0.2.1/ReviveLT.zip)
 
 2. Install Lucky's Tale from Oculus Home, then go to `C:\Program Files (x86)\Oculus\Software\playful-luckys-tale`.
 
@@ -20,7 +20,7 @@ Currently two games have been tested and are supported, it's important to note t
 
 Credit goes to @rjoudrey for implementing the injector.
 
-1. [Download the Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.2/ReviveInjector.zip)
+1. [Download the Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.2.1/ReviveInjector.zip)
 
 2. Install Oculus Dreamdeck from Oculus Home, then go to `C:\Program Files (x86)\Oculus\Software\oculus-dreamdeck\WindowsNoEditor\Dreamdeck\Binaries\Win64`.
 
