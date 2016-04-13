@@ -16,7 +16,7 @@ Only Windows 8/10 is supported right now, support for Windows 7 will be added in
 
 3. Extract the patch in that folder, it will overwrite `LT_Data\Plugins\OVRPlugin.dll` so make sure you have a backup.
 
-4. Make sure SteamVR is running and then start `LT.exe`, for convenience you can also add `LT.exe` as a non-steam game to your SteamVR dashboard.
+4. Make sure SteamVR is running and then start `LT.exe`.
 
 ## Oculus Dreamdeck
 
@@ -29,8 +29,6 @@ Credit goes to @rjoudrey for implementing the injector.
 3. Extract the injector in that folder.
 
 4. Make sure SteamVR is running and then drag `Dreamdeck-Win64-Shipping.exe` into `ReviveInjector.exe`.
-
-5. For convenience you can also add `ReviveInjector.exe` as a non-steam game, but be sure to set `Dreamdeck-Win64-Shipping.exe` in the launch options.
 
 # Implementation
 
