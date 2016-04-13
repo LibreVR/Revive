@@ -397,7 +397,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 						// Only the center of the touchpad is a thumb stick
 						if (magnitude > 0.5f)
 						{
-							if (axis.x > 0.0f)
+							if (axis.x < 0.0f)
 								buttons |= ovrButton_A;
 							else
 								buttons |= ovrButton_B;
@@ -546,7 +546,6 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
 {
 	// TODO: Disable the rumbler after a nominal amount of time.
-	// TODO: Implement Oculus Touch support.
 
 	if (controllerType == ovrControllerType_XBox)
 	{
@@ -563,6 +562,28 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ov
 		XInputSetState(0, &vibration);
 
 		return ovrSuccess;
+	}
+
+	if (controllerType == ovrControllerType_LTouch)
+	{
+		vr::TrackedDeviceIndex_t index = g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+
+		if (index != (uint32_t)-1)
+		{
+			g_VRSystem->TriggerHapticPulse(index, 0, 1000.0f * amplitude);
+			return ovrSuccess;
+		}
+	}
+
+	if (controllerType == ovrControllerType_RTouch)
+	{
+		vr::TrackedDeviceIndex_t index = g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+
+		if (index != (uint32_t)-1)
+		{
+			g_VRSystem->TriggerHapticPulse(index, 0, 1000.0f * amplitude);
+			return ovrSuccess;
+		}
 	}
 
 	return ovrError_DeviceUnavailable;
