@@ -357,11 +357,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 	if (controllerType == ovrControllerType_XBox)
 	{
 		// Use XInput for Xbox controllers
-		XINPUT_STATE input;
-		if (XInputGetState(0, &input) == ERROR_SUCCESS)
+		XINPUT_STATE state;
+		if (XInputGetState(0, &state) == ERROR_SUCCESS)
 		{
 			// Convert the buttons
-			WORD buttons = input.Gamepad.wButtons;
+			WORD buttons = state.Gamepad.wButtons;
 			inputState->Buttons = 0;
 			if (buttons & XINPUT_GAMEPAD_DPAD_UP)
 				inputState->Buttons |= ovrButton_Up;
@@ -393,13 +393,60 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 				inputState->Buttons |= ovrButton_Y;
 
 			// Convert the axes
-			// TODO: Implement deadzone?
-			inputState->IndexTrigger[ovrHand_Left] = input.Gamepad.bLeftTrigger / 255.0f;
-			inputState->IndexTrigger[ovrHand_Right] = input.Gamepad.bRightTrigger / 255.0f;
-			inputState->Thumbstick[ovrHand_Left].x = input.Gamepad.sThumbLX / 32768.0f;
-			inputState->Thumbstick[ovrHand_Left].y = input.Gamepad.sThumbLY / 32768.0f;
-			inputState->Thumbstick[ovrHand_Right].x = input.Gamepad.sThumbRX / 32768.0f;
-			inputState->Thumbstick[ovrHand_Right].y = input.Gamepad.sThumbRY / 32768.0f;
+			SHORT deadzones[] = { XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE };
+			for (int i = 0; i < ovrHand_Count; i++)
+			{
+				float X, Y, trigger;
+				if (i == ovrHand_Left)
+				{
+					X = state.Gamepad.sThumbLX;
+					Y = state.Gamepad.sThumbLY;
+					trigger = state.Gamepad.bLeftTrigger;
+				}
+				if (i == ovrHand_Right)
+				{
+					X = state.Gamepad.sThumbRX;
+					Y = state.Gamepad.sThumbRY;
+					trigger = state.Gamepad.bRightTrigger;
+				}
+
+				//determine how far the controller is pushed
+				float magnitude = sqrt(X*X + Y*Y);
+
+				//determine the direction the controller is pushed
+				float normalizedX = X / magnitude;
+				float normalizedY = Y / magnitude;
+
+				//check if the controller is outside a circular dead zone
+				if (magnitude > deadzones[i])
+				{
+					//clip the magnitude at its expected maximum value
+					if (magnitude > 32767) magnitude = 32767;
+
+					//adjust magnitude relative to the end of the dead zone
+					magnitude -= deadzones[i];
+
+					//optionally normalize the magnitude with respect to its expected range
+					//giving a magnitude value of 0.0 to 1.0
+					float normalizedMagnitude = magnitude / (32767 - deadzones[i]);
+					inputState->Thumbstick[i].x = normalizedMagnitude * normalizedX;
+					inputState->Thumbstick[i].y = normalizedMagnitude * normalizedY;
+				}
+
+				if (trigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+				{
+					//clip the magnitude at its expected maximum value
+					if (trigger > 255) trigger = 255;
+
+					//adjust magnitude relative to the end of the dead zone
+					trigger -= XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+
+					//optionally normalize the magnitude with respect to its expected range
+					//giving a magnitude value of 0.0 to 1.0
+					float normalizedTrigger = trigger / (255 - XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+					inputState->IndexTrigger[i] = normalizedTrigger;
+				}
+			}
 
 			inputState->ControllerType = ovrControllerType_XBox;
 			return ovrSuccess;
