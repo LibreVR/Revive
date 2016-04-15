@@ -90,9 +90,9 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		ovrFovPort eye;
-		g_VRSystem->GetProjectionRaw((vr::EVREye)i, &eye.LeftTan, &eye.RightTan, &eye.UpTan, &eye.DownTan);
+		g_VRSystem->GetProjectionRaw((vr::EVREye)i, &eye.LeftTan, &eye.RightTan, &eye.DownTan, &eye.UpTan);
 		eye.LeftTan *= -1.0f;
-		eye.UpTan *= -1.0f;
+		eye.DownTan *= -1.0f;
 		desc.DefaultEyeFov[i] = eye;
 		desc.MaxEyeFov[i] = eye;
 	}
