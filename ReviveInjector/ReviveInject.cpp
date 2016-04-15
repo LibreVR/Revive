@@ -9,6 +9,7 @@
 bool InjectLibRevive(HANDLE processHandle, HANDLE threadHandle);
 bool InjectOpenVR(HANDLE processHandle, HANDLE threadHandle);
 bool InjectDLL(HANDLE processHandle, HANDLE threadHandle, const char *dllPath, int dllPathLength);
+bool InjectUnityOvrPlugin(HANDLE processHandle, HANDLE threadHandle);
 
 const LPWSTR GetLPWSTR(char *c)
 {
@@ -30,7 +31,8 @@ int CreateProcessAndInject(char *programPath) {
 		return -1;
 	}	
 	if (!InjectOpenVR(pi.hProcess, pi.hThread) ||
-		!InjectLibRevive(pi.hProcess, pi.hThread)) {
+		!InjectLibRevive(pi.hProcess, pi.hThread) ||
+		!InjectUnityOvrPlugin(pi.hProcess, pi.hThread)) {
 		ResumeThread(pi.hThread);
 		return -1;
 	}
@@ -59,6 +61,11 @@ bool InjectDLL(HANDLE processHandle, HANDLE threadHandle, const char *dllName32,
 	snprintf(dllPath, sizeof(dllPath), "%s\\Revive\\%s\\%s", cwd, platform, dllName);
 	int dllPathLength = sizeof(dllPath);
 	return InjectDLL(processHandle, threadHandle, dllPath, dllPathLength);
+}
+
+bool InjectUnityOvrPlugin(HANDLE processHandle, HANDLE threadHandle) {
+	char *dllName = "OVRPlugin.dll";
+	return InjectDLL(processHandle, threadHandle, dllName, dllName);
 }
 
 bool InjectLibRevive(HANDLE processHandle, HANDLE threadHandle) {
