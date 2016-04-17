@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include "MinHook.h"
 #include "Shlwapi.h"
-#include <map>
 
 #include <openvr.h>
 
@@ -21,7 +20,7 @@ _GetProcAddress TrueGetProcAddress;
 HANDLE ReviveModule;
 WCHAR libraryName[MAX_PATH];
 
-FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName) 
+FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 {
 	WCHAR modulePath[MAX_PATH];
 	GetModuleFileName(hModule, modulePath, sizeof(modulePath));
@@ -49,23 +48,23 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 	const char* pBitDepth = "32";
 #endif
 	swprintf(libraryName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
-    switch(ul_reason_for_call)
-    {
-        case DLL_PROCESS_ATTACH:
-			MH_Initialize();
-			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
-			MH_CreateHook(GetProcAddress, HookGetProcAddress, (PVOID*)&TrueGetProcAddress);
-			MH_EnableHook(OpenEventW);
-			MH_EnableHook(GetProcAddress);
-            break;
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+		MH_Initialize();
+		MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
+		MH_CreateHook(GetProcAddress, HookGetProcAddress, (PVOID*)&TrueGetProcAddress);
+		MH_EnableHook(OpenEventW);
+		MH_EnableHook(GetProcAddress);
+		break;
 
-		case DLL_PROCESS_DETACH:
-			MH_RemoveHook(OpenEventW);
-			MH_RemoveHook(GetProcAddress);
-			MH_Uninitialize();
+	case DLL_PROCESS_DETACH:
+		MH_RemoveHook(OpenEventW);
+		MH_RemoveHook(GetProcAddress);
+		MH_Uninitialize();
 
-        default:
-            break;
-    }
-    return TRUE;
+	default:
+		break;
+	}
+	return TRUE;
 }
