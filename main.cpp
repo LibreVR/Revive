@@ -11,29 +11,24 @@
 /// This is the Windows Named Event name that is used to check for HMD connected state.
 #define REV_HMD_CONNECTED_EVENT_NAME L"ReviveHMDConnected"
 
-typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
+typedef FARPROC(__stdcall* _GetProcAddress)(HMODULE hModule, LPCSTR  lpProcName);
 
-_LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
+_GetProcAddress TrueGetProcAddress;
 
 HANDLE ReviveModule;
+WCHAR libraryName[MAX_PATH];
 
-HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
+FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 {
-#if defined(_WIN64)
-	const char* pBitDepth = "64";
-#else
-	const char* pBitDepth = "32";
-#endif
-
-	LPCWSTR fileName = PathFindFileNameW(lpFileName);
-	WCHAR libraryName[MAX_PATH];
-	swprintf(libraryName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
-	if (wcscmp(fileName, libraryName) == 0)
-		return (HMODULE)ReviveModule;
-
-	return TrueLoadLibrary(lpFileName);
+	WCHAR modulePath[MAX_PATH];
+	GetModuleFileName(hModule, modulePath, sizeof(modulePath));
+	LPCWSTR moduleName = PathFindFileNameW(modulePath);
+	if (wcscmp(moduleName, libraryName) == 0) {
+		return TrueGetProcAddress((HMODULE)ReviveModule, lpProcName);
+	}
+	return TrueGetProcAddress(hModule, lpProcName);
 }
 
 HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
@@ -47,24 +42,29 @@ HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
 	ReviveModule = hModule;
+#if defined(_WIN64)
+	const char* pBitDepth = "64";
+#else
+	const char* pBitDepth = "32";
+#endif
+	swprintf(libraryName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+		MH_Initialize();
+		MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
+		MH_CreateHook(GetProcAddress, HookGetProcAddress, (PVOID*)&TrueGetProcAddress);
+		MH_EnableHook(OpenEventW);
+		MH_EnableHook(GetProcAddress);
+		break;
 
-    switch(ul_reason_for_call)
-    {
-        case DLL_PROCESS_ATTACH:
-			MH_Initialize();
-			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
-			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
-			MH_EnableHook(LoadLibraryW);
-			MH_EnableHook(OpenEventW);
-            break;
+	case DLL_PROCESS_DETACH:
+		MH_RemoveHook(OpenEventW);
+		MH_RemoveHook(GetProcAddress);
+		MH_Uninitialize();
 
-		case DLL_PROCESS_DETACH:
-			MH_RemoveHook(LoadLibraryW);
-			MH_RemoveHook(OpenEventW);
-			MH_Uninitialize();
-
-        default:
-            break;
-    }
-    return TRUE;
+	default:
+		break;
+	}
+	return TRUE;
 }
