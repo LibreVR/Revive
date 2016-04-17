@@ -85,15 +85,18 @@ std::map<std::string, void *> lookup = {
 };
 
 HANDLE ReviveModule;
+WCHAR libraryName[MAX_PATH];
 
 FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName) 
 {
 	WCHAR modulePath[MAX_PATH];
 	GetModuleFileName(hModule, modulePath, sizeof(modulePath));
 	LPCWSTR moduleName = PathFindFileNameW(modulePath);
-	auto iter = lookup.find(lpProcName);
-	if (iter != lookup.end()) {
-		return (FARPROC)iter->second;
+	if (wcscmp(moduleName, libraryName) == 0) {
+		auto iter = lookup.find(lpProcName);
+		if (iter != lookup.end()) {
+			return (FARPROC)iter->second;
+		}
 	}
 	return TrueGetProcAddress(hModule, lpProcName);
 }
@@ -101,13 +104,6 @@ FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 bool isUnityGame = false;
 HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 {
-#if defined(_WIN64)
-	const char* pBitDepth = "64";
-#else
-	const char* pBitDepth = "32";
-#endif
-	WCHAR libraryName[MAX_PATH];
-	swprintf(libraryName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 	LPCWSTR fileName = PathFindFileNameW(lpFileName);
 	if (!isUnityGame && wcscmp(fileName, libraryName) == 0)
 		return (HMODULE)ReviveModule;
@@ -129,7 +125,12 @@ HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
 	ReviveModule = hModule;
-
+#if defined(_WIN64)
+	const char* pBitDepth = "64";
+#else
+	const char* pBitDepth = "32";
+#endif
+	swprintf(libraryName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
     switch(ul_reason_for_call)
     {
         case DLL_PROCESS_ATTACH:
