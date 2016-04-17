@@ -48,10 +48,6 @@ HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR 
 
 BOOL HookFreeLibrary(HMODULE hModule) 
 {
-	WCHAR lpFileName[MAX_PATH];
-	GetModuleFileName(hModule, lpFileName, sizeof(lpFileName));
-	LPCWSTR fileName = PathFindFileNameW(lpFileName);
-
 	if (hModule == ReviveModule) {
 		return true;
 	}
