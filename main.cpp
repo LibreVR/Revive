@@ -52,11 +52,7 @@ BOOL HookFreeLibrary(HMODULE hModule)
 	GetModuleFileName(hModule, lpFileName, sizeof(lpFileName));
 	LPCWSTR fileName = PathFindFileNameW(lpFileName);
 
-	WCHAR lpReviveFileName[MAX_PATH];
-	GetModuleFileName((HMODULE)ReviveModule, lpReviveFileName, sizeof(lpReviveFileName));
-	LPCWSTR reviveFileName = PathFindFileNameW(lpReviveFileName);
-
-	if (wcscmp(fileName, reviveFileName) == 0) {
+	if (hModule == ReviveModule) {
 		return true;
 	}
 
