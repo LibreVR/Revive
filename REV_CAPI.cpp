@@ -707,13 +707,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	if (layerCount == 0)
 		return ovrError_InvalidParameter;
 
-	// The first layer is assumed to be the application scene.
-	if (layerPtrList[0]->Type != ovrLayerType_EyeFov)
-		return ovrSuccess_NotVisible;
-	ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[0];
-
 	// Other layers are interpreted as overlays.
-	for (size_t i = 1; i < vr::k_unMaxOverlayCount + 1; i++)
+	for (size_t i = 0; i < ovrMaxLayerCount; i++)
 	{
 		char keyName[vr::k_unVROverlayMaxKeyLength];
 		snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "Revive_%d", i);
@@ -725,6 +720,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		// If this layer is defined in the list, show it. If not, hide the layer if it exists.
 		if (i < layerCount)
 		{
+			// Overlays are assumed to be monoscopic quads.
+			if (layerPtrList[i]->Type != ovrLayerType_Quad)
+				continue;
+
 			// Create a new overlay if it doesn't exist.
 			if (err == vr::VROverlayError_UnknownOverlay)
 			{
@@ -739,9 +738,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 				session->overlay->HideOverlay(overlay);
 				continue;
 			}
-
-			// Overlays are assumed to be monoscopic quads.
-			_ASSERT(layerPtrList[i]->Type == ovrLayerType_Quad);
 
 			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
 
@@ -776,32 +772,38 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		}
 	}
 
-	// Submit the scene layer.
-	for (int i = 0; i < ovrEye_Count; i++)
+	// The first layer is assumed to be the application scene.
+	if (layerPtrList[0]->Type == ovrLayerType_EyeFov)
 	{
-		ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
-		session->ColorTexture[i] = chain;
-		vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
+		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[0];
 
-		float left, right, top, bottom;
-		g_VRSystem->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
+		// Submit the scene layer.
+		for (int i = 0; i < ovrEye_Count; i++)
+		{
+			ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
+			session->ColorTexture[i] = chain;
+			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
 
-		// Shrink the bounds to account for the overlapping fov
-		ovrFovPort fov = sceneLayer->Fov[i];
-		float uMin = 0.5f + 0.5f * left / fov.LeftTan;
-		float uMax = 0.5f + 0.5f * right / fov.RightTan;
-		float vMin = 0.5f - 0.5f * bottom / fov.DownTan;
-		float vMax = 0.5f - 0.5f * top / fov.UpTan;
+			float left, right, top, bottom;
+			g_VRSystem->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
 
-		// Combine the fov bounds with the viewport bounds
-		bounds.uMin += uMin * bounds.uMax;
-		bounds.uMax *= uMax;
-		bounds.vMin += vMin * bounds.vMax;
-		bounds.vMax *= vMax;
+			// Shrink the bounds to account for the overlapping fov
+			ovrFovPort fov = sceneLayer->Fov[i];
+			float uMin = 0.5f + 0.5f * left / fov.LeftTan;
+			float uMax = 0.5f + 0.5f * right / fov.RightTan;
+			float vMin = 0.5f - 0.5f * bottom / fov.DownTan;
+			float vMax = 0.5f - 0.5f * top / fov.UpTan;
 
-		vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &chain->current, &bounds);
-		if (err != vr::VRCompositorError_None)
-			return REV_CompositorErrorToOvrError(err);
+			// Combine the fov bounds with the viewport bounds
+			bounds.uMin += uMin * bounds.uMax;
+			bounds.uMax *= uMax;
+			bounds.vMin += vMin * bounds.vMax;
+			bounds.vMax *= vMax;
+
+			vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &chain->current, &bounds);
+			if (err != vr::VRCompositorError_None)
+				return REV_CompositorErrorToOvrError(err);
+		}
 	}
 
 	return ovrSuccess;
