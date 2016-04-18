@@ -13,11 +13,9 @@
 
 typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
-typedef BOOL(__stdcall* _FreeLibrary)(HMODULE hModule);
 
 _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
-_FreeLibrary TrueFreeLibrary;
 
 HANDLE ReviveModule;
 
@@ -46,15 +44,6 @@ HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR 
 	return TrueOpenEvent(dwDesiredAccess, bInheritHandle, lpName);
 }
 
-BOOL HookFreeLibrary(HMODULE hModule) 
-{
-	if (hModule == ReviveModule) {
-		return true;
-	}
-
-	return TrueFreeLibrary(hModule);
-}
-
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
 	ReviveModule = hModule;
@@ -65,16 +54,13 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 			MH_Initialize();
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
-			MH_CreateHook(FreeLibrary, HookFreeLibrary, (PVOID*)&TrueFreeLibrary);
 			MH_EnableHook(LoadLibraryW);
 			MH_EnableHook(OpenEventW);
-			MH_EnableHook(FreeLibrary);
             break;
 
 		case DLL_PROCESS_DETACH:
 			MH_RemoveHook(LoadLibraryW);
 			MH_RemoveHook(OpenEventW);
-			MH_RemoveHook(FreeLibrary);
 			MH_Uninitialize();
 
         default:
