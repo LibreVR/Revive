@@ -2,7 +2,7 @@
 
 This is a proof-of-concept compatibility layer between the Oculus SDK and OpenVR.
 
-*WARNING:* This is still pre-release software, don't buy games from the Oculus Store expecting this layer to work for you. Even for the games that have installation instructions there may still be compatability issues or it may not work at all for you.
+*WARNING:* This is still pre-release software, don't buy games from the Oculus Store expecting this layer to work for you. Even for the games that have installation instructions there may still be compatibility issues or it may not work at all for you.
 
 # Installation
 
