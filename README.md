@@ -12,7 +12,7 @@ Only Windows 8/10 is supported right now, support for Windows 7 will be added in
 
 If you need to recenter the headset you can do so in the Steam VR dashboard by going to Settings > VR Settings > General VR Settings > Reset Seated Position.
 
-## Project Cars (64-bit)
+## Project Cars (Steam, 64-bit)
 
 1. [Download the Project Cars patch here.](https://github.com/LibreVR/Revive/releases/download/0.3/RevivePCars.zip)
 2. Install Project Cars from Steam, then go to its properties in the Steam Library.
