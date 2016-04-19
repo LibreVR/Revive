@@ -665,8 +665,19 @@ vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureS
 	float h = (float)swapChain->desc.Height;
 	bounds.uMin = viewport.Pos.x / w;
 	bounds.vMin = viewport.Pos.y / h;
-	bounds.uMax = (viewport.Pos.x + viewport.Size.w) / w;
-	bounds.vMax = (viewport.Pos.y + viewport.Size.h) / h;
+
+	// Sanity check for the viewport size.
+	// Workaround for Defense Grid 2, which leaves these variables unintialized.
+	if (viewport.Size.w > 0 && viewport.Size.h > 0)
+	{
+		bounds.uMax = (viewport.Pos.x + viewport.Size.w) / w;
+		bounds.vMax = (viewport.Pos.y + viewport.Size.h) / h;
+	}
+	else
+	{
+		bounds.uMax = 1.0f;
+		bounds.vMax = 1.0f;
+	}
 
 	if (flags & ovrLayerFlag_TextureOriginAtBottomLeft)
 	{
