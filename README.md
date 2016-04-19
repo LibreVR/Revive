@@ -6,6 +6,8 @@ This is a proof-of-concept compatibility layer between the Oculus SDK and OpenVR
 
 # Installation
 
+*You need to have [Oculus Home](https://www.oculus.com/en-us/setup/) installed.*
+
 Currently two games have been tested and are supported, it's important to note that they both require you to use an Xbox controller for now.
 
 Only Windows 8/10 is supported right now, support for Windows 7 will be added in the next version.
