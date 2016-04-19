@@ -24,10 +24,10 @@ If you need to recenter the headset you can do so in the Steam VR dashboard by g
 
 ## Defense Grid 2
 
-1. [Download the Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.3/ReviveInjector.zip)
+1. [Download the Defense Grid 2 patch here.](https://github.com/LibreVR/Revive/releases/download/0.3/ReviveDG2.zip)
 2. Install Defense Grid 2 from Oculus Home, then go to `C:\Program Files (x86)\Oculus\Software\hidden-path-entertainment-dg2vr`.
-3. Extract the injector in that folder.
-4. Make sure SteamVR is running and then drag `DefenseGrid2_Shipping.exe` into `ReviveInjector.exe`.
+3. Extract the injector in that folder, it will overwrite `DefenseGrid2_Shipping.exe` so make sure you have a backup.
+4. Make sure SteamVR is running and then start `DefenseGrid2_Shipping.exe`.
 
 ## Lucky's Tale
 
