@@ -28,7 +28,6 @@ char* g_StringBuffer = nullptr;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
-	// Success! We don't need to hook these anymore.
 	MH_QueueDisableHook(GetProcAddress);
 	MH_QueueDisableHook(LoadLibraryW);
 	MH_QueueDisableHook(OpenEventW);
@@ -47,6 +46,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 		return ovrError_LibLoad;
 
 	g_VRSystem = vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
+
+	MH_QueueEnableHook(GetProcAddress);
+	MH_QueueEnableHook(LoadLibraryW);
+	MH_QueueEnableHook(OpenEventW);
+	MH_ApplyQueued();
 
 	return REV_InitErrorToOvrError(g_InitError);
 }
