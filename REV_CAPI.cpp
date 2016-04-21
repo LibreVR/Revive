@@ -333,9 +333,10 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		state.HandStatusFlags[i] = REV_TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
 
-	// TODO: It looks like this should be set to GetSeatedZeroPoseToStandingAbsoluteTrackingPose()?
-	state.CalibratedOrigin.Orientation = OVR::Quatf();
-	state.CalibratedOrigin.Position = OVR::Vector3f();
+	// TODO: Should this transformation be inverted?
+	OVR::Matrix4f origin = REV_HmdMatrixToOVRMatrix(g_VRSystem->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
+	state.CalibratedOrigin.Orientation = OVR::Quatf(origin);
+	state.CalibratedOrigin.Position = origin.GetTranslation();
 
 	return state;
 }
