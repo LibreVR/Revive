@@ -15,6 +15,13 @@
 
 #define REV_SETTINGS_SECTION "revive"
 
+typedef DWORD(__stdcall* _XInputGetState)(DWORD dwUserIndex, XINPUT_STATE* pState);
+typedef DWORD(__stdcall* _XInputSetState)(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
+
+HMODULE g_hXInputLib;
+_XInputGetState g_pXInputGetState;
+_XInputSetState g_pXInputSetState;
+
 vr::EVRInitError g_InitError = vr::VRInitError_None;
 vr::IVRSystem* g_VRSystem = nullptr;
 char* g_StringBuffer = nullptr;
@@ -27,6 +34,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	MH_QueueDisableHook(OpenEventW);
 	MH_ApplyQueued();
 
+	g_hXInputLib = LoadLibraryW(L"xinput1_3.dll");
+	if (!g_hXInputLib)
+		return ovrError_LibLoad;
+
+	g_pXInputGetState = (_XInputGetState)GetProcAddress(g_hXInputLib, "XInputGetState");
+	if (!g_pXInputGetState)
+		return ovrError_LibLoad;
+
+	g_pXInputSetState = (_XInputSetState)GetProcAddress(g_hXInputLib, "XInputSetState");
+	if (!g_pXInputSetState)
+		return ovrError_LibLoad;
+
 	g_VRSystem = vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
 
 	return REV_InitErrorToOvrError(g_InitError);
@@ -38,6 +57,9 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 	if (g_StringBuffer)
 		delete g_StringBuffer;
 	g_StringBuffer = nullptr;
+
+	if (g_hXInputLib)
+		FreeLibrary(g_hXInputLib);
 
 	vr::VR_Shutdown();
 }
@@ -427,7 +449,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 	// Use XInput for Xbox controllers
 	XINPUT_STATE state;
-	if (XInputGetState(0, &state) == ERROR_SUCCESS)
+	if (g_pXInputGetState(0, &state) == ERROR_SUCCESS)
 	{
 		// Convert the buttons
 		WORD buttons = state.Gamepad.wButtons;
@@ -534,7 +556,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 
 	// Check for Xbox controller
 	XINPUT_STATE input;
-	if (XInputGetState(0, &input) == ERROR_SUCCESS)
+	if (g_pXInputGetState(0, &input) == ERROR_SUCCESS)
 	{
 		types |= ovrControllerType_XBox;
 	}
@@ -559,7 +581,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ov
 			else
 				vibration.wLeftMotorSpeed = WORD(65535.0f * amplitude);
 		}
-		XInputSetState(0, &vibration);
+		g_pXInputSetState(0, &vibration);
 
 		return ovrSuccess;
 	}
