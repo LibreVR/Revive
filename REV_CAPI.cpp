@@ -761,9 +761,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 {
 	// TODO: Implement scaling through ApplyTransform().
 
-	// Call WaitGetPoses() to do some cleanup from the previous frame.
-	session->compositor->WaitGetPoses(session->poses, vr::k_unMaxTrackedDeviceCount, session->gamePoses, vr::k_unMaxTrackedDeviceCount);
-
 	if (layerCount == 0)
 		return ovrError_InvalidParameter;
 
@@ -834,6 +831,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	}
 
 	// The first layer is assumed to be the application scene.
+	vr::EVRCompositorError err;
 	if (layerPtrList[0]->Type == ovrLayerType_EyeFov)
 	{
 		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[0];
@@ -861,13 +859,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			bounds.vMin += vMin * bounds.vMax;
 			bounds.vMax *= vMax;
 
-			vr::EVRCompositorError err = session->compositor->Submit((vr::EVREye)i, &chain->current, &bounds);
+			err = session->compositor->Submit((vr::EVREye)i, &chain->current, &bounds);
 			if (err != vr::VRCompositorError_None)
-				return REV_CompositorErrorToOvrError(err);
+				break;
 		}
 	}
 
-	return ovrSuccess;
+	// Call WaitGetPoses() to do some cleanup from the previous frame.
+	session->compositor->WaitGetPoses(session->poses, vr::k_unMaxTrackedDeviceCount, session->gamePoses, vr::k_unMaxTrackedDeviceCount);
+
+	return REV_CompositorErrorToOvrError(err);
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
