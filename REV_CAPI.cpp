@@ -140,10 +140,10 @@ OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsig
 	g_VRSystem->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
 	vr::TrackedDeviceIndex_t index = trackers[trackerDescIndex];
 
-	// Fill the descriptor
+	// Fill the descriptor.
 	ovrTrackerDesc desc;
 
-	// Calculate field-of-view
+	// Calculate field-of-view.
 	float left = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewLeftDegrees_Float);
 	float right = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewRightDegrees_Float);
 	float top = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewTopDegrees_Float);
@@ -151,9 +151,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsig
 	desc.FrustumHFovInRadians = OVR::DegreeToRad(left + right);
 	desc.FrustumVFovInRadians = OVR::DegreeToRad(top + bottom);
 
-	// Get range
-	desc.FrustumNearZInMeters = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
-	desc.FrustumFarZInMeters = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
+	// Because the base stations are oriented differently we need to invert the tracking frustum.
+	desc.FrustumNearZInMeters = -g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
+	desc.FrustumFarZInMeters = -g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
 
 	return desc;
 }
@@ -321,7 +321,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	for (int i = 0; i < ovrHand_Count; i++)
 	{
 		vr::TrackedDeviceIndex_t deviceIndex = hands[i];
-		if (deviceIndex == (uint32_t)-1)
+		if (deviceIndex == vr::k_unTrackedDeviceIndexInvalid)
 		{
 			state.HandPoses[i].ThePose = OVR::Posef::Identity();
 			continue;
@@ -348,20 +348,23 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 	ovrTrackerPose pose = { 0 };
 
 	// Get the index for this tracker.
-	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount];
+	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount] = { vr::k_unTrackedDeviceIndexInvalid };
 	g_VRSystem->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
 	vr::TrackedDeviceIndex_t index = trackers[trackerPoseIndex];
 
 	// Set the flags
 	pose.TrackerFlags = 0;
-	if (session->poses[index].bDeviceIsConnected)
-		pose.TrackerFlags |= ovrTracker_Connected;
-	if (session->poses[index].bPoseIsValid)
-		pose.TrackerFlags |= ovrTracker_PoseTracked;
+	if (index != vr::k_unTrackedDeviceIndexInvalid)
+	{
+		if (session->poses[index].bDeviceIsConnected)
+			pose.TrackerFlags |= ovrTracker_Connected;
+		if (session->poses[index].bPoseIsValid)
+			pose.TrackerFlags |= ovrTracker_PoseTracked;
+	}
 
 	// Convert the pose
 	OVR::Matrix4f matrix;
-	if (session->poses[index].bPoseIsValid)
+	if (index != vr::k_unTrackedDeviceIndexInvalid && session->poses[index].bPoseIsValid)
 		matrix = REV_HmdMatrixToOVRMatrix(session->poses[index].mDeviceToAbsoluteTracking);
 	OVR::Quatf quat = OVR::Quatf(matrix);
 	pose.Pose.Orientation = quat;
@@ -390,7 +393,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 		for (int i = 0; i < ovrHand_Count; i++)
 		{
-			if (hands[i] != (uint32_t)-1)
+			if (hands[i] != vr::k_unTrackedDeviceIndexInvalid)
 			{
 				unsigned int buttons = 0, touches = 0;
 				vr::VRControllerState_t state;
@@ -561,10 +564,10 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 	unsigned int types = 0;
 
 	// Check for Vive controllers
-	if (g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand) != (uint32_t)-1)
+	if (g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand) != vr::k_unTrackedDeviceIndexInvalid)
 		types |= ovrControllerType_LTouch;
 
-	if (g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) != (uint32_t)-1)
+	if (g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) != vr::k_unTrackedDeviceIndexInvalid)
 		types |= ovrControllerType_RTouch;
 
 	// Check for Xbox controller
