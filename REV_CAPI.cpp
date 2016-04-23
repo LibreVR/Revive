@@ -163,6 +163,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new struct ovrHmdStruct();
 	memset(session->ColorTexture, 0, sizeof(ovrHmdStruct::ColorTexture));
+	session->ThumbStick[ovrHand_Left] = true;
 
 	// Get the compositor interface
 	session->compositor = (vr::IVRCompositor*)VR_GetGenericInterface(vr::IVRCompositor_Version, &g_InitError);
@@ -400,19 +401,28 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 				g_VRSystem->GetControllerState(hands[i], &state);
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
-					buttons |= ovrButton_Home;
+				{
+					if (!session->MenuWasPressed[i])
+						session->ThumbStick[i] = !session->ThumbStick[i];
+
+					session->MenuWasPressed[i] = true;
+				}
+				else
+				{
+					session->MenuWasPressed[i] = false;
+				}
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-					buttons |= ovrTouch_RIndexTrigger;
+					buttons |= ovrTouch_RIndexTrigger << 2 * i;
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
 					inputState->HandTrigger[i] = 1.0f;
 
 				if (!(state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad)))
-					touches |= ovrTouch_RThumbUp;
+					touches |= ovrTouch_RThumbUp << 2 * i;
 
 				if (!(state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger)))
-					touches |= ovrTouch_RIndexPointing;
+					touches |= ovrTouch_RIndexPointing << 2 * i;
 
 				// Convert the axes
 				for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
@@ -423,42 +433,42 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 					if (type == vr::k_eControllerAxis_TrackPad)
 					{
-						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
-						{
-							float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
-
-							// Only the center of the touchpad is a thumb stick
-							if (magnitude > 0.5f)
-							{
-								if (axis.x > 0.0f)
-									buttons |= ovrTouch_A;
-								else
-									buttons |= ovrTouch_B;
-							}
-							else
-							{
-								buttons |= ovrTouch_RThumb;
-							}
-						}
-						else if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+						if (session->ThumbStick[i])
 						{
 							// Map the touchpad to the thumbstick
 							inputState->Thumbstick[i].x = axis.x;
 							inputState->Thumbstick[i].y = axis.y;
 						}
+
+						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+						{
+							if (session->ThumbStick[i])
+							{
+								buttons |= ovrTouch_RThumb << 2 * i;
+							}
+							else
+							{
+								if (axis.y < axis.x) {
+									if (axis.y < -axis.x)
+										buttons |= ovrTouch_A;
+									else
+										buttons |= ovrTouch_B;
+								}
+								else {
+									if (axis.y < -axis.x)
+										buttons |= ovrTouch_X;
+									else
+										buttons |= ovrTouch_Y;
+								}
+							}
+						}
 					}
 
-					if (type == vr::k_eControllerAxis_Trigger &&
-						state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
+					if (type == vr::k_eControllerAxis_Trigger)
 						inputState->IndexTrigger[i] = axis.x;
 				}
 
 				// Commit buttons/touches and bitshift it for the left hand.
-				if (i == ovrHand_Left)
-				{
-					buttons <<= 2;
-					touches <<= 2;
-				}
 				inputState->Buttons |= buttons;
 				inputState->Touches |= touches;
 			}
