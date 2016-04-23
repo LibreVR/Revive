@@ -44,19 +44,17 @@ int CreateProcessAndInject(char *programPath) {
 	}
 	if (is32Bit)
 	{
-		printf("Wow64 process detected, delegating to ReviveInjector_x86...\n");
+		printf("32-bit process detected, delegating to ReviveInjector_x86\n");
 
 		PROCESS_INFORMATION injector;
 		ZeroMemory(&injector, sizeof(injector));
 		wchar_t commandLine[MAX_PATH];
 		swprintf(commandLine, sizeof(commandLine), L"Revive\\ReviveInjector_x86.exe /handle %d", pi.hProcess);
-		if (!CreateProcess(NULL, commandLine, NULL, NULL, TRUE, CREATE_SUSPENDED, NULL, NULL, &si, &injector))
+		if (!CreateProcess(NULL, commandLine, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &injector))
 		{
 			printf("Failed to create ReviveInjector_x86\n");
 			return -1;
 		}
-		getchar();
-		ResumeThread(injector.hThread);
 
 		DWORD waitReturnValue = WaitForSingleObject(injector.hThread, INFINITE);
 		if (waitReturnValue != WAIT_OBJECT_0) {
