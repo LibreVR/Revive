@@ -306,6 +306,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 {
 	ovrTrackingState state = { 0 };
 
+	// Call WaitGetPoses() to do some cleanup from the previous frame.
+	session->compositor->WaitGetPoses(session->poses, vr::k_unMaxTrackedDeviceCount, session->gamePoses, vr::k_unMaxTrackedDeviceCount);
+
 	// Gain focus for the compositor
 	float time = (float)ovr_GetTimeInSeconds();
 
@@ -725,9 +728,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	// TODO: Implement scaling through ApplyTransform().
-
-	// Call WaitGetPoses() to do some cleanup from the previous frame.
-	session->compositor->WaitGetPoses(session->poses, vr::k_unMaxTrackedDeviceCount, session->gamePoses, vr::k_unMaxTrackedDeviceCount);
 
 	if (layerCount == 0)
 		return ovrError_InvalidParameter;
