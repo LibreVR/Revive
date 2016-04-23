@@ -47,7 +47,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 	g_VRSystem = vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
 
-	MH_QueueEnableHook(GetProcAddress);
 	MH_QueueEnableHook(LoadLibraryW);
 	MH_QueueEnableHook(OpenEventW);
 	MH_ApplyQueued();
