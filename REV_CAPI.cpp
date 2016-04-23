@@ -454,8 +454,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 				}
 
 				// Commit buttons/touches and bitshift it for the left hand.
-				inputState->Buttons |= buttons << (100 * i);
-				inputState->Touches |= touches << (100 * i);
+				if (i == ovrHand_Left)
+				{
+					buttons <<= 2;
+					touches <<= 2;
+				}
+				inputState->Buttons |= buttons;
+				inputState->Touches |= touches;
 			}
 		}
 	}
