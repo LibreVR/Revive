@@ -180,6 +180,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	if (g_InitError != vr::VRInitError_None)
 		return REV_InitErrorToOvrError(g_InitError);
 
+	// Apply settings
+	session->ThumbStickRange = session->settings->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange", 0.8f);
+
 	// Get the LUID for the adapter
 	int32_t index;
 	g_VRSystem->GetDXGIOutputInfo(&index);
@@ -435,9 +438,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 					{
 						if (session->ThumbStick[i])
 						{
-							// Map the touchpad to the thumbstick
-							inputState->Thumbstick[i].x = axis.x;
-							inputState->Thumbstick[i].y = axis.y;
+							// Map the touchpad to the thumbstick with a slightly smaller range
+							float x = axis.x / session->ThumbStickRange;
+							float y = axis.y / session->ThumbStickRange;
+							if (x > 1.0f) x = 1.0f;
+							if (y > 1.0f) y = 1.0f;
+
+							inputState->Thumbstick[i].x = x;
+							inputState->Thumbstick[i].y = y;
 						}
 
 						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))

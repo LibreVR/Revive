@@ -23,6 +23,7 @@ struct ovrHmdStruct
 	// Controller states
 	bool ThumbStick[ovrHand_Count];
 	bool MenuWasPressed[ovrHand_Count];
+	float ThumbStickRange;
 
 	// Mirror window
 	ovrTextureSwapChain ColorTexture[ovrEye_Count];
