@@ -403,7 +403,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 					buttons |= ovrButton_Home;
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-					buttons |= ovrButton_RShoulder;
+					buttons |= ovrTouch_RIndexTrigger;
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
 					inputState->HandTrigger[i] = 1.0f;
@@ -431,13 +431,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 							if (magnitude > 0.5f)
 							{
 								if (axis.x > 0.0f)
-									buttons |= ovrButton_A;
+									buttons |= ovrTouch_A;
 								else
-									buttons |= ovrButton_B;
+									buttons |= ovrTouch_B;
 							}
 							else
 							{
-								buttons |= ovrButton_LThumb;
+								buttons |= ovrTouch_RThumb;
 							}
 						}
 						else if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
