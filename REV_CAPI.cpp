@@ -476,9 +476,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 						inputState->IndexTrigger[i] = axis.x;
 				}
 
-				// Commit buttons/touches and bitshift it for the left hand.
+				// Commit buttons/touches, count pressed buttons as touches.
 				inputState->Buttons |= buttons;
-				inputState->Touches |= touches;
+				inputState->Touches |= touches | buttons;
 			}
 		}
 	}
