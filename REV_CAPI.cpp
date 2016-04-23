@@ -380,166 +380,172 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
 	inputState->ControllerType = controllerType;
 
-	vr::TrackedDeviceIndex_t hands[] = { g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand),
-		g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand) };
-
-	for (int i = 0; i < ovrHand_Count; i++)
+	if (controllerType & ovrControllerType_Touch)
 	{
-		if (hands[i] != (uint32_t)-1)
+		vr::TrackedDeviceIndex_t hands[] = { g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand),
+			g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand) };
+
+		for (int i = 0; i < ovrHand_Count; i++)
 		{
-			unsigned int buttons = 0, touches = 0;
-			vr::VRControllerState_t state;
-			g_VRSystem->GetControllerState(hands[i], &state);
-
-			if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
-				buttons |= ovrButton_Home;
-
-			if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-				buttons |= ovrButton_RShoulder;
-
-			if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
-				inputState->HandTrigger[i] = 1.0f;
-
-			if (!(state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad)))
-				touches |= ovrTouch_RThumbUp;
-
-			if (!(state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger)))
-				touches |= ovrTouch_RIndexPointing;
-
-			// Convert the axes
-			for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
+			if (hands[i] != (uint32_t)-1)
 			{
-				vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + j);
-				vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)g_VRSystem->GetInt32TrackedDeviceProperty(hands[i], prop);
-				vr::VRControllerAxis_t axis = state.rAxis[j];
+				unsigned int buttons = 0, touches = 0;
+				vr::VRControllerState_t state;
+				g_VRSystem->GetControllerState(hands[i], &state);
 
-				if (type == vr::k_eControllerAxis_TrackPad)
+				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
+					buttons |= ovrButton_Home;
+
+				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
+					buttons |= ovrButton_RShoulder;
+
+				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
+					inputState->HandTrigger[i] = 1.0f;
+
+				if (!(state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad)))
+					touches |= ovrTouch_RThumbUp;
+
+				if (!(state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger)))
+					touches |= ovrTouch_RIndexPointing;
+
+				// Convert the axes
+				for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
 				{
-					if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
-					{
-						float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
+					vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + j);
+					vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)g_VRSystem->GetInt32TrackedDeviceProperty(hands[i], prop);
+					vr::VRControllerAxis_t axis = state.rAxis[j];
 
-						// Only the center of the touchpad is a thumb stick
-						if (magnitude > 0.5f)
-						{
-							if (axis.x > 0.0f)
-								buttons |= ovrButton_A;
-							else
-								buttons |= ovrButton_B;
-						}
-						else
-						{
-							buttons |= ovrButton_LThumb;
-						}
-					}
-					else if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+					if (type == vr::k_eControllerAxis_TrackPad)
 					{
-						// Map the touchpad to the thumbstick
-						inputState->Thumbstick[i].x = axis.x;
-						inputState->Thumbstick[i].y = axis.y;
+						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+						{
+							float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
+
+							// Only the center of the touchpad is a thumb stick
+							if (magnitude > 0.5f)
+							{
+								if (axis.x > 0.0f)
+									buttons |= ovrButton_A;
+								else
+									buttons |= ovrButton_B;
+							}
+							else
+							{
+								buttons |= ovrButton_LThumb;
+							}
+						}
+						else if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+						{
+							// Map the touchpad to the thumbstick
+							inputState->Thumbstick[i].x = axis.x;
+							inputState->Thumbstick[i].y = axis.y;
+						}
 					}
+
+					if (type == vr::k_eControllerAxis_Trigger &&
+						state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
+						inputState->IndexTrigger[i] = axis.x;
 				}
 
-				if (type == vr::k_eControllerAxis_Trigger &&
-					state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-					inputState->IndexTrigger[i] = axis.x;
+				// Commit buttons/touches and bitshift it for the left hand.
+				inputState->Buttons |= buttons << (100 * i);
+				inputState->Touches |= touches << (100 * i);
 			}
-
-			// Commit buttons/touches and bitshift it for the left hand.
-			inputState->Buttons |= buttons << (100 * i);
-			inputState->Touches |= touches << (100 * i);
 		}
 	}
 
 	// Use XInput for Xbox controllers
-	XINPUT_STATE state;
-	if (g_pXInputGetState(0, &state) == ERROR_SUCCESS)
+	if (controllerType & ovrControllerType_XBox)
 	{
-		// Convert the buttons
-		WORD buttons = state.Gamepad.wButtons;
-		inputState->Buttons = 0;
-		if (buttons & XINPUT_GAMEPAD_DPAD_UP)
-			inputState->Buttons |= ovrButton_Up;
-		if (buttons & XINPUT_GAMEPAD_DPAD_DOWN)
-			inputState->Buttons |= ovrButton_Down;
-		if (buttons & XINPUT_GAMEPAD_DPAD_LEFT)
-			inputState->Buttons |= ovrButton_Left;
-		if (buttons & XINPUT_GAMEPAD_DPAD_RIGHT)
-			inputState->Buttons |= ovrButton_Right;
-		if (buttons & XINPUT_GAMEPAD_START)
-			inputState->Buttons |= ovrButton_Enter;
-		if (buttons & XINPUT_GAMEPAD_BACK)
-			inputState->Buttons |= ovrButton_Back;
-		if (buttons & XINPUT_GAMEPAD_LEFT_THUMB)
-			inputState->Buttons |= ovrButton_LThumb;
-		if (buttons & XINPUT_GAMEPAD_RIGHT_THUMB)
-			inputState->Buttons |= ovrButton_RThumb;
-		if (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER)
-			inputState->Buttons |= ovrButton_LShoulder;
-		if (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
-			inputState->Buttons |= ovrButton_RShoulder;
-		if (buttons & XINPUT_GAMEPAD_A)
-			inputState->Buttons |= ovrButton_A;
-		if (buttons & XINPUT_GAMEPAD_B)
-			inputState->Buttons |= ovrButton_B;
-		if (buttons & XINPUT_GAMEPAD_X)
-			inputState->Buttons |= ovrButton_X;
-		if (buttons & XINPUT_GAMEPAD_Y)
-			inputState->Buttons |= ovrButton_Y;
-
-		// Convert the axes
-		SHORT deadzones[] = { XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE };
-		for (int i = 0; i < ovrHand_Count; i++)
+		XINPUT_STATE state;
+		if (g_pXInputGetState(0, &state) == ERROR_SUCCESS)
 		{
-			float X, Y, trigger;
-			if (i == ovrHand_Left)
+			// Convert the buttons
+			WORD buttons = state.Gamepad.wButtons;
+			inputState->Buttons = 0;
+			if (buttons & XINPUT_GAMEPAD_DPAD_UP)
+				inputState->Buttons |= ovrButton_Up;
+			if (buttons & XINPUT_GAMEPAD_DPAD_DOWN)
+				inputState->Buttons |= ovrButton_Down;
+			if (buttons & XINPUT_GAMEPAD_DPAD_LEFT)
+				inputState->Buttons |= ovrButton_Left;
+			if (buttons & XINPUT_GAMEPAD_DPAD_RIGHT)
+				inputState->Buttons |= ovrButton_Right;
+			if (buttons & XINPUT_GAMEPAD_START)
+				inputState->Buttons |= ovrButton_Enter;
+			if (buttons & XINPUT_GAMEPAD_BACK)
+				inputState->Buttons |= ovrButton_Back;
+			if (buttons & XINPUT_GAMEPAD_LEFT_THUMB)
+				inputState->Buttons |= ovrButton_LThumb;
+			if (buttons & XINPUT_GAMEPAD_RIGHT_THUMB)
+				inputState->Buttons |= ovrButton_RThumb;
+			if (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER)
+				inputState->Buttons |= ovrButton_LShoulder;
+			if (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
+				inputState->Buttons |= ovrButton_RShoulder;
+			if (buttons & XINPUT_GAMEPAD_A)
+				inputState->Buttons |= ovrButton_A;
+			if (buttons & XINPUT_GAMEPAD_B)
+				inputState->Buttons |= ovrButton_B;
+			if (buttons & XINPUT_GAMEPAD_X)
+				inputState->Buttons |= ovrButton_X;
+			if (buttons & XINPUT_GAMEPAD_Y)
+				inputState->Buttons |= ovrButton_Y;
+
+			// Convert the axes
+			SHORT deadzones[] = { XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE };
+			for (int i = 0; i < ovrHand_Count; i++)
 			{
-				X = state.Gamepad.sThumbLX;
-				Y = state.Gamepad.sThumbLY;
-				trigger = state.Gamepad.bLeftTrigger;
-			}
-			if (i == ovrHand_Right)
-			{
-				X = state.Gamepad.sThumbRX;
-				Y = state.Gamepad.sThumbRY;
-				trigger = state.Gamepad.bRightTrigger;
-			}
+				float X, Y, trigger;
+				if (i == ovrHand_Left)
+				{
+					X = state.Gamepad.sThumbLX;
+					Y = state.Gamepad.sThumbLY;
+					trigger = state.Gamepad.bLeftTrigger;
+				}
+				if (i == ovrHand_Right)
+				{
+					X = state.Gamepad.sThumbRX;
+					Y = state.Gamepad.sThumbRY;
+					trigger = state.Gamepad.bRightTrigger;
+				}
 
-			//determine how far the controller is pushed
-			float magnitude = sqrt(X*X + Y*Y);
+				//determine how far the controller is pushed
+				float magnitude = sqrt(X*X + Y*Y);
 
-			//determine the direction the controller is pushed
-			float normalizedX = X / magnitude;
-			float normalizedY = Y / magnitude;
+				//determine the direction the controller is pushed
+				float normalizedX = X / magnitude;
+				float normalizedY = Y / magnitude;
 
-			//check if the controller is outside a circular dead zone
-			if (magnitude > deadzones[i])
-			{
-				//clip the magnitude at its expected maximum value
-				if (magnitude > 32767) magnitude = 32767;
+				//check if the controller is outside a circular dead zone
+				if (magnitude > deadzones[i])
+				{
+					//clip the magnitude at its expected maximum value
+					if (magnitude > 32767) magnitude = 32767;
 
-				//adjust magnitude relative to the end of the dead zone
-				magnitude -= deadzones[i];
+					//adjust magnitude relative to the end of the dead zone
+					magnitude -= deadzones[i];
 
-				//optionally normalize the magnitude with respect to its expected range
-				//giving a magnitude value of 0.0 to 1.0
-				float normalizedMagnitude = magnitude / (32767 - deadzones[i]);
-				inputState->Thumbstick[i].x = normalizedMagnitude * normalizedX;
-				inputState->Thumbstick[i].y = normalizedMagnitude * normalizedY;
-			}
+					//optionally normalize the magnitude with respect to its expected range
+					//giving a magnitude value of 0.0 to 1.0
+					float normalizedMagnitude = magnitude / (32767 - deadzones[i]);
+					inputState->Thumbstick[i].x = normalizedMagnitude * normalizedX;
+					inputState->Thumbstick[i].y = normalizedMagnitude * normalizedY;
+				}
 
-			if (trigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-			{
-				//clip the magnitude at its expected maximum value
-				if (trigger > 255) trigger = 255;
+				if (trigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+				{
+					//clip the magnitude at its expected maximum value
+					if (trigger > 255) trigger = 255;
 
-				//adjust magnitude relative to the end of the dead zone
-				trigger -= XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+					//adjust magnitude relative to the end of the dead zone
+					trigger -= XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
 
-				//optionally normalize the magnitude with respect to its expected range
-				//giving a magnitude value of 0.0 to 1.0
-				float normalizedTrigger = trigger / (255 - XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-				inputState->IndexTrigger[i] = normalizedTrigger;
+					//optionally normalize the magnitude with respect to its expected range
+					//giving a magnitude value of 0.0 to 1.0
+					float normalizedTrigger = trigger / (255 - XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
+					inputState->IndexTrigger[i] = normalizedTrigger;
+				}
 			}
 		}
 	}
