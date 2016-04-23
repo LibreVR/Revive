@@ -332,8 +332,12 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		state.HandStatusFlags[i] = REV_TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
 
-	// TODO: Should this transformation be inverted?
 	OVR::Matrix4f origin = REV_HmdMatrixToOVRMatrix(g_VRSystem->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
+
+	// The calibrated origin should be the location of the seated origin relative to the absolute tracking space.
+	// It currently describes the location of the absolute origin relative to the seated origin, so we have to invert it.
+	origin.Invert();
+
 	state.CalibratedOrigin.Orientation = OVR::Quatf(origin);
 	state.CalibratedOrigin.Position = origin.GetTranslation();
 
