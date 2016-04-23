@@ -18,58 +18,13 @@
 typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
 typedef FARPROC(__stdcall* _GetProcAddress)(HMODULE hModule, LPCSTR  lpProcName);
-typedef BOOL(__stdcall* _CreateProcess)(LPCTSTR lpApplicationName, LPTSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes,
-	BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCTSTR lpCurrentDirectory, LPSTARTUPINFO lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);
 
 _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
 _GetProcAddress TrueGetProcAddress;
-_CreateProcess TrueCreateProcess;
 
 HMODULE ReviveModule;
 WCHAR ovrModuleName[MAX_PATH];
-
-bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength)
-{
-	HMODULE hModule = GetModuleHandle(L"kernel32.dll");
-	LPVOID loadLibraryAddr = (LPVOID)GetProcAddress(hModule, "LoadLibraryA");
-	if (loadLibraryAddr == NULL)
-	{
-		return false;
-	}
-	LPVOID loadLibraryArg = (LPVOID)VirtualAllocEx(hProcess, NULL, dllPathLength, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-	if (loadLibraryArg == NULL)
-	{
-		return false;
-	}
-
-	int n = WriteProcessMemory(hProcess, loadLibraryArg, dllPath, dllPathLength, NULL);
-	if (n == 0)
-	{
-		return false;
-	}
-
-	HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)loadLibraryAddr, loadLibraryArg, NULL, NULL);
-	if (hThread == INVALID_HANDLE_VALUE)
-	{
-		return false;
-	}
-
-	DWORD waitReturnValue = WaitForSingleObject(hThread, INFINITE);
-	if (waitReturnValue != WAIT_OBJECT_0)
-	{
-		return false;
-	}
-
-	DWORD loadLibraryReturnValue;
-	GetExitCodeThread(hThread, &loadLibraryReturnValue);
-	if (loadLibraryReturnValue == NULL)
-	{
-		return false;
-	}
-
-	return true;
-}
 
 FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName) 
 {
@@ -108,32 +63,6 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 	return hModule;
 }
 
-BOOL HookCreateProcess(LPCTSTR lpApplicationName, LPTSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes,
-	BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCTSTR lpCurrentDirectory, LPSTARTUPINFO lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
-{
-	if (TrueCreateProcess(lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes,
-		bInheritHandles, dwCreationFlags | CREATE_SUSPENDED, lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation))
-	{
-		CHAR modulePath[MAX_PATH];
-		GetModuleFileNameA(ReviveModule, modulePath, MAX_PATH);
-
-		CHAR openvrPath[MAX_PATH];
-		strncpy(openvrPath, modulePath, MAX_PATH);
-		CHAR* fileName = PathFindFileNameA(openvrPath);
-		size_t offset = fileName - openvrPath;
-		strncpy(fileName, "openvr_api.dll", MAX_PATH - offset);
-
-		if (InjectDLL(lpProcessInformation->hProcess, openvrPath, MAX_PATH))
-			InjectDLL(lpProcessInformation->hProcess, modulePath, MAX_PATH);
-
-		if (!(dwCreationFlags & CREATE_SUSPENDED))
-			ResumeThread(lpProcessInformation->hThread);
-
-		return TRUE;
-	}
-	return FALSE;
-}
-
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
 #if defined(_WIN64)
@@ -149,16 +78,13 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 			MH_Initialize();
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
-			MH_CreateHook(CreateProcessW, HookCreateProcess, (PVOID*)&TrueCreateProcess);
 			MH_CreateHook(GetProcAddress, HookGetProcAddress, (PVOID*)&TrueGetProcAddress);
 			MH_EnableHook(LoadLibraryW);
 			MH_EnableHook(OpenEventW);
-			MH_EnableHook(CreateProcessW);
 			break;
 		case DLL_PROCESS_DETACH:
 			MH_RemoveHook(LoadLibraryW);
 			MH_RemoveHook(OpenEventW);
-			MH_RemoveHook(CreateProcessW);
 			MH_RemoveHook(GetProcAddress);
 			MH_Uninitialize();
 			break;
