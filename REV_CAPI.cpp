@@ -801,8 +801,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 			// Set the high quality overlay.
 			// FIXME: Why are High quality overlays headlocked in OpenVR?
-			if (layer->Header.Flags & (ovrLayerFlag_HighQuality | ovrLayerFlag_HeadLocked))
-				session->overlay->SetHighQualityOverlay(overlay);
+			//if (layer->Header.Flags & ovrLayerFlag_HighQuality)
+			//	session->overlay->SetHighQualityOverlay(overlay);
 
 			// Transform the overlay.
 			vr::HmdMatrix34_t transform = REV_OvrPoseToHmdMatrix(layer->QuadPoseCenter);
