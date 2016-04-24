@@ -390,19 +390,33 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
 
-	if (controllerType & ovrControllerType_Touch)
+	if (controllerType & (ovrControllerType_Touch | ovrControllerType_Remote))
 	{
 		uint32_t activeControllers = 0;
+
+		// Get controller indices.
 		vr::TrackedDeviceIndex_t hands[] = { g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
 			g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 
+		// If both controllers are assigned, it's a touch controller. If not, it's a remote.
+		bool isTouchConnected = false;
+		if (hands[ovrHand_Left] != vr::k_unTrackedDeviceIndexInvalid &&
+			hands[ovrHand_Right] != vr::k_unTrackedDeviceIndexInvalid &&
+			hands[ovrHand_Left] != hands[ovrHand_Right])
+			isTouchConnected = true;
+
 		for (int i = 0; i < ovrHand_Count; i++)
 		{
-			if (hands[i] != vr::k_unTrackedDeviceIndexInvalid)
+			if (hands[i] == vr::k_unTrackedDeviceIndexInvalid)
+				continue;
+
+			vr::VRControllerState_t state;
+			g_VRSystem->GetControllerState(hands[i], &state);
+
+			if ((controllerType & ovrControllerType_Touch) && isTouchConnected)
 			{
 				unsigned int buttons = 0, touches = 0;
-				vr::VRControllerState_t state;
-				g_VRSystem->GetControllerState(hands[i], &state);
+				bool isLeft = (i == ovrHand_Left);
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 				{
@@ -417,16 +431,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 				}
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-					buttons |= ovrButton_LShoulder >> (8 * i);
+					buttons |= isLeft ? ovrButton_LShoulder : ovrButton_RShoulder;
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
 					inputState->HandTrigger[i] = 1.0f;
 
 				if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
-					touches |= ovrTouch_LThumb >> (8 * i);
+					touches |= isLeft ? ovrTouch_LThumb : ovrTouch_RThumb;
 
 				if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-					touches |= ovrTouch_LIndexTrigger >> (8 * i);
+					touches |= isLeft ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
 
 				// Convert the axes
 				for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
@@ -451,7 +465,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
 						{
-							if (!session->ThumbStick[i])
+							if (session->ThumbStick[i])
+							{
+								buttons |= isLeft ? ovrButton_LThumb : ovrButton_RThumb;
+							}
+							else
 							{
 								if (axis.y < axis.x) {
 									if (axis.y < -axis.x)
@@ -476,12 +494,52 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 				// Commit buttons/touches, count pressed buttons as touches.
 				inputState->Buttons |= buttons;
 				inputState->Touches |= touches | buttons;
-				activeControllers |= (i == ovrHand_Left) ? ovrControllerType_LTouch : ovrControllerType_RTouch;
+				inputState->ControllerType = ovrControllerType_Touch;
+			}
+			else if ((controllerType & ovrControllerType_Remote) && !isTouchConnected)
+			{
+				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
+					inputState->Buttons |= ovrButton_Back;
+
+				// Convert the axes
+				for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
+				{
+					vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + j);
+					vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)g_VRSystem->GetInt32TrackedDeviceProperty(hands[i], prop);
+					vr::VRControllerAxis_t axis = state.rAxis[j];
+
+					if (type == vr::k_eControllerAxis_TrackPad)
+					{
+						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+						{
+							float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
+
+							if (magnitude < 0.5f)
+							{
+								inputState->Buttons |= ovrButton_Enter;
+							}
+							else
+							{
+								if (axis.y < axis.x) {
+									if (axis.y < -axis.x)
+										inputState->Buttons |= ovrButton_Down;
+									else
+										inputState->Buttons |= ovrButton_Right;
+								}
+								else {
+									if (axis.y < -axis.x)
+										inputState->Buttons |= ovrButton_Left;
+									else
+										inputState->Buttons |= ovrButton_Up;
+								}
+							}
+						}
+					}
+				}
+
+				inputState->ControllerType = ovrControllerType_Remote;
 			}
 		}
-
-		// Set the controller as connected.
-		inputState->ControllerType = (ovrControllerType)activeControllers;
 	}
 
 	// Use XInput for Xbox controllers
@@ -590,11 +648,21 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 	unsigned int types = 0;
 
 	// Check for Vive controllers
-	if (g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand) != vr::k_unTrackedDeviceIndexInvalid)
-		types |= ovrControllerType_LTouch;
+	vr::TrackedDeviceIndex_t hands[] = { g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
+		g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 
-	if (g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) != vr::k_unTrackedDeviceIndexInvalid)
-		types |= ovrControllerType_RTouch;
+	// If both controllers are assigned, it's a touch controller. If not, it's a remote.
+	if (hands[ovrHand_Left] != vr::k_unTrackedDeviceIndexInvalid &&
+		hands[ovrHand_Right] != vr::k_unTrackedDeviceIndexInvalid &&
+		hands[ovrHand_Left] != hands[ovrHand_Right])
+	{
+		if (g_VRSystem->IsTrackedDeviceConnected(hands[ovrHand_Left]))
+			types |= ovrControllerType_LTouch;
+		if (g_VRSystem->IsTrackedDeviceConnected(hands[ovrHand_Right]))
+			types |= ovrControllerType_RTouch;
+	}
+	else
+		types |= ovrControllerType_Remote;
 
 	// Check for Xbox controller
 	XINPUT_STATE input;
