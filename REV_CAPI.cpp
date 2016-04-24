@@ -389,10 +389,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 	memset(inputState, 0, sizeof(ovrInputState));
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
-	inputState->ControllerType = controllerType;
 
 	if (controllerType & ovrControllerType_Touch)
 	{
+		uint32_t activeControllers = 0;
 		vr::TrackedDeviceIndex_t hands[] = { g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
 			g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 
@@ -476,8 +476,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 				// Commit buttons/touches, count pressed buttons as touches.
 				inputState->Buttons |= buttons;
 				inputState->Touches |= touches | buttons;
+				activeControllers |= (i == ovrHand_Left) ? ovrControllerType_LTouch : ovrControllerType_RTouch;
 			}
 		}
+
+		// Set the controller as connected.
+		inputState->ControllerType = (ovrControllerType)activeControllers;
 	}
 
 	// Use XInput for Xbox controllers
@@ -572,6 +576,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 					inputState->IndexTrigger[i] = normalizedTrigger;
 				}
 			}
+
+			// Set the controller as connected.
+			inputState->ControllerType = ovrControllerType_XBox;
 		}
 	}
 
