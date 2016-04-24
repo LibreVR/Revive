@@ -58,4 +58,3 @@ However you will still need to patch the application to actually load the Revive
 
 # To-Do List
 - Implement OpenGL and DX12 support
-- Implement Oculus Touch support
