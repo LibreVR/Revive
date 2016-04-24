@@ -492,7 +492,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 		{
 			// Convert the buttons
 			WORD buttons = state.Gamepad.wButtons;
-			inputState->Buttons = 0;
 			if (buttons & XINPUT_GAMEPAD_DPAD_UP)
 				inputState->Buttons |= ovrButton_Up;
 			if (buttons & XINPUT_GAMEPAD_DPAD_DOWN)
