@@ -66,4 +66,5 @@ The Revive DLLs already contain the necessary hooking code to work around the Co
 However you will still need to patch the application to actually load the Revive DLLs.
 
 # To-Do List
+- Translate Oculus Touch haptic feedback to the Vive Controllers.
 - Implement OpenGL and DX12 support
