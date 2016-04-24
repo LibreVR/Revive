@@ -10,7 +10,7 @@ This is a proof-of-concept compatibility layer between the Oculus SDK and OpenVR
 
 If you need to recenter the headset you can do so in the Steam VR dashboard by holding down the `Dashboard` button and selecting `Recenter seated position`.
 
-Game-specific patches are no longer supported, all Oculus Home games should now be playable using the Revive Injector.
+Game-specific patches are no longer supported (except for Project Cars), all Oculus Home games should now be playable using the Revive Injector.
 
 ## Oculus Home games
 
@@ -44,7 +44,7 @@ The controls are self-explanatory.
 
 ## Touch (Vive) Controllers
 
-When both Vive controllers are connected they will be used to emulate the Oculus Touch controllers. These controllers can be use in place of the Xbox controller if you don't have one.
+When both Vive controllers are connected they will be used to emulate the Oculus Touch controllers. These controllers can be used in place of the Xbox controller if you don't have one.
 
 The Vive controllers have been mapped a little bit differently to accommodate the different designs of the controllers. The touchpad functions both as buttons and as the thumbstick, you can switch between them using the `Application Menu` button.
 
