@@ -12,9 +12,6 @@
 #include "OVR_CAPI_D3D.h"
 #include "OVR_CAPI_Audio.h"
 
-/// This is the Windows Named Event name that is used to check for HMD connected state.
-#define REV_HMD_CONNECTED_EVENT_NAME L"ReviveHMDConnected"
-
 typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
 typedef FARPROC(__stdcall* _GetProcAddress)(HMODULE hModule, LPCSTR  lpProcName);
@@ -44,7 +41,7 @@ FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
 {
 	if (wcscmp(lpName, OVR_HMD_CONNECTED_EVENT_NAME) == 0)
-		return ::CreateEventW(NULL, TRUE, TRUE, REV_HMD_CONNECTED_EVENT_NAME);
+		return ::CreateEventW(NULL, TRUE, vr::VR_IsHmdPresent(), NULL);
 
 	return TrueOpenEvent(dwDesiredAccess, bInheritHandle, lpName);
 }
