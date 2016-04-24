@@ -832,7 +832,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	}
 
 	// The first layer is assumed to be the application scene.
-	vr::EVRCompositorError err;
+	vr::EVRCompositorError err = vr::VRCompositorError_None;
 	if (layerPtrList[0]->Type == ovrLayerType_EyeFov)
 	{
 		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[0];
