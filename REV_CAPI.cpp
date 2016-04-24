@@ -384,37 +384,36 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 	return pose;
 }
 
+bool REV_IsTouchConnected(vr::TrackedDeviceIndex_t hands[ovrHand_Count])
+{
+	return hands[ovrHand_Left] != vr::k_unTrackedDeviceIndexInvalid &&
+		hands[ovrHand_Right] != vr::k_unTrackedDeviceIndexInvalid &&
+		hands[ovrHand_Left] != hands[ovrHand_Right];
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
 	memset(inputState, 0, sizeof(ovrInputState));
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
 
-	if (controllerType & (ovrControllerType_Touch | ovrControllerType_Remote))
+	if (controllerType & ovrControllerType_Touch)
 	{
-		uint32_t activeControllers = 0;
-
 		// Get controller indices.
 		vr::TrackedDeviceIndex_t hands[] = { g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
 			g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 
-		// If both controllers are assigned, it's a touch controller. If not, it's a remote.
-		bool isTouchConnected = false;
-		if (hands[ovrHand_Left] != vr::k_unTrackedDeviceIndexInvalid &&
-			hands[ovrHand_Right] != vr::k_unTrackedDeviceIndexInvalid &&
-			hands[ovrHand_Left] != hands[ovrHand_Right])
-			isTouchConnected = true;
-
-		for (int i = 0; i < ovrHand_Count; i++)
+		// Only if both controllers are assigned, then the touch controller is connected.
+		if (REV_IsTouchConnected(hands))
 		{
-			if (hands[i] == vr::k_unTrackedDeviceIndexInvalid)
-				continue;
-
-			vr::VRControllerState_t state;
-			g_VRSystem->GetControllerState(hands[i], &state);
-
-			if ((controllerType & ovrControllerType_Touch) && isTouchConnected)
+			for (int i = 0; i < ovrHand_Count; i++)
 			{
+				if (hands[i] == vr::k_unTrackedDeviceIndexInvalid)
+					continue;
+
+				vr::VRControllerState_t state;
+				g_VRSystem->GetControllerState(hands[i], &state);
+
 				unsigned int buttons = 0, touches = 0;
 				bool isLeft = (i == ovrHand_Left);
 
@@ -494,10 +493,28 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 				// Commit buttons/touches, count pressed buttons as touches.
 				inputState->Buttons |= buttons;
 				inputState->Touches |= touches | buttons;
-				inputState->ControllerType = ovrControllerType_Touch;
 			}
-			else if ((controllerType & ovrControllerType_Remote) && !isTouchConnected)
+
+			inputState->ControllerType = ovrControllerType_Touch;
+		}
+	}
+
+	if (controllerType & ovrControllerType_Remote)
+	{
+		// Get controller indices.
+		vr::TrackedDeviceIndex_t hands[] = { g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
+			g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
+
+		if (!REV_IsTouchConnected(hands))
+		{
+			for (int i = 0; i < ovrHand_Count; i++)
 			{
+				if (hands[i] == vr::k_unTrackedDeviceIndexInvalid)
+					continue;
+
+				vr::VRControllerState_t state;
+				g_VRSystem->GetControllerState(hands[i], &state);
+
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 					inputState->Buttons |= ovrButton_Back;
 
@@ -542,9 +559,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 		}
 	}
 
-	// Use XInput for Xbox controllers
 	if (controllerType & ovrControllerType_XBox)
 	{
+		// Use XInput for Xbox controllers.
 		XINPUT_STATE state;
 		if (g_pXInputGetState(0, &state) == ERROR_SUCCESS)
 		{
@@ -652,9 +669,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 		g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 
 	// If both controllers are assigned, it's a touch controller. If not, it's a remote.
-	if (hands[ovrHand_Left] != vr::k_unTrackedDeviceIndexInvalid &&
-		hands[ovrHand_Right] != vr::k_unTrackedDeviceIndexInvalid &&
-		hands[ovrHand_Left] != hands[ovrHand_Right])
+	if (REV_IsTouchConnected(hands))
 	{
 		if (g_VRSystem->IsTrackedDeviceConnected(hands[ovrHand_Left]))
 			types |= ovrControllerType_LTouch;
