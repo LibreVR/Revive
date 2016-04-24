@@ -4,6 +4,8 @@
 
 #include "openvr.h"
 
+// Common structures
+
 struct ovrTextureSwapChainData
 {
 	int length, index;
@@ -37,3 +39,9 @@ struct ovrHmdStruct
 	vr::IVRSettings* settings;
 	vr::IVROverlay* overlay;
 };
+
+// Common functions
+
+bool REV_IsTouchConnected(vr::TrackedDeviceIndex_t hands[ovrHand_Count]);
+unsigned int REV_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
+vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);

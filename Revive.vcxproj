@@ -179,6 +179,8 @@
     <ClCompile Include="REV_CAPI_D3D.cpp" />
     <ClCompile Include="REV_CAPI_GL.cpp" />
     <ClCompile Include="REV_CAPI_Util.cpp" />
+    <ClCompile Include="REV_Common.cpp" />
+    <ClCompile Include="REV_Math.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc" />
