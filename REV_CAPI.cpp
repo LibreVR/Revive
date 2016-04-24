@@ -314,7 +314,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	float time = (float)ovr_GetTimeInSeconds();
 
 	// Get the absolute tracking poses
-	vr::TrackedDevicePose_t* poses = session->gamePoses;
+	vr::TrackedDevicePose_t* poses = session->poses;
 
 	// Convert the head pose
 	state.HeadPose = REV_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], time);
