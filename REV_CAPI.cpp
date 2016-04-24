@@ -417,16 +417,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 				}
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-					buttons |= ovrTouch_RIndexTrigger << 2 * i;
+					buttons |= ovrButton_RShoulder << 2 * i;
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
 					inputState->HandTrigger[i] = 1.0f;
 
-				if (!(state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad)))
-					touches |= ovrTouch_RThumbUp << 2 * i;
+				if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+					touches |= ovrTouch_RThumb << 2 * i;
 
-				if (!(state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger)))
-					touches |= ovrTouch_RIndexPointing << 2 * i;
+				if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
+					touches |= ovrTouch_RIndexTrigger << 2 * i;
 
 				// Convert the axes
 				for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
@@ -453,21 +453,21 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 						{
 							if (session->ThumbStick[i])
 							{
-								buttons |= ovrTouch_RThumb << 2 * i;
+								buttons |= ovrButton_RThumb << 2 * i;
 							}
 							else
 							{
 								if (axis.y < axis.x) {
 									if (axis.y < -axis.x)
-										buttons |= ovrTouch_A;
+										buttons |= ovrButton_A;
 									else
-										buttons |= ovrTouch_B;
+										buttons |= ovrButton_B;
 								}
 								else {
 									if (axis.y < -axis.x)
-										buttons |= ovrTouch_X;
+										buttons |= ovrButton_X;
 									else
-										buttons |= ovrTouch_Y;
+										buttons |= ovrButton_Y;
 								}
 							}
 						}
