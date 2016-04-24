@@ -7,13 +7,6 @@
 
 #include "Extras\OVR_CAPI_Util.h"
 #include "OVR_Version.h"
-#include "OVR_CAPI.h"
-#include "OVR_CAPI_GL.h"
-#include "OVR_CAPI_D3D.h"
-#include "OVR_CAPI_Audio.h"
-
-/// This is the Windows Named Event name that is used to check for HMD connected state.
-#define REV_HMD_CONNECTED_EVENT_NAME L"ReviveHMDConnected"
 
 typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
@@ -43,8 +36,9 @@ FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 
 HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
 {
+	// Don't touch this, it heavily affects performance in Unity games.
 	if (wcscmp(lpName, OVR_HMD_CONNECTED_EVENT_NAME) == 0)
-		return ::CreateEventW(NULL, TRUE, TRUE, REV_HMD_CONNECTED_EVENT_NAME);
+		return ::CreateEventW(NULL, TRUE, TRUE, NULL);
 
 	return TrueOpenEvent(dwDesiredAccess, bInheritHandle, lpName);
 }
