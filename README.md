@@ -4,6 +4,8 @@ This is a proof-of-concept compatibility layer between the Oculus SDK and OpenVR
 
 *WARNING:* This is still pre-release software, don't buy games from the Oculus Store expecting this layer to work for you. Even for the games that have installation instructions there may still be compatibility issues or it may not work at all for you.
 
+You can find a [community-compiled list of working games on the wiki](https://github.com/LibreVR/Revive/wiki/Compatibility-list), feel free to add your own results.
+
 # Installation
 
 *You need to have [Oculus Home](https://www.oculus.com/en-us/setup/) installed.*
@@ -54,7 +56,7 @@ By default the left controller starts in Thumbstick Mode and the right controlle
 
 ## Oculus Remote
 
-Some games have support for the Oculus Remote instead of the Oculus Touch. If so, you can turn off one of your Vive controller and use the remaining one as the Oculus Remote.
+Some games have support for the Oculus Remote instead of the Oculus Touch. If so, you can turn off one of your Vive controllers and use the remaining one as the Oculus Remote.
 
 When only one Vive controller is connected it will be used as an Oculus Remote. The remote maps the touchpad as a DPad with an `Enter` button in the middle, just like the Oculus Remote. The Application Menu serves as the `Back` button.
 
