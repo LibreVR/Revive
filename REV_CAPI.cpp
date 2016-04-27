@@ -169,7 +169,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	session->compositor = (vr::IVRCompositor*)VR_GetGenericInterface(vr::IVRCompositor_Version, &g_InitError);
 	if (g_InitError != vr::VRInitError_None)
 		return REV_InitErrorToOvrError(g_InitError);
-	session->compositor->SetTrackingSpace(vr::TrackingUniverseSeated);
 
 	// Get the settings interface
 	session->settings = (vr::IVRSettings*)VR_GetGenericInterface(vr::IVRSettings_Version, &g_InitError);
@@ -261,6 +260,10 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 {
+	// When an Oculus game recenters the tracking origin it is implied that the tracking origin
+	// should now be seated.
+	session->compositor->SetTrackingSpace(vr::TrackingUniverseSeated);
+
 	g_VRSystem->ResetSeatedZeroPose();
 	return ovrSuccess;
 }
