@@ -57,8 +57,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
 	// Delete the global string property buffer.
-	if (g_StringBuffer)
-		delete g_StringBuffer;
+	delete g_StringBuffer;
 	g_StringBuffer = nullptr;
 
 	if (g_hXInputLib)
@@ -69,6 +68,9 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 
 OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
 {
+	if (!errorInfo)
+		return;
+
 	const char* error = VR_GetVRInitErrorAsEnglishDescription(g_InitError);
 	strncpy_s(errorInfo->ErrorString, error, sizeof(ovrErrorInfo::ErrorString));
 	errorInfo->Result = REV_InitErrorToOvrError(g_InitError);
@@ -160,6 +162,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsig
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid* pLuid)
 {
+	if (!pSession)
+		return ovrError_InvalidParameter;
+
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new struct ovrHmdStruct();
 	memset(session->ColorTexture, 0, sizeof(ovrHmdStruct::ColorTexture));
@@ -222,6 +227,9 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessionStatus* sessionStatus)
 {
+	if (!sessionStatus)
+		return ovrError_InvalidParameter;
+
 	// Fill in the status
 	sessionStatus->IsVisible = session->compositor->CanRenderScene();
 	sessionStatus->HmdPresent = g_VRSystem->IsTrackedDeviceConnected(vr::k_unTrackedDeviceIndex_Hmd);
@@ -247,6 +255,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovrTrackingOrigin origin)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
 	// Both enums match exactly, so we can just cast them
 	session->compositor->SetTrackingSpace((vr::ETrackingUniverseOrigin)origin);
 	return ovrSuccess;
@@ -254,12 +265,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 
 OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession session)
 {
+	if (!session)
+		return ovrTrackingOrigin_EyeLevel;
+
 	// Both enums match exactly, so we can just cast them
 	return (ovrTrackingOrigin)session->compositor->GetTrackingSpace();
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
 	// When an Oculus game recenters the tracking origin it is implied that the tracking origin
 	// should now be seated.
 	session->compositor->SetTrackingSpace(vr::TrackingUniverseSeated);
@@ -273,6 +290,9 @@ OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session) { /* N
 OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker)
 {
 	ovrTrackingState state = { 0 };
+
+	if (!session)
+		return state;
 
 	// Gain focus for the compositor
 	float time = (float)ovr_GetTimeInSeconds();
@@ -316,6 +336,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 {
 	ovrTrackerPose pose = { 0 };
 
+	if (!session)
+		return pose;
+
 	// Get the index for this tracker.
 	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount] = { vr::k_unTrackedDeviceIndexInvalid };
 	g_VRSystem->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
@@ -350,6 +373,12 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!inputState)
+		return ovrError_InvalidParameter;
+
 	memset(inputState, 0, sizeof(ovrInputState));
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
@@ -673,24 +702,36 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ov
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session, ovrTextureSwapChain chain, int* out_Length)
 {
+	if (!chain)
+		return ovrError_InvalidParameter;
+
 	*out_Length = chain->length;
 	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession session, ovrTextureSwapChain chain, int* out_Index)
 {
+	if (!chain)
+		return ovrError_InvalidParameter;
+
 	*out_Index = chain->index;
 	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, ovrTextureSwapChain chain, ovrTextureSwapChainDesc* out_Desc)
 {
+	if (!chain)
+		return ovrError_InvalidParameter;
+
 	out_Desc = &chain->desc;
 	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
 {
+	if (!chain)
+		return ovrError_InvalidParameter;
+
 	chain->current = chain->texture[chain->index];
 	chain->index++;
 	chain->index %= chain->length;
@@ -766,7 +807,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 {
 	// TODO: Implement scaling through ApplyTransform().
 
-	if (layerCount == 0)
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (layerCount == 0 || !layerPtrList)
 		return ovrError_InvalidParameter;
 
 	// Other layers are interpreted as overlays.
@@ -878,6 +922,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
 	float fDisplayFrequency = g_VRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
 	float fVsyncToPhotons = g_VRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
 
@@ -898,11 +945,17 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal)
 {
+	if (!session)
+		return ovrFalse;
+
 	return session->settings->GetBool(REV_SETTINGS_SECTION, propertyName, !!defaultVal);
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propertyName, ovrBool value)
 {
+	if (!session)
+		return ovrFalse;
+
 	vr::EVRSettingsError error;
 	session->settings->SetBool(REV_SETTINGS_SECTION, propertyName, !!value, &error);
 	session->settings->Sync();
@@ -911,11 +964,17 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propert
 
 OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName, int defaultVal)
 {
+	if (!session)
+		return 0;
+
 	return session->settings->GetInt32(REV_SETTINGS_SECTION, propertyName, defaultVal);
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* propertyName, int value)
 {
+	if (!session)
+		return ovrFalse;
+
 	vr::EVRSettingsError error;
 	session->settings->SetInt32(REV_SETTINGS_SECTION, propertyName, value, &error);
 	session->settings->Sync();
@@ -924,11 +983,17 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* property
 
 OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* propertyName, float defaultVal)
 {
+	if (!session)
+		return 0.0f;
+
 	return session->settings->GetFloat(REV_SETTINGS_SECTION, propertyName, defaultVal);
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* propertyName, float value)
 {
+	if (!session)
+		return ovrFalse;
+
 	vr::EVRSettingsError error;
 	session->settings->SetFloat(REV_SETTINGS_SECTION, propertyName, value, &error);
 	session->settings->Sync();
@@ -937,6 +1002,9 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* proper
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const char* propertyName, float values[], unsigned int valuesCapacity)
 {
+	if (!session)
+		return 0;
+
 	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
 
 	for (size_t i = 0; i < valuesCapacity; i++)
@@ -954,6 +1022,9 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const ch
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* propertyName, const float values[], unsigned int valuesSize)
 {
+	if (!session)
+		return ovrFalse;
+
 	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
 
 	for (size_t i = 0; i < valuesSize; i++)
@@ -972,7 +1043,10 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* p
 
 OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* propertyName, const char* defaultVal)
 {
-	if (g_StringBuffer == nullptr)
+	if (!session)
+		return nullptr;
+
+	if (!g_StringBuffer)
 		g_StringBuffer = new char[vr::k_unMaxPropertyStringSize];
 
 	session->settings->GetString(REV_SETTINGS_SECTION, propertyName, g_StringBuffer, vr::k_unMaxPropertyStringSize, defaultVal);
@@ -981,6 +1055,9 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* propertyName, const char* value)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
 	vr::EVRSettingsError error;
 	session->settings->SetString(REV_SETTINGS_SECTION, propertyName, value, &error);
 	session->settings->Sync();

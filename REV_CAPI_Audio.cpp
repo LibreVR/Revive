@@ -8,13 +8,23 @@
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutWaveId(UINT* deviceOutId)
 {
-	waveOutMessage((HWAVEOUT)WAVE_MAPPER, DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)deviceOutId, NULL);
+	if (!deviceOutId)
+		return ovrError_InvalidParameter;
+
+	if (waveOutMessage((HWAVEOUT)WAVE_MAPPER, DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)deviceOutId, NULL) != 0)
+		return ovrError_RuntimeException;
+
 	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInWaveId(UINT* deviceInId)
 {
-	waveInMessage((HWAVEIN)WAVE_MAPPER, DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)deviceInId, NULL);
+	if (!deviceInId)
+		return ovrError_InvalidParameter;
+
+	if (waveInMessage((HWAVEIN)WAVE_MAPPER, DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)deviceInId, NULL) != 0)
+		return ovrError_RuntimeException;
+
 	return ovrSuccess;
 }
 
@@ -48,8 +58,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuidStr(WCHAR deviceOutStrBu
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuid(GUID* deviceOutGuid)
 {
 	WCHAR deviceOut[OVR_AUDIO_MAX_DEVICE_STR_SIZE];
-	ovr_GetAudioDeviceOutGuidStr(deviceOut);
-	UuidFromString((RPC_WSTR)deviceOut, deviceOutGuid);
+	ovrResult result = ovr_GetAudioDeviceOutGuidStr(deviceOut);
+	if (result != ovrSuccess)
+		return result;
+
+	if (UuidFromString((RPC_WSTR)deviceOut, deviceOutGuid) != RPC_S_OK)
+		return ovrError_RuntimeException;
+
 	return ovrSuccess;
 }
 
@@ -83,7 +98,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuidStr(WCHAR deviceInStrBuff
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuid(GUID* deviceInGuid)
 {
 	WCHAR deviceIn[OVR_AUDIO_MAX_DEVICE_STR_SIZE];
-	ovr_GetAudioDeviceInGuidStr(deviceIn);
-	UuidFromString((RPC_WSTR)deviceIn, deviceInGuid);
+	ovrResult result = ovr_GetAudioDeviceInGuidStr(deviceIn);
+	if (result != ovrSuccess)
+		return result;
+
+	if (UuidFromString((RPC_WSTR)deviceIn, deviceInGuid) != RPC_S_OK)
+		return ovrError_RuntimeException;
+
 	return ovrSuccess;
 }
