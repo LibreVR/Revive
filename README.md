@@ -25,7 +25,7 @@ Credit goes to @rjoudrey for implementing the injector.
 
 1. Download the [Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.4/ReviveInjector.zip)
 2. Go to the installation directory of the game in `C:\Program Files (x86)\Oculus\Software`.
-3. Find the main executable for the game. For Unreal Games the executable ends with `...-Shipping.exe`.
+3. Find the main executable for the game. For Unreal Engine games the executable ends with `...-Shipping.exe`.
 3. Extract `ReviveInjector.exe` and the `Revive` folder next to the executable.
 4. Make sure SteamVR is running and then drag main executable onto `ReviveInjector.exe`.
 
