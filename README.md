@@ -14,6 +14,13 @@ If you need to recenter the headset you can do so in the Steam VR dashboard by h
 
 Game-specific patches are no longer supported (except for Project Cars), all Oculus Home games should now be playable using the Revive Injector.
 
+Newly installed games will give you an `Entitlement check failed` error until you reboot the Oculus Runtime Service, simplest way to do that is opening a command prompt and entering these commands:
+
+```
+OVRServiceLauncher -stop
+OVRServiceLauncher -start
+```
+
 ## Oculus Home games
 
 Credit goes to @rjoudrey for implementing the injector.
