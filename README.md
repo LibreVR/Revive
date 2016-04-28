@@ -49,7 +49,13 @@ Most games are designed around the Xbox controller, so that remains the preferre
 
 The controls are self-explanatory.
 
-## Touch (Vive) Controllers
+## Oculus Remote (Single Vive controller)
+
+Some games have support for the Oculus Remote instead of the Oculus Touch. If so, you can turn off one of your Vive controllers and use the remaining one as the Oculus Remote.
+
+When only one Vive controller is connected it will be used as an Oculus Remote. The remote maps the touchpad as a DPad with an `Enter` button in the middle, just like the Oculus Remote. The Application Menu serves as the `Back` button.
+
+## Touch Controllers (Both Vive controllers)
 
 When both Vive controllers are connected they will be used to emulate the Oculus Touch controllers. Many games allow you to use the Oculus Touch in place of the Xbox controller if you don't have one.
 
@@ -58,12 +64,6 @@ The Vive controllers have been mapped a little bit differently to accommodate th
 In Thumbstick Mode you move your finger across the touchpad to move the thumbstick and press down to press the thumbstick. In Button Mode the touchpad is divided into four diagonal areas, each mapped to the buttons `A`, `B`, `X`, `Y` press down on the touchpad to press the buttons.
 
 By default the left controller starts in Thumbstick Mode and the right controller starts in Button Mode. For most games you will not have to switch between these modes.
-
-## Oculus Remote
-
-Some games have support for the Oculus Remote instead of the Oculus Touch. If so, you can turn off one of your Vive controllers and use the remaining one as the Oculus Remote.
-
-When only one Vive controller is connected it will be used as an Oculus Remote. The remote maps the touchpad as a DPad with an `Enter` button in the middle, just like the Oculus Remote. The Application Menu serves as the `Back` button.
 
 # Implementation
 
