@@ -7,6 +7,7 @@
 #include <DXGI.h>
 #include <d3d11.h>
 #include <Xinput.h>
+#include <GL/glew.h>
 
 #include "REV_Assert.h"
 #include "REV_Common.h"
@@ -764,10 +765,12 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTex
 	if (!chain)
 		return;
 
-	if (chain->texture[0].eType == vr::API_DirectX)
+	for (int i = 0; i < chain->length; i++)
 	{
-		for (int i = 0; i < chain->length; i++)
+		if (chain->texture[0].eType == vr::API_DirectX)
 			((ID3D11Texture2D*)chain->texture[i].handle)->Release();
+		if (chain->texture[i].eType == vr::API_OpenGL)
+			glDeleteTextures(1, (GLuint*)&chain->texture[i].handle);
 	}
 
 	delete chain;
@@ -780,6 +783,8 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirror
 
 	if (mirrorTexture->texture.eType == vr::API_DirectX)
 		((ID3D11Texture2D*)mirrorTexture->texture.handle)->Release();
+	if (mirrorTexture->texture.eType == vr::API_OpenGL)
+		glDeleteTextures(1, (GLuint*)&mirrorTexture->texture.handle);
 
 	delete mirrorTexture;
 }
@@ -928,6 +933,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			bounds.uMax *= uMax;
 			bounds.vMin += vMin * bounds.vMax;
 			bounds.vMax *= vMax;
+
+			if (chain->texture[i].eType == vr::API_OpenGL)
+			{
+				bounds.vMin = 1.0f - bounds.vMin;
+				bounds.vMax = 1.0f - bounds.vMax;
+			}
 
 			err = session->compositor->Submit((vr::EVREye)i, &chain->current, &bounds);
 			if (err != vr::VRCompositorError_None)

@@ -74,7 +74,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	if (!session)
 		return ovrError_InvalidSession;
 
-	if (!d3dPtr || !desc || !out_TextureSwapChain)
+	if (!d3dPtr || !desc || !out_TextureSwapChain || desc->Type != ovrTexture_2D)
 		return ovrError_InvalidParameter;
 
 	// TODO: DX12 support.
@@ -172,7 +172,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
 
-	// TODO: Should add multiple buffers to swapchain?
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData();
 	mirrorTexture->desc = *desc;
 	mirrorTexture->texture.handle = texture;
