@@ -7,19 +7,26 @@
 
 GLboolean glewInitialized = GL_FALSE;
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
-                                                            const ovrTextureSwapChainDesc* desc,
-                                                            ovrTextureSwapChain* out_TextureSwapChain)
+GLenum REV_GlewInit()
 {
 	if (!glewInitialized)
 	{
 		glewExperimental = GL_TRUE;
 		GLenum nGlewError = glewInit();
 		if (nGlewError != GLEW_OK)
-			return ovrError_RuntimeException;
+			return nGlewError;
 		glGetError(); // to clear the error caused deep in GLEW
 		glewInitialized = GL_TRUE;
 	}
+	return GLEW_OK;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
+                                                            const ovrTextureSwapChainDesc* desc,
+                                                            ovrTextureSwapChain* out_TextureSwapChain)
+{
+	if (REV_GlewInit() != GLEW_OK)
+		return ovrError_RuntimeException;
 
 	REV_UNIMPLEMENTED_RUNTIME;
 }
@@ -33,15 +40,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
                                                          const ovrMirrorTextureDesc* desc,
                                                          ovrMirrorTexture* out_MirrorTexture)
 {
-	if (!glewInitialized)
-	{
-		glewExperimental = GL_TRUE;
-		GLenum nGlewError = glewInit();
-		if (nGlewError != GLEW_OK)
-			return ovrError_RuntimeException;
-		glGetError(); // to clear the error caused deep in GLEW
-		glewInitialized = GL_TRUE;
-	}
+	if (REV_GlewInit() != GLEW_OK)
+		return ovrError_RuntimeException;
 
 	REV_UNIMPLEMENTED_RUNTIME;
 }
