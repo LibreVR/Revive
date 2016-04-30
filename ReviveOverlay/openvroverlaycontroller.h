@@ -51,6 +51,7 @@ public:
 public slots:
 	void OnSceneChanged();
 	void OnTimeoutPumpEvents();
+	void OnRequestUpdate();
 
 protected:
 
@@ -78,6 +79,7 @@ private:
 	QOffscreenSurface *m_pOffscreenSurface;
 
 	QTimer *m_pPumpEventsTimer;
+	QTimer *m_pUpdateTimer;
 
 	// the window we're drawing into the texture
 	QQuickWindow *m_pWindow;

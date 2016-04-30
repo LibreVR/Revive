@@ -127,8 +127,15 @@ bool COpenVROverlayController::Init()
 	// native (platform) window.
 	m_pWindow = new QQuickWindow(m_pRenderControl);
 
-	connect( m_pRenderControl, &QQuickRenderControl::renderRequested, this, &COpenVROverlayController::OnSceneChanged);
-	connect( m_pRenderControl, &QQuickRenderControl::sceneChanged, this, &COpenVROverlayController::OnSceneChanged);
+	// When Quick says there is a need to render, we will not render immediately. Instead,
+	// a timer with a small interval is used to get better performance.
+	m_pUpdateTimer = new QTimer( this );
+	m_pUpdateTimer->setSingleShot( true );
+	m_pUpdateTimer->setInterval( 5 );
+	connect( m_pUpdateTimer, &QTimer::timeout, this, &COpenVROverlayController::OnSceneChanged );
+
+	connect( m_pRenderControl, &QQuickRenderControl::renderRequested, this, &COpenVROverlayController::OnRequestUpdate);
+	connect( m_pRenderControl, &QQuickRenderControl::sceneChanged, this, &COpenVROverlayController::OnRequestUpdate);
 
 	// Loading the OpenVR Runtime
 	bSuccess = ConnectToVRRuntime();
@@ -216,6 +223,16 @@ void COpenVROverlayController::OnSceneChanged()
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
+void COpenVROverlayController::OnRequestUpdate()
+{
+	if (!m_pUpdateTimer->isActive())
+		m_pUpdateTimer->start();
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
 void COpenVROverlayController::OnTimeoutPumpEvents()
 {
 	if( !vr::VRSystem() )
@@ -251,9 +268,8 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 
 				m_ptLastMouse = ptNewMouse;
 
-				// FIXME: Assert triggered when we actually send the MouseMove event.
-				//QCoreApplication::sendEvent( m_pWindow, &mouseEvent );
-				//OnSceneChanged();
+				QCoreApplication::sendEvent( m_pWindow, &mouseEvent );
+				OnRequestUpdate();
 			}
 			break;
 
