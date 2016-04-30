@@ -249,9 +249,10 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 										0 );
 
 				m_ptLastMouse = ptNewMouse;
-				QCoreApplication::sendEvent( m_pWindow, &mouseEvent );
 
-				OnSceneChanged();
+				// FIXME: Assert triggered when we actually send the MouseMove event.
+				//QCoreApplication::sendEvent( m_pWindow, &mouseEvent );
+				//OnSceneChanged();
 			}
 			break;
 
