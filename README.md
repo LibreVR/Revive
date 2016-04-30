@@ -19,6 +19,8 @@ OVRServiceLauncher -stop
 OVRServiceLauncher -start
 ```
 
+Also, you may need to enable unknown sources by going to `Settings > General` and toggling `Unknown Sources` on.
+
 ## Oculus Home games
 
 Credit goes to @rjoudrey for implementing the injector.
