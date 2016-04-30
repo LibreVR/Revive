@@ -28,3 +28,6 @@ LIBS += -L../openvr/lib/win64 -lopenvr_api
 
 Debug:DESTDIR = ../Debug
 Release:DESTDIR = ../Release
+
+RESOURCES += \
+    overlay.qrc

@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 
 	// Create a QML engine.
 	QQmlEngine *qmlEngine = new QQmlEngine;
-	QQmlComponent *qmlComponent = new QQmlComponent( qmlEngine, QUrl("Overlay.qml"));
+	QQmlComponent *qmlComponent = new QQmlComponent( qmlEngine, QUrl("qrc:/Overlay.qml"));
 
 	if (qmlComponent->isError())
 	{

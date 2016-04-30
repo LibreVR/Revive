@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Overlay.qml</file>
+        <file>OverlayForm.ui.qml</file>
+    </qresource>
+</RCC>
