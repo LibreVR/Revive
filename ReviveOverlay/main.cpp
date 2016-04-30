@@ -10,7 +10,13 @@ int main(int argc, char *argv[])
 
 	// Create a QML engine.
 	QQmlEngine *qmlEngine = new QQmlEngine;
-	QQmlComponent *qmlComponent = new QQmlComponent( qmlEngine, QUrl("Overlay.qml") );
+	QQmlComponent *qmlComponent = new QQmlComponent( qmlEngine, QUrl("Overlay.qml"));
+
+	if (qmlComponent->isError())
+	{
+		qDebug(qUtf8Printable(qmlComponent->errorString()));
+		QGuiApplication::exit(-1);
+	}
 
 	QObject *rootObject = qmlComponent->create();
 	QQuickItem *rootItem = qobject_cast<QQuickItem*>( rootObject );
