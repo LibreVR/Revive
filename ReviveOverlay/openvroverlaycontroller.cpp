@@ -96,10 +96,6 @@ bool COpenVROverlayController::Init()
 	}
 
 	QSurfaceFormat format;
-	format.setMajorVersion( 4 );
-	format.setMinorVersion( 1 );
-	format.setProfile( QSurfaceFormat::CompatibilityProfile );
-
 	// Qt Quick may need a depth and stencil buffer. Always make sure these are available.
 	format.setDepthBufferSize(16);
 	format.setStencilBufferSize(8);
@@ -343,7 +339,7 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 //-----------------------------------------------------------------------------
 void COpenVROverlayController::SetQuickItem( QQuickItem *pItem )
 {
-	m_pFbo = new QOpenGLFramebufferObject( pItem->width(), pItem->height(), GL_TEXTURE_2D );
+	m_pFbo = new QOpenGLFramebufferObject( pItem->width(), pItem->height(),  QOpenGLFramebufferObject::CombinedDepthStencil );
 	m_pWindow->setRenderTarget(m_pFbo);
 
 	// The root item is ready. Associate it with the window.
