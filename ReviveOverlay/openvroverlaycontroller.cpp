@@ -85,7 +85,7 @@ bool COpenVROverlayController::Init()
 {
 	bool bSuccess = true;
 
-	m_strName = "systemoverlay";
+	m_strName = "revive";
 
 	QStringList arguments = qApp->arguments();
 
@@ -137,7 +137,7 @@ bool COpenVROverlayController::Init()
 
 	if( vr::VROverlay() )
 	{
-		std::string sKey = std::string( "sample." ) + m_strName.toStdString();
+		std::string sKey = m_strName.toStdString() + std::string( ".overlay" );
 		vr::VROverlayError overlayError = vr::VROverlay()->CreateDashboardOverlay( sKey.c_str(), m_strName.toStdString().c_str(), &m_ulOverlayHandle, &m_ulOverlayThumbnailHandle );
 		bSuccess = bSuccess && overlayError == vr::VROverlayError_None;
 	}
