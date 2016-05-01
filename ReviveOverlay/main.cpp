@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	if (qmlComponent.isError())
 	{
 		qDebug(qUtf8Printable(qmlComponent.errorString()));
-		QGuiApplication::exit(-1);
+		return -1;
 	}
 
 	QObject *rootObject = qmlComponent.create();
