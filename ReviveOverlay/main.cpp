@@ -9,16 +9,16 @@ int main(int argc, char *argv[])
 	QGuiApplication a(argc, argv);
 
 	// Create a QML engine.
-	QQmlEngine *qmlEngine = new QQmlEngine;
-	QQmlComponent *qmlComponent = new QQmlComponent( qmlEngine, QUrl("qrc:/Overlay.qml"));
+	QQmlEngine qmlEngine;
+	QQmlComponent qmlComponent( &qmlEngine, QUrl("qrc:/Overlay.qml"));
 
-	if (qmlComponent->isError())
+	if (qmlComponent.isError())
 	{
-		qDebug(qUtf8Printable(qmlComponent->errorString()));
+		qDebug(qUtf8Printable(qmlComponent.errorString()));
 		QGuiApplication::exit(-1);
 	}
 
-	QObject *rootObject = qmlComponent->create();
+	QObject *rootObject = qmlComponent.create();
 	QQuickItem *rootItem = qobject_cast<QQuickItem*>( rootObject );
 
 	COpenVROverlayController::SharedInstance()->Init();

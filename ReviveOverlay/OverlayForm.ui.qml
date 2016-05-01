@@ -12,27 +12,8 @@ Item {
         GridView {
             id: gridCovers
             anchors.fill: parent
-            model: ListModel {
-                ListElement {
-                    name: "Grey"
-                    colorCode: "grey"
-                }
-
-                ListElement {
-                    name: "Red"
-                    colorCode: "red"
-                }
-
-                ListElement {
-                    name: "Blue"
-                    colorCode: "blue"
-                }
-
-                ListElement {
-                    name: "Green"
-                    colorCode: "green"
-                }
-            }
+            model: coverModel
+            delegate: coverDelegate
             cellHeight: 360
             cellWidth: 360
         }
