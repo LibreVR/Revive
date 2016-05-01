@@ -90,7 +90,7 @@ bool CReviveManifestController::SaveDocument()
 	m_manifestFile.close();
 }
 
-int CReviveManifestController::addManifest(const QString &canonicalName, const QString &binaryPath, const QString &arguments, const QString &imagePath, const QString &strings)
+int CReviveManifestController::addManifest(const QString &manifest)
 {
 	return 0;
 }
