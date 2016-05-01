@@ -28,4 +28,6 @@ var loadManifest = function(manifestURL) {
 var launchApp = function(appId) {
     var manifest = applications[appId];
     console.log(manifest["launchFile"]);
+
+    ReviveInjector.CreateProcessAndInject(manifest["launchFile"]);
 }

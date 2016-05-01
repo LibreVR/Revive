@@ -11,6 +11,7 @@ Item {
 
         GridView {
             id: coverGrid
+            boundsBehavior: Flickable.StopAtBounds
             cellHeight: 384
             cellWidth: 384
             anchors.fill: parent

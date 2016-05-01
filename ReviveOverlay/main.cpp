@@ -1,8 +1,10 @@
 #include "openvroverlaycontroller.h"
+#include "reviveinjectcontroller.h"
 #include <QGuiApplication>
 #include <QQmlEngine>
 #include <QQmlComponent>
 #include <QQuickItem>
+#include <QQmlContext>
 
 int main(int argc, char *argv[])
 {
@@ -10,8 +12,9 @@ int main(int argc, char *argv[])
 
 	// Create a QML engine.
 	QQmlEngine qmlEngine;
-	QQmlComponent qmlComponent( &qmlEngine, QUrl("qrc:/Overlay.qml"));
+	qmlEngine.rootContext()->setContextProperty("ReviveInjector", CReviveInjectController::SharedInstance());
 
+	QQmlComponent qmlComponent( &qmlEngine, QUrl("qrc:/Overlay.qml"));
 	if (qmlComponent.isError())
 	{
 		qDebug(qUtf8Printable(qmlComponent.errorString()));
