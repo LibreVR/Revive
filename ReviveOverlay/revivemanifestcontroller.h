@@ -19,10 +19,10 @@ public:
 	CReviveManifestController();
 	virtual ~CReviveManifestController();
 
-	Q_INVOKABLE int addManifest(const QString &manifest);
-	Q_INVOKABLE int removeManifest(const QString &canonicalName);
-	Q_INVOKABLE int launchApplication(const QString &canonicalName);
-	Q_INVOKABLE bool isApplicationInstalled(const QString &canonicalName);
+	Q_INVOKABLE bool addManifest(const QString &manifest);
+	Q_INVOKABLE bool removeManifest(const QString &appKey);
+	Q_INVOKABLE bool launchApplication(const QString &appKey);
+	Q_INVOKABLE bool isApplicationInstalled(const QString &appKey);
 
 private:
 	bool LoadDocument();

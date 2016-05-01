@@ -71,9 +71,11 @@ bool CReviveManifestController::LoadDocument()
 	}
 
 	QByteArray array = m_manifestFile.readAll();
-	QJsonDocument doc(QJsonDocument::fromJson(array));
+	QJsonDocument doc = QJsonDocument::fromJson(array);
 	m_manifest = doc.object();
 	m_manifestFile.close();
+
+	return true;
 }
 
 bool CReviveManifestController::SaveDocument()
@@ -88,24 +90,40 @@ bool CReviveManifestController::SaveDocument()
 	QByteArray array = doc.toJson();
 	m_manifestFile.write(array);
 	m_manifestFile.close();
+
+	return true;
 }
 
-int CReviveManifestController::addManifest(const QString &manifest)
+bool CReviveManifestController::addManifest(const QString &manifest)
 {
-	return 0;
+	QJsonDocument doc = QJsonDocument::fromJson(manifest.toUtf8());
+	QJsonArray apps = m_manifest["applications"].toArray();
+	apps.append(doc.object());
+	m_manifest["applications"] = apps;
+	return SaveDocument();
 }
 
-int CReviveManifestController::removeManifest(const QString &canonicalName)
+bool CReviveManifestController::removeManifest(const QString &appKey)
 {
-	return 0;
+	QJsonArray apps = m_manifest["applications"].toArray();
+	for (auto it = apps.begin(); it != apps.end(); ++it)
+	{
+		QJsonObject obj = it->toObject();
+		if (obj["app_key"] == appKey)
+			apps.erase(it);
+	}
+	m_manifest["applications"] = apps;
+	return SaveDocument();
 }
 
-int CReviveManifestController::launchApplication(const QString &canonicalName)
+bool CReviveManifestController::launchApplication(const QString &appKey)
 {
-	return 0;
+	std::string key = appKey.toStdString();
+	return vr::VRApplications()->LaunchApplication(key.c_str()) == vr::VRApplicationError_None;
 }
 
-bool CReviveManifestController::isApplicationInstalled(const QString &canonicalName)
+bool CReviveManifestController::isApplicationInstalled(const QString &appKey)
 {
-	return false;
+	std::string key = appKey.toStdString();
+	return vr::VRApplications()->IsApplicationInstalled(key.c_str());
 }
