@@ -10,6 +10,8 @@ int main(int argc, char *argv[])
 {
 	QGuiApplication a(argc, argv);
 
+	COpenVROverlayController::SharedInstance()->Init();
+
 	// Create a QML engine.
 	QQmlEngine qmlEngine;
 	qmlEngine.rootContext()->setContextProperty("ReviveManifest", CReviveManifestController::SharedInstance());
@@ -23,8 +25,6 @@ int main(int argc, char *argv[])
 
 	QObject *rootObject = qmlComponent.create();
 	QQuickItem *rootItem = qobject_cast<QQuickItem*>( rootObject );
-
-	COpenVROverlayController::SharedInstance()->Init();
 
 	COpenVROverlayController::SharedInstance()->SetQuickItem( rootItem );
 

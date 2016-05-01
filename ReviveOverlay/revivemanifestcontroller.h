@@ -2,6 +2,8 @@
 #define REVIVEMANIFESTCONTROLLER_H
 
 #include <QObject>
+#include <QFile>
+#include <QJsonObject>
 
 class CReviveManifestController : public QObject
 {
@@ -11,6 +13,8 @@ class CReviveManifestController : public QObject
 public:
 	static CReviveManifestController *SharedInstance();
 
+	const char* AppKey = "revive.dashboard.overlay";
+
 public:
 	CReviveManifestController();
 	virtual ~CReviveManifestController();
@@ -19,6 +23,13 @@ public:
 	Q_INVOKABLE int removeManifest(const QString &canonicalName);
 	Q_INVOKABLE int launchApplication(const QString &canonicalName);
 	Q_INVOKABLE bool isApplicationInstalled(const QString &canonicalName);
+
+private:
+	bool LoadDocument();
+	bool SaveDocument();
+
+	QFile m_manifestFile;
+	QJsonObject m_manifest;
 };
 
 #endif // REVIVEMANIFESTCONTROLLER_H

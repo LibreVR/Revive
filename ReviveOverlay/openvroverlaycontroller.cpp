@@ -168,6 +168,7 @@ void COpenVROverlayController::Shutdown()
 {
 	DisconnectFromVRRuntime();
 
+	delete m_pWindow;
 	delete m_pRenderControl;
 	delete m_pFbo;
 	delete m_pOffscreenSurface;
