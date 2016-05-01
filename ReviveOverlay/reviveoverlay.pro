@@ -14,11 +14,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     openvroverlaycontroller.cpp \
-    reviveinjectcontroller.cpp
+    revivemanifestcontroller.cpp
 
 HEADERS  += \
     openvroverlaycontroller.h \
-    reviveinjectcontroller.h
+    revivemanifestcontroller.h
 
 DISTFILES += \
     OverlayForm.ui.qml \

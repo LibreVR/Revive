@@ -55,7 +55,7 @@ OverlayForm {
                     id: coverArea
                     hoverEnabled: true
                     anchors.fill: parent
-                    onClicked: Oculus.launchApp(appId)
+                    onClicked: ReviveManifest.launchManifest(canonicalName)
                 }
             }
         }

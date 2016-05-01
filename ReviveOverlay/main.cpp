@@ -1,5 +1,5 @@
 #include "openvroverlaycontroller.h"
-#include "reviveinjectcontroller.h"
+#include "revivemanifestcontroller.h"
 #include <QGuiApplication>
 #include <QQmlEngine>
 #include <QQmlComponent>
@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 
 	// Create a QML engine.
 	QQmlEngine qmlEngine;
-	qmlEngine.rootContext()->setContextProperty("ReviveInjector", CReviveInjectController::SharedInstance());
+	qmlEngine.rootContext()->setContextProperty("ReviveManifest", CReviveManifestController::SharedInstance());
 
 	QQmlComponent qmlComponent( &qmlEngine, QUrl("qrc:/Overlay.qml"));
 	if (qmlComponent.isError())
