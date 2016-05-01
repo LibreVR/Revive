@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>Overlay.qml</file>
         <file>OverlayForm.ui.qml</file>
+        <file>Oculus.js</file>
     </qresource>
 </RCC>

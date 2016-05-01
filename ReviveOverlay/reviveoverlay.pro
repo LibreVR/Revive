@@ -20,7 +20,8 @@ HEADERS  += \
 
 DISTFILES += \
     OverlayForm.ui.qml \
-    Overlay.qml
+    Overlay.qml \
+    Oculus.js
 
 INCLUDEPATH += ../openvr/headers
 
