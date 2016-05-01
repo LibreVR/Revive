@@ -23,6 +23,9 @@ OverlayForm {
     Component {
         id: coverDelegate
         Image {
+            width: parent.parent.cellWidth
+            height: parent.parent.cellHeight
+            fillMode: Image.Pad
             source: coverURL
             MouseArea {
                 anchors.fill: parent

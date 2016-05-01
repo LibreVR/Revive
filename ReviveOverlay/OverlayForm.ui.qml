@@ -10,12 +10,12 @@ Item {
         anchors.fill: parent
 
         GridView {
-            id: gridCovers
+            id: coverGrid
+            cellHeight: 384
+            cellWidth: 384
             anchors.fill: parent
             model: coverModel
             delegate: coverDelegate
-            cellHeight: 360
-            cellWidth: 360
         }
     }
 }
