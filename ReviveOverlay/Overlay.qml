@@ -55,7 +55,7 @@ OverlayForm {
                     id: coverArea
                     hoverEnabled: true
                     anchors.fill: parent
-                    onClicked: ReviveManifest.launchManifest(canonicalName)
+                    onClicked: ReviveManifest.launchApplication(appKey)
                 }
             }
         }
