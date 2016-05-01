@@ -10,6 +10,7 @@ OverlayForm {
         folder: baseURL + "Manifests/"
         nameFilters: ["*.json"]
         onCountChanged: {
+            coverModel.clear();
             for (var i = 0; i < manifestsModel.count; i++)
                 Oculus.loadManifest(manifestsModel.get(i, "fileURL"));
         }
