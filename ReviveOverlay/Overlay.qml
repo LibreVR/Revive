@@ -21,6 +21,12 @@ OverlayForm {
 
     Component {
         id: coverDelegate
-        Image { source: coverURL }
+        Image {
+            source: coverURL
+            MouseArea {
+                anchors.fill: parent
+                onClicked: Oculus.launchApp(appId)
+            }
+        }
     }
 }
