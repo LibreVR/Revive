@@ -12,12 +12,15 @@ struct ovrTextureSwapChainData
 	ovrTextureSwapChainDesc desc;
 	vr::Texture_t current;
 	vr::Texture_t texture[2];
+	void* view;
+	void* resource[2];
 };
 
 struct ovrMirrorTextureData
 {
 	ovrMirrorTextureDesc desc;
 	vr::Texture_t texture;
+	void* target;
 };
 
 struct ovrHmdStruct

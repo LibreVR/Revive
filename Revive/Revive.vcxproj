@@ -99,6 +99,14 @@
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
+    <FxCompile>
+      <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
+    </FxCompile>
+    <FxCompile>
+      <ObjectFileOutput />
+      <ShaderModel>4.0</ShaderModel>
+      <VariableName>g_%(Filename)</VariableName>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -115,6 +123,14 @@
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
+    <FxCompile>
+      <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
+    </FxCompile>
+    <FxCompile>
+      <ObjectFileOutput />
+      <ShaderModel>4.0</ShaderModel>
+      <VariableName>g_%(Filename)</VariableName>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -134,6 +150,14 @@
       <AdditionalDependencies>openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;Rpcrt4.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
     </Link>
+    <FxCompile>
+      <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
+    </FxCompile>
+    <FxCompile>
+      <ObjectFileOutput />
+      <ShaderModel>4.0</ShaderModel>
+      <VariableName>g_%(Filename)</VariableName>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -153,22 +177,30 @@
       <AdditionalDependencies>openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;Rpcrt4.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
     </Link>
+    <FxCompile>
+      <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
+    </FxCompile>
+    <FxCompile>
+      <ObjectFileOutput />
+      <ShaderModel>4.0</ShaderModel>
+      <VariableName>g_%(Filename)</VariableName>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="openvr\headers\openvr.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="REV_Common.h" />
     <ClInclude Include="REV_Math.h" />
-    <ClInclude Include="LibOVR\Include\Extras\OVR_CAPI_Util.h" />
-    <ClInclude Include="LibOVR\Include\Extras\OVR_Math.h" />
-    <ClInclude Include="LibOVR\Include\Extras\OVR_StereoProjection.h" />
-    <ClInclude Include="LibOVR\Include\OVR_CAPI.h" />
-    <ClInclude Include="LibOVR\Include\OVR_CAPI_Audio.h" />
-    <ClInclude Include="LibOVR\Include\OVR_CAPI_D3D.h" />
-    <ClInclude Include="LibOVR\Include\OVR_CAPI_GL.h" />
-    <ClInclude Include="LibOVR\Include\OVR_CAPI_Keys.h" />
-    <ClInclude Include="LibOVR\Include\OVR_ErrorCode.h" />
-    <ClInclude Include="LibOVR\Include\OVR_Version.h" />
+    <ClInclude Include="..\LibOVR\Include\Extras\OVR_CAPI_Util.h" />
+    <ClInclude Include="..\LibOVR\Include\Extras\OVR_Math.h" />
+    <ClInclude Include="..\LibOVR\Include\Extras\OVR_StereoProjection.h" />
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI.h" />
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI_Audio.h" />
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI_D3D.h" />
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI_GL.h" />
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI_Keys.h" />
+    <ClInclude Include="..\LibOVR\Include\OVR_ErrorCode.h" />
+    <ClInclude Include="..\LibOVR\Include\OVR_Version.h" />
     <ClInclude Include="REV_Assert.h" />
     <ClInclude Include="REV_Error.h" />
   </ItemGroup>
@@ -189,6 +221,20 @@
     <ProjectReference Include="..\minhook\build\VC15\libMinHook.vcxproj">
       <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="MirrorPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="MirrorVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
