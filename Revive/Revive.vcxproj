@@ -71,12 +71,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>LibRevive32_1</TargetName>
     <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\x86\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>LibRevive32_1</TargetName>
     <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\x86\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>LibRevive64_1</TargetName>
