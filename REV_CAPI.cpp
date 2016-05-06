@@ -847,10 +847,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		// If this layer is defined in the list, show it. If not, hide the layer if it exists.
 		if (i < layerCount)
 		{
-			// Overlays are assumed to be monoscopic quads.
-			if (layerPtrList[i]->Type != ovrLayerType_Quad)
-				continue;
-
 			// Create a new overlay if it doesn't exist.
 			if (err == vr::VROverlayError_UnknownOverlay)
 			{
@@ -865,6 +861,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 				session->overlay->HideOverlay(overlay);
 				continue;
 			}
+
+			// Overlays are assumed to be monoscopic quads.
+			if (layerPtrList[i]->Type != ovrLayerType_Quad)
+				continue;
 
 			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
 
