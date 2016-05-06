@@ -838,7 +838,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	for (size_t i = 0; i < ovrMaxLayerCount; i++)
 	{
 		char keyName[vr::k_unVROverlayMaxKeyLength];
-		snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "Revive_%d", i);
+		snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "revive.runtime.layer%d", i);
 
 		// Look if the overlay already exists.
 		vr::VROverlayHandle_t overlay;
