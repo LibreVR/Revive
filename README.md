@@ -79,4 +79,4 @@ However you will still need to patch the application to actually load the Revive
 # To-Do List
 - Translate Oculus Touch haptic feedback to the Vive Controllers.
 - Add render models for the Vive controller to show the Oculus Touch mapping.
-- Implement OpenGL and DX12 support
+- Implement DX12 support
