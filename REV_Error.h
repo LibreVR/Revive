@@ -33,6 +33,7 @@ ovrResult REV_InitErrorToOvrError(vr::EVRInitError error)
 		case vr::VRInitError_Init_NoServerForBackgroundApp: return ovrError_ServerStart;
 		case vr::VRInitError_Init_NotSupportedWithCompositor: return ovrError_Initialize;
 		case vr::VRInitError_Init_NotAvailableToUtilityApps: return ovrError_Initialize;
+		default: return ovrError_RuntimeException;
 	}
 }
 
@@ -49,5 +50,6 @@ ovrResult REV_CompositorErrorToOvrError(vr::EVRCompositorError error)
 		case vr::VRCompositorError_TextureUsesUnsupportedFormat: return ovrError_TextureSwapChainInvalid;
 		case vr::VRCompositorError_SharedTexturesNotSupported: return ovrError_TextureSwapChainInvalid;
 		case vr::VRCompositorError_IndexOutOfRange: return ovrError_InvalidParameter;
+		default: return ovrError_RuntimeException;
 	}
 }

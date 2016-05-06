@@ -71,6 +71,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
                                                             const ovrTextureSwapChainDesc* desc,
                                                             ovrTextureSwapChain* out_TextureSwapChain)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!d3dPtr || !desc || !out_TextureSwapChain)
+		return ovrError_InvalidParameter;
+
 	// TODO: DX12 support.
 	ID3D11Device* pDevice;
 	HRESULT hr = d3dPtr->QueryInterface(&pDevice);
@@ -117,10 +123,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
                                                                IID iid,
                                                                void** out_Buffer)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!chain || !out_Buffer)
+		return ovrError_InvalidParameter;
+
 	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)chain->texture[index].handle;
 	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
-		return ovrError_RuntimeException;
+		return ovrError_InvalidParameter;
 
 	return ovrSuccess;
 }
@@ -130,6 +142,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
                                                          const ovrMirrorTextureDesc* desc,
                                                          ovrMirrorTexture* out_MirrorTexture)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!d3dPtr || !desc || !out_MirrorTexture)
+		return ovrError_InvalidParameter;
+
 	// TODO: DX12 support.
 	ID3D11Device* pDevice;
 	HRESULT hr = d3dPtr->QueryInterface(&pDevice);
@@ -172,6 +190,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
                                                             IID iid,
                                                             void** out_Buffer)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!mirrorTexture || !out_Buffer)
+		return ovrError_InvalidParameter;
+
 	ID3D11Texture2D* texture = (ID3D11Texture2D*)mirrorTexture->texture.handle;
 
 	ID3D11Device* pDevice;
@@ -193,7 +217,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 
 	HRESULT hr = texture->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
-		return ovrError_RuntimeException;
+		return ovrError_InvalidParameter;
 
 	// Clean up and return
 	pDevice->Release();
