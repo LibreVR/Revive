@@ -9,6 +9,49 @@
 
 GLboolean glewInitialized = GL_FALSE;
 
+GLuint g_MirrorProgram = 0;
+
+const GLchar g_MirrorVS[] = {
+	"#version 150\n"
+	"in int gl_VertexID;\n"
+	"out vec2 uv;\n"
+	"const vec2 data[4] = vec2[]\n"
+	"(\n"
+	"	vec2(-1.0,  1.0),\n"
+	"	vec2(-1.0, -1.0),\n"
+	"	vec2(1.0,  1.0),\n"
+	"	vec2(1.0, -1.0)\n"
+	");\n"
+	"void main()\n"
+	"{\n"
+	"	uv = vec2(gl_VertexID & 1,gl_VertexID >> 1);\n"
+	"	gl_Position = vec4(data[ gl_VertexID ], 0.0, 1.0);\n"
+	"}\n"
+};
+
+const GLchar g_MirrorPS[] = {
+	"#version 150\n"
+	"uniform sampler2D leftEye\n;"
+	"uniform sampler2D rightEye;\n"
+	"in vec2 uv;\n"
+	"out vec4 color;\n"
+	"void main()\n"
+	"{\n"
+	"	vec2 tex = uv;"
+	"	tex.x *= 2.0f;\n"
+	"	if (tex.x < 1.0f)\n"
+	"	{\n"
+	"		color = texture(leftEye, tex);\n"
+	"	}\n"
+	"	else\n"
+	"	{\n"
+	"		tex.x -= 1.0f;\n"
+	"		color = texture(rightEye, tex);\n"
+	"	}\n"
+	"	color = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
+	"}\n"
+};
+
 GLenum ovr_TextureFormatToInternalFormat(ovrTextureFormat format)
 {
 	switch (format)
@@ -61,6 +104,8 @@ void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsiz
 	OutputDebugStringA("\n");
 }
 
+
+
 GLenum REV_GlewInit()
 {
 	if (!glewInitialized)
@@ -70,6 +115,7 @@ GLenum REV_GlewInit()
 		if (nGlewError != GLEW_OK)
 			return nGlewError;
 #ifdef DEBUG
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback((GLDEBUGPROC)DebugCallback, nullptr);
 #endif // DEBUG
 		glGetError(); // to clear the error caused deep in GLEW
@@ -135,16 +181,26 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 	GLenum internalFormat = ovr_TextureFormatToInternalFormat(desc->Format);
 	GLenum format = ovr_TextureFormatToGLFormat(desc->Format);
 
+	GLuint texture, framebuffer;
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData();
 	mirrorTexture->texture.eType = vr::API_OpenGL;
 	mirrorTexture->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-	glGenTextures(1, (GLuint*)&mirrorTexture->texture.handle);
-	glBindTexture(GL_TEXTURE_2D, (GLuint)mirrorTexture->texture.handle);
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, desc->Width, desc->Height, 0, format, GL_UNSIGNED_BYTE, nullptr);
 
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		return ovrError_RuntimeException;
+
 	// Clean up and return
+	mirrorTexture->texture.handle = (void*)texture;
+	mirrorTexture->target = (void*)framebuffer;
 	*out_MirrorTexture = mirrorTexture;
 	return ovrSuccess;
 }
@@ -153,7 +209,68 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,
                                                             ovrMirrorTexture mirrorTexture,
                                                             unsigned int* out_TexId)
 {
-	// TODO: Blit the most recently submitted frame to the mirror texture.
+	if (!g_MirrorProgram)
+	{
+		const char* src[] = { g_MirrorVS, g_MirrorPS };
+		g_MirrorProgram = glCreateProgram();
+
+		GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vs, 1, src, NULL);
+		glCompileShader(vs);
+		glAttachShader(g_MirrorProgram, vs);
+
+		GLuint ps = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(ps, 1, src + 1, NULL);
+		glCompileShader(ps);
+		glAttachShader(g_MirrorProgram, ps);
+
+		GLint isLinked = 0;
+		glLinkProgram(g_MirrorProgram);
+		glGetProgramiv(g_MirrorProgram, GL_LINK_STATUS, (int *)&isLinked);
+		if (isLinked == GL_FALSE)
+		{
+			GLint maxLength = 0;
+			glGetProgramiv(g_MirrorProgram, GL_INFO_LOG_LENGTH, &maxLength);
+			std::vector<GLchar> infoLog(maxLength);
+			glGetProgramInfoLog(g_MirrorProgram, maxLength, &maxLength, infoLog.data());
+			OutputDebugStringA(infoLog.data());
+		}
+
+		glDeleteShader(vs);
+		glDeleteShader(ps);
+		glUseProgram(g_MirrorProgram);
+
+		GLint left = glGetUniformLocation(g_MirrorProgram, "leftEye");
+		GLint right = glGetUniformLocation(g_MirrorProgram, "rightEye");
+		glUniform1i(left, 0);
+		glUniform1i(right, 1);
+	}
+	glUseProgram(g_MirrorProgram);
+
+	// Only draw mirror texture if both views have been set.
+	// FIXME: Invalid format error.
+	GLuint leftEye, rightEye;
+	vr::glSharedTextureHandle_t leftHandle, rightHandle;
+	session->compositor->GetMirrorTextureGL(vr::Eye_Left, &leftEye, &leftHandle);
+	session->compositor->GetMirrorTextureGL(vr::Eye_Right, &rightEye, &rightHandle);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)mirrorTexture->target);
+	glViewport(0.0f, 0.0f, mirrorTexture->desc.Width, mirrorTexture->desc.Height);
+	glBindVertexArray(0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, leftEye);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, rightEye);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0);
+
+	session->compositor->ReleaseSharedGLTexture(leftEye, leftHandle);
+	session->compositor->ReleaseSharedGLTexture(rightEye, rightHandle);
+
 	*out_TexId = (GLuint)mirrorTexture->texture.handle;
 	return ovrSuccess;
 }

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "OVR_CAPI.h"
-
 #include "openvr.h"
+#include <vector>
 
 // Common structures
 
