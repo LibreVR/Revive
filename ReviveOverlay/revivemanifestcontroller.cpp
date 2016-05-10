@@ -44,10 +44,6 @@ CReviveManifestController::CReviveManifestController()
 		m_manifest["applications"] = applications;
 
 		SaveDocument();
-
-		QFileInfo info(m_manifestFile);
-		std::string filePath = QDir::toNativeSeparators(info.absoluteFilePath()).toStdString();
-		vr::VRApplications()->AddApplicationManifest(filePath.c_str());
 	}
 	else
 	{
@@ -75,6 +71,10 @@ bool CReviveManifestController::LoadDocument()
 	m_manifest = doc.object();
 	m_manifestFile.close();
 
+	QFileInfo info(m_manifestFile);
+	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
+	vr::VRApplications()->AddApplicationManifest(filePath.toUtf8());
+
 	return true;
 }
 
@@ -90,6 +90,10 @@ bool CReviveManifestController::SaveDocument()
 	QByteArray array = doc.toJson();
 	m_manifestFile.write(array);
 	m_manifestFile.close();
+
+	QFileInfo info(m_manifestFile);
+	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
+	vr::VRApplications()->AddApplicationManifest(filePath.toUtf8());
 
 	return true;
 }
