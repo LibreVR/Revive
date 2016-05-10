@@ -1,21 +1,35 @@
 
 function generateManifest(manifest) {
-    var english = {}, strings = {};
-    // TODO: Query for the actual title and description.
-    english["name"] = manifest["canonicalName"];
-    strings["en_us"] = english;
-
     var launch = '/' + manifest["launchFile"];
     // TODO: Find an executable ending with -Shipping.exe in manifest["files"].
 
-    var revive = {};
-    revive["launch_type"] = "binary";
-    revive["binary_path_windows"] = "Revive/ReviveInjector_x64.exe";
-    revive["arguments"] = "Software/" + manifest["canonicalName"] + launch;
-    revive["launch_type"] = "binary";
-    revive["strings"] = strings;
+    var xhr = new XMLHttpRequest;
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            var regEx = /<title id=\"pageTitle\">(.*?) \| Oculus<\/title>/i;
+            var title = regEx.exec(xhr.responseText)[1];
+            if (title == null)
+                title = manifest["canonicalName"];
 
-    ReviveManifest.addManifest(manifest["canonicalName"], JSON.stringify(revive));
+            var revive = {
+                "launch_type" : "binary",
+                "binary_path_windows" : "Revive/ReviveInjector_x64.exe",
+                "arguments" : "Software/" + manifest["canonicalName"] + launch,
+
+                "image_path" : "StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
+
+                "strings" : {
+                    "en_us" : {
+                        "name" : title
+                    }
+                }
+            }
+
+            ReviveManifest.addManifest(manifest["canonicalName"], JSON.stringify(revive));
+        }
+    }
+    xhr.open('GET', "https://www2.oculus.com/experiences/app/" + manifest["appId"]);
+    xhr.send();
 }
 
 function loadManifest(manifestURL) {
