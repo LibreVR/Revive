@@ -19,8 +19,6 @@ function generateManifest(manifest) {
 }
 
 function loadManifest(manifestURL) {
-    var assetsFolder = baseURL + "Software/StoreAssets/";
-
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -29,7 +27,9 @@ function loadManifest(manifestURL) {
             // Assume only games have asset bundles and include their cover.
             if (manifest["packageType"] == "ASSET_BUNDLE") {
                 var cover = assetsFolder + manifest["canonicalName"] + "/cover_square_image.jpg";
-                coverModel.append({coverURL: cover, appKey: manifest["canonicalName"]});
+                var key = manifest["canonicalName"];
+                key = key.substring(0, key.indexOf("_assets"));
+                coverModel.append({coverURL: cover, appKey: key});
             }
 
             // Add the application manifest to the Revive manifest.

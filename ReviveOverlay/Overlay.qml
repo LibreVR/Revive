@@ -5,10 +5,12 @@ import "Oculus.js" as Oculus
 
 OverlayForm {
     property string baseURL: 'file:///c:/Program%20Files%20%28x86%29/Oculus/'
+    property string assetsFolder: baseURL + 'Software/StoreAssets/';
+    property string manifestFolder: baseURL + 'Manifests/';
 
     FolderListModel {
         id: manifestsModel
-        folder: baseURL + "Manifests/"
+        folder: manifestFolder
         nameFilters: ["*.json"]
         onCountChanged: {
             coverModel.clear();
