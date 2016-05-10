@@ -40,7 +40,7 @@ function loadManifest(manifestURL) {
 
             // Assume only games have asset bundles and include their cover.
             if (manifest["packageType"] == "ASSET_BUNDLE") {
-                var cover = assetsFolder + manifest["canonicalName"] + "/cover_square_image.jpg";
+                var cover = baseURL + "Software/StoreAssets/" + manifest["canonicalName"] + "/cover_square_image.jpg";
                 var key = manifest["canonicalName"];
                 key = key.substring(0, key.indexOf("_assets"));
                 coverModel.append({coverURL: cover, appKey: key});
