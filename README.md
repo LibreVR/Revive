@@ -35,7 +35,7 @@ Credit goes to @rjoudrey for implementing the injector.
 
 *You need to have [Oculus Home](https://www.oculus.com/en-us/setup/) installed.*
 
-1. [Download the Project Cars patch here.](https://github.com/LibreVR/Revive/releases/download/0.4/RevivePCars.zip)
+1. [Download the Project Cars patch here.](https://github.com/LibreVR/Revive/releases/download/0.4.1/RevivePCars.zip)
 2. Install Project Cars from Steam, then go to its properties in the Steam Library.
 3. Uncheck "Use Desktop Game Theatre while SteamVR is active".
 4. Go to the Local Files tab and click "Browse Local Files...".
