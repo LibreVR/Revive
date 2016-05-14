@@ -154,9 +154,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsig
 	desc.FrustumHFovInRadians = OVR::DegreeToRad(left + right);
 	desc.FrustumVFovInRadians = OVR::DegreeToRad(top + bottom);
 
-	// Because the base stations are oriented differently we need to invert the tracking frustum.
-	desc.FrustumNearZInMeters = -g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
-	desc.FrustumFarZInMeters = -g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
+	// Get the tracking frustum.
+	desc.FrustumNearZInMeters = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
+	desc.FrustumFarZInMeters = g_VRSystem->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
 
 	return desc;
 }
@@ -358,8 +358,11 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 	OVR::Matrix4f matrix;
 	if (index != vr::k_unTrackedDeviceIndexInvalid && session->poses[index].bPoseIsValid)
 		matrix = REV_HmdMatrixToOVRMatrix(session->poses[index].mDeviceToAbsoluteTracking);
+
+	// We need to mirror the orientation along either the X or Y axis
 	OVR::Quatf quat = OVR::Quatf(matrix);
-	pose.Pose.Orientation = quat;
+	OVR::Quatf mirror = OVR::Quatf(1.0f, 0.0f, 0.0f, 0.0f);
+	pose.Pose.Orientation = quat * mirror;
 	pose.Pose.Position = matrix.GetTranslation();
 
 	// Level the pose
