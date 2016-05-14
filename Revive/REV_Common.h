@@ -25,6 +25,8 @@ struct ovrMirrorTextureData
 
 struct ovrHmdStruct
 {
+	bool ShouldQuit;
+
 	// Controller states
 	bool ThumbStick[ovrHand_Count];
 	bool MenuWasPressed[ovrHand_Count];
