@@ -1,7 +1,14 @@
 
 function generateManifest(manifest) {
     var launch = '/' + manifest["launchFile"];
-    // TODO: Find an executable ending with -Shipping.exe in manifest["files"].
+
+    // Find an executable ending with -Shipping.exe
+    var shipping = "-Shipping.exe";
+    for (var file in manifest["files"]) {
+        if (file.indexOf(shipping, file.length - shipping.length) != -1) {
+            launch = '/' + file;
+        }
+    }
 
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
