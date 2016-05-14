@@ -21,6 +21,7 @@
 #include <QQuickRenderControl>
 #include <QQuickWindow>
 #include <QQuickItem>
+#include <QOpenGLTexture>
 
 class COpenVROverlayController : public QObject
 {
@@ -77,6 +78,7 @@ private:
 	QQuickRenderControl *m_pRenderControl;
 	QOpenGLFramebufferObject *m_pFbo;
 	QOffscreenSurface *m_pOffscreenSurface;
+	QOpenGLTexture *m_pThumbnailTexture;
 
 	QTimer *m_pPumpEventsTimer;
 	QTimer *m_pUpdateTimer;

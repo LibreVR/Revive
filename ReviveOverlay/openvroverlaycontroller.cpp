@@ -151,7 +151,15 @@ bool COpenVROverlayController::Init()
 		vr::VROverlay()->SetOverlayAlpha( m_ulOverlayHandle, 0.9f );
 		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_SendVRScrollEvents, true );
-	
+
+		// Load the thumbnail
+		// TODO: Show second thumbnail when overlay is hidden.
+		QImage image(":/revive_overlay.png");
+		m_pThumbnailTexture = new QOpenGLTexture(image);
+		GLuint unThumbnail = m_pThumbnailTexture->textureId();
+		vr::Texture_t thumbnail = {(void*)unThumbnail, vr::API_OpenGL, vr::ColorSpace_Auto };
+		vr::VROverlay()->SetOverlayTexture( m_ulOverlayThumbnailHandle, &thumbnail );
+
 		m_pPumpEventsTimer = new QTimer( this );
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
 		m_pPumpEventsTimer->setInterval( 20 );
@@ -173,6 +181,7 @@ void COpenVROverlayController::Shutdown()
 	delete m_pRenderControl;
 	delete m_pFbo;
 	delete m_pOffscreenSurface;
+	delete m_pThumbnailTexture;
 
 	if( m_pOpenGLContext )
 	{

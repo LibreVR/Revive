@@ -3,5 +3,7 @@
         <file>Overlay.qml</file>
         <file>OverlayForm.ui.qml</file>
         <file>Oculus.js</file>
+        <file>revive_overlay.png</file>
+        <file>revive_overlay2.png</file>
     </qresource>
 </RCC>
