@@ -1020,6 +1020,13 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 	if (!session)
 		return 0.0f;
 
+	if (strcmp(propertyName, "IPD") == 0)
+		return g_VRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_UserIpdMeters_Float);
+	if (strcmp(propertyName, OVR_KEY_PLAYER_HEIGHT) == 0)
+		return OVR_DEFAULT_PLAYER_HEIGHT;
+	if (strcmp(propertyName, OVR_KEY_EYE_HEIGHT) == 0)
+		return OVR_DEFAULT_EYE_HEIGHT;
+
 	return session->settings->GetFloat(REV_SETTINGS_SECTION, propertyName, defaultVal);
 }
 
@@ -1038,6 +1045,17 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const ch
 {
 	if (!session)
 		return 0;
+
+	if (strcmp(propertyName, OVR_KEY_NECK_TO_EYE_DISTANCE) == 0)
+	{
+		if (valuesCapacity < 2)
+			return 0;
+
+		// We only know the horizontal depth
+		values[0] = g_VRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_UserHeadToEyeDepthMeters_Float);
+		values[1] = OVR_DEFAULT_NECK_TO_EYE_VERTICAL;
+		return 2;
+	}
 
 	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
 
@@ -1082,6 +1100,9 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 
 	if (!g_StringBuffer)
 		g_StringBuffer = new char[vr::k_unMaxPropertyStringSize];
+
+	if (strcmp(propertyName, OVR_KEY_GENDER) == 0)
+		return OVR_DEFAULT_GENDER;
 
 	session->settings->GetString(REV_SETTINGS_SECTION, propertyName, g_StringBuffer, vr::k_unMaxPropertyStringSize, defaultVal);
 	return g_StringBuffer;
