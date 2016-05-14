@@ -150,6 +150,7 @@ bool COpenVROverlayController::Init()
 		vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, 3.0f );
 		vr::VROverlay()->SetOverlayAlpha( m_ulOverlayHandle, 0.9f );
 		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
+		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_SendVRScrollEvents, true );
 	
 		m_pPumpEventsTimer = new QTimer( this );
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
@@ -302,6 +303,24 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 										0 );
 
 				QCoreApplication::sendEvent( m_pWindow, &mouseEvent );
+			}
+			break;
+
+		case vr::VREvent_Scroll:
+			{
+				// Wheel speed is defined by 2 * 360 * 8 = 5760
+				QPoint ptNewWheel( vrEvent.data.scroll.xdelta * 5760.0f, vrEvent.data.scroll.ydelta * 5760.0f );
+				QPoint ptGlobal = m_ptLastMouse.toPoint();
+				QWheelEvent wheelEvent( m_ptLastMouse,
+										ptGlobal,
+										QPoint(),
+										ptNewWheel,
+										0,
+										Qt::Vertical,
+										m_lastMouseButtons,
+										0 );
+
+				QCoreApplication::sendEvent( m_pWindow, &wheelEvent );
 			}
 			break;
 

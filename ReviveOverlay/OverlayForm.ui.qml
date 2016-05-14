@@ -1,4 +1,5 @@
 import QtQuick 2.4
+import QtQuick.Controls 1.4
 
 Item {
     width: 1920
@@ -9,14 +10,19 @@ Item {
         color: "#183755"
         anchors.fill: parent
 
-        GridView {
-            id: coverGrid
-            boundsBehavior: Flickable.StopAtBounds
-            cellHeight: 384
-            cellWidth: 384
+        ScrollView {
+            verticalScrollBarPolicy: 1
+            horizontalScrollBarPolicy: 1
             anchors.fill: parent
-            model: coverModel
-            delegate: coverDelegate
+            GridView {
+                id: coverGrid
+                interactive: false
+                cellHeight: 384
+                cellWidth: 384
+                anchors.fill: parent
+                model: coverModel
+                delegate: coverDelegate
+            }
         }
     }
 }
