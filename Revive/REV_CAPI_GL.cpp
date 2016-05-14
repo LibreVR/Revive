@@ -8,48 +8,6 @@
 
 GLboolean glewInitialized = GL_FALSE;
 
-GLuint g_MirrorProgram = 0;
-
-const GLchar g_MirrorVS[] = {
-	"#version 150"
-	"in int gl_VertexID"
-	"out vec2 tex"
-	"const vec2 data[4] = vec2[]"
-	"("
-	"	vec2(-1.0,  1.0),"
-	"	vec2(-1.0, -1.0),"
-	"	vec2(1.0,  1.0),"
-	"	vec2(1.0, -1.0)"
-	");"
-	"void main()"
-	"{"
-	"	tex = vec2(gl_VertexID & 1,gl_VertexID >> 1);"
-	"	gl_Position = vec4(data[ gl_VertexID ], 0.0, 1.0);"
-	"}"
-};
-
-const GLchar g_MirrorPS[] = {
-	"#version 150"
-	"uniform sampler2D leftEye"
-	"uniform sampler2D rightEye"
-	"in vec2 tex"
-	"out vec4 color"
-	"void main()"
-	"{"
-	"	tex.x *= 2.0f;"
-	"	if (uv.x < 1.0f)"
-	"	{"
-	"		color = tex2D(leftEye, tex);"
-	"	}"
-	"	else"
-	"	{"
-	"		tex.x -= 1.0f;"
-	"		color = tex2D(rightEye, tex);"
-	"	}"
-	"	color = vec4(1.0f, 0.0f, 0.0f, 1.0f);"
-	"}"
-};
-
 GLenum ovr_TextureFormatToInternalFormat(ovrTextureFormat format)
 {
 	switch (format)
@@ -181,43 +139,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,
                                                             ovrMirrorTexture mirrorTexture,
                                                             unsigned int* out_TexId)
 {
-	if (!g_MirrorProgram)
-	{
-		const char* src[] = { g_MirrorVS, g_MirrorPS };
-		g_MirrorProgram = glCreateProgram();
-
-		GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vs, 1, src, NULL);
-		glCompileShader(vs);
-		glAttachShader(g_MirrorProgram, vs);
-
-		GLuint ps = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(ps, 1, src + 1, NULL);
-		glCompileShader(ps);
-		glAttachShader(g_MirrorProgram, ps);
-
-		glLinkProgram(g_MirrorProgram);
-		glDeleteShader(vs);
-		glDeleteShader(ps);
-		glUseProgram(g_MirrorProgram);
-
-		GLint left = glGetUniformLocation(g_MirrorProgram, "leftEye");
-		GLint right = glGetUniformLocation(g_MirrorProgram, "rightEye");
-		glUniform1i(left, 0);
-		glUniform1i(right, 1);
-	}
-
-	// Only draw mirror texture if both views have been set.
-	if (session->ColorTexture[0] && session->ColorTexture[1])
-	{
-		glBindVertexArray(0);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, (GLuint)session->ColorTexture[1]->current.handle);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, (GLuint)session->ColorTexture[0]->current.handle);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	}
-
+	// TODO: Blit the most recently submitted frame to the mirror texture.
 	*out_TexId = (GLuint)mirrorTexture->texture.handle;
 	return ovrSuccess;
 }
