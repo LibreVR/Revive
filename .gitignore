@@ -81,7 +81,6 @@ ipch/
 *.opensdf
 *.sdf
 *.cachefile
-*.VC.db
 
 # Visual Studio profiler
 *.psess
@@ -253,6 +252,3 @@ paket-files/
 
 # Ignore third-party library
 LibOVR/
-
-# Ignore generated HLSL headers
-*.hlsl.h
