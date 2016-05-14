@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <direct.h>
 #include <stdlib.h>
+#include <Pathcch.h>
 
 bool InjectLibRevive(HANDLE hProcess);
 bool InjectOpenVR(HANDLE hProcess);
@@ -21,7 +22,10 @@ int CreateProcessAndInject(wchar_t *programPath) {
 	sa.nLength = sizeof(sa);
 	sa.bInheritHandle = TRUE;
 
-	if (!CreateProcess(NULL, programPath, &sa, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &si, &pi))
+	wchar_t workingDir[MAX_PATH];
+	wcsncpy(workingDir, programPath, MAX_PATH);
+	PathCchRemoveFileSpec(workingDir, MAX_PATH);
+	if (!CreateProcess(NULL, programPath, &sa, NULL, FALSE, CREATE_SUSPENDED, NULL, workingDir, &si, &pi))
 	{
 		printf("Failed to create process\n");
 		return -1;
