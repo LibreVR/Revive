@@ -7,5 +7,5 @@ Note: The files should be arranged as follows:
    Revive\x64\openvr_api.dll
    Revive\x64\LibRevive64_1.dll
 */
-int CreateProcessAndInject(char *programPath);
-int OpenProcessAndInject(char *processId);
+int CreateProcessAndInject(wchar_t *programPath);
+int OpenProcessAndInject(wchar_t *processId);

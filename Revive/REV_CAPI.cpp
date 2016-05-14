@@ -168,7 +168,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new struct ovrHmdStruct();
-	memset(session->ColorTexture, 0, sizeof(ovrHmdStruct::ColorTexture));
+	memset(session, 0, sizeof(ovrHmdStruct));
 	session->ThumbStick[ovrHand_Left] = true;
 
 	// Get the compositor interface
@@ -231,25 +231,24 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	if (!sessionStatus)
 		return ovrError_InvalidParameter;
 
+	// Check for quit event
+	vr::VREvent_t ev;
+	while (g_VRSystem->PollNextEvent(&ev, sizeof(vr::VREvent_t)))
+	{
+		if (ev.eventType == vr::VREvent_Quit)
+		{
+			session->ShouldQuit = true;
+			g_VRSystem->AcknowledgeQuit_Exiting();
+		}
+	}
+
 	// Fill in the status
 	sessionStatus->IsVisible = session->compositor->CanRenderScene();
 	sessionStatus->HmdPresent = g_VRSystem->IsTrackedDeviceConnected(vr::k_unTrackedDeviceIndex_Hmd);
 	sessionStatus->HmdMounted = sessionStatus->HmdPresent;
 	sessionStatus->DisplayLost = false;
-	sessionStatus->ShouldQuit = false;
+	sessionStatus->ShouldQuit = session->ShouldQuit;
 	sessionStatus->ShouldRecenter = false;
-
-	// Check for quit event
-	// TODO: Should we poll for events here?
-	/*vr::VREvent_t ev;
-	while (g_VRSystem->PollNextEvent(&ev, sizeof(vr::VREvent_t)))
-	{
-		if (ev.eventType == vr::VREvent_Quit)
-		{
-			sessionStatus->ShouldQuit = true;
-			g_VRSystem->AcknowledgeQuit_Exiting();
-		}
-	}*/
 
 	return ovrSuccess;
 }

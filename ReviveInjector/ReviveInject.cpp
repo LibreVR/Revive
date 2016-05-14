@@ -10,15 +10,7 @@ bool InjectLibRevive(HANDLE hProcess);
 bool InjectOpenVR(HANDLE hProcess);
 bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength);
 
-const LPWSTR GetLPWSTR(char *c)
-{
-	const size_t cSize = strlen(c) + 1;
-	wchar_t* wc = new wchar_t[cSize];
-	mbstowcs(wc, c, cSize);
-	return wc;
-}
-
-int CreateProcessAndInject(char *programPath) {
+int CreateProcessAndInject(wchar_t *programPath) {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	SECURITY_ATTRIBUTES sa;
@@ -29,7 +21,7 @@ int CreateProcessAndInject(char *programPath) {
 	sa.nLength = sizeof(sa);
 	sa.bInheritHandle = TRUE;
 
-	if (!CreateProcess(NULL, GetLPWSTR(programPath), &sa, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &si, &pi))
+	if (!CreateProcess(NULL, programPath, &sa, NULL, FALSE, CREATE_SUSPENDED, NULL, NULL, &si, &pi))
 	{
 		printf("Failed to create process\n");
 		return -1;
@@ -49,7 +41,7 @@ int CreateProcessAndInject(char *programPath) {
 		PROCESS_INFORMATION injector;
 		ZeroMemory(&injector, sizeof(injector));
 		wchar_t commandLine[MAX_PATH];
-		swprintf(commandLine, sizeof(commandLine), L"Revive\\ReviveInjector_x86.exe /handle %d", pi.hProcess);
+		swprintf(commandLine, sizeof(commandLine), L"ReviveInjector_x86.exe /handle %d", pi.hProcess);
 		if (!CreateProcess(NULL, commandLine, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &injector))
 		{
 			printf("Failed to create ReviveInjector_x86\n");
@@ -80,8 +72,8 @@ int CreateProcessAndInject(char *programPath) {
 	return 0;
 }
 
-int OpenProcessAndInject(char *processId) {
-	HANDLE hProcess = (HANDLE)atoi(processId);
+int OpenProcessAndInject(wchar_t *processId) {
+	HANDLE hProcess = (HANDLE)wcstol(processId, nullptr, 0);
 	if (hProcess == NULL)
 	{
 		printf("Failed to get process handle\n");
@@ -105,9 +97,9 @@ bool InjectDLL(HANDLE hProcess, const char *dllName) {
 		return false;
 	}
 #if _WIN64
-	snprintf(dllPath, sizeof(dllPath), "%s\\Revive\\x64\\%s", cwd, dllName);
+	snprintf(dllPath, sizeof(dllPath), "%s\\x64\\%s", cwd, dllName);
 #else
-	snprintf(dllPath, sizeof(dllPath), "%s\\Revive\\x86\\%s", cwd, dllName);
+	snprintf(dllPath, sizeof(dllPath), "%s\\x86\\%s", cwd, dllName);
 #endif
 	int dllPathLength = sizeof(dllPath);
 	return InjectDLL(hProcess, dllPath, dllPathLength);
