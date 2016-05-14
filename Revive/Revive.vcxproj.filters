@@ -21,28 +21,28 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LibOVR\Include\OVR_CAPI.h">
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI.h">
       <Filter>Header Files\LibOVR</Filter>
     </ClInclude>
-    <ClInclude Include="LibOVR\Include\OVR_CAPI_Audio.h">
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI_Audio.h">
       <Filter>Header Files\LibOVR</Filter>
     </ClInclude>
-    <ClInclude Include="LibOVR\Include\OVR_CAPI_D3D.h">
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI_D3D.h">
       <Filter>Header Files\LibOVR</Filter>
     </ClInclude>
-    <ClInclude Include="LibOVR\Include\OVR_CAPI_GL.h">
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI_GL.h">
       <Filter>Header Files\LibOVR</Filter>
     </ClInclude>
-    <ClInclude Include="LibOVR\Include\OVR_CAPI_Keys.h">
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI_Keys.h">
       <Filter>Header Files\LibOVR</Filter>
     </ClInclude>
-    <ClInclude Include="LibOVR\Include\OVR_ErrorCode.h">
+    <ClInclude Include="..\LibOVR\Include\OVR_ErrorCode.h">
       <Filter>Header Files\LibOVR</Filter>
     </ClInclude>
-    <ClInclude Include="LibOVR\Include\OVR_Version.h">
+    <ClInclude Include="..\LibOVR\Include\OVR_Version.h">
       <Filter>Header Files\LibOVR</Filter>
     </ClInclude>
-    <ClInclude Include="LibOVR\Include\Extras\OVR_CAPI_Util.h">
+    <ClInclude Include="..\LibOVR\Include\Extras\OVR_CAPI_Util.h">
       <Filter>Header Files\LibOVR\Extras</Filter>
     </ClInclude>
     <ClInclude Include="REV_Assert.h">
@@ -51,10 +51,10 @@
     <ClInclude Include="REV_Error.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LibOVR\Include\Extras\OVR_Math.h">
+    <ClInclude Include="..\LibOVR\Include\Extras\OVR_Math.h">
       <Filter>Header Files\LibOVR\Extras</Filter>
     </ClInclude>
-    <ClInclude Include="LibOVR\Include\Extras\OVR_StereoProjection.h">
+    <ClInclude Include="..\LibOVR\Include\Extras\OVR_StereoProjection.h">
       <Filter>Header Files\LibOVR\Extras</Filter>
     </ClInclude>
     <ClInclude Include="REV_Math.h">
@@ -66,7 +66,7 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="openvr\headers\openvr.h">
+    <ClInclude Include="..\openvr\headers\openvr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
