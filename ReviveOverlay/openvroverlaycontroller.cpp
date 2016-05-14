@@ -156,9 +156,7 @@ bool COpenVROverlayController::Init()
 		// TODO: Show second thumbnail when overlay is hidden.
 		QImage image(":/revive_overlay.png");
 		m_pThumbnailTexture = new QOpenGLTexture(image);
-		GLuint unThumbnail = m_pThumbnailTexture->textureId();
-		vr::Texture_t thumbnail = {(void*)unThumbnail, vr::API_OpenGL, vr::ColorSpace_Auto };
-		vr::VROverlay()->SetOverlayTexture( m_ulOverlayThumbnailHandle, &thumbnail );
+		UpdateThumbnail();
 
 		m_pPumpEventsTimer = new QTimer( this );
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
@@ -234,6 +232,7 @@ void COpenVROverlayController::OnRequestUpdate()
 {
 	if (!m_pUpdateTimer->isActive())
 		m_pUpdateTimer->start();
+	UpdateThumbnail();
 }
 
 
@@ -450,10 +449,21 @@ bool COpenVROverlayController::BHMDAvailable()
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-
 vr::HmdError COpenVROverlayController::GetLastHmdError()
 {
 	return m_eLastHmdError;
 }
 
 
+//-----------------------------------------------------------------------------
+// Purpose:
+//-----------------------------------------------------------------------------
+void COpenVROverlayController::UpdateThumbnail()
+{
+	GLuint unThumbnail = m_pThumbnailTexture->textureId();
+	if( unThumbnail != 0 )
+	{
+		vr::Texture_t thumbnail = {(void*)unThumbnail, vr::API_OpenGL, vr::ColorSpace_Auto };
+		vr::VROverlay()->SetOverlayTexture( m_ulOverlayThumbnailHandle, &thumbnail );
+	}
+}
