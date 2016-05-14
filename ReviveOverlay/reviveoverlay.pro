@@ -34,3 +34,5 @@ Release:DESTDIR = ../Release
 
 RESOURCES += \
     overlay.qrc
+
+win32:RC_ICONS += revive.ico
