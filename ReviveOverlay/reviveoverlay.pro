@@ -27,7 +27,7 @@ DISTFILES += \
 
 INCLUDEPATH += ../openvr/headers
 
-LIBS += -L../openvr/lib/win64 -lopenvr_api
+LIBS += -L../openvr/lib/win64 -lopenvr_api -lAdvapi32
 
 Debug:DESTDIR = ../Debug
 Release:DESTDIR = ../Release
