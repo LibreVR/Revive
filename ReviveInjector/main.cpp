@@ -9,26 +9,28 @@ int wmain(int argc, wchar_t *argv[]) {
 		return -1;
 	}
 
-	if (wcscmp(argv[1], L"/handle") == 0 && argc > 2)
-		return OpenProcessAndInject(argv[2]);
-
-	// Prepend the base path
-	if (wcscmp(argv[1], L"/base") == 0 && argc > 2)
+	for (int i = 0; i < argc - 1; i++)
 	{
-		// Replace all forward slashes with backslashes in the argument
-		for (wchar_t* ptr = argv[2]; *ptr != L'\0'; ptr++)
-			if (*ptr == L'/') *ptr = L'\\';
+		if (wcscmp(argv[i], L"/handle") == 0)
+			return OpenProcessAndInject(argv[i + 1]);
 
-		DWORD size = MAX_PATH;
-		WCHAR path[MAX_PATH];
-		HKEY oculusKey;
-		RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
-		RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)path, &size);
-		wcsncat(path, argv[2], MAX_PATH);
-		return CreateProcessAndInject(path);
+		// Prepend the base path
+		if (wcscmp(argv[i], L"/base") == 0)
+		{
+			// Replace all forward slashes with backslashes in the argument
+			wchar_t* arg = argv[i + 1];
+			for (wchar_t* ptr = arg; *ptr != L'\0'; ptr++)
+				if (*ptr == L'/') *ptr = L'\\';
+
+			DWORD size = MAX_PATH;
+			WCHAR path[MAX_PATH];
+			HKEY oculusKey;
+			RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
+			RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)path, &size);
+			wcsncat(path, arg, MAX_PATH);
+			return CreateProcessAndInject(path);
+		}
 	}
-	else
-	{
-		return CreateProcessAndInject(argv[1]);
-	}
+
+	return CreateProcessAndInject(argv[argc - 1]);
 }
