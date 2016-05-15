@@ -10,11 +10,11 @@ OverlayForm {
     FolderListModel {
         id: manifestsModel
         folder: baseURL + 'Manifests/'
-        nameFilters: ["*.json"]
+        nameFilters: ["*_assets.json"]
         onCountChanged: {
             coverModel.clear();
             for (var i = 0; i < manifestsModel.count; i++)
-                Oculus.loadManifest(manifestsModel.get(i, "fileURL"));
+                Oculus.loadAssetsManifest(manifestsModel.get(i, "fileURL"));
         }
     }
 

@@ -39,7 +39,35 @@ function generateManifest(manifest) {
     xhr.send();
 }
 
-function loadManifest(manifestURL) {
+function loadAppManifest(appKey, coverURL) {
+    var xhr = new XMLHttpRequest;
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            // Check if the application is still installed.
+            if (xhr.status == 200)
+            {
+                var manifest = JSON.parse(xhr.responseText);
+
+                // Add the application manifest to the Revive manifest.
+                if (manifest["packageType"] == "APP" && !manifest["isCore"]) {
+                    coverModel.append({coverURL: coverURL, appKey: manifest["canonicalName"]});
+                    if (!ReviveManifest.isApplicationInstalled(manifest["canonicalName"]))
+                        generateManifest(manifest);
+                }
+            }
+            else
+            {
+                // If the manifest no longer exists, then the application has been removed.
+                if (ReviveManifest.isApplicationInstalled(appKey))
+                    ReviveManifest.removeManifest(appKey);
+            }
+        }
+    }
+    xhr.open('GET', baseURL + 'Manifests/' + appKey + '.json');
+    xhr.send();
+}
+
+function loadAssetsManifest(manifestURL) {
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -50,13 +78,7 @@ function loadManifest(manifestURL) {
                 var cover = baseURL + "Software/StoreAssets/" + manifest["canonicalName"] + "/cover_square_image.jpg";
                 var key = manifest["canonicalName"];
                 key = key.substring(0, key.indexOf("_assets"));
-                coverModel.append({coverURL: cover, appKey: key});
-            }
-
-            // Add the application manifest to the Revive manifest.
-            if (manifest["packageType"] == "APP" && !manifest["isCore"]) {
-                if (!ReviveManifest.isApplicationInstalled(manifest["canonicalName"]))
-                    generateManifest(manifest);
+                loadAppManifest(key, cover);
             }
         }
     }
