@@ -153,7 +153,6 @@ bool COpenVROverlayController::Init()
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_SendVRScrollEvents, true );
 
 		// Load the thumbnail
-		// TODO: Show second thumbnail when overlay is hidden.
 		QImage image(":/revive_overlay.png");
 		m_pThumbnailTexture = new QOpenGLTexture(image);
 		UpdateThumbnail();
