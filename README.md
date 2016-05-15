@@ -34,7 +34,7 @@ Also, you may need to enable unknown sources by going to `Settings > General` an
 Credit goes to @rjoudrey for implementing the injector.
 
 1. Download the [Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.5/ReviveInjector.zip)
-2. Go to the installation directory of the game`.
+2. Go to the installation directory of the game.
 3. Find the main executable for the game. For Unreal Games the executable ends with `...-Shipping.exe`.
 4. Extract all Revive Injector files next to the executable.
 5. Make sure SteamVR is running and then drag main executable onto `ReviveInjector_x64.exe`.
