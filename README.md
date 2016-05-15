@@ -23,25 +23,21 @@ Also, you may need to enable unknown sources by going to `Settings > General` an
 
 ## Oculus Home games
 
+1. Install Oculus Home and download the games you want to play.
+2. Download the [Revive installer here.](https://github.com/LibreVR/Revive/releases/download/0.5/ReviveInstaller.exe)
+3. Install Revive in your preferred directory.
+4. Start or reboot SteamVR.
+5. Open the dashboard and click the new Revive tab.
+
+## Standalone games
+
 Credit goes to @rjoudrey for implementing the injector.
 
-1. Download the [Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.4.1/ReviveInjector.zip)
-2. Go to the installation directory of the game in `C:\Program Files (x86)\Oculus\Software`.
-3. Find the main executable for the game. For Unreal Engine games the executable ends with `...-Shipping.exe`.
-3. Extract `ReviveInjector.exe` and the `Revive` folder next to the executable.
-4. Make sure SteamVR is running and then drag main executable onto `ReviveInjector.exe`.
-
-## Project Cars (Steam, 64-bit)
-
-*You need to have [Oculus Home](https://www.oculus.com/en-us/setup/) installed.*
-
-1. [Download the Project Cars patch here.](https://github.com/LibreVR/Revive/releases/download/0.4.1/RevivePCars.zip)
-2. Install Project Cars from Steam, then go to its properties in the Steam Library.
-3. Uncheck "Use Desktop Game Theatre while SteamVR is active".
-4. Go to the Local Files tab and click "Browse Local Files...".
-5. Extract the patch into the folder that opened.
-6. Make sure SteamVR is running and then start `pCARS64.exe`
-7. A dialog will incorrectly state that Project Cars does not support VR, ignore that and press OK.
+1. Download the [Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.5/ReviveInjector.zip)
+2. Go to the installation directory of the game`.
+3. Find the main executable for the game. For Unreal Games the executable ends with `...-Shipping.exe`.
+4. Extract all Revive Injector files next to the executable.
+5. Make sure SteamVR is running and then drag main executable onto `ReviveInjector_x64.exe`.
 
 # Controls
 
