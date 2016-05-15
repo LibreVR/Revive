@@ -31,6 +31,8 @@ int main(int argc, char *argv[])
 	QString str = QString::fromWCharArray(path);
 	QUrl url = QUrl::fromLocalFile(str);
 	QString base = QDir::fromNativeSeparators(str);
+	QUrl runtime = QUrl::fromLocalFile(vr::VR_RuntimePath());
+	qmlEngine.rootContext()->setContextProperty("openvrURL", runtime.url());
 	qmlEngine.rootContext()->setContextProperty("baseURL", url.url());
 	qmlEngine.rootContext()->setContextProperty("basePath", base);
 
