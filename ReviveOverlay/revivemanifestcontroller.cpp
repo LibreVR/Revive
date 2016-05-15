@@ -20,7 +20,7 @@ CReviveManifestController *CReviveManifestController::SharedInstance()
 
 CReviveManifestController::CReviveManifestController()
 	: BaseClass()
-	, m_manifestFile("revive.vrmanifest")
+	, m_manifestFile(QCoreApplication::applicationDirPath() + "/revive.vrmanifest")
 {
 
 	if (!vr::VRApplications()->IsApplicationInstalled(AppKey))
