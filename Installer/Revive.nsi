@@ -83,8 +83,9 @@ Section "Revive" SecRevive
   ExecWait "OVRServiceLauncher -stop"
   ExecWait "OVRServiceLauncher -start"
   
-  ; Execute the dashboard overlay
-  Exec '"$INSTDIR\ReviveOverlay.exe"'
+  ; Execute the dashboard overlay with unelevated permissions
+  ; This ensures we don't start the OpenVR server with admin permissions
+  ShellExecAsUser::ShellExecAsUser "open" "$INSTDIR\ReviveOverlay.exe"
   
   ;Store installation folder
   WriteRegStr HKCU "Software\Revive" "" $INSTDIR
@@ -97,7 +98,7 @@ Section "Revive" SecRevive
     ;Create shortcuts
     CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
     CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Revive.lnk" "$INSTDIR\ReviveOverlay.exe"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Revive Dashboard.lnk" "$INSTDIR\ReviveOverlay.exe"
   
   !insertmacro MUI_STARTMENU_WRITE_END
 
