@@ -252,3 +252,6 @@ paket-files/
 
 # Ignore third-party library
 LibOVR/
+
+# Ignore compiled installers
+Installer/*.exe
