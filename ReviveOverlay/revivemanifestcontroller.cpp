@@ -50,8 +50,7 @@ CReviveManifestController::CReviveManifestController()
 		LoadDocument();
 	}
 
-	// TODO: Auto-launch the Revive dashboard.
-	//vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true);
+	vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true);
 }
 
 CReviveManifestController::~CReviveManifestController()
