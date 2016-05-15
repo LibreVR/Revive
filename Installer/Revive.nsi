@@ -13,7 +13,7 @@
   OutFile "ReviveInstaller.exe"
 
   ;Default installation folder
-  InstallDir "$PROGRAMFILES\Revive"
+  InstallDir "$PROGRAMFILES64\Revive"
   
   ;Get installation folder from registry if available
   InstallDirRegKey HKCU "Software\Revive" ""
