@@ -5,10 +5,6 @@ import QtMultimedia 5.6
 import "Oculus.js" as Oculus
 
 OverlayForm {
-    property string openvrURL: 'file:///c:/Program%20Files%20%28x86%29/Steam/steamapps/common/SteamVR/'
-    property string baseURL: 'file:///c:/Program%20Files%20%28x86%29/Oculus/'
-    property string basePath: 'C:/Program Files (x86)/Oculus/'
-
     FolderListModel {
         id: manifestsModel
         folder: baseURL + 'Manifests/'
