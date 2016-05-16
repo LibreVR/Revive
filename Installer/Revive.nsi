@@ -61,6 +61,9 @@ Section "Revive" SecRevive
 
   SectionIn RO
   
+  DetailPrint "Terminating dashboard overlay..."
+  nsExec::ExecToLog '"taskkill" /F /IM ReviveOverlay.exe'
+  
   SetOutPath "$INSTDIR"
   
   ; Main application files
@@ -78,6 +81,9 @@ Section "Revive" SecRevive
   AccessControl::GrantOnFile \
     "$INSTDIR\revive.vrmanifest" "(S-1-5-32-545)" "GenericRead + GenericWrite"
   Pop $0
+  
+  ; Install redistributable
+  ExecWait '"$INSTDIR\vcredist_x64.exe" /install /quiet'
   
   ; Reboot the Oculus service to prevent entitlement checks failing
   ExecWait "OVRServiceLauncher -stop"
