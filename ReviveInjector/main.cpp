@@ -27,6 +27,8 @@ int wmain(int argc, wchar_t *argv[]) {
 			g_LogFile = _wfopen(LogPath, L"w");
 	}
 
+	LOG("Launched injector with: %ls\n", GetCommandLine());
+
 	for (int i = 0; i < argc - 1; i++)
 	{
 		if (wcscmp(argv[i], L"/handle") == 0)
