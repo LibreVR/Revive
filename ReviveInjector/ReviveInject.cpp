@@ -1,7 +1,4 @@
-#include <windows.h>
 #include "ReviveInject.h"
-#include <stdio.h>
-#include <fstream>
 #include <windows.h>
 #include <direct.h>
 #include <stdlib.h>
@@ -12,6 +9,8 @@ bool InjectOpenVR(HANDLE hProcess);
 bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength);
 
 int CreateProcessAndInject(wchar_t *programPath) {
+	LOG("Creating process: %ls\n", programPath);
+
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	SECURITY_ATTRIBUTES sa;
@@ -27,7 +26,7 @@ int CreateProcessAndInject(wchar_t *programPath) {
 	PathRemoveFileSpec(workingDir);
 	if (!CreateProcess(NULL, programPath, &sa, NULL, FALSE, CREATE_SUSPENDED, NULL, workingDir, &si, &pi))
 	{
-		printf("Failed to create process\n");
+		LOG("Failed to create process\n");
 		return -1;
 	}
 
@@ -35,12 +34,12 @@ int CreateProcessAndInject(wchar_t *programPath) {
 	BOOL is32Bit = FALSE;
 	if (!IsWow64Process(pi.hProcess, &is32Bit))
 	{
-		printf("Failed to query bit depth\n");
+		LOG("Failed to query bit depth\n");
 		return -1;
 	}
 	if (is32Bit)
 	{
-		printf("32-bit process detected, delegating to ReviveInjector_x86\n");
+		LOG("Delegating 32-bit process (%d) to ReviveInjector_x86\n", pi.dwProcessId);
 
 		PROCESS_INFORMATION injector;
 		ZeroMemory(&injector, sizeof(injector));
@@ -48,13 +47,13 @@ int CreateProcessAndInject(wchar_t *programPath) {
 		swprintf(commandLine, sizeof(commandLine), L"ReviveInjector_x86.exe /handle %d", pi.hProcess);
 		if (!CreateProcess(NULL, commandLine, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &injector))
 		{
-			printf("Failed to create ReviveInjector_x86\n");
+			LOG("Failed to create ReviveInjector_x86\n");
 			return -1;
 		}
 
 		DWORD waitReturnValue = WaitForSingleObject(injector.hThread, INFINITE);
 		if (waitReturnValue != WAIT_OBJECT_0) {
-			printf("Failed to wait for ReviveInjector_x86 to exit\n");
+			LOG("Failed to wait for ReviveInjector_x86 to exit\n");
 			return false;
 		}
 
@@ -71,16 +70,18 @@ int CreateProcessAndInject(wchar_t *programPath) {
 		return -1;
 	}
 
-	printf("Injected dlls succesfully\n");
+	LOG("Injected dlls succesfully\n");
 	ResumeThread(pi.hThread);
 	return 0;
 }
 
 int OpenProcessAndInject(wchar_t *processId) {
+	LOG("Injecting process handle: %ls\n", processId);
+
 	HANDLE hProcess = (HANDLE)wcstol(processId, nullptr, 0);
 	if (hProcess == NULL)
 	{
-		printf("Failed to get process handle\n");
+		LOG("Failed to get process handle\n");
 		return -1;
 	}
 
@@ -89,7 +90,7 @@ int OpenProcessAndInject(wchar_t *processId) {
 		return -1;
 	}
 
-	printf("Injected dlls succesfully\n");
+	LOG("Injected dlls succesfully\n");
 	return 0;
 }
 
@@ -97,7 +98,7 @@ bool InjectDLL(HANDLE hProcess, const char *dllName) {
 	char dllPath[MAX_PATH];
 	char *cwd;
 	if ((cwd = _getcwd(NULL, 0)) == NULL) {
-		printf("Failed to get cwd\n");
+		LOG("Failed to get cwd\n");
 		return false;
 	}
 #if _WIN64
@@ -123,43 +124,47 @@ bool InjectOpenVR(HANDLE hProcess) {
 
 bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength)
 {
+	LOG("Injecting DLL: %s\n", dllPath);
+
 	HMODULE hModule = GetModuleHandle(L"kernel32.dll");
 	LPVOID loadLibraryAddr = (LPVOID)GetProcAddress(hModule, "LoadLibraryA");
 	if (loadLibraryAddr == NULL)
 	{
-		printf("Unable to locate LoadLibraryA\n");
+		LOG("Unable to locate LoadLibraryA\n");
 		return false;
 	}
+	LOG("LoadLibrary found at address: 0x%x\n", loadLibraryAddr);
+
 	LPVOID loadLibraryArg = (LPVOID)VirtualAllocEx(hProcess, NULL, dllPathLength, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 	if (loadLibraryArg == NULL)
 	{
-		printf("Could not allocate memory in process\n");
+		LOG("Could not allocate memory in process\n");
 		return false;
 	}
 
 	int n = WriteProcessMemory(hProcess, loadLibraryArg, dllPath, dllPathLength, NULL);
 	if (n == 0)
 	{
-		printf("Could not write to process's address space\n");
+		LOG("Could not write to process's address space\n");
 		return false;
 	}
 
 	HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)loadLibraryAddr, loadLibraryArg, NULL, NULL);
 	if (hThread == INVALID_HANDLE_VALUE)
 	{
-		printf("Failed to create remote thread in process\n");
+		LOG("Failed to create remote thread in process\n");
 		return false;
 	}
 
 	DWORD waitReturnValue = WaitForSingleObject(hThread, INFINITE);
 	if (waitReturnValue != WAIT_OBJECT_0) {
-		printf("Failed to wait for LoadLibrary to exit\n");
+		LOG("Failed to wait for LoadLibrary to exit\n");
 		return false;
 	}
 	DWORD loadLibraryReturnValue;
 	GetExitCodeThread(hThread, &loadLibraryReturnValue);
 	if (loadLibraryReturnValue == NULL) {
-		printf("LoadLibrary failed to return module handle\n");
+		LOG("LoadLibrary failed to return module handle\n");
 		return false;
 	}
 	return true;

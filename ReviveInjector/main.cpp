@@ -1,12 +1,30 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <string.h>
+#include <Shlobj.h>
+#include <Shlwapi.h>
 #include "ReviveInject.h"
+
+FILE* g_LogFile = NULL;
 
 int wmain(int argc, wchar_t *argv[]) {
 	if (argc < 2) {
 		printf("usage: ReviveInjector.exe [/handle] <process path/process handle>\n");
 		return -1;
+	}
+
+	WCHAR LogPath[MAX_PATH];
+	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, LogPath)))
+	{
+		wcsncat(LogPath, L"\\Revive", MAX_PATH);
+		
+		BOOL exists = PathFileExists(LogPath);
+		if (!exists)
+			exists = CreateDirectory(LogPath, NULL);
+
+		wcsncat(LogPath, L"\\ReviveInjector.log", MAX_PATH);
+		if (exists)
+			g_LogFile = _wfopen(LogPath, L"w");
 	}
 
 	for (int i = 0; i < argc - 1; i++)
