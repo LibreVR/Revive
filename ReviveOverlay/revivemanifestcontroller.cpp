@@ -72,7 +72,11 @@ bool CReviveManifestController::LoadDocument()
 
 	QFileInfo info(m_manifestFile);
 	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
-	vr::VRApplications()->AddApplicationManifest(filePath.toUtf8());
+	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(filePath.toUtf8());
+	if (error != vr::VRApplicationError_None)
+		qWarning("Failed to add manifest file to OpenVR: %s (%s).", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
+
+	qDebug("Loaded manifest from: %s", qUtf8Printable(filePath));
 
 	return true;
 }
@@ -92,13 +96,18 @@ bool CReviveManifestController::SaveDocument()
 
 	QFileInfo info(m_manifestFile);
 	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
-	vr::VRApplications()->AddApplicationManifest(filePath.toUtf8());
+	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(filePath.toUtf8());
+	if (error != vr::VRApplicationError_None)
+		qWarning("Failed to add manifest file to OpenVR: %s (%s).", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
+
+	qDebug("Saved manifest to: %s", qUtf8Printable(filePath));
 
 	return true;
 }
 
 bool CReviveManifestController::addManifest(const QString &canonicalName, const QString &manifest)
 {
+	qDebug("Adding manifest: %s", qUtf8Printable(canonicalName));
 	QJsonDocument doc = QJsonDocument::fromJson(manifest.toUtf8());
 	QJsonArray apps = m_manifest["applications"].toArray();
 	QJsonObject obj = doc.object();
@@ -110,6 +119,7 @@ bool CReviveManifestController::addManifest(const QString &canonicalName, const 
 
 bool CReviveManifestController::removeManifest(const QString &canonicalName)
 {
+	qDebug("Removing manifest: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
 	QJsonArray apps = m_manifest["applications"].toArray();
 	for (auto it = apps.begin(); it != apps.end(); ++it)
@@ -124,9 +134,12 @@ bool CReviveManifestController::removeManifest(const QString &canonicalName)
 
 bool CReviveManifestController::launchApplication(const QString &canonicalName)
 {
+	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
-	std::string key = appKey.toStdString();
-	return vr::VRApplications()->LaunchApplication(key.c_str()) == vr::VRApplicationError_None;
+	vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(appKey.toUtf8());
+	if (error != vr::VRApplicationError_None)
+		qWarning("Failed to launch application: %s (%s)", qUtf8Printable(appKey), QString(vr::VRApplications()->GetApplicationsErrorNameFromEnum(error)));
+	return error == vr::VRApplicationError_None;
 }
 
 bool CReviveManifestController::isApplicationInstalled(const QString &canonicalName)

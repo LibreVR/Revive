@@ -40,6 +40,7 @@ function generateManifest(manifest) {
 }
 
 function loadAppManifest(appKey, coverURL) {
+    var manifestURL = baseURL + 'Manifests/' + appKey + '.json';
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -50,6 +51,7 @@ function loadAppManifest(appKey, coverURL) {
 
                 // Add the application manifest to the Revive manifest.
                 if (manifest["packageType"] == "APP" && !manifest["isCore"]) {
+                    console.log("Found application " + manifest["canonicalName"]);
                     coverModel.append({coverURL: coverURL, appKey: manifest["canonicalName"]});
                     if (!ReviveManifest.isApplicationInstalled(manifest["canonicalName"]))
                         generateManifest(manifest);
@@ -63,8 +65,9 @@ function loadAppManifest(appKey, coverURL) {
             }
         }
     }
-    xhr.open('GET', baseURL + 'Manifests/' + appKey + '.json');
+    xhr.open('GET', manifestURL);
     xhr.send();
+    console.log("Loading application manifest: " + manifestURL);
 }
 
 function loadAssetsManifest(manifestURL) {
@@ -75,6 +78,7 @@ function loadAssetsManifest(manifestURL) {
 
             // Assume only games have asset bundles and include their cover.
             if (manifest["packageType"] == "ASSET_BUNDLE") {
+                console.log("Found assets bundle " + manifest["canonicalName"]);
                 var cover = baseURL + "Software/StoreAssets/" + manifest["canonicalName"] + "/cover_square_image.jpg";
                 var key = manifest["canonicalName"];
                 key = key.substring(0, key.indexOf("_assets"));
@@ -84,4 +88,5 @@ function loadAssetsManifest(manifestURL) {
     }
     xhr.open('GET', manifestURL);
     xhr.send();
+    console.log("Loading assets manifest: " + manifestURL);
 }
