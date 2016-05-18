@@ -96,11 +96,9 @@ int OpenProcessAndInject(wchar_t *processId) {
 
 bool InjectDLL(HANDLE hProcess, const char *dllName) {
 	char dllPath[MAX_PATH];
-	char *cwd;
-	if ((cwd = _getcwd(NULL, 0)) == NULL) {
-		LOG("Failed to get cwd\n");
-		return false;
-	}
+	char cwd[MAX_PATH];
+	GetModuleFileNameA(NULL, cwd, MAX_PATH);
+	PathRemoveFileSpecA(cwd);
 #if _WIN64
 	snprintf(dllPath, sizeof(dllPath), "%s\\x64\\%s", cwd, dllName);
 #else
