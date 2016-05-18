@@ -155,7 +155,6 @@ bool COpenVROverlayController::Init()
 		// Load the thumbnail
 		QImage image(":/revive_overlay.png");
 		m_pThumbnailTexture = new QOpenGLTexture(image);
-		UpdateThumbnail();
 
 		m_pPumpEventsTimer = new QTimer( this );
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
