@@ -169,6 +169,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new struct ovrHmdStruct();
 	memset(session, 0, sizeof(ovrHmdStruct));
+
+	// Most games only use the left thumbstick
 	session->ThumbStick[ovrHand_Left] = true;
 
 	// Get the compositor interface
@@ -189,7 +191,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Apply settings
 	session->ThumbStickRange = session->settings->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange", 0.8f);
 
-	// Get the LUID for the adapter
+	// Get the LUID for the default adapter
 	int32_t index;
 	g_VRSystem->GetDXGIOutputInfo(&index);
 	if (index == -1)

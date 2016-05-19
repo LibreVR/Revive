@@ -22,6 +22,7 @@ struct ovrMirrorTextureData
 
 struct ovrHmdStruct
 {
+	// Session status
 	bool ShouldQuit;
 
 	// Controller states
@@ -36,7 +37,7 @@ struct ovrHmdStruct
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	vr::TrackedDevicePose_t gamePoses[vr::k_unMaxTrackedDeviceCount];
 
-	// OpenVR Interfaces
+	// OpenVR interfaces
 	vr::IVRCompositor* compositor;
 	vr::IVRSettings* settings;
 	vr::IVROverlay* overlay;
