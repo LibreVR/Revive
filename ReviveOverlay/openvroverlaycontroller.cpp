@@ -123,6 +123,10 @@ bool COpenVROverlayController::Init()
 	// native (platform) window.
 	m_pWindow = new QQuickWindow(m_pRenderControl);
 
+	// Load the thumbnail
+	QImage image(":/revive_overlay.png");
+	m_pThumbnailTexture = new QOpenGLTexture(image);
+
 	// When Quick says there is a need to render, we will not render immediately. Instead,
 	// a timer with a small interval is used to get better performance.
 	m_pUpdateTimer = new QTimer( this );
@@ -151,10 +155,6 @@ bool COpenVROverlayController::Init()
 		vr::VROverlay()->SetOverlayAlpha( m_ulOverlayHandle, 0.9f );
 		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_SendVRScrollEvents, true );
-
-		// Load the thumbnail
-		QImage image(":/revive_overlay.png");
-		m_pThumbnailTexture = new QOpenGLTexture(image);
 
 		m_pPumpEventsTimer = new QTimer( this );
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
