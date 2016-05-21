@@ -3,10 +3,16 @@
 #include "MinHook.h"
 #include "Shlwapi.h"
 
+extern "C" {
+#include "IAT_Hooking.h"
+}
+
 #include <openvr.h>
+#include <string>
 
 #include "Extras\OVR_CAPI_Util.h"
 #include "OVR_Version.h"
+
 
 typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
@@ -19,11 +25,43 @@ _GetProcAddress TrueGetProcAddress;
 HMODULE ReviveModule;
 WCHAR ovrModuleName[MAX_PATH];
 
+// Use Dbgview.exe to view these logs
+void LOG(const wchar_t *fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	std::wstring adjustedFmt(fmt);
+	wchar_t buff[255];
+	adjustedFmt.insert(0, L"Revive: ");
+	wvsprintf(buff, adjustedFmt.c_str(), args);
+	OutputDebugString(buff);
+	va_end(args);
+}
+
+void LOG(const char *fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	std::string adjustedFmt(fmt);
+	char buff[255];
+	adjustedFmt.insert(0, "Revive: ");
+	vsprintf(buff, adjustedFmt.c_str(), args);
+	OutputDebugStringA(buff);
+	va_end(args);
+}
+
+ULONG ovr_Entitlement_GetIsViewerEntitled() {
+	return 0; // this part doesn't work
+}
+
 FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName) 
 {
 	WCHAR modulePath[MAX_PATH];
 	GetModuleFileName(hModule, modulePath, sizeof(modulePath));
 	LPCWSTR moduleName = PathFindFileNameW(modulePath);
+	if (strcmp(lpProcName, "ovr_Entitlement_GetIsViewerEntitled") == 0) {
+		LOG("ovr_Entitlement_GetIsViewerEntitled hooked");
+		return (FARPROC)ovr_Entitlement_GetIsViewerEntitled;
+	}
+
 	if (wcscmp(moduleName, ovrModuleName) == 0) {
 		FARPROC reviveFuncAddress = TrueGetProcAddress(ReviveModule, lpProcName);
 		if (reviveFuncAddress) {
@@ -54,6 +92,11 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 	if (wcscmp(moduleName, ovrModuleName) == 0)
 		MH_EnableHook(GetProcAddress);
 
+	if (wcscmp(moduleName, L"mono.dll") == 0) {
+		if (DetourIATptr("GetProcAddress", HookGetProcAddress, hModule) != 0) {
+			LOG("Hooked GetProcAddress in mono.dll IAT");
+		}
+	}
 	return hModule;
 }
 

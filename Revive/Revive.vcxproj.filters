@@ -95,6 +95,12 @@
     <ClCompile Include="REV_Math.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IAT_Hooking.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IAT_Hooking.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc">
