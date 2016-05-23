@@ -98,7 +98,7 @@
     <ClCompile Include="IAT_Hooking.h">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IAT_Hooking.c">
+    <ClCompile Include="IAT_Hooking.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
