@@ -24,6 +24,7 @@ WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
 WCHAR ovrPlatformName[MAX_PATH];
 
+uint64_t ovr_Entitlement_GetIsViewerEntitled() {
 // Use Dbgview.exe to view these logs
 void LOG(const wchar_t *fmt, ...) {
 	va_list args;
@@ -47,7 +48,6 @@ void LOG(const char *fmt, ...) {
 	va_end(args);
 }
 
-ULONG ovr_Entitlement_GetIsViewerEntitled() {
 	MH_DisableHook(GetProcAddress);
 	return 0; // this part doesn't work
 }
