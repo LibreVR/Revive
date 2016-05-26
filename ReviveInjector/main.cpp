@@ -29,19 +29,6 @@ int wmain(int argc, wchar_t *argv[]) {
 
 	LOG("Launched injector with: %ls\n", GetCommandLine());
 
-
-	DWORD BaseSize = MAX_PATH;
-	WCHAR BasePath[MAX_PATH];
-	HKEY oculusKey;
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
-	RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)BasePath, &BaseSize);
-	RegCloseKey(oculusKey);
-
-	WCHAR runtime[MAX_PATH];
-	wcsncpy(runtime, BasePath, MAX_PATH);
-	wcsncat(runtime, L"Support\\oculus-runtime", MAX_PATH);
-	SetEnvironmentVariable(L"LIBOVR_DLL_DIR", runtime);
-
 	for (int i = 0; i < argc - 1; i++)
 	{
 		if (wcscmp(argv[i], L"/handle") == 0)
@@ -55,10 +42,14 @@ int wmain(int argc, wchar_t *argv[]) {
 			for (wchar_t* ptr = arg; *ptr != L'\0'; ptr++)
 				if (*ptr == L'/') *ptr = L'\\';
 
-			WCHAR launch[MAX_PATH];
-			wcsncpy(launch, BasePath, MAX_PATH);
-			wcsncat(launch, arg, MAX_PATH);
-			return CreateProcessAndInject(launch);
+			DWORD size = MAX_PATH;
+			WCHAR path[MAX_PATH];
+			HKEY oculusKey;
+			RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
+			RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)path, &size);
+			wcsncat(path, arg, MAX_PATH);
+			RegCloseKey(oculusKey);
+			return CreateProcessAndInject(path);
 		}
 	}
 
