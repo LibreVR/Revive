@@ -785,8 +785,8 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	float vMax = 0.5f - 0.5f * top / fov.UpTan;
 
 	// Grow the recommended size to account for the overlapping fov
-	size.w = int(size.w / (uMax - uMin));
-	size.h = int(size.h / (vMax - vMin));
+	size.w = int((size.w * pixelsPerDisplayPixel) / (uMax - uMin));
+	size.h = int((size.h * pixelsPerDisplayPixel) / (vMax - vMin));
 
 	return size;
 }
