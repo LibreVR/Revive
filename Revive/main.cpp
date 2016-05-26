@@ -20,6 +20,7 @@ _OpenEvent TrueOpenEvent;
 _GetProcAddress TrueGetProcAddress;
 
 HMODULE ReviveModule;
+WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
 WCHAR ovrPlatformName[MAX_PATH];
 
@@ -62,13 +63,6 @@ FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 		return (FARPROC)ovr_Entitlement_GetIsViewerEntitled;
 	}
 
-	if (wcscmp(moduleName, ovrModuleName) == 0) {
-		FARPROC reviveFuncAddress = TrueGetProcAddress(ReviveModule, lpProcName);
-		if (reviveFuncAddress) {
-			return reviveFuncAddress;
-		}
-	}
-
 	return TrueGetProcAddress(hModule, lpProcName);
 }
 
@@ -83,15 +77,17 @@ HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR 
 
 HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 {
-	HMODULE hModule = TrueLoadLibrary(lpFileName);
-
-	// Only enable the GetProcAddress hook when the Oculus Runtime was loaded.
 	LPCWSTR moduleName = PathFindFileNameW(lpFileName);
-	if (wcscmp(moduleName, ovrModuleName) == 0 ||
-		wcscmp(moduleName, ovrPlatformName) == 0)
+
+	// Load our own library so the ref count is incremented.
+	if (wcscmp(moduleName, ovrModuleName) == 0)
+		return TrueLoadLibrary(revModuleName);
+
+	// Only enable the GetProcAddress hook when the Oculus Platform was loaded.
+	if (wcscmp(moduleName, ovrPlatformName) == 0)
 		MH_EnableHook(GetProcAddress);
 
-	return hModule;
+	return TrueLoadLibrary(lpFileName);
 }
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
@@ -106,6 +102,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 		case DLL_PROCESS_ATTACH:
 			ReviveModule = (HMODULE)hModule;
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
+			swprintf(revModuleName, MAX_PATH, L"LibRevive%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 			swprintf(ovrPlatformName, MAX_PATH, L"LibOVRPlatform%hs_%d", pBitDepth, OVR_MAJOR_VERSION);
 			DetourIATptr("ovr_Entitlement_GetIsViewerEntitled", ovr_Entitlement_GetIsViewerEntitled, GetModuleHandle(NULL));
 			MH_Initialize();

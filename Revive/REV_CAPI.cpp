@@ -29,7 +29,6 @@ char* g_StringBuffer = nullptr;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
-	MH_QueueDisableHook(GetProcAddress);
 	MH_QueueDisableHook(LoadLibraryW);
 	MH_QueueDisableHook(OpenEventW);
 	MH_ApplyQueued();
