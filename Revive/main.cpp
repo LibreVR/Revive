@@ -21,6 +21,7 @@ _GetProcAddress TrueGetProcAddress;
 
 HMODULE ReviveModule;
 WCHAR ovrModuleName[MAX_PATH];
+WCHAR ovrPlatformName[MAX_PATH];
 
 // Use Dbgview.exe to view these logs
 void LOG(const wchar_t *fmt, ...) {
@@ -109,6 +110,8 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 		case DLL_PROCESS_ATTACH:
 			ReviveModule = (HMODULE)hModule;
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
+			swprintf(ovrPlatformName, MAX_PATH, L"LibOVRPlatform%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
+			DetourIATptr("ovr_Entitlement_GetIsViewerEntitled", ovr_Entitlement_GetIsViewerEntitled, GetModuleHandle(NULL));
 			MH_Initialize();
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
