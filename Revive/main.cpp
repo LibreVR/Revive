@@ -47,6 +47,7 @@ void LOG(const char *fmt, ...) {
 }
 
 ULONG ovr_Entitlement_GetIsViewerEntitled() {
+	MH_DisableHook(GetProcAddress);
 	return 0; // this part doesn't work
 }
 
@@ -55,6 +56,7 @@ FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 	WCHAR modulePath[MAX_PATH];
 	GetModuleFileName(hModule, modulePath, sizeof(modulePath));
 	LPCWSTR moduleName = PathFindFileNameW(modulePath);
+
 	if (strcmp(lpProcName, "ovr_Entitlement_GetIsViewerEntitled") == 0) {
 		LOG("ovr_Entitlement_GetIsViewerEntitled hooked");
 		return (FARPROC)ovr_Entitlement_GetIsViewerEntitled;
@@ -84,17 +86,11 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 	HMODULE hModule = TrueLoadLibrary(lpFileName);
 
 	// Only enable the GetProcAddress hook when the Oculus Runtime was loaded.
-	WCHAR modulePath[MAX_PATH];
-	GetModuleFileName(hModule, modulePath, sizeof(modulePath));
-	LPCWSTR moduleName = PathFindFileNameW(modulePath);
-	if (wcscmp(moduleName, ovrModuleName) == 0)
+	LPCWSTR moduleName = PathFindFileNameW(lpFileName);
+	if (wcscmp(moduleName, ovrModuleName) == 0 ||
+		wcscmp(moduleName, ovrPlatformName) == 0)
 		MH_EnableHook(GetProcAddress);
 
-	if (wcscmp(moduleName, L"mono.dll") == 0) {
-		if (DetourIATptr("GetProcAddress", HookGetProcAddress, hModule) != 0) {
-			LOG("Hooked GetProcAddress in mono.dll IAT");
-		}
-	}
 	return hModule;
 }
 
@@ -110,7 +106,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 		case DLL_PROCESS_ATTACH:
 			ReviveModule = (HMODULE)hModule;
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
-			swprintf(ovrPlatformName, MAX_PATH, L"LibOVRPlatform%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
+			swprintf(ovrPlatformName, MAX_PATH, L"LibOVRPlatform%hs_%d", pBitDepth, OVR_MAJOR_VERSION);
 			DetourIATptr("ovr_Entitlement_GetIsViewerEntitled", ovr_Entitlement_GetIsViewerEntitled, GetModuleHandle(NULL));
 			MH_Initialize();
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
