@@ -2,6 +2,7 @@
 
 #include "openvr.h"
 #include <GL/glew.h>
+#include <Windows.h>
 
 #include "REV_Assert.h"
 #include "REV_Common.h"
@@ -54,6 +55,12 @@ GLenum ovr_TextureFormatToGLFormat(ovrTextureFormat format)
 	}
 }
 
+void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	OutputDebugStringA(message);
+	OutputDebugStringA("\n");
+}
+
 GLenum REV_GlewInit()
 {
 	if (!glewInitialized)
@@ -62,6 +69,9 @@ GLenum REV_GlewInit()
 		GLenum nGlewError = glewInit();
 		if (nGlewError != GLEW_OK)
 			return nGlewError;
+#ifdef DEBUG
+		glDebugMessageCallback((GLDEBUGPROC)DebugCallback, nullptr);
+#endif // DEBUG
 		glGetError(); // to clear the error caused deep in GLEW
 		glewInitialized = GL_TRUE;
 	}
