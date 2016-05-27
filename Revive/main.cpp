@@ -17,7 +17,7 @@ typedef struct ovrMessage *ovrMessageHandle;
 typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
 typedef FARPROC(__stdcall* _GetProcAddress)(HMODULE hModule, LPCSTR  lpProcName);
-typedef bool(__stdcall* _IsError)(const ovrMessageHandle obj);
+typedef bool(__cdecl* _IsError)(const ovrMessageHandle obj);
 
 _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
@@ -29,7 +29,7 @@ WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
 WCHAR ovrPlatformName[MAX_PATH];
 
-bool ovr_Message_IsError(const ovrMessageHandle obj) {
+bool __cdecl ovr_Message_IsError(const ovrMessageHandle obj) {
 	// Assuming the structure doesn't changed, the type begins at the third integer.
 	PDWORD type = ((PDWORD)obj) + 2;
 
