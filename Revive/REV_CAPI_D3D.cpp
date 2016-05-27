@@ -6,6 +6,12 @@
 #include "REV_Assert.h"
 #include "REV_Common.h"
 
+#include "MirrorVS.hlsl.h"
+#include "MirrorPS.hlsl.h"
+
+ID3D11VertexShader* g_pMirrorVS = nullptr;
+ID3D11PixelShader* g_pMirrorPS = nullptr;
+
 DXGI_FORMAT ovr_TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int flags)
 {
 	if (flags & ovrTextureMisc_DX_Typeless)
@@ -103,13 +109,30 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	for (int i = 0; i < swapChain->length; i++)
 	{
+		ID3D11Texture2D* texture;
 		swapChain->texture[i].eType = vr::API_DirectX;
 		swapChain->texture[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-		hr = pDevice->CreateTexture2D(&tdesc, nullptr, (ID3D11Texture2D**)&swapChain->texture[i].handle);
+		hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
 		if (FAILED(hr))
 			return ovrError_RuntimeException;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC view;
+		view.Format = ovr_TextureFormatToDXGIFormat(desc->Format, 0);
+		view.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+		D3D11_TEX2D_SRV srv;
+		srv.MipLevels = 1;
+		srv.MostDetailedMip = 0;
+		view.Texture2D = srv;
+
+		hr = pDevice->CreateShaderResourceView(texture, &view, (ID3D11ShaderResourceView**)&swapChain->resource);
+		if (FAILED(hr))
+			return ovrError_RuntimeException;
+
+		swapChain->texture[i].handle = texture;
 	}
 	swapChain->current = swapChain->texture[swapChain->index];
+	swapChain->view = swapChain->resource[swapChain->index];
 
 	// Clean up and return
 	pDevice->Release();
@@ -178,6 +201,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	mirrorTexture->texture.eType = vr::API_DirectX;
 	mirrorTexture->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 
+	// Create a render target for the mirror texture.
+	pDevice->CreateRenderTargetView(texture, NULL, (ID3D11RenderTargetView**)&mirrorTexture->target);
+	if (FAILED(hr))
+		return ovrError_RuntimeException;
+
 	// Clean up and return
 	pDevice->Release();
 	*out_MirrorTexture = mirrorTexture;
@@ -202,16 +230,37 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	ID3D11DeviceContext* pContext;
 	pDevice->GetImmediateContext(&pContext);
 
-	int perEyeWidth = mirrorTexture->desc.Width / 2;
-	for (int i = 0; i < ovrEye_Count; i++)
+	// Compile and set vertex shader
+	if (!g_pMirrorVS)
 	{
-		ovrTextureSwapChain chain = session->ColorTexture[i];
-		if (chain)
-		{
-			// TODO: Support texture bounds.
-			ID3D11Texture2D* eyeTexture = (ID3D11Texture2D*)chain->current.handle;
-			pContext->CopySubresourceRegion(texture, 0, perEyeWidth * i, 0, 0, eyeTexture, 0, nullptr);
-		}
+		HRESULT hr = pDevice->CreateVertexShader(g_MirrorVS, sizeof(g_MirrorVS), NULL, &g_pMirrorVS);
+		if (FAILED(hr))
+			return ovrError_RuntimeException;
+	}
+	pContext->VSSetShader(g_pMirrorVS, NULL, 0);
+
+	// Compile and set pixel shader
+	if (!g_pMirrorPS)
+	{
+		HRESULT hr = pDevice->CreatePixelShader(g_MirrorPS, sizeof(g_MirrorPS), NULL, &g_pMirrorPS);
+		if (FAILED(hr))
+			return ovrError_RuntimeException;
+	}
+	pContext->PSSetShader(g_pMirrorPS, NULL, 0);
+
+	// Only draw mirror texture if both views have been set.
+	if (session->ColorTexture[0] && session->ColorTexture[1])
+	{
+		ID3D11ShaderResourceView* mirrorViews[] = {
+			(ID3D11ShaderResourceView*)session->ColorTexture[0]->view,
+			(ID3D11ShaderResourceView*)session->ColorTexture[1]->view
+		};
+		pContext->PSSetShaderResources(0, 2, mirrorViews);
+
+		// Draw a triangle strip, the vertex buffer is not used.
+		pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->target, NULL);
+		pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		pContext->Draw(4, 0);
 	}
 
 	HRESULT hr = texture->QueryInterface(iid, out_Buffer);
