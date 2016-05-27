@@ -85,10 +85,6 @@ Section "Revive" SecRevive
   ; Install redistributable
   ExecWait '"$INSTDIR\vcredist_x64.exe" /install /quiet'
   
-  ; Reboot the Oculus service to prevent entitlement checks failing
-  ExecWait "OVRServiceLauncher -stop"
-  ExecWait "OVRServiceLauncher -start"
-  
   ; Execute the dashboard overlay with unelevated permissions
   ; This ensures we don't start the OpenVR server with admin permissions
   ShellExecAsUser::ShellExecAsUser "open" "$INSTDIR\ReviveOverlay.exe"
