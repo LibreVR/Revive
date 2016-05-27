@@ -56,15 +56,17 @@ HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR 
 
 HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 {
-	LPCWSTR moduleName = PathFindFileNameW(lpFileName);
 	HMODULE module = TrueLoadLibrary(lpFileName);
+	LPCWSTR name = PathFindFileNameW(lpFileName);
+	LPCWSTR ext = PathFindExtensionW(name);
+	size_t length = ext - name;
 
-	// Load our own library so the ref count is incremented.
-	if (wcscmp(moduleName, ovrModuleName) == 0)
+	// Load our own library again so the ref count is incremented.
+	if (wcsncmp(name, ovrModuleName, length) == 0)
 		return TrueLoadLibrary(revModuleName);
 
-	// Only enable the GetProcAddress hook when the Oculus Platform was loaded.
-	if (wcscmp(moduleName, ovrPlatformName) == 0)
+	// Patch the export table of Oculus Platform to point to our entitlement functions.
+	if (wcsncmp(name, ovrPlatformName, length) == 0)
 	{
 		DetourEATptr("ovr_Message_IsError", ovr_Message_IsError, module);
 		DetourEATptr("ovr_IsEntitled", ovr_IsEntitled, module);
