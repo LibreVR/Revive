@@ -1,8 +1,6 @@
 # Revive Compatibility Layer
 
-This is a proof-of-concept compatibility layer between the Oculus SDK and OpenVR.
-
-*WARNING:* This is still pre-release software, don't buy games from the Oculus Store expecting this layer to work for you. Even for the games that have installation instructions there may still be compatibility issues or it may not work at all for you.
+This is a compatibility layer between the Oculus SDK and OpenVR. It allows you to play Oculus-exclusive games on your HTC Vive.
 
 You can find a [community-compiled list of working games on the wiki](https://github.com/LibreVR/Revive/wiki/Compatibility-list), feel free to add your own results.
 
