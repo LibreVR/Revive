@@ -240,6 +240,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	pContext->PSSetShaderResources(0, 2, mirrorViews);
 
 	// Draw a triangle strip, the vertex buffer is not used.
+	FLOAT clear[4] = { 0.0f };
+	D3D11_VIEWPORT viewport = { 0.0f, 0.0f, mirrorTexture->desc.Width, mirrorTexture->desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+	pContext->RSSetViewports(1, &viewport);
+	pContext->ClearRenderTargetView((ID3D11RenderTargetView*)mirrorTexture->target, clear);
 	pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->target, NULL);
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	pContext->Draw(4, 0);
