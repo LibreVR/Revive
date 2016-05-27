@@ -16,12 +16,10 @@ typedef struct ovrMessage *ovrMessageHandle;
 
 typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
-typedef FARPROC(__stdcall* _GetProcAddress)(HMODULE hModule, LPCSTR  lpProcName);
 typedef bool(__cdecl* _IsError)(const ovrMessageHandle obj);
 
 _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
-_GetProcAddress TrueGetProcAddress;
 _IsError TrueIsError;
 
 HMODULE ReviveModule;
@@ -47,24 +45,6 @@ bool __cdecl ovr_IsEntitled()
 	return true;
 }
 
-FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName) 
-{
-	WCHAR modulePath[MAX_PATH];
-	GetModuleFileName(hModule, modulePath, sizeof(modulePath));
-	LPCWSTR moduleName = PathFindFileNameW(modulePath);
-
-	FARPROC proc = TrueGetProcAddress(hModule, lpProcName);
-
-	if (strcmp(lpProcName, "ovr_Message_IsError") == 0)
-	{
-		MH_DisableHook(GetProcAddress);
-		TrueIsError = (_IsError)proc;
-		return (FARPROC)ovr_Message_IsError;
-	}
-
-	return proc;
-}
-
 HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
 {
 	// Don't touch this, it heavily affects performance in Unity games.
@@ -77,6 +57,7 @@ HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR 
 HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 {
 	LPCWSTR moduleName = PathFindFileNameW(lpFileName);
+	HMODULE module = TrueLoadLibrary(lpFileName);
 
 	// Load our own library so the ref count is incremented.
 	if (wcscmp(moduleName, ovrModuleName) == 0)
@@ -84,9 +65,12 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 
 	// Only enable the GetProcAddress hook when the Oculus Platform was loaded.
 	if (wcscmp(moduleName, ovrPlatformName) == 0)
-		MH_EnableHook(GetProcAddress);
+	{
+		DetourEATptr("ovr_Message_IsError", ovr_Message_IsError, module);
+		DetourEATptr("ovr_IsEntitled", ovr_IsEntitled, module);
+	}
 
-	return TrueLoadLibrary(lpFileName);
+	return module;
 }
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
@@ -108,14 +92,12 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 			MH_Initialize();
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
-			MH_CreateHook(GetProcAddress, HookGetProcAddress, (PVOID*)&TrueGetProcAddress);
 			MH_EnableHook(LoadLibraryW);
 			MH_EnableHook(OpenEventW);
 			break;
 		case DLL_PROCESS_DETACH:
 			MH_RemoveHook(LoadLibraryW);
 			MH_RemoveHook(OpenEventW);
-			MH_RemoveHook(GetProcAddress);
 			MH_Uninitialize();
 			break;
 		default:
