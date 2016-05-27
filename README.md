@@ -66,16 +66,4 @@ In Thumbstick Mode you move your finger across the touchpad to move the thumbsti
 
 By default the left controller starts in Thumbstick Mode and the right controller starts in Button Mode. For most games you will not have to switch between these modes.
 
-# Implementation
-
-It works by reimplementing functions from the Oculus Runtime and translating them to OpenVR calls.
-Unfortunately Oculus has implemented a Code Signing check on the Runtime DLLs, therefore the Revive DLLs
-cannot be used unless the application is patched.
-
-The Revive DLLs already contain the necessary hooking code to work around the Code Signing check in any application.
-However you will still need to patch the application to actually load the Revive DLLs.
-
-# To-Do List
-- Translate Oculus Touch haptic feedback to the Vive Controllers.
-- Add render models for the Vive controller to show the Oculus Touch mapping.
-- Implement DX12 support
+![logo](revive_black.png)
