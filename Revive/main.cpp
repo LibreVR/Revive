@@ -25,7 +25,6 @@ WCHAR ovrModuleName[MAX_PATH];
 WCHAR ovrPlatformName[MAX_PATH];
 
 uint64_t ovr_Entitlement_GetIsViewerEntitled() {
-	MH_DisableHook(GetProcAddress);
 	return 0; // this part doesn't work
 }
 
@@ -35,7 +34,9 @@ FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 	GetModuleFileName(hModule, modulePath, sizeof(modulePath));
 	LPCWSTR moduleName = PathFindFileNameW(modulePath);
 
-	if (strcmp(lpProcName, "ovr_Entitlement_GetIsViewerEntitled") == 0) {
+	if (strcmp(lpProcName, "ovr_Entitlement_GetIsViewerEntitled") == 0)
+	{
+		MH_DisableHook(GetProcAddress);
 		return (FARPROC)ovr_Entitlement_GetIsViewerEntitled;
 	}
 
