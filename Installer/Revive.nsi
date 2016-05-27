@@ -63,6 +63,7 @@ Section "Revive" SecRevive
   
   DetailPrint "Terminating dashboard overlay..."
   nsExec::ExecToLog '"taskkill" /F /IM ReviveOverlay.exe'
+  Sleep 2000 ; give 2 seconds for the application to finish exiting
   
   SetOutPath "$INSTDIR"
   
@@ -113,6 +114,7 @@ Section "Uninstall"
 
   DetailPrint "Terminating dashboard overlay..."
   nsExec::ExecToLog '"taskkill" /F /IM ReviveOverlay.exe'
+  Sleep 2000 ; give 2 seconds for the application to finish exiting
 
   RMDir /r "$INSTDIR"
   
