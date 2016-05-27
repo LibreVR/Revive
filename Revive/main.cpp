@@ -29,7 +29,8 @@ WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
 WCHAR ovrPlatformName[MAX_PATH];
 
-bool __cdecl ovr_Message_IsError(const ovrMessageHandle obj) {
+bool __cdecl ovr_Message_IsError(const ovrMessageHandle obj)
+{
 	// Assuming the structure doesn't changed, the type begins at the third integer.
 	PDWORD type = ((PDWORD)obj) + 2;
 
@@ -39,6 +40,11 @@ bool __cdecl ovr_Message_IsError(const ovrMessageHandle obj) {
 		return false;
 
 	return TrueIsError(obj);
+}
+
+bool __cdecl ovr_IsEntitled()
+{
+	return true;
 }
 
 FARPROC HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName) 
@@ -98,6 +104,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 			swprintf(revModuleName, MAX_PATH, L"LibRevive%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 			swprintf(ovrPlatformName, MAX_PATH, L"LibOVRPlatform%hs_%d", pBitDepth, OVR_MAJOR_VERSION);
 			TrueIsError = (_IsError)DetourIATptr("ovr_Message_IsError", ovr_Message_IsError, GetModuleHandle(NULL));
+			DetourIATptr("ovr_IsEntitled", ovr_IsEntitled, GetModuleHandle(NULL));
 			MH_Initialize();
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
