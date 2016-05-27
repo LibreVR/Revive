@@ -56,7 +56,6 @@ HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR 
 
 HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 {
-	HMODULE module = TrueLoadLibrary(lpFileName);
 	LPCWSTR name = PathFindFileNameW(lpFileName);
 	LPCWSTR ext = PathFindExtensionW(name);
 	size_t length = ext - name;
@@ -64,6 +63,9 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 	// Load our own library again so the ref count is incremented.
 	if (wcsncmp(name, ovrModuleName, length) == 0)
 		return TrueLoadLibrary(revModuleName);
+
+	// The following functions will patch the module, so we have to load it here.
+	HMODULE module = TrueLoadLibrary(lpFileName);
 
 	// Patch the export table of Oculus Platform to point to our entitlement functions.
 	if (wcsncmp(name, ovrPlatformName, length) == 0)
