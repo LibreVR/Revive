@@ -14,7 +14,7 @@ void **IATfind(const char *function, HMODULE module) {
 		return 0;
 	}
 
-	for (IMAGE_IMPORT_DESCRIPTOR *iid = pImgImportDesc; iid->Name != NULL; iid++) {
+	for (PIMAGE_IMPORT_DESCRIPTOR iid = pImgImportDesc; iid->Name != NULL; iid++) {
 		for (int funcIdx = 0; *(funcIdx + (LPVOID*)(iid->FirstThunk + (SIZE_T)module)) != NULL; funcIdx++) {
 			char *modFuncName = (char*)(*(funcIdx + (SIZE_T*)(iid->OriginalFirstThunk + (SIZE_T)module)) + (SIZE_T)module + 2);
 			const uintptr_t nModFuncName = (uintptr_t)modFuncName;
@@ -28,7 +28,7 @@ void **IATfind(const char *function, HMODULE module) {
 	return 0;
 }
 
-void **DetourIATptr(const char *function, void *newfunction, HMODULE module) {
+void *DetourIATptr(const char *function, void *newfunction, HMODULE module) {
 	void **funcptr = IATfind(function, module);
 	if (funcptr == 0)
 		return 0;
@@ -39,10 +39,13 @@ void **DetourIATptr(const char *function, void *newfunction, HMODULE module) {
 	//Update the protection to READWRITE
 	VirtualProtect(funcptr, sizeof(LPVOID), newrights, &oldrights);
 
-	void **originalFuncPtr = funcptr;
+	void *originalFunc = nullptr;
+	if (funcptr != nullptr)
+		originalFunc = *funcptr;
+
 	*funcptr = newfunction;
 
 	//Restore the old memory protection flags.
 	VirtualProtect(funcptr, sizeof(LPVOID), oldrights, &newrights);
-	return originalFuncPtr;
+	return originalFunc;
 }
