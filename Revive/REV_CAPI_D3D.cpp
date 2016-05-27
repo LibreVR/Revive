@@ -116,23 +116,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		if (FAILED(hr))
 			return ovrError_RuntimeException;
 
-		D3D11_SHADER_RESOURCE_VIEW_DESC view;
-		view.Format = ovr_TextureFormatToDXGIFormat(desc->Format, 0);
-		view.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-
-		D3D11_TEX2D_SRV srv;
-		srv.MipLevels = 1;
-		srv.MostDetailedMip = 0;
-		view.Texture2D = srv;
-
-		hr = pDevice->CreateShaderResourceView(texture, &view, (ID3D11ShaderResourceView**)&swapChain->resource);
-		if (FAILED(hr))
-			return ovrError_RuntimeException;
-
 		swapChain->texture[i].handle = texture;
 	}
 	swapChain->current = swapChain->texture[swapChain->index];
-	swapChain->view = swapChain->resource[swapChain->index];
 
 	// Clean up and return
 	pDevice->Release();
@@ -248,26 +234,23 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	}
 	pContext->PSSetShader(g_pMirrorPS, NULL, 0);
 
-	// Only draw mirror texture if both views have been set.
-	if (session->ColorTexture[0] && session->ColorTexture[1])
-	{
-		ID3D11ShaderResourceView* mirrorViews[] = {
-			(ID3D11ShaderResourceView*)session->ColorTexture[0]->view,
-			(ID3D11ShaderResourceView*)session->ColorTexture[1]->view
-		};
-		pContext->PSSetShaderResources(0, 2, mirrorViews);
+	ID3D11ShaderResourceView* mirrorViews[2];
+	session->compositor->GetMirrorTextureD3D11(vr::Eye_Left, pDevice, (void**)&mirrorViews[0]);
+	session->compositor->GetMirrorTextureD3D11(vr::Eye_Right, pDevice, (void**)&mirrorViews[1]);
+	pContext->PSSetShaderResources(0, 2, mirrorViews);
 
-		// Draw a triangle strip, the vertex buffer is not used.
-		pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->target, NULL);
-		pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		pContext->Draw(4, 0);
-	}
+	// Draw a triangle strip, the vertex buffer is not used.
+	pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->target, NULL);
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	pContext->Draw(4, 0);
 
 	HRESULT hr = texture->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_InvalidParameter;
 
 	// Clean up and return
+	mirrorViews[0]->Release();
+	mirrorViews[1]->Release();
 	pDevice->Release();
 	pContext->Release();
 	return ovrSuccess;

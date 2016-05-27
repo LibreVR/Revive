@@ -12,8 +12,6 @@ struct ovrTextureSwapChainData
 	ovrTextureSwapChainDesc desc;
 	vr::Texture_t current;
 	vr::Texture_t texture[2];
-	void* view;
-	void* resource[2];
 };
 
 struct ovrMirrorTextureData
@@ -32,9 +30,6 @@ struct ovrHmdStruct
 	bool ThumbStick[ovrHand_Count];
 	bool MenuWasPressed[ovrHand_Count];
 	float ThumbStickRange;
-
-	// Mirror window
-	ovrTextureSwapChain ColorTexture[ovrEye_Count];
 
 	// Device poses
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];

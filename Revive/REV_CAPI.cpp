@@ -737,7 +737,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 		return ovrError_InvalidParameter;
 
 	chain->current = chain->texture[chain->index];
-	chain->view = chain->resource[chain->index];
 	chain->index++;
 	chain->index %= chain->length;
 	return ovrSuccess;
@@ -898,7 +897,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		for (int i = 0; i < ovrEye_Count; i++)
 		{
 			ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
-			session->ColorTexture[i] = chain;
 			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
 
 			float left, right, top, bottom;
