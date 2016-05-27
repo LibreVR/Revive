@@ -70,7 +70,7 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 	// Patch the export table of Oculus Platform to point to our entitlement functions.
 	if (wcsncmp(name, ovrPlatformName, length) == 0)
 	{
-		DetourEATptr("ovr_Message_IsError", ovr_Message_IsError, module);
+		TrueIsError = (_IsError)DetourEATptr("ovr_Message_IsError", ovr_Message_IsError, module);
 		DetourEATptr("ovr_IsEntitled", ovr_IsEntitled, module);
 	}
 
