@@ -18,6 +18,8 @@ If you need to recenter the headset you can do so in the Steam VR dashboard by h
 4. Start or reboot SteamVR.
 5. Open the dashboard and click the new Revive tab.
 
+*If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard.*
+
 ## Standalone games
 
 Credit goes to @rjoudrey for implementing the injector.
