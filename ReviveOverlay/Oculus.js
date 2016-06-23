@@ -21,9 +21,9 @@ function generateManifest(manifest) {
             var revive = {
                 "launch_type" : "binary",
                 "binary_path_windows" : "Revive/ReviveInjector_x64.exe",
-                "arguments" : "/base \"Software/" + manifest["canonicalName"] + launch + "\"",
+                "arguments" : "/base \"Software/Software/" + manifest["canonicalName"] + launch + "\"",
 
-                "image_path" : basePath + "Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
+                "image_path" : basePath + "Software/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
 
                 "strings" : {
                     "en_us" : {
@@ -40,7 +40,7 @@ function generateManifest(manifest) {
 }
 
 function loadAppManifest(appKey, coverURL) {
-    var manifestURL = baseURL + 'Manifests/' + appKey + '.json';
+    var manifestURL = baseURL + 'Software/Manifests/' + appKey + '.json';
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -79,7 +79,7 @@ function loadAssetsManifest(manifestURL) {
             // Assume only games have asset bundles and include their cover.
             if (manifest["packageType"] == "ASSET_BUNDLE") {
                 console.log("Found assets bundle " + manifest["canonicalName"]);
-                var cover = baseURL + "Software/StoreAssets/" + manifest["canonicalName"] + "/cover_square_image.jpg";
+                var cover = baseURL + "Software/Software/StoreAssets/" + manifest["canonicalName"] + "/cover_square_image.jpg";
                 var key = manifest["canonicalName"];
                 key = key.substring(0, key.indexOf("_assets"));
                 loadAppManifest(key, cover);
