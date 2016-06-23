@@ -76,6 +76,7 @@ Section "Revive" SecRevive
   
   ; Create an empty manifest file
   FileOpen $0 "$INSTDIR\revive.vrmanifest" w
+  FileWrite $0 ""
   FileClose $0
   
   ; Ensure all users have access to the manifest file
