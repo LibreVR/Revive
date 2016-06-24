@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include "MinHook.h"
 #include "Shlwapi.h"
-#include "IAT_Hooking.h"
 
 #include <openvr.h>
 #include <string>
