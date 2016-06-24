@@ -10,40 +10,16 @@
 #include "Extras\OVR_CAPI_Util.h"
 #include "OVR_Version.h"
 
-#define GetIsViewerEntitled 0x186B58B1
-
-typedef struct ovrMessage *ovrMessageHandle;
-
 typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
-typedef bool(__cdecl* _IsError)(const ovrMessageHandle obj);
 
 _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
-_IsError TrueIsError;
 
 HMODULE ReviveModule;
 WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
 WCHAR ovrPlatformName[MAX_PATH];
-
-bool __cdecl ovr_Message_IsError(const ovrMessageHandle obj)
-{
-	// Assuming the structure doesn't changed, the type begins at the third integer.
-	PDWORD type = ((PDWORD)obj) + 2;
-
-	// Never return an error for the entitlement check.
-	// TODO: Detect whether the error is triggered by a missing headset.
-	if (*type == GetIsViewerEntitled)
-		return false;
-
-	return TrueIsError(obj);
-}
-
-bool __cdecl ovr_IsEntitled()
-{
-	return true;
-}
 
 HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
 {
@@ -64,17 +40,7 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 	if (wcsncmp(name, ovrModuleName, length) == 0)
 		return TrueLoadLibrary(revModuleName);
 
-	// The following functions will patch the module, so we have to load it here.
-	HMODULE module = TrueLoadLibrary(lpFileName);
-
-	// Patch the export table of Oculus Platform to point to our entitlement functions.
-	if (wcsncmp(name, ovrPlatformName, length) == 0)
-	{
-		TrueIsError = (_IsError)DetourEATptr("ovr_Message_IsError", ovr_Message_IsError, module);
-		DetourEATptr("ovr_IsEntitled", ovr_IsEntitled, module);
-	}
-
-	return module;
+	return TrueLoadLibrary(lpFileName);
 }
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
@@ -91,8 +57,6 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 			swprintf(revModuleName, MAX_PATH, L"LibRevive%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 			swprintf(ovrPlatformName, MAX_PATH, L"LibOVRPlatform%hs_%d", pBitDepth, OVR_MAJOR_VERSION);
-			TrueIsError = (_IsError)DetourIATptr("ovr_Message_IsError", ovr_Message_IsError, GetModuleHandle(NULL));
-			DetourIATptr("ovr_IsEntitled", ovr_IsEntitled, GetModuleHandle(NULL));
 			MH_Initialize();
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
