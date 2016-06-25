@@ -927,6 +927,29 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		}
 	}
 
+	// The first layer is assumed to be the application scene.
+	if (layerPtrList[0]->Type == ovrLayerType_EyeMatrix)
+	{
+		ovrLayerEyeMatrix* sceneLayer = (ovrLayerEyeMatrix*)layerPtrList[0];
+
+		// Submit the scene layer.
+		for (int i = 0; i < ovrEye_Count; i++)
+		{
+			ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
+			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
+
+			if (chain->texture[i].eType == vr::API_OpenGL)
+			{
+				bounds.vMin = 1.0f - bounds.vMin;
+				bounds.vMax = 1.0f - bounds.vMax;
+			}
+
+			err = session->compositor->Submit((vr::EVREye)i, &chain->current, &bounds);
+			if (err != vr::VRCompositorError_None)
+				break;
+		}
+	}
+
 	// Call WaitGetPoses() to do some cleanup from the previous frame.
 	session->compositor->WaitGetPoses(session->poses, vr::k_unMaxTrackedDeviceCount, session->gamePoses, vr::k_unMaxTrackedDeviceCount);
 
