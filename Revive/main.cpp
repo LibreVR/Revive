@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <stdio.h>
+#include <dxgi.h>
 #include "MinHook.h"
 #include "Shlwapi.h"
 
@@ -11,14 +12,26 @@
 
 typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
+typedef HRESULT(__stdcall* _CreateDXGIFactory)(REFIID riid, void **ppFactory);
 
 _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
+_CreateDXGIFactory TrueDXGIFactory;
 
 HMODULE ReviveModule;
+FARPROC DXGIFactory;
 WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
-WCHAR ovrPlatformName[MAX_PATH];
+
+HRESULT WINAPI HookDXGIFactory(REFIID riid, void **ppFactory)
+{
+	// We need shared texture support for OpenVR, so force DXGI 1.0 games to use DXGI 1.1
+	IDXGIFactory1* pDXGIFactory;
+	HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void **)&pDXGIFactory);
+	if (FAILED(hr))
+		return hr;
+	return pDXGIFactory->QueryInterface(riid, ppFactory);
+}
 
 HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
 {
@@ -53,18 +66,21 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 	{
 		case DLL_PROCESS_ATTACH:
 			ReviveModule = (HMODULE)hModule;
+			DXGIFactory = GetProcAddress(GetModuleHandleW(L"dxgi.dll"), "CreateDXGIFactory");
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 			swprintf(revModuleName, MAX_PATH, L"LibRevive%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
-			swprintf(ovrPlatformName, MAX_PATH, L"LibOVRPlatform%hs_%d", pBitDepth, OVR_MAJOR_VERSION);
 			MH_Initialize();
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
+			MH_CreateHook(DXGIFactory, HookDXGIFactory, (PVOID*)&TrueDXGIFactory);
 			MH_EnableHook(LoadLibraryW);
 			MH_EnableHook(OpenEventW);
+			MH_EnableHook(DXGIFactory);
 			break;
 		case DLL_PROCESS_DETACH:
 			MH_RemoveHook(LoadLibraryW);
 			MH_RemoveHook(OpenEventW);
+			MH_RemoveHook(DXGIFactory);
 			MH_Uninitialize();
 			break;
 		default:
