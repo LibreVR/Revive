@@ -35,6 +35,9 @@ struct ovrHmdStruct
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	vr::TrackedDevicePose_t gamePoses[vr::k_unMaxTrackedDeviceCount];
 
+	// Overlays
+	vr::VROverlayHandle_t overlays[ovrMaxLayerCount];
+
 	// OpenVR interfaces
 	vr::IVRCompositor* compositor;
 	vr::IVRSettings* settings;

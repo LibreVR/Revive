@@ -822,28 +822,23 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	// Other layers are interpreted as overlays.
 	for (size_t i = 0; i < ovrMaxLayerCount; i++)
 	{
-		char keyName[vr::k_unVROverlayMaxKeyLength];
-		snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "revive.runtime.layer%d", i);
-
-		// Look if the overlay already exists.
-		vr::VROverlayHandle_t overlay;
-		vr::EVROverlayError err = session->overlay->FindOverlay(keyName, &overlay);
-
 		// If this layer is defined in the list, show it. If not, hide the layer if it exists.
 		if (i < layerCount)
 		{
 			// Create a new overlay if it doesn't exist.
-			if (err == vr::VROverlayError_UnknownOverlay)
+			if (session->overlays[i] == vr::k_ulOverlayHandleInvalid)
 			{
+				char keyName[vr::k_unVROverlayMaxKeyLength];
+				snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "revive.runtime.layer%d", i);
 				char title[vr::k_unVROverlayMaxNameLength];
 				snprintf(title, vr::k_unVROverlayMaxNameLength, "Revive Layer %d", i);
-				session->overlay->CreateOverlay(keyName, title, &overlay);
+				session->overlay->CreateOverlay(keyName, title, &session->overlays[i]);
 			}
 
 			// A layer was added, but not defined, hide it.
 			if (layerPtrList[i] == nullptr)
 			{
-				session->overlay->HideOverlay(overlay);
+				session->overlay->HideOverlay(session->overlays[i]);
 				continue;
 			}
 
@@ -860,28 +855,29 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 			// Transform the overlay.
 			vr::HmdMatrix34_t transform = REV_OvrPoseToHmdMatrix(layer->QuadPoseCenter);
-			session->overlay->SetOverlayWidthInMeters(overlay, layer->QuadSize.x);
+			session->overlay->SetOverlayWidthInMeters(session->overlays[i], layer->QuadSize.x);
 			if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
-				session->overlay->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
+				session->overlay->SetOverlayTransformTrackedDeviceRelative(session->overlays[i], vr::k_unTrackedDeviceIndex_Hmd, &transform);
 			else
-				session->overlay->SetOverlayTransformAbsolute(overlay, session->compositor->GetTrackingSpace(), &transform);
+				session->overlay->SetOverlayTransformAbsolute(session->overlays[i], session->compositor->GetTrackingSpace(), &transform);
 
 			// Set the texture and show the overlay.
 			ovrTextureSwapChain chain = layer->ColorTexture;
 			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
-			session->overlay->SetOverlayTextureBounds(overlay, &bounds);
-			session->overlay->SetOverlayTexture(overlay, &chain->current);
+			session->overlay->SetOverlayTextureBounds(session->overlays[i], &bounds);
+			session->overlay->SetOverlayTexture(session->overlays[i], &chain->current);
 
 			// TODO: Handle overlay errors.
-			session->overlay->ShowOverlay(overlay);
+			session->overlay->ShowOverlay(session->overlays[i]);
 		}
 		else
 		{
-			if (err == vr::VROverlayError_UnknownOverlay)
-				break;
-
-			// Hide all overlays no longer visible.
-			session->overlay->HideOverlay(overlay);
+			if (session->overlays[i] != vr::k_ulOverlayHandleInvalid)
+			{
+				// Destory all overlays no longer listed.
+				session->overlay->DestroyOverlay(session->overlays[i]);
+				session->overlays[i] = vr::k_ulOverlayHandleInvalid;
+			}
 		}
 	}
 
