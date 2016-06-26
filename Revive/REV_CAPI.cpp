@@ -932,6 +932,22 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
 			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
 
+			float left, right, top, bottom;
+			g_VRSystem->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
+
+			// Shrink the bounds to account for the overlapping fov
+			ovrVector2f fov = { .5f / sceneLayer->Matrix[i].M[0][0], .5f / sceneLayer->Matrix[i].M[1][1] };
+			float uMin = 0.5f + 0.5f * left / fov.x;
+			float uMax = 0.5f + 0.5f * right / fov.x;
+			float vMin = 0.5f - 0.5f * bottom / fov.y;
+			float vMax = 0.5f - 0.5f * top / fov.y;
+
+			// Combine the fov bounds with the viewport bounds
+			bounds.uMin += uMin * bounds.uMax;
+			bounds.uMax *= uMax;
+			bounds.vMin += vMin * bounds.vMax;
+			bounds.vMax *= vMax;
+
 			if (chain->texture[i].eType == vr::API_OpenGL)
 			{
 				bounds.vMin = 1.0f - bounds.vMin;
