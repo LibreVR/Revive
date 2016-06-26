@@ -18,10 +18,14 @@ function generateManifest(manifest) {
             if (title == null)
                 title = manifest["canonicalName"];
 
+            var parameters = "";
+            if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None")
+                parameters = " " + manifest["launchParameters"];
+
             var revive = {
                 "launch_type" : "binary",
                 "binary_path_windows" : "Revive/ReviveInjector_x64.exe",
-                "arguments" : "/base \"Software/Software/" + manifest["canonicalName"] + launch + "\"",
+                "arguments" : "/base \"Software/Software/" + manifest["canonicalName"] + launch + "\"" + parameters,
 
                 "image_path" : basePath + "Software/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
 
