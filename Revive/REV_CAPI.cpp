@@ -781,8 +781,8 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 
 	float uMin = 0.5f + 0.5f * left / fov.LeftTan;
 	float uMax = 0.5f + 0.5f * right / fov.RightTan;
-	float vMin = 0.5f - 0.5f * bottom / fov.DownTan;
-	float vMax = 0.5f - 0.5f * top / fov.UpTan;
+	float vMin = 0.5f - 0.5f * bottom / fov.UpTan;
+	float vMax = 0.5f - 0.5f * top / fov.DownTan;
 
 	// Grow the recommended size to account for the overlapping fov
 	size.w = int((size.w * pixelsPerDisplayPixel) / (uMax - uMin));
@@ -906,8 +906,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			ovrFovPort fov = sceneLayer->Fov[i];
 			float uMin = 0.5f + 0.5f * left / fov.LeftTan;
 			float uMax = 0.5f + 0.5f * right / fov.RightTan;
-			float vMin = 0.5f - 0.5f * bottom / fov.DownTan;
-			float vMax = 0.5f - 0.5f * top / fov.UpTan;
+			float vMin = 0.5f - 0.5f * bottom / fov.UpTan;
+			float vMax = 0.5f - 0.5f * top / fov.DownTan;
 
 			// Combine the fov bounds with the viewport bounds
 			bounds.uMin += uMin * bounds.uMax;
