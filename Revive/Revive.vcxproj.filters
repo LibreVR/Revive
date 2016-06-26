@@ -69,9 +69,6 @@
     <ClInclude Include="..\openvr\headers\openvr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IAT_Hooking.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="REV_CAPI.cpp">
@@ -96,9 +93,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="REV_Math.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="IAT_Hooking.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

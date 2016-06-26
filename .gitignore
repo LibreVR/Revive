@@ -259,3 +259,6 @@ Installer/*.exe
 
 # Ignore generated HLSL headers
 *.hlsl.h
+
+# Ignore Nvidia NSight config
+*.nvuser

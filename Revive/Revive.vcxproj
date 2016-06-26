@@ -207,8 +207,6 @@
     <ClInclude Include="REV_Error.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="IAT_Hooking.cpp" />
-    <ClInclude Include="IAT_Hooking.h" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="REV_CAPI.cpp" />
     <ClCompile Include="REV_CAPI_Audio.cpp" />
