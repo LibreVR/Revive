@@ -26,6 +26,7 @@ _XInputSetState g_pXInputSetState;
 vr::EVRInitError g_InitError = vr::VRInitError_None;
 vr::IVRSystem* g_VRSystem = nullptr;
 char* g_StringBuffer = nullptr;
+long long g_FrameIndex = 0;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
@@ -295,14 +296,11 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	if (!session)
 		return state;
 
-	// Gain focus for the compositor
-	float time = (float)ovr_GetTimeInSeconds();
-
 	// Get the absolute tracking poses
 	vr::TrackedDevicePose_t* poses = session->poses;
 
 	// Convert the head pose
-	state.HeadPose = REV_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], time);
+	state.HeadPose = REV_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
 	state.StatusFlags = REV_TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
 
 	// Convert the hand poses
@@ -317,7 +315,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 			continue;
 		}
 
-		state.HandPoses[i] = REV_TrackedDevicePoseToOVRPose(poses[deviceIndex], time);
+		state.HandPoses[i] = REV_TrackedDevicePoseToOVRPose(poses[deviceIndex], absTime);
 		state.HandStatusFlags[i] = REV_TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
 
@@ -952,6 +950,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 	// Call WaitGetPoses() to do some cleanup from the previous frame.
 	session->compositor->WaitGetPoses(session->poses, vr::k_unMaxTrackedDeviceCount, session->gamePoses, vr::k_unMaxTrackedDeviceCount);
+	g_FrameIndex = frameIndex;
 
 	return REV_CompositorErrorToOvrError(err);
 }
@@ -976,7 +975,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 	uint64_t unFrame;
 	g_VRSystem->GetTimeSinceLastVsync(&fSecondsSinceLastVsync, &unFrame);
 
-	return double(unFrame) / fDisplayFrequency + fSecondsSinceLastVsync;
+	return double(g_FrameIndex) / fDisplayFrequency + fSecondsSinceLastVsync;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal)
