@@ -89,7 +89,7 @@ Section "Revive" SecRevive
   
   ; Execute the dashboard overlay with unelevated permissions
   ; This ensures we don't start the OpenVR server with admin permissions
-  ShellExecAsUser::ShellExecAsUser "open" "$INSTDIR\ReviveOverlay.exe"
+  ShellExecAsUser::ShellExecAsUser "open" "$INSTDIR\ReviveOverlay.exe" "-manifest"
   
   ;Store installation folder
   WriteRegStr HKCU "Software\Revive" "" $INSTDIR

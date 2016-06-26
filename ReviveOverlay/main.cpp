@@ -38,7 +38,23 @@ int main(int argc, char *argv[])
 
 	QGuiApplication a(argc, argv);
 
+	if (a.arguments().contains("-manifest")) {
+		// Only initialize the manifest
+		vr::EVRInitError err = vr::VRInitError_None;
+		vr::IVRSystem *pVRSystem = vr::VR_Init( &err, vr::VRApplication_Utility );
+
+		if ( err != vr::VRInitError_None )
+			return -1;
+
+		if (!CReviveManifestController::SharedInstance()->Init())
+			return -1;
+
+		vr::VR_Shutdown();
+		return 0;
+	}
+
 	COpenVROverlayController::SharedInstance()->Init();
+	CReviveManifestController::SharedInstance()->Init();
 
 	// Get the base path
 	DWORD size = MAX_PATH;

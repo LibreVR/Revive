@@ -20,6 +20,8 @@ public:
 	CReviveManifestController();
 	virtual ~CReviveManifestController();
 
+	bool Init();
+
 	Q_INVOKABLE bool addManifest(const QString &canonicalName, const QString &manifest);
 	Q_INVOKABLE bool removeManifest(const QString &canonicalName);
 	Q_INVOKABLE bool launchApplication(const QString &canonicalName);

@@ -22,7 +22,14 @@ CReviveManifestController::CReviveManifestController()
 	: BaseClass()
 	, m_manifestFile(QCoreApplication::applicationDirPath() + "/revive.vrmanifest")
 {
+}
 
+CReviveManifestController::~CReviveManifestController()
+{
+}
+
+bool CReviveManifestController::Init()
+{
 	if (!vr::VRApplications()->IsApplicationInstalled(AppKey))
 	{
 		QJsonObject strings, english;
@@ -43,18 +50,14 @@ CReviveManifestController::CReviveManifestController()
 		applications.append(overlay);
 		m_manifest["applications"] = applications;
 
-		SaveDocument();
+		return SaveDocument();
 	}
 	else
 	{
-		LoadDocument();
+		return LoadDocument();
 	}
 
 	vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true);
-}
-
-CReviveManifestController::~CReviveManifestController()
-{
 }
 
 bool CReviveManifestController::LoadDocument()
