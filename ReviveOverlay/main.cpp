@@ -60,8 +60,20 @@ int main(int argc, char *argv[])
 	DWORD size = MAX_PATH;
 	WCHAR path[MAX_PATH];
 	HKEY oculusKey;
-	RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
-	RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)path, &size);
+	LONG error;
+	error = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
+	if (error != ERROR_SUCCESS)
+	{
+		qDebug("Unable to open Oculus key.");
+		return -1;
+	}
+	error = RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)path, &size);
+	if (error != ERROR_SUCCESS)
+	{
+		qDebug("Unable to read Base path.");
+		return -1;
+	}
+	RegCloseKey(oculusKey);
 
 	// Create a QML engine.
 	QQmlEngine qmlEngine;
@@ -90,9 +102,6 @@ int main(int argc, char *argv[])
 	QQuickItem *rootItem = qobject_cast<QQuickItem*>( rootObject );
 
 	COpenVROverlayController::SharedInstance()->SetQuickItem( rootItem );
-
-	// don't show the window that you're going display in an overlay
-	//view.show();
 
 	return a.exec();
 }

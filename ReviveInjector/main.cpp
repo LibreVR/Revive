@@ -46,8 +46,19 @@ int wmain(int argc, wchar_t *argv[]) {
 			// Prepend the base path
 			DWORD size = MAX_PATH;
 			HKEY oculusKey;
-			RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
-			RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)path, &size);
+			LONG error;
+			error = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
+			if (error != ERROR_SUCCESS)
+			{
+				LOG("Unable to open Oculus key.");
+				return -1;
+			}
+			error = RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)path, &size);
+			if (error != ERROR_SUCCESS)
+			{
+				LOG("Unable to read Base path.");
+				return -1;
+			}
 			wcsncat(path, arg, MAX_PATH);
 			RegCloseKey(oculusKey);
 		}
