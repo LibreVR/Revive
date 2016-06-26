@@ -29,29 +29,35 @@ int wmain(int argc, wchar_t *argv[]) {
 
 	LOG("Launched injector with: %ls\n", GetCommandLine());
 
-	for (int i = 0; i < argc - 1; i++)
+	WCHAR path[MAX_PATH] = { 0 };
+	for (int i = 1; i < argc - 1; i++)
 	{
 		if (wcscmp(argv[i], L"/handle") == 0)
-			return OpenProcessAndInject(argv[i + 1]);
-
-		// Prepend the base path
-		if (wcscmp(argv[i], L"/base") == 0)
+		{
+			return OpenProcessAndInject(argv[++i]);
+		}
+		else if (wcscmp(argv[i], L"/base") == 0)
 		{
 			// Replace all forward slashes with backslashes in the argument
-			wchar_t* arg = argv[i + 1];
+			wchar_t* arg = argv[++i];
 			for (wchar_t* ptr = arg; *ptr != L'\0'; ptr++)
 				if (*ptr == L'/') *ptr = L'\\';
 
+			// Prepend the base path
 			DWORD size = MAX_PATH;
-			WCHAR path[MAX_PATH];
 			HKEY oculusKey;
 			RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
 			RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)path, &size);
 			wcsncat(path, arg, MAX_PATH);
 			RegCloseKey(oculusKey);
-			return CreateProcessAndInject(path);
+		}
+		else
+		{
+			// Concatenate all other arguments
+			wcsncat(path, L" ", MAX_PATH);
+			wcsncat(path, argv[i], MAX_PATH);
 		}
 	}
 
-	return CreateProcessAndInject(argv[argc - 1]);
+	return CreateProcessAndInject(path);
 }
