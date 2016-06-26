@@ -30,7 +30,7 @@ int wmain(int argc, wchar_t *argv[]) {
 	LOG("Launched injector with: %ls\n", GetCommandLine());
 
 	WCHAR path[MAX_PATH] = { 0 };
-	for (int i = 1; i < argc - 1; i++)
+	for (int i = 1; i < argc; i++)
 	{
 		if (wcscmp(argv[i], L"/handle") == 0)
 		{
@@ -54,9 +54,9 @@ int wmain(int argc, wchar_t *argv[]) {
 		else
 		{
 			// Concatenate all other arguments
-			wcsncat(path, L" ", MAX_PATH);
 			wcsncat(path, argv[i], MAX_PATH);
 		}
+		wcsncat(path, L" ", MAX_PATH);
 	}
 
 	return CreateProcessAndInject(path);
