@@ -97,11 +97,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Revive.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
     <FxCompile Include="MirrorPS.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>

@@ -217,9 +217,6 @@
     <ClCompile Include="REV_Math.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Revive.rc" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\minhook\build\VC15\libMinHook.vcxproj">
       <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
     </ProjectReference>

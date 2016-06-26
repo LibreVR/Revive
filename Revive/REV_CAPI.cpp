@@ -84,6 +84,8 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetVersionString()
 
 OVR_PUBLIC_FUNCTION(int) ovr_TraceMessage(int level, const char* message) { return 0; /* Debugging feature */ }
 
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_IdentifyClient(const char* identity) { return ovrSuccess; /* Debugging feature */ }
+
 OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 {
 	ovrHmdDesc desc;
