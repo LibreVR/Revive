@@ -10,6 +10,8 @@ You can find a [community-compiled list of working games on the wiki](https://gi
 
 If you need to recenter the headset you can do so in the Steam VR dashboard by holding down the `Dashboard` button and selecting `Recenter seated position`.
 
+Newly installed games will give you an `Entitlement check failed` error until you reboot the Oculus service, quickest way to do that is through Oculus Home `Settings > Beta > Restart Oculus`.
+
 ## Oculus Home games
 
 1. Install Oculus Home and download the games you want to play.
