@@ -14,7 +14,7 @@ Newly installed games will give you an `Entitlement check failed` error until yo
 
 ## Oculus Home games
 
-1. Install Oculus Home and download the games you want to play.
+1. Install Oculus Home and remember to skip the first-time setup.
 2. Download the [Revive installer here.](https://github.com/LibreVR/Revive/releases/download/0.7/ReviveInstaller.exe)
 3. Install Revive in your preferred directory, you can overwrite existing installations without uninstalling Revive first.
 4. Start or reboot SteamVR.
