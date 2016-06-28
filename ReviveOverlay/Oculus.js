@@ -14,9 +14,10 @@ function generateManifest(manifest) {
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
             var regEx = /<title id=\"pageTitle\">(.*?) \| Oculus<\/title>/i;
-            var title = regEx.exec(xhr.responseText)[1];
-            if (title == null)
-                title = manifest["canonicalName"];
+            var title = manifest["canonicalName"];
+            var result = regEx.exec(xhr.responseText);
+            if (regEx != null)
+                title = result[1];
 
             var parameters = "";
             if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None")
