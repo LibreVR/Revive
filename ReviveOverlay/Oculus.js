@@ -16,7 +16,7 @@ function generateManifest(manifest) {
             var regEx = /<title id=\"pageTitle\">(.*?) \| Oculus<\/title>/i;
             var title = manifest["canonicalName"];
             var result = regEx.exec(xhr.responseText);
-            if (regEx != null)
+            if (result != null)
                 title = result[1];
 
             var parameters = "";
