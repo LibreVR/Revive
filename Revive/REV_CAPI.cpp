@@ -978,7 +978,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 	// Call WaitGetPoses() to do some cleanup from the previous frame.
 	session->compositor->WaitGetPoses(session->poses, vr::k_unMaxTrackedDeviceCount, session->gamePoses, vr::k_unMaxTrackedDeviceCount);
-	g_FrameIndex = frameIndex;
+
+	// Increment the frame index.
+	if (frameIndex == 0)
+		g_FrameIndex++;
+	else
+		g_FrameIndex = frameIndex;
 
 	return REV_CompositorErrorToOvrError(err);
 }
