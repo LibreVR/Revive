@@ -106,6 +106,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	swapChain->length = 2;
 	swapChain->index = 0;
 	swapChain->desc = *desc;
+	swapChain->overlay = vr::k_ulOverlayHandleInvalid;
 
 	for (int i = 0; i < swapChain->length; i++)
 	{

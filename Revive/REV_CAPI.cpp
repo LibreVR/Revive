@@ -739,6 +739,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	chain->current = chain->texture[chain->index];
 	chain->index++;
 	chain->index %= chain->length;
+
 	return ovrSuccess;
 }
 
@@ -754,6 +755,8 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTex
 		if (chain->texture[i].eType == vr::API_OpenGL)
 			glDeleteTextures(1, (GLuint*)&chain->texture[i].handle);
 	}
+
+	session->overlay->DestroyOverlay(chain->overlay);
 
 	delete chain;
 }
@@ -822,33 +825,28 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		return ovrError_InvalidParameter;
 
 	// Other layers are interpreted as overlays.
+	vr::VROverlayHandle_t overlays[ovrMaxLayerCount];
 	for (size_t i = 0; i < ovrMaxLayerCount; i++)
 	{
 		// If this layer is defined in the list, show it. If not, hide the layer if it exists.
 		if (i < layerCount)
 		{
-			// Create a new overlay if it doesn't exist.
-			if (session->overlays[i] == vr::k_ulOverlayHandleInvalid)
-			{
-				char keyName[vr::k_unVROverlayMaxKeyLength];
-				snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "revive.runtime.layer%d", i);
-				char title[vr::k_unVROverlayMaxNameLength];
-				snprintf(title, vr::k_unVROverlayMaxNameLength, "Revive Layer %d", i);
-				session->overlay->CreateOverlay(keyName, title, &session->overlays[i]);
-			}
-
-			// A layer was added, but not defined, hide it.
-			if (layerPtrList[i] == nullptr)
-			{
-				session->overlay->HideOverlay(session->overlays[i]);
-				continue;
-			}
-
 			// Overlays are assumed to be monoscopic quads.
-			if (layerPtrList[i]->Type != ovrLayerType_Quad)
+			if (layerPtrList[i] == nullptr || layerPtrList[i]->Type != ovrLayerType_Quad)
 				continue;
 
 			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
+
+			// Every overlay is associated with a swapchain.
+			// This is necessary because the position of the layer may change in the array,
+			// which would otherwise cause flickering between overlays.
+			vr::VROverlayHandle_t overlay = layer->ColorTexture->overlay;
+			if (overlay == vr::k_ulOverlayHandleInvalid)
+			{
+				overlay = REV_CreateOverlay(session);
+				layer->ColorTexture->overlay = overlay;
+			}
+			overlays[i] = overlay;
 
 			// Set the high quality overlay.
 			// FIXME: Why are High quality overlays headlocked in OpenVR?
@@ -857,31 +855,47 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 			// Transform the overlay.
 			vr::HmdMatrix34_t transform = REV_OvrPoseToHmdMatrix(layer->QuadPoseCenter);
-			session->overlay->SetOverlayWidthInMeters(session->overlays[i], layer->QuadSize.x);
+			session->overlay->SetOverlayWidthInMeters(overlay, layer->QuadSize.x);
 			if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
-				session->overlay->SetOverlayTransformTrackedDeviceRelative(session->overlays[i], vr::k_unTrackedDeviceIndex_Hmd, &transform);
+				session->overlay->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
 			else
-				session->overlay->SetOverlayTransformAbsolute(session->overlays[i], session->compositor->GetTrackingSpace(), &transform);
+				session->overlay->SetOverlayTransformAbsolute(overlay, session->compositor->GetTrackingSpace(), &transform);
 
 			// Set the texture and show the overlay.
-			ovrTextureSwapChain chain = layer->ColorTexture;
 			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
-			session->overlay->SetOverlayTextureBounds(session->overlays[i], &bounds);
-			session->overlay->SetOverlayTexture(session->overlays[i], &chain->current);
+			session->overlay->SetOverlayTextureBounds(overlay, &bounds);
+			session->overlay->SetOverlayTexture(overlay, &layer->ColorTexture->current);
 
+			// Show the overlay, unfortunately we have no control over the order in which
+			// overlays are drawn.
 			// TODO: Handle overlay errors.
-			session->overlay->ShowOverlay(session->overlays[i]);
-		}
-		else
-		{
-			if (session->overlays[i] != vr::k_ulOverlayHandleInvalid)
-			{
-				// Destory all overlays no longer listed.
-				session->overlay->DestroyOverlay(session->overlays[i]);
-				session->overlays[i] = vr::k_ulOverlayHandleInvalid;
-			}
+			session->overlay->ShowOverlay(overlay);
 		}
 	}
+
+	// Hide previous overlays that are not part of the current layers.
+	for (int i = 0; i < ovrMaxLayerCount; i++)
+	{
+		bool found = false;
+		vr::VROverlayHandle_t overlay = session->overlays[i];
+
+		if (overlay == vr::k_ulOverlayHandleInvalid)
+			break;
+
+		for (int j = 0; j < ovrMaxLayerCount; j++)
+		{
+			if (overlay == overlays[j])
+			{
+				found = true;
+				break;
+			}
+		}
+
+		// TODO: Handle overlay errors.
+		if (!found)
+			session->overlay->HideOverlay(overlay);
+	}
+	memcpy(session->overlays, overlays, ovrMaxLayerCount * sizeof(vr::VROverlayHandle_t));
 
 	// The first layer is assumed to be the application scene.
 	vr::EVRCompositorError err = vr::VRCompositorError_None;

@@ -1,5 +1,7 @@
 #include "REV_Common.h"
 
+#include <Windows.h>
+
 vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags)
 {
 	vr::VRTextureBounds_t bounds;
@@ -51,4 +53,19 @@ unsigned int REV_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose)
 	}
 
 	return result;
+}
+
+vr::VROverlayHandle_t REV_CreateOverlay(ovrSession session)
+{
+	UUID id;
+	if (UuidCreate(&id) != RPC_S_OK)
+		return vr::k_ulOverlayHandleInvalid;
+
+	RPC_CSTR key;
+	if (UuidToStringA(&id, &key) != RPC_S_OK)
+		return vr::k_ulOverlayHandleInvalid;
+
+	vr::VROverlayHandle_t handle = vr::k_ulOverlayHandleInvalid;
+	session->overlay->CreateOverlay((const char*)key, "Revive Layer", &handle);
+	return handle;
 }

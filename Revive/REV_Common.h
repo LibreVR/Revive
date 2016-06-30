@@ -12,6 +12,7 @@ struct ovrTextureSwapChainData
 	ovrTextureSwapChainDesc desc;
 	vr::Texture_t current;
 	vr::Texture_t texture[2];
+	vr::VROverlayHandle_t overlay;
 };
 
 struct ovrMirrorTextureData
@@ -36,6 +37,7 @@ struct ovrHmdStruct
 	vr::TrackedDevicePose_t gamePoses[vr::k_unMaxTrackedDeviceCount];
 
 	// Overlays
+	unsigned int overlayIndex;
 	vr::VROverlayHandle_t overlays[ovrMaxLayerCount];
 
 	// OpenVR interfaces
@@ -49,3 +51,4 @@ struct ovrHmdStruct
 bool REV_IsTouchConnected(vr::TrackedDeviceIndex_t hands[ovrHand_Count]);
 unsigned int REV_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
+vr::VROverlayHandle_t REV_CreateOverlay(ovrSession session);
