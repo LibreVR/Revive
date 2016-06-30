@@ -825,16 +825,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		return ovrError_InvalidParameter;
 
 	// Other layers are interpreted as overlays.
-	vr::VROverlayHandle_t overlays[ovrMaxLayerCount];
-	for (size_t i = 0; i < ovrMaxLayerCount; i++)
+	vr::VROverlayHandle_t overlays[ovrMaxLayerCount] = { 0 };
+	for (size_t i = 0; i < layerCount; i++)
 	{
-		// If this layer is defined in the list, show it. If not, hide the layer if it exists.
-		if (i < layerCount)
-		{
-			// Overlays are assumed to be monoscopic quads.
-			if (layerPtrList[i] == nullptr || layerPtrList[i]->Type != ovrLayerType_Quad)
-				continue;
+		if (layerPtrList[i] == nullptr)
+			continue;
 
+		// Overlays are assumed to be monoscopic quads.
+		// TODO: Support stereoscopic layers, or at least display them as monoscopic layers.
+		if (layerPtrList[i]->Type == ovrLayerType_Quad)
+		{
 			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
 
 			// Every overlay is associated with a swapchain.
