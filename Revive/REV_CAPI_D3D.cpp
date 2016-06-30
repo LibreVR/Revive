@@ -106,6 +106,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	swapChain->length = 2;
 	swapChain->index = 0;
 	swapChain->desc = *desc;
+	swapChain->api = vr::API_DirectX;
 	swapChain->overlay = vr::k_ulOverlayHandleInvalid;
 
 	for (int i = 0; i < swapChain->length; i++)
@@ -125,6 +126,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	pDevice->Release();
 	*out_TextureSwapChain = swapChain;
 	return ovrSuccess;
+}
+
+void ovr_DestroyTextureSwapChainDX(ovrTextureSwapChain chain)
+{
+	for (int i = 0; i < chain->length; i++)
+		((ID3D11Texture2D*)chain->texture[i].handle)->Release();
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession session,
@@ -184,6 +191,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData();
 	mirrorTexture->desc = *desc;
+	mirrorTexture->api = vr::API_DirectX;
 	mirrorTexture->texture.handle = texture;
 	mirrorTexture->texture.eType = vr::API_DirectX;
 	mirrorTexture->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
@@ -197,6 +205,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	pDevice->Release();
 	*out_MirrorTexture = mirrorTexture;
 	return ovrSuccess;
+}
+
+void ovr_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture)
+{
+	((ID3D11Texture2D*)mirrorTexture->texture.handle)->Release();
+	((ID3D11RenderTargetView*)mirrorTexture->target)->Release();
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,

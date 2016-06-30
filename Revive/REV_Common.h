@@ -10,6 +10,7 @@ struct ovrTextureSwapChainData
 {
 	int length, index;
 	ovrTextureSwapChainDesc desc;
+	vr::EGraphicsAPIConvention api;
 	vr::Texture_t current;
 	vr::Texture_t texture[2];
 	vr::VROverlayHandle_t overlay;
@@ -18,6 +19,7 @@ struct ovrTextureSwapChainData
 struct ovrMirrorTextureData
 {
 	ovrMirrorTextureDesc desc;
+	vr::EGraphicsAPIConvention api;
 	vr::Texture_t texture;
 	void* target;
 };
@@ -52,3 +54,10 @@ bool REV_IsTouchConnected(vr::TrackedDeviceIndex_t hands[ovrHand_Count]);
 unsigned int REV_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
 vr::VROverlayHandle_t REV_CreateOverlay(ovrSession session);
+
+// Graphics functions
+
+void ovr_DestroyTextureSwapChainDX(ovrTextureSwapChain chain);
+void ovr_DestroyTextureSwapChainGL(ovrTextureSwapChain chain);
+void ovr_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture);
+void ovr_DestroyMirrorTextureGL(ovrMirrorTexture mirrorTexture);

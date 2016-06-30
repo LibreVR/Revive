@@ -95,6 +95,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 	swapChain->length = 2;
 	swapChain->index = 0;
 	swapChain->desc = *desc;
+	swapChain->api = vr::API_OpenGL;
 	swapChain->overlay = vr::k_ulOverlayHandleInvalid;
 
 	for (int i = 0; i < swapChain->length; i++)
@@ -112,6 +113,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 	// Clean up and return
 	*out_TextureSwapChain = swapChain;
 	return ovrSuccess;
+}
+
+void ovr_DestroyTextureSwapChainGL(ovrTextureSwapChain chain)
+{
+	for (int i = 0; i < chain->length; i++)
+		glDeleteTextures(1, (GLuint*)&chain->texture[i].handle);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferGL(ovrSession session,
@@ -137,6 +144,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 	GLenum format = ovr_TextureFormatToGLFormat(desc->Format);
 
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData();
+	mirrorTexture->api = vr::API_OpenGL;
 	mirrorTexture->texture.eType = vr::API_OpenGL;
 	mirrorTexture->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 	glGenTextures(1, (GLuint*)&mirrorTexture->texture.handle);
@@ -148,6 +156,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 	// Clean up and return
 	*out_MirrorTexture = mirrorTexture;
 	return ovrSuccess;
+}
+
+void ovr_DestroyMirrorTextureGL(ovrMirrorTexture mirrorTexture)
+{
+	glDeleteTextures(1, (GLuint*)&mirrorTexture->texture.handle);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,

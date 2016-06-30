@@ -5,9 +5,7 @@
 #include "openvr.h"
 #include "MinHook.h"
 #include <DXGI.h>
-#include <d3d11.h>
 #include <Xinput.h>
-#include <GL/glew.h>
 
 #include "REV_Assert.h"
 #include "REV_Common.h"
@@ -748,13 +746,10 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTex
 	if (!chain)
 		return;
 
-	for (int i = 0; i < chain->length; i++)
-	{
-		if (chain->texture[0].eType == vr::API_DirectX)
-			((ID3D11Texture2D*)chain->texture[i].handle)->Release();
-		if (chain->texture[i].eType == vr::API_OpenGL)
-			glDeleteTextures(1, (GLuint*)&chain->texture[i].handle);
-	}
+	if (chain->api == vr::API_DirectX)
+		ovr_DestroyTextureSwapChainDX(chain);
+	if (chain->api == vr::API_OpenGL)
+		ovr_DestroyTextureSwapChainGL(chain);
 
 	session->overlay->DestroyOverlay(chain->overlay);
 
@@ -766,10 +761,10 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirror
 	if (!mirrorTexture)
 		return;
 
-	if (mirrorTexture->texture.eType == vr::API_DirectX)
-		((ID3D11Texture2D*)mirrorTexture->texture.handle)->Release();
-	if (mirrorTexture->texture.eType == vr::API_OpenGL)
-		glDeleteTextures(1, (GLuint*)&mirrorTexture->texture.handle);
+	if (mirrorTexture->api == vr::API_DirectX)
+		ovr_DestroyMirrorTextureDX(mirrorTexture);
+	if (mirrorTexture->api == vr::API_OpenGL)
+		ovr_DestroyMirrorTextureGL(mirrorTexture);
 
 	delete mirrorTexture;
 }
