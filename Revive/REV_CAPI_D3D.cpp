@@ -72,6 +72,14 @@ UINT ovr_BindFlagsToD3DBindFlags(unsigned int flags)
 	return result;
 }
 
+UINT ovr_BindFlagsToD3DMiscFlags(unsigned int flags)
+{
+	UINT result = 0;
+	if (flags & ovrTextureBind_DX_RenderTarget)
+		result |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
+	return result;
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
                                                             IUnknown* d3dPtr,
                                                             const ovrTextureSwapChainDesc* desc,
@@ -100,7 +108,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	tdesc.Usage = D3D11_USAGE_DEFAULT;
 	tdesc.BindFlags = ovr_BindFlagsToD3DBindFlags(desc->BindFlags);
 	tdesc.CPUAccessFlags = 0;
-	tdesc.MiscFlags = 0;
+	tdesc.MiscFlags = ovr_BindFlagsToD3DMiscFlags(desc->BindFlags);
 
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
 	swapChain->length = 2;
@@ -184,7 +192,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	tdesc.Usage = D3D11_USAGE_DEFAULT;
 	tdesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	tdesc.CPUAccessFlags = 0;
-	tdesc.MiscFlags = 0;
+	tdesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 	hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
