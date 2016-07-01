@@ -284,8 +284,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	pContext->PSSetShader(g_pMirrorPS, NULL, 0);
 
 	ID3D11ShaderResourceView* mirrorViews[2];
-	session->compositor->GetMirrorTextureD3D11(vr::Eye_Left, pDevice, (void**)&mirrorViews[0]);
-	session->compositor->GetMirrorTextureD3D11(vr::Eye_Right, pDevice, (void**)&mirrorViews[1]);
+	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, pDevice, (void**)&mirrorViews[0]);
+	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, pDevice, (void**)&mirrorViews[1]);
 	pContext->PSSetShaderResources(0, 2, mirrorViews);
 
 	// Draw a triangle strip, the vertex buffer is not used.

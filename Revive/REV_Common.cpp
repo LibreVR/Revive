@@ -58,11 +58,10 @@ unsigned int REV_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose)
 vr::VROverlayHandle_t REV_CreateOverlay(ovrSession session)
 {
 	// Each overlay needs a unique key, so just count how many overlays we've created until now.
-	session->overlayIndex++;
 	char keyName[vr::k_unVROverlayMaxKeyLength];
-	snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "revive.runtime.layer%d", session->overlayIndex);
+	snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "revive.runtime.layer%d", session->OverlayCount++);
 
 	vr::VROverlayHandle_t handle = vr::k_ulOverlayHandleInvalid;
-	session->overlay->CreateOverlay((const char*)keyName, "Revive Layer", &handle);
+	vr::VROverlay()->CreateOverlay((const char*)keyName, "Revive Layer", &handle);
 	return handle;
 }

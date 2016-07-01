@@ -8,20 +8,27 @@
 
 struct ovrTextureSwapChainData
 {
-	int length, index;
-	ovrTextureSwapChainDesc desc;
-	vr::EGraphicsAPIConvention api;
-	vr::Texture_t current;
-	vr::Texture_t texture[2];
-	vr::VROverlayHandle_t overlay;
+	ovrTextureSwapChainDesc Desc;
+	vr::EGraphicsAPIConvention ApiType;
+	int Length, CurrentIndex;
+	vr::Texture_t Textures[2];
+	vr::VROverlayHandle_t Overlay;
+
+	ovrTextureSwapChainData(vr::EGraphicsAPIConvention api, ovrTextureSwapChainDesc desc);
+	~ovrTextureSwapChainData();
+
+	vr::Texture_t* Current() { return &Textures[CurrentIndex]; }
 };
 
 struct ovrMirrorTextureData
 {
-	ovrMirrorTextureDesc desc;
-	vr::EGraphicsAPIConvention api;
-	vr::Texture_t texture;
-	void* target;
+	ovrMirrorTextureDesc Desc;
+	vr::EGraphicsAPIConvention ApiType;
+	vr::Texture_t Texture;
+	void* Target;
+
+	ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc);
+	~ovrMirrorTextureData();
 };
 
 struct ovrHmdStruct
@@ -35,17 +42,12 @@ struct ovrHmdStruct
 	float ThumbStickRange;
 
 	// Device poses
-	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	vr::TrackedDevicePose_t gamePoses[vr::k_unMaxTrackedDeviceCount];
+	vr::TrackedDevicePose_t Poses[vr::k_unMaxTrackedDeviceCount];
+	vr::TrackedDevicePose_t GamePoses[vr::k_unMaxTrackedDeviceCount];
 
 	// Overlays
-	unsigned int overlayIndex;
-	vr::VROverlayHandle_t overlays[ovrMaxLayerCount];
-
-	// OpenVR interfaces
-	vr::IVRCompositor* compositor;
-	vr::IVRSettings* settings;
-	vr::IVROverlay* overlay;
+	unsigned int OverlayCount;
+	vr::VROverlayHandle_t Overlays[ovrMaxLayerCount];
 };
 
 // Common functions
