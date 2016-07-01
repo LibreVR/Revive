@@ -2,11 +2,44 @@
 
 #include <stdio.h>
 
+// Common structures
+
+ovrTextureSwapChainData::ovrTextureSwapChainData(vr::EGraphicsAPIConvention api, ovrTextureSwapChainDesc desc)
+	: ApiType(api)
+	, Length(2)
+	, CurrentIndex(0)
+	, Desc(desc)
+	, Overlay(vr::k_ulOverlayHandleInvalid)
+{
+}
+
+ovrTextureSwapChainData::~ovrTextureSwapChainData()
+{
+	if (ApiType == vr::API_DirectX)
+		ovr_DestroyTextureSwapChainDX(this);
+	if (ApiType == vr::API_OpenGL)
+		ovr_DestroyTextureSwapChainGL(this);
+}
+
+ovrMirrorTextureData::ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc)
+	: ApiType(api)
+	, Desc(desc)
+{
+}
+
+ovrMirrorTextureData::~ovrMirrorTextureData()
+{
+	if (ApiType == vr::API_DirectX)
+		ovr_DestroyMirrorTextureDX(this);
+	if (ApiType == vr::API_OpenGL)
+		ovr_DestroyMirrorTextureGL(this);
+}
+
 vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags)
 {
 	vr::VRTextureBounds_t bounds;
-	float w = (float)swapChain->desc.Width;
-	float h = (float)swapChain->desc.Height;
+	float w = (float)swapChain->Desc.Width;
+	float h = (float)swapChain->Desc.Height;
 	bounds.uMin = viewport.Pos.x / w;
 	bounds.vMin = viewport.Pos.y / h;
 

@@ -691,7 +691,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session,
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	*out_Length = chain->length;
+	*out_Length = chain->Length;
 	return ovrSuccess;
 }
 
@@ -700,7 +700,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession se
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	*out_Index = chain->index;
+	*out_Index = (chain->CurrentIndex + 1) % chain->Length;
 	return ovrSuccess;
 }
 
@@ -709,7 +709,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, o
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	out_Desc = &chain->desc;
+	out_Desc = &chain->Desc;
 	return ovrSuccess;
 }
 
@@ -718,10 +718,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	chain->current = chain->texture[chain->index];
-	chain->index++;
-	chain->index %= chain->length;
-
+	ovr_GetTextureSwapChainCurrentIndex(session, chain, &chain->CurrentIndex);
 	return ovrSuccess;
 }
 
@@ -730,13 +727,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTex
 	if (!chain)
 		return;
 
-	if (chain->api == vr::API_DirectX)
-		ovr_DestroyTextureSwapChainDX(chain);
-	if (chain->api == vr::API_OpenGL)
-		ovr_DestroyTextureSwapChainGL(chain);
-
-	vr::VROverlay()->DestroyOverlay(chain->overlay);
-
+	vr::VROverlay()->DestroyOverlay(chain->Overlay);
 	delete chain;
 }
 
@@ -744,11 +735,6 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirror
 {
 	if (!mirrorTexture)
 		return;
-
-	if (mirrorTexture->api == vr::API_DirectX)
-		ovr_DestroyMirrorTextureDX(mirrorTexture);
-	if (mirrorTexture->api == vr::API_OpenGL)
-		ovr_DestroyMirrorTextureGL(mirrorTexture);
 
 	delete mirrorTexture;
 }
@@ -819,11 +805,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			// Every overlay is associated with a swapchain.
 			// This is necessary because the position of the layer may change in the array,
 			// which would otherwise cause flickering between overlays.
-			vr::VROverlayHandle_t overlay = layer->ColorTexture->overlay;
+			vr::VROverlayHandle_t overlay = layer->ColorTexture->Overlay;
 			if (overlay == vr::k_ulOverlayHandleInvalid)
 			{
 				overlay = REV_CreateOverlay(session);
-				layer->ColorTexture->overlay = overlay;
+				layer->ColorTexture->Overlay = overlay;
 			}
 			overlays[i] = overlay;
 
@@ -843,7 +829,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			// Set the texture and show the overlay.
 			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
 			vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
-			vr::VROverlay()->SetOverlayTexture(overlay, &layer->ColorTexture->current);
+			vr::VROverlay()->SetOverlayTexture(overlay, layer->ColorTexture->Current());
 
 			// Show the overlay, unfortunately we have no control over the order in which
 			// overlays are drawn.
@@ -904,13 +890,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			bounds.vMin += vMin * bounds.vMax;
 			bounds.vMax *= vMax;
 
-			if (chain->texture[i].eType == vr::API_OpenGL)
+			if (chain->Textures[i].eType == vr::API_OpenGL)
 			{
 				bounds.vMin = 1.0f - bounds.vMin;
 				bounds.vMax = 1.0f - bounds.vMax;
 			}
 
-			err = vr::VRCompositor()->Submit((vr::EVREye)i, &chain->current, &bounds);
+			err = vr::VRCompositor()->Submit((vr::EVREye)i, chain->Current(), &bounds);
 			if (err != vr::VRCompositorError_None)
 				break;
 		}
@@ -943,13 +929,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			bounds.vMin += vMin * bounds.vMax;
 			bounds.vMax *= vMax;
 
-			if (chain->texture[i].eType == vr::API_OpenGL)
+			if (chain->Textures[i].eType == vr::API_OpenGL)
 			{
 				bounds.vMin = 1.0f - bounds.vMin;
 				bounds.vMax = 1.0f - bounds.vMax;
 			}
 
-			err = vr::VRCompositor()->Submit((vr::EVREye)i, &chain->current, &bounds);
+			err = vr::VRCompositor()->Submit((vr::EVREye)i, chain->Current(), &bounds);
 			if (err != vr::VRCompositorError_None)
 				break;
 		}

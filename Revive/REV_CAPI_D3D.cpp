@@ -136,25 +136,19 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	tdesc.CPUAccessFlags = 0;
 	tdesc.MiscFlags = ovr_BindFlagsToD3DMiscFlags(desc->BindFlags);
 
-	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
-	swapChain->length = 2;
-	swapChain->index = 0;
-	swapChain->desc = *desc;
-	swapChain->api = vr::API_DirectX;
-	swapChain->overlay = vr::k_ulOverlayHandleInvalid;
+	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::API_DirectX, *desc);
 
-	for (int i = 0; i < swapChain->length; i++)
+	for (int i = 0; i < swapChain->Length; i++)
 	{
 		ID3D11Texture2D* texture;
-		swapChain->texture[i].eType = vr::API_DirectX;
-		swapChain->texture[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+		swapChain->Textures[i].eType = vr::API_DirectX;
+		swapChain->Textures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 		hr = pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
 		if (FAILED(hr))
 			return ovrError_RuntimeException;
 
-		swapChain->texture[i].handle = texture;
+		swapChain->Textures[i].handle = texture;
 	}
-	swapChain->current = swapChain->texture[swapChain->index];
 
 	// Clean up and return
 	pDevice->Release();
@@ -164,8 +158,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 void ovr_DestroyTextureSwapChainDX(ovrTextureSwapChain chain)
 {
-	for (int i = 0; i < chain->length; i++)
-		((ID3D11Texture2D*)chain->texture[i].handle)->Release();
+	for (int i = 0; i < chain->Length; i++)
+		((ID3D11Texture2D*)chain->Textures[i].handle)->Release();
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession session,
@@ -180,7 +174,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
 	if (!chain || !out_Buffer)
 		return ovrError_InvalidParameter;
 
-	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)chain->texture[index].handle;
+	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)chain->Textures[index].handle;
 	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_InvalidParameter;
@@ -223,15 +217,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
 
-	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData();
-	mirrorTexture->desc = *desc;
-	mirrorTexture->api = vr::API_DirectX;
-	mirrorTexture->texture.handle = texture;
-	mirrorTexture->texture.eType = vr::API_DirectX;
-	mirrorTexture->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(vr::API_DirectX, *desc);
+	mirrorTexture->Texture.handle = texture;
+	mirrorTexture->Texture.eType = vr::API_DirectX;
+	mirrorTexture->Texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 
 	// Create a render target for the mirror texture.
-	pDevice->CreateRenderTargetView(texture, NULL, (ID3D11RenderTargetView**)&mirrorTexture->target);
+	pDevice->CreateRenderTargetView(texture, NULL, (ID3D11RenderTargetView**)&mirrorTexture->Target);
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
 
@@ -243,8 +235,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 
 void ovr_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture)
 {
-	((ID3D11Texture2D*)mirrorTexture->texture.handle)->Release();
-	((ID3D11RenderTargetView*)mirrorTexture->target)->Release();
+	((ID3D11Texture2D*)mirrorTexture->Texture.handle)->Release();
+	((ID3D11RenderTargetView*)mirrorTexture->Target)->Release();
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
@@ -258,7 +250,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	if (!mirrorTexture || !out_Buffer)
 		return ovrError_InvalidParameter;
 
-	ID3D11Texture2D* texture = (ID3D11Texture2D*)mirrorTexture->texture.handle;
+	ID3D11Texture2D* texture = (ID3D11Texture2D*)mirrorTexture->Texture.handle;
 
 	ID3D11Device* pDevice;
 	texture->GetDevice(&pDevice);
@@ -290,10 +282,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 
 	// Draw a triangle strip, the vertex buffer is not used.
 	FLOAT clear[4] = { 0.0f };
-	D3D11_VIEWPORT viewport = { 0.0f, 0.0f, mirrorTexture->desc.Width, mirrorTexture->desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+	D3D11_VIEWPORT viewport = { 0.0f, 0.0f, mirrorTexture->Desc.Width, mirrorTexture->Desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	pContext->RSSetViewports(1, &viewport);
-	pContext->ClearRenderTargetView((ID3D11RenderTargetView*)mirrorTexture->target, clear);
-	pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->target, NULL);
+	pContext->ClearRenderTargetView((ID3D11RenderTargetView*)mirrorTexture->Target, clear);
+	pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->Target, NULL);
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	pContext->Draw(4, 0);
 

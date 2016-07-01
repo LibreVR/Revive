@@ -91,24 +91,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 	GLenum internalFormat = ovr_TextureFormatToInternalFormat(desc->Format);
 	GLenum format = ovr_TextureFormatToGLFormat(desc->Format);
 
-	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
-	swapChain->length = 2;
-	swapChain->index = 0;
-	swapChain->desc = *desc;
-	swapChain->api = vr::API_OpenGL;
-	swapChain->overlay = vr::k_ulOverlayHandleInvalid;
+	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::API_OpenGL, *desc);
 
-	for (int i = 0; i < swapChain->length; i++)
+	for (int i = 0; i < swapChain->Length; i++)
 	{
-		swapChain->texture[i].eType = vr::API_OpenGL;
-		swapChain->texture[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-		glGenTextures(1, (GLuint*)&swapChain->texture[i].handle);
-		glBindTexture(GL_TEXTURE_2D, (GLuint)swapChain->texture[i].handle);
+		swapChain->Textures[i].eType = vr::API_OpenGL;
+		swapChain->Textures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+		glGenTextures(1, (GLuint*)&swapChain->Textures[i].handle);
+		glBindTexture(GL_TEXTURE_2D, (GLuint)swapChain->Textures[i].handle);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, desc->Width, desc->Height, 0, format, GL_UNSIGNED_BYTE, nullptr);
 	}
-	swapChain->current = swapChain->texture[swapChain->index];
 
 	// Clean up and return
 	*out_TextureSwapChain = swapChain;
@@ -117,8 +111,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 
 void ovr_DestroyTextureSwapChainGL(ovrTextureSwapChain chain)
 {
-	for (int i = 0; i < chain->length; i++)
-		glDeleteTextures(1, (GLuint*)&chain->texture[i].handle);
+	for (int i = 0; i < chain->Length; i++)
+		glDeleteTextures(1, (GLuint*)&chain->Textures[i].handle);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferGL(ovrSession session,
@@ -126,7 +120,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferGL(ovrSession sessio
                                                                int index,
                                                                unsigned int* out_TexId)
 {
-	*out_TexId = (GLuint)chain->texture[index].handle;
+	*out_TexId = (GLuint)chain->Textures[index].handle;
 	return ovrSuccess;
 }
 
@@ -143,12 +137,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 	GLenum internalFormat = ovr_TextureFormatToInternalFormat(desc->Format);
 	GLenum format = ovr_TextureFormatToGLFormat(desc->Format);
 
-	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData();
-	mirrorTexture->api = vr::API_OpenGL;
-	mirrorTexture->texture.eType = vr::API_OpenGL;
-	mirrorTexture->texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-	glGenTextures(1, (GLuint*)&mirrorTexture->texture.handle);
-	glBindTexture(GL_TEXTURE_2D, (GLuint)mirrorTexture->texture.handle);
+	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(vr::API_OpenGL, *desc);
+	mirrorTexture->Texture.eType = vr::API_OpenGL;
+	mirrorTexture->Texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+	glGenTextures(1, (GLuint*)&mirrorTexture->Texture.handle);
+	glBindTexture(GL_TEXTURE_2D, (GLuint)mirrorTexture->Texture.handle);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, desc->Width, desc->Height, 0, format, GL_UNSIGNED_BYTE, nullptr);
@@ -160,7 +153,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 
 void ovr_DestroyMirrorTextureGL(ovrMirrorTexture mirrorTexture)
 {
-	glDeleteTextures(1, (GLuint*)&mirrorTexture->texture.handle);
+	glDeleteTextures(1, (GLuint*)&mirrorTexture->Texture.handle);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,
@@ -168,6 +161,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,
                                                             unsigned int* out_TexId)
 {
 	// TODO: Blit the most recently submitted frame to the mirror texture.
-	*out_TexId = (GLuint)mirrorTexture->texture.handle;
+	*out_TexId = (GLuint)mirrorTexture->Texture.handle;
 	return ovrSuccess;
 }
