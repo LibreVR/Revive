@@ -120,6 +120,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferGL(ovrSession sessio
                                                                int index,
                                                                unsigned int* out_TexId)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!chain || !out_TexId)
+		return ovrError_InvalidParameter;
+
+	if (index < 0)
+		index = chain->CurrentIndex;
+
 	*out_TexId = (GLuint)chain->Textures[index].handle;
 	return ovrSuccess;
 }
@@ -164,6 +173,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,
                                                             ovrMirrorTexture mirrorTexture,
                                                             unsigned int* out_TexId)
 {
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!mirrorTexture || !out_TexId)
+		return ovrError_InvalidParameter;
+
 	*out_TexId = (GLuint)mirrorTexture->Texture.handle;
 	return ovrSuccess;
 }

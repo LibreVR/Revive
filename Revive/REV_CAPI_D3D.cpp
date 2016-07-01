@@ -173,6 +173,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
 	if (!chain || !out_Buffer)
 		return ovrError_InvalidParameter;
 
+	if (index < 0)
+		index = chain->CurrentIndex;
+
 	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)chain->Textures[index].handle;
 	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
