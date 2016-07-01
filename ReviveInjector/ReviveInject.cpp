@@ -23,7 +23,17 @@ int CreateProcessAndInject(wchar_t *programPath) {
 
 	wchar_t workingDir[MAX_PATH];
 	wcsncpy(workingDir, programPath, MAX_PATH);
-	PathRemoveFileSpec(workingDir);
+
+	// Remove extension
+	wchar_t* ext = wcschr(workingDir, L'.');
+	if (ext)
+		*ext = L'\0';
+
+	// Remove filename
+	wchar_t* file = wcsrchr(workingDir, L'\\');
+	if (file)
+		*file = L'\0';
+
 	if (!CreateProcess(NULL, programPath, &sa, NULL, FALSE, CREATE_SUSPENDED, NULL, workingDir, &si, &pi))
 	{
 		LOG("Failed to create process\n");
