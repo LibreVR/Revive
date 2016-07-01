@@ -17,9 +17,9 @@ ovrTextureSwapChainData::ovrTextureSwapChainData(vr::EGraphicsAPIConvention api,
 ovrTextureSwapChainData::~ovrTextureSwapChainData()
 {
 	if (ApiType == vr::API_DirectX)
-		ovr_DestroyTextureSwapChainDX(this);
+		rev_DestroyTextureSwapChainDX(this);
 	if (ApiType == vr::API_OpenGL)
-		ovr_DestroyTextureSwapChainGL(this);
+		rev_DestroyTextureSwapChainGL(this);
 }
 
 ovrMirrorTextureData::ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc)
@@ -34,9 +34,9 @@ ovrMirrorTextureData::ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMi
 ovrMirrorTextureData::~ovrMirrorTextureData()
 {
 	if (ApiType == vr::API_DirectX)
-		ovr_DestroyMirrorTextureDX(this);
+		rev_DestroyMirrorTextureDX(this);
 	if (ApiType == vr::API_OpenGL)
-		ovr_DestroyMirrorTextureGL(this);
+		rev_DestroyMirrorTextureGL(this);
 }
 
 ovrHmdStruct::ovrHmdStruct()
@@ -60,7 +60,7 @@ ovrHmdStruct::~ovrHmdStruct()
 
 // Common functions
 
-vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags)
+vr::VRTextureBounds_t rev_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags)
 {
 	vr::VRTextureBounds_t bounds;
 	float w = (float)swapChain->Desc.Width;
@@ -90,14 +90,14 @@ vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureS
 	return bounds;
 }
 
-bool REV_IsTouchConnected(vr::TrackedDeviceIndex_t hands[ovrHand_Count])
+bool rev_IsTouchConnected(vr::TrackedDeviceIndex_t hands[ovrHand_Count])
 {
 	return hands[ovrHand_Left] != vr::k_unTrackedDeviceIndexInvalid &&
 		hands[ovrHand_Right] != vr::k_unTrackedDeviceIndexInvalid &&
 		hands[ovrHand_Left] != hands[ovrHand_Right];
 }
 
-unsigned int REV_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose)
+unsigned int rev_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose)
 {
 	unsigned int result = 0;
 
@@ -113,7 +113,7 @@ unsigned int REV_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose)
 	return result;
 }
 
-vr::VROverlayHandle_t REV_CreateOverlay(ovrSession session)
+vr::VROverlayHandle_t rev_CreateOverlay(ovrSession session)
 {
 	// Each overlay needs a unique key, so just count how many overlays we've created until now.
 	char keyName[vr::k_unVROverlayMaxKeyLength];

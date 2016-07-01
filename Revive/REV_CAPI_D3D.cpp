@@ -155,7 +155,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	return ovrSuccess;
 }
 
-void ovr_DestroyTextureSwapChainDX(ovrTextureSwapChain chain)
+void rev_DestroyTextureSwapChainDX(ovrTextureSwapChain chain)
 {
 	for (int i = 0; i < chain->Length; i++)
 		((ID3D11Texture2D*)chain->Textures[i].handle)->Release();
@@ -249,7 +249,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	return ovrSuccess;
 }
 
-void ovr_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture)
+void rev_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture)
 {
 	((ID3D11Texture2D*)mirrorTexture->Texture.handle)->Release();
 	((ID3D11RenderTargetView*)mirrorTexture->Target)->Release();

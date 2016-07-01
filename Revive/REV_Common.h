@@ -57,14 +57,14 @@ struct ovrHmdStruct
 
 // Common functions
 
-bool REV_IsTouchConnected(vr::TrackedDeviceIndex_t hands[ovrHand_Count]);
-unsigned int REV_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
-vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
-vr::VROverlayHandle_t REV_CreateOverlay(ovrSession session);
+bool rev_IsTouchConnected(vr::TrackedDeviceIndex_t hands[ovrHand_Count]);
+unsigned int rev_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
+vr::VRTextureBounds_t rev_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
+vr::VROverlayHandle_t rev_CreateOverlay(ovrSession session);
 
 // Graphics functions
 
-void ovr_DestroyTextureSwapChainDX(ovrTextureSwapChain chain);
-void ovr_DestroyTextureSwapChainGL(ovrTextureSwapChain chain);
-void ovr_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture);
-void ovr_DestroyMirrorTextureGL(ovrMirrorTexture mirrorTexture);
+void rev_DestroyTextureSwapChainDX(ovrTextureSwapChain chain);
+void rev_DestroyTextureSwapChainGL(ovrTextureSwapChain chain);
+void rev_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture);
+void rev_DestroyMirrorTextureGL(ovrMirrorTexture mirrorTexture);

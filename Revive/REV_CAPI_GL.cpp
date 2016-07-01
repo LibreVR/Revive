@@ -61,7 +61,7 @@ void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsiz
 	OutputDebugStringA("\n");
 }
 
-GLenum REV_GlewInit()
+GLenum rev_GlewInit()
 {
 	if (!glewInitialized)
 	{
@@ -82,7 +82,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
                                                             const ovrTextureSwapChainDesc* desc,
                                                             ovrTextureSwapChain* out_TextureSwapChain)
 {
-	if (REV_GlewInit() != GLEW_OK)
+	if (rev_GlewInit() != GLEW_OK)
 		return ovrError_RuntimeException;
 
 	if (!desc || !out_TextureSwapChain || desc->Type != ovrTexture_2D)
@@ -109,7 +109,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 	return ovrSuccess;
 }
 
-void ovr_DestroyTextureSwapChainGL(ovrTextureSwapChain chain)
+void rev_DestroyTextureSwapChainGL(ovrTextureSwapChain chain)
 {
 	for (int i = 0; i < chain->Length; i++)
 		glDeleteTextures(1, (GLuint*)&chain->Textures[i].handle);
@@ -128,7 +128,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
                                                          const ovrMirrorTextureDesc* desc,
                                                          ovrMirrorTexture* out_MirrorTexture)
 {
-	if (REV_GlewInit() != GLEW_OK)
+	if (rev_GlewInit() != GLEW_OK)
 		return ovrError_RuntimeException;
 
 	if (!desc || !out_MirrorTexture)
@@ -151,7 +151,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 	return ovrSuccess;
 }
 
-void ovr_DestroyMirrorTextureGL(ovrMirrorTexture mirrorTexture)
+void rev_DestroyMirrorTextureGL(ovrMirrorTexture mirrorTexture)
 {
 	glDeleteTextures(1, (GLuint*)&mirrorTexture->Texture.handle);
 }

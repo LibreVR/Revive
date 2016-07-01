@@ -3,7 +3,7 @@
 #include "OVR_CAPI.h"
 #include "openvr.h"
 
-ovrResult REV_InitErrorToOvrError(vr::EVRInitError error)
+ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
 {
 	switch (error)
 	{
@@ -37,7 +37,7 @@ ovrResult REV_InitErrorToOvrError(vr::EVRInitError error)
 	}
 }
 
-ovrResult REV_CompositorErrorToOvrError(vr::EVRCompositorError error)
+ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
 {
 	switch (error)
 	{

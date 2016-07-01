@@ -51,7 +51,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	MH_QueueEnableHook(OpenEventW);
 	MH_ApplyQueued();
 
-	return REV_InitErrorToOvrError(g_InitError);
+	return rev_InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
@@ -73,7 +73,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
 
 	const char* error = VR_GetVRInitErrorAsEnglishDescription(g_InitError);
 	strncpy_s(errorInfo->ErrorString, error, sizeof(ovrErrorInfo::ErrorString));
-	errorInfo->Result = REV_InitErrorToOvrError(g_InitError);
+	errorInfo->Result = rev_InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(const char*) ovr_GetVersionString()
@@ -282,8 +282,8 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	vr::TrackedDevicePose_t* poses = session->Poses;
 
 	// Convert the head pose
-	state.HeadPose = REV_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
-	state.StatusFlags = REV_TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
+	state.HeadPose = rev_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
+	state.StatusFlags = rev_TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
 
 	// Convert the hand poses
 	vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
@@ -297,11 +297,11 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 			continue;
 		}
 
-		state.HandPoses[i] = REV_TrackedDevicePoseToOVRPose(poses[deviceIndex], absTime);
-		state.HandStatusFlags[i] = REV_TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
+		state.HandPoses[i] = rev_TrackedDevicePoseToOVRPose(poses[deviceIndex], absTime);
+		state.HandStatusFlags[i] = rev_TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
 
-	OVR::Matrix4f origin = REV_HmdMatrixToOVRMatrix(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
+	OVR::Matrix4f origin = rev_HmdMatrixToOVRMatrix(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
 
 	// The calibrated origin should be the location of the seated origin relative to the absolute tracking space.
 	// It currently describes the location of the absolute origin relative to the seated origin, so we have to invert it.
@@ -338,7 +338,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 	// Convert the pose
 	OVR::Matrix4f matrix;
 	if (index != vr::k_unTrackedDeviceIndexInvalid && session->Poses[index].bPoseIsValid)
-		matrix = REV_HmdMatrixToOVRMatrix(session->Poses[index].mDeviceToAbsoluteTracking);
+		matrix = rev_HmdMatrixToOVRMatrix(session->Poses[index].mDeviceToAbsoluteTracking);
 
 	// We need to mirror the orientation along either the X or Y axis
 	OVR::Quatf quat = OVR::Quatf(matrix);
@@ -374,7 +374,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 			vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 
 		// Only if both controllers are assigned, then the touch controller is connected.
-		if (REV_IsTouchConnected(hands))
+		if (rev_IsTouchConnected(hands))
 		{
 			for (int i = 0; i < ovrHand_Count; i++)
 			{
@@ -475,7 +475,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 		vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
 			vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 
-		if (!REV_IsTouchConnected(hands))
+		if (!rev_IsTouchConnected(hands))
 		{
 			for (int i = 0; i < ovrHand_Count; i++)
 			{
@@ -639,7 +639,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 
 	// If both controllers are assigned, it's a touch controller. If not, it's a remote.
-	if (REV_IsTouchConnected(hands))
+	if (rev_IsTouchConnected(hands))
 	{
 		if (vr::VRSystem()->IsTrackedDeviceConnected(hands[ovrHand_Left]))
 			types |= ovrControllerType_LTouch;
@@ -763,7 +763,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrE
 	desc.Eye = eyeType;
 	desc.Fov = fov;
 
-	OVR::Matrix4f HmdToEyeMatrix = REV_HmdMatrixToOVRMatrix(vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)eyeType));
+	OVR::Matrix4f HmdToEyeMatrix = rev_HmdMatrixToOVRMatrix(vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)eyeType));
 	float WidthTan = fov.LeftTan + fov.RightTan;
 	float HeightTan = fov.UpTan + fov.DownTan;
 	ovrSizei size;
@@ -806,7 +806,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			vr::VROverlayHandle_t overlay = layer->ColorTexture->Overlay;
 			if (overlay == vr::k_ulOverlayHandleInvalid)
 			{
-				overlay = REV_CreateOverlay(session);
+				overlay = rev_CreateOverlay(session);
 				layer->ColorTexture->Overlay = overlay;
 			}
 			activeOverlays.push_back(overlay);
@@ -817,7 +817,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			//	vr::VROverlay()->SetHighQualityOverlay(overlay);
 
 			// Transform the overlay.
-			vr::HmdMatrix34_t transform = REV_OvrPoseToHmdMatrix(layer->QuadPoseCenter);
+			vr::HmdMatrix34_t transform = rev_OvrPoseToHmdMatrix(layer->QuadPoseCenter);
 			vr::VROverlay()->SetOverlayWidthInMeters(overlay, layer->QuadSize.x);
 			if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
 				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
@@ -825,7 +825,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 				vr::VROverlay()->SetOverlayTransformAbsolute(overlay, vr::VRCompositor()->GetTrackingSpace(), &transform);
 
 			// Set the texture and show the overlay.
-			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
+			vr::VRTextureBounds_t bounds = rev_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
 			vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
 			vr::VROverlay()->SetOverlayTexture(overlay, layer->ColorTexture->Current());
 
@@ -856,7 +856,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		for (int i = 0; i < ovrEye_Count; i++)
 		{
 			ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
-			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
+			vr::VRTextureBounds_t bounds = rev_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
 
 			float left, right, top, bottom;
 			vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
@@ -895,7 +895,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		for (int i = 0; i < ovrEye_Count; i++)
 		{
 			ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
-			vr::VRTextureBounds_t bounds = REV_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
+			vr::VRTextureBounds_t bounds = rev_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
 
 			float left, right, top, bottom;
 			vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
@@ -934,7 +934,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	else
 		g_FrameIndex = frameIndex;
 
-	return REV_CompositorErrorToOvrError(err);
+	return rev_CompositorErrorToOvrError(err);
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
