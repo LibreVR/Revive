@@ -107,6 +107,9 @@
       <ShaderModel>4.0</ShaderModel>
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)openvr\bin\win32"  "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -131,6 +134,9 @@
       <ShaderModel>4.0</ShaderModel>
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)openvr\bin\win64"  "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -159,6 +165,9 @@
       <ShaderModel>4.0</ShaderModel>
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)openvr\bin\win32"  "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -187,6 +196,9 @@
       <ShaderModel>4.0</ShaderModel>
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)openvr\bin\win64"  "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\openvr\headers\openvr.h" />
