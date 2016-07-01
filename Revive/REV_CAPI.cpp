@@ -734,6 +734,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirror
 	if (!mirrorTexture)
 		return;
 
+	session->MirrorTexture = nullptr;
 	delete mirrorTexture;
 }
 
@@ -933,6 +934,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		g_FrameIndex++;
 	else
 		g_FrameIndex = frameIndex;
+
+	if (session->MirrorTexture)
+	{
+		if (session->MirrorTexture->ApiType == vr::API_DirectX)
+			rev_RenderMirrorTextureDX(session->MirrorTexture);
+		else if (session->MirrorTexture->ApiType == vr::API_OpenGL)
+			rev_RenderMirrorTextureGL(session->MirrorTexture);
+	}
 
 	return rev_CompositorErrorToOvrError(err);
 }

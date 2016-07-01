@@ -134,6 +134,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 	if (!desc || !out_MirrorTexture)
 		return ovrError_InvalidParameter;
 
+	if (session->MirrorTexture)
+		return ovrError_RuntimeException;
+
 	GLenum internalFormat = ovr_TextureFormatToInternalFormat(desc->Format);
 	GLenum format = ovr_TextureFormatToGLFormat(desc->Format);
 
@@ -148,6 +151,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 
 	// Clean up and return
 	*out_MirrorTexture = mirrorTexture;
+	session->MirrorTexture = mirrorTexture;
 	return ovrSuccess;
 }
 
@@ -160,7 +164,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,
                                                             ovrMirrorTexture mirrorTexture,
                                                             unsigned int* out_TexId)
 {
-	// TODO: Blit the most recently submitted frame to the mirror texture.
 	*out_TexId = (GLuint)mirrorTexture->Texture.handle;
 	return ovrSuccess;
+}
+
+void rev_RenderMirrorTextureGL(ovrMirrorTexture mirrorTexture)
+{
+	// TODO: Blit the most recently submitted frame to the mirror texture.
 }

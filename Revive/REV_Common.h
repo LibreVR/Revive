@@ -51,6 +51,9 @@ struct ovrHmdStruct
 	unsigned int OverlayCount;
 	std::vector<vr::VROverlayHandle_t> ActiveOverlays;
 
+	// Mirror texture
+	ovrMirrorTexture MirrorTexture;
+
 	ovrHmdStruct();
 	~ovrHmdStruct();
 };
@@ -68,3 +71,5 @@ void rev_DestroyTextureSwapChainDX(ovrTextureSwapChain chain);
 void rev_DestroyTextureSwapChainGL(ovrTextureSwapChain chain);
 void rev_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture);
 void rev_DestroyMirrorTextureGL(ovrMirrorTexture mirrorTexture);
+void rev_RenderMirrorTextureDX(ovrMirrorTexture mirrorTexture);
+void rev_RenderMirrorTextureGL(ovrMirrorTexture mirrorTexture);

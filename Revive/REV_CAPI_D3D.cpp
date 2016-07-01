@@ -192,6 +192,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	if (!d3dPtr || !desc || !out_MirrorTexture)
 		return ovrError_InvalidParameter;
 
+	if (session->MirrorTexture)
+		return ovrError_RuntimeException;
+
 	// TODO: DX12 support.
 	ID3D11Device* pDevice;
 	HRESULT hr = d3dPtr->QueryInterface(&pDevice);
@@ -246,6 +249,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	// Clean up and return
 	pDevice->Release();
 	*out_MirrorTexture = mirrorTexture;
+	session->MirrorTexture = mirrorTexture;
 	return ovrSuccess;
 }
 
@@ -273,6 +277,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	if (!mirrorTexture || !out_Buffer)
 		return ovrError_InvalidParameter;
 
+	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)mirrorTexture->Texture.handle;
+	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
+	if (FAILED(hr))
+		return ovrError_InvalidParameter;
+
+	return ovrSuccess;
+}
+
+void rev_RenderMirrorTextureDX(ovrMirrorTexture mirrorTexture)
+{
 	ID3D11Texture2D* texture = (ID3D11Texture2D*)mirrorTexture->Texture.handle;
 
 	ID3D11Device* pDevice;
@@ -295,12 +309,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	pContext->Draw(4, 0);
 
-	HRESULT hr = texture->QueryInterface(iid, out_Buffer);
-	if (FAILED(hr))
-		return ovrError_InvalidParameter;
-
 	// Clean up and return
 	pDevice->Release();
 	pContext->Release();
-	return ovrSuccess;
 }

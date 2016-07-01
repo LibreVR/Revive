@@ -18,7 +18,7 @@ ovrTextureSwapChainData::~ovrTextureSwapChainData()
 {
 	if (ApiType == vr::API_DirectX)
 		rev_DestroyTextureSwapChainDX(this);
-	if (ApiType == vr::API_OpenGL)
+	else if (ApiType == vr::API_OpenGL)
 		rev_DestroyTextureSwapChainGL(this);
 }
 
@@ -35,7 +35,7 @@ ovrMirrorTextureData::~ovrMirrorTextureData()
 {
 	if (ApiType == vr::API_DirectX)
 		rev_DestroyMirrorTextureDX(this);
-	if (ApiType == vr::API_OpenGL)
+	else if (ApiType == vr::API_OpenGL)
 		rev_DestroyMirrorTextureGL(this);
 }
 
@@ -43,6 +43,7 @@ ovrHmdStruct::ovrHmdStruct()
 	: ShouldQuit(false)
 	, ThumbStickRange(0.0f)
 	, OverlayCount(0)
+	, MirrorTexture(nullptr)
 {
 	memset(ThumbStick, false, sizeof(ThumbStick));
 	memset(MenuWasPressed, false, sizeof(MenuWasPressed));
