@@ -886,9 +886,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 				break;
 		}
 	}
-
-	// The first layer is assumed to be the application scene.
-	if (layerPtrList[0]->Type == ovrLayerType_EyeMatrix)
+	else if (layerPtrList[0]->Type == ovrLayerType_EyeMatrix)
 	{
 		ovrLayerEyeMatrix* sceneLayer = (ovrLayerEyeMatrix*)layerPtrList[0];
 
