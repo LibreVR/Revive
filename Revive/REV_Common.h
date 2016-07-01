@@ -1,8 +1,8 @@
 #pragma once
 
 #include "OVR_CAPI.h"
-
 #include "openvr.h"
+#include <vector>
 
 // Common structures
 
@@ -47,7 +47,10 @@ struct ovrHmdStruct
 
 	// Overlays
 	unsigned int OverlayCount;
-	vr::VROverlayHandle_t Overlays[ovrMaxLayerCount];
+	std::vector<vr::VROverlayHandle_t> ActiveOverlays;
+
+	ovrHmdStruct();
+	~ovrHmdStruct();
 };
 
 // Common functions

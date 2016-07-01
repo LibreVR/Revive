@@ -35,6 +35,27 @@ ovrMirrorTextureData::~ovrMirrorTextureData()
 		ovr_DestroyMirrorTextureGL(this);
 }
 
+ovrHmdStruct::ovrHmdStruct()
+	: ShouldQuit(false)
+	, ThumbStickRange(0.0f)
+	, OverlayCount(0)
+{
+	memset(ThumbStick, false, sizeof(ThumbStick));
+	memset(MenuWasPressed, false, sizeof(MenuWasPressed));
+
+	memset(Poses, 0, sizeof(Poses));
+	memset(GamePoses, 0, sizeof(GamePoses));
+
+	// Most games only use the left thumbstick
+	ThumbStick[ovrHand_Left] = true;
+}
+
+ovrHmdStruct::~ovrHmdStruct()
+{
+}
+
+// Common functions
+
 vr::VRTextureBounds_t REV_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags)
 {
 	vr::VRTextureBounds_t bounds;

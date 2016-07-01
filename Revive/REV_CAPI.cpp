@@ -6,6 +6,8 @@
 #include "MinHook.h"
 #include <DXGI.h>
 #include <Xinput.h>
+#include <vector>
+#include <algorithm>
 
 #include "REV_Assert.h"
 #include "REV_Common.h"
@@ -166,11 +168,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		return ovrError_InvalidParameter;
 
 	// Initialize the opaque pointer with our own OpenVR-specific struct
-	ovrSession session = new struct ovrHmdStruct();
-	memset(session, 0, sizeof(ovrHmdStruct));
-
-	// Most games only use the left thumbstick
-	session->ThumbStick[ovrHand_Left] = true;
+	ovrSession session = new ovrHmdStruct();
 
 	// Apply settings
 	session->ThumbStickRange = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange", 0.8f);
@@ -790,7 +788,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		return ovrError_InvalidParameter;
 
 	// Other layers are interpreted as overlays.
-	vr::VROverlayHandle_t overlays[ovrMaxLayerCount] = { 0 };
+	std::vector<vr::VROverlayHandle_t> activeOverlays;
 	for (size_t i = 0; i < layerCount; i++)
 	{
 		if (layerPtrList[i] == nullptr)
@@ -811,7 +809,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 				overlay = REV_CreateOverlay(session);
 				layer->ColorTexture->Overlay = overlay;
 			}
-			overlays[i] = overlay;
+			activeOverlays.push_back(overlay);
 
 			// Set the high quality overlay.
 			// FIXME: Why are High quality overlays headlocked in OpenVR?
@@ -839,28 +837,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	}
 
 	// Hide previous overlays that are not part of the current layers.
-	for (int i = 0; i < ovrMaxLayerCount; i++)
+	for (vr::VROverlayHandle_t overlay : session->ActiveOverlays)
 	{
-		bool found = false;
-		vr::VROverlayHandle_t overlay = session->Overlays[i];
-
-		if (overlay == vr::k_ulOverlayHandleInvalid)
-			break;
-
-		for (int j = 0; j < ovrMaxLayerCount; j++)
-		{
-			if (overlay == overlays[j])
-			{
-				found = true;
-				break;
-			}
-		}
-
+		// Find the overlay in the current active overlays, if it was not found then hide it.
 		// TODO: Handle overlay errors.
-		if (!found)
+		if (std::find(activeOverlays.begin(), activeOverlays.end(), overlay) != activeOverlays.end())
 			vr::VROverlay()->HideOverlay(overlay);
 	}
-	memcpy(session->Overlays, overlays, ovrMaxLayerCount * sizeof(vr::VROverlayHandle_t));
+	session->ActiveOverlays = activeOverlays;
 
 	// The first layer is assumed to be the application scene.
 	vr::EVRCompositorError err = vr::VRCompositorError_None;
