@@ -10,6 +10,14 @@ function generateManifest(manifest) {
         }
     }
 
+    var parameters = "";
+    if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None")
+        parameters = " " + manifest["launchParameters"];
+
+    // Showdown needs special arguments, seems like a great idea to hardcode them here
+    if (manifest["canonicalName"] == "epic-games-showdown")
+        parameters = " ..\\..\\..\\ShowdownVRDemo\\ShowdownVRDemo.uproject";
+
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -18,14 +26,6 @@ function generateManifest(manifest) {
             var result = regEx.exec(xhr.responseText);
             if (result != null)
                 title = result[1];
-
-            var parameters = "";
-            if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None")
-                parameters = " " + manifest["launchParameters"];
-
-            // Showdown needs special arguments, seems like a great idea to hardcode them here
-            if (manifest["canonicalName"] == "epic-games-showdown")
-                parameters = " ..\\..\\..\\ShowdownVRDemo\\ShowdownVRDemo.uproject";
 
             var revive = {
                 "launch_type" : "binary",
