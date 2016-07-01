@@ -28,6 +28,7 @@ ovrMirrorTextureData::ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMi
 	, Target(nullptr)
 	, Shader(nullptr)
 {
+	memset(Views, 0, sizeof(Views));
 }
 
 ovrMirrorTextureData::~ovrMirrorTextureData()

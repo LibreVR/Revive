@@ -239,6 +239,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 
 	mirrorTexture->Shader = new ShaderProgram(vs, ps);
 
+	// Get the mirror textures
+	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, pDevice, &mirrorTexture->Views[ovrEye_Left]);
+	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, pDevice, &mirrorTexture->Views[ovrEye_Right]);
+
 	// Clean up and return
 	pDevice->Release();
 	*out_MirrorTexture = mirrorTexture;
@@ -249,10 +253,13 @@ void ovr_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture)
 {
 	((ID3D11Texture2D*)mirrorTexture->Texture.handle)->Release();
 	((ID3D11RenderTargetView*)mirrorTexture->Target)->Release();
+	((ID3D11ShaderResourceView*)mirrorTexture->Views[ovrEye_Left])->Release();
+	((ID3D11ShaderResourceView*)mirrorTexture->Views[ovrEye_Right])->Release();
 
 	ShaderProgram* shader = (ShaderProgram*)mirrorTexture->Shader;
 	shader->first->Release();
 	shader->second->Release();
+	delete shader;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
@@ -277,11 +284,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	ShaderProgram* shader = (ShaderProgram*)mirrorTexture->Shader;
 	pContext->VSSetShader(shader->first, NULL, 0);
 	pContext->PSSetShader(shader->second, NULL, 0);
-
-	ID3D11ShaderResourceView* mirrorViews[2];
-	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, pDevice, (void**)&mirrorViews[0]);
-	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, pDevice, (void**)&mirrorViews[1]);
-	pContext->PSSetShaderResources(0, 2, mirrorViews);
+	pContext->PSSetShaderResources(0, 2, (ID3D11ShaderResourceView**)mirrorTexture->Views);
 
 	// Draw a triangle strip, the vertex buffer is not used.
 	FLOAT clear[4] = { 0.0f };
@@ -297,8 +300,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 		return ovrError_InvalidParameter;
 
 	// Clean up and return
-	mirrorViews[0]->Release();
-	mirrorViews[1]->Release();
 	pDevice->Release();
 	pContext->Release();
 	return ovrSuccess;

@@ -25,6 +25,7 @@ struct ovrMirrorTextureData
 	ovrMirrorTextureDesc Desc;
 	vr::EGraphicsAPIConvention ApiType;
 	vr::Texture_t Texture;
+	void* Views[ovrEye_Count];
 	void* Target;
 	void* Shader;
 
