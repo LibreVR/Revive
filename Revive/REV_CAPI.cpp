@@ -167,6 +167,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	if (!pSession)
 		return ovrError_InvalidParameter;
 
+	*pSession = nullptr;
+
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new ovrHmdStruct();
 
@@ -1101,7 +1103,7 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* propertyName, const char* value)
 {
 	if (!session)
-		return ovrError_InvalidSession;
+		return ovrFalse;
 
 	vr::EVRSettingsError error;
 	vr::VRSettings()->SetString(REV_SETTINGS_SECTION, propertyName, value, &error);
