@@ -97,10 +97,10 @@ UINT ovr_BindFlagsToD3DBindFlags(unsigned int flags)
 	return result;
 }
 
-UINT ovr_BindFlagsToD3DMiscFlags(unsigned int flags)
+UINT ovr_MiscFlagsToD3DMiscFlags(unsigned int flags)
 {
 	UINT result = 0;
-	if (flags & ovrTextureBind_DX_RenderTarget)
+	if (flags & ovrTextureMisc_AllowGenerateMips)
 		result |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
 	return result;
 }
@@ -133,7 +133,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	tdesc.Usage = D3D11_USAGE_DEFAULT;
 	tdesc.BindFlags = ovr_BindFlagsToD3DBindFlags(desc->BindFlags);
 	tdesc.CPUAccessFlags = 0;
-	tdesc.MiscFlags = ovr_BindFlagsToD3DMiscFlags(desc->BindFlags);
+	tdesc.MiscFlags = ovr_MiscFlagsToD3DMiscFlags(desc->MiscFlags);
 
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::API_DirectX, *desc);
 
