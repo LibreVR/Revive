@@ -9,8 +9,7 @@
 #include "MirrorVS.hlsl.h"
 #include "MirrorPS.hlsl.h"
 
-ID3D11VertexShader* g_pMirrorVS = nullptr;
-ID3D11PixelShader* g_pMirrorPS = nullptr;
+typedef std::pair<ID3D11VertexShader*, ID3D11PixelShader*> ShaderProgram;
 
 DXGI_FORMAT ovr_TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int flags)
 {
@@ -223,9 +222,22 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	mirrorTexture->Texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 
 	// Create a render target for the mirror texture.
-	pDevice->CreateRenderTargetView(texture, NULL, (ID3D11RenderTargetView**)&mirrorTexture->Target);
+	hr = pDevice->CreateRenderTargetView(texture, NULL, (ID3D11RenderTargetView**)&mirrorTexture->Target);
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
+
+	// Compile the blitting shaders.
+	ID3D11VertexShader* vs;
+	hr = pDevice->CreateVertexShader(g_MirrorVS, sizeof(g_MirrorVS), NULL, &vs);
+	if (FAILED(hr))
+		return ovrError_RuntimeException;
+
+	ID3D11PixelShader* ps;
+	hr = pDevice->CreatePixelShader(g_MirrorPS, sizeof(g_MirrorPS), NULL, &ps);
+	if (FAILED(hr))
+		return ovrError_RuntimeException;
+
+	mirrorTexture->Shader = new ShaderProgram(vs, ps);
 
 	// Clean up and return
 	pDevice->Release();
@@ -237,6 +249,10 @@ void ovr_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture)
 {
 	((ID3D11Texture2D*)mirrorTexture->Texture.handle)->Release();
 	((ID3D11RenderTargetView*)mirrorTexture->Target)->Release();
+
+	ShaderProgram* shader = (ShaderProgram*)mirrorTexture->Shader;
+	shader->first->Release();
+	shader->second->Release();
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
@@ -257,23 +273,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	ID3D11DeviceContext* pContext;
 	pDevice->GetImmediateContext(&pContext);
 
-	// Compile and set vertex shader
-	if (!g_pMirrorVS)
-	{
-		HRESULT hr = pDevice->CreateVertexShader(g_MirrorVS, sizeof(g_MirrorVS), NULL, &g_pMirrorVS);
-		if (FAILED(hr))
-			return ovrError_RuntimeException;
-	}
-	pContext->VSSetShader(g_pMirrorVS, NULL, 0);
-
-	// Compile and set pixel shader
-	if (!g_pMirrorPS)
-	{
-		HRESULT hr = pDevice->CreatePixelShader(g_MirrorPS, sizeof(g_MirrorPS), NULL, &g_pMirrorPS);
-		if (FAILED(hr))
-			return ovrError_RuntimeException;
-	}
-	pContext->PSSetShader(g_pMirrorPS, NULL, 0);
+	// Compile the shaders if it is not yet set
+	ShaderProgram* shader = (ShaderProgram*)mirrorTexture->Shader;
+	pContext->VSSetShader(shader->first, NULL, 0);
+	pContext->PSSetShader(shader->second, NULL, 0);
 
 	ID3D11ShaderResourceView* mirrorViews[2];
 	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, pDevice, (void**)&mirrorViews[0]);

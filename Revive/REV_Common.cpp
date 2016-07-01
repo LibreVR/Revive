@@ -11,6 +11,7 @@ ovrTextureSwapChainData::ovrTextureSwapChainData(vr::EGraphicsAPIConvention api,
 	, Desc(desc)
 	, Overlay(vr::k_ulOverlayHandleInvalid)
 {
+	memset(Textures, 0, sizeof(Textures));
 }
 
 ovrTextureSwapChainData::~ovrTextureSwapChainData()
@@ -24,6 +25,8 @@ ovrTextureSwapChainData::~ovrTextureSwapChainData()
 ovrMirrorTextureData::ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc)
 	: ApiType(api)
 	, Desc(desc)
+	, Target(nullptr)
+	, Shader(nullptr)
 {
 }
 

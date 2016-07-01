@@ -26,6 +26,7 @@ struct ovrMirrorTextureData
 	vr::EGraphicsAPIConvention ApiType;
 	vr::Texture_t Texture;
 	void* Target;
+	void* Shader;
 
 	ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc);
 	~ovrMirrorTextureData();
