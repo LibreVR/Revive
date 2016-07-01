@@ -23,6 +23,10 @@ function generateManifest(manifest) {
             if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None")
                 parameters = " " + manifest["launchParameters"];
 
+            // Showdown needs special arguments, seems like a great idea to hardcode them here
+            if (manifest["canonicalName"] == "epic-games-showdown")
+                parameters = " ..\\..\\..\\ShowdownVRDemo\\ShowdownVRDemo.uproject";
+
             var revive = {
                 "launch_type" : "binary",
                 "binary_path_windows" : "Revive/ReviveInjector_x64.exe",
