@@ -1011,10 +1011,12 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 
 	if (strcmp(propertyName, "IPD") == 0)
 		return vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_UserIpdMeters_Float);
+
+	// Override defaults, we should always return a valid value for these
 	if (strcmp(propertyName, OVR_KEY_PLAYER_HEIGHT) == 0)
-		return OVR_DEFAULT_PLAYER_HEIGHT;
-	if (strcmp(propertyName, OVR_KEY_EYE_HEIGHT) == 0)
-		return OVR_DEFAULT_EYE_HEIGHT;
+		defaultVal = OVR_DEFAULT_PLAYER_HEIGHT;
+	else if (strcmp(propertyName, OVR_KEY_EYE_HEIGHT) == 0)
+		defaultVal = OVR_DEFAULT_EYE_HEIGHT;
 
 	return vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, propertyName, defaultVal);
 }
@@ -1087,8 +1089,9 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 	if (!session)
 		return nullptr;
 
+	// Override defaults, we should always return a valid value for these
 	if (strcmp(propertyName, OVR_KEY_GENDER) == 0)
-		return OVR_DEFAULT_GENDER;
+		defaultVal = OVR_DEFAULT_GENDER;
 
 	vr::VRSettings()->GetString(REV_SETTINGS_SECTION, propertyName, session->StringBuffer, vr::k_unMaxPropertyStringSize, defaultVal);
 	return session->StringBuffer;
