@@ -8,6 +8,7 @@ ovrTextureSwapChainData::ovrTextureSwapChainData(vr::EGraphicsAPIConvention api,
 	: ApiType(api)
 	, Length(2)
 	, CurrentIndex(0)
+	, Submitted(nullptr)
 	, Desc(desc)
 	, Overlay(vr::k_ulOverlayHandleInvalid)
 {

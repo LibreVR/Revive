@@ -12,12 +12,11 @@ struct ovrTextureSwapChainData
 	vr::EGraphicsAPIConvention ApiType;
 	int Length, CurrentIndex;
 	vr::Texture_t Textures[2];
+	vr::Texture_t* Submitted;
 	vr::VROverlayHandle_t Overlay;
 
 	ovrTextureSwapChainData(vr::EGraphicsAPIConvention api, ovrTextureSwapChainDesc desc);
 	~ovrTextureSwapChainData();
-
-	vr::Texture_t* Current() { return &Textures[CurrentIndex]; }
 };
 
 struct ovrMirrorTextureData

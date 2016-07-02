@@ -700,7 +700,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession se
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	*out_Index = (chain->CurrentIndex + 1) % chain->Length;
+	*out_Index = chain->CurrentIndex;
 	return ovrSuccess;
 }
 
@@ -718,7 +718,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	ovr_GetTextureSwapChainCurrentIndex(session, chain, &chain->CurrentIndex);
+	chain->Submitted = &chain->Textures[chain->CurrentIndex];
+	chain->CurrentIndex++;
+	chain->CurrentIndex %= chain->Length;
 	return ovrSuccess;
 }
 
@@ -830,7 +832,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			// Set the texture and show the overlay.
 			vr::VRTextureBounds_t bounds = rev_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
 			vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
-			vr::VROverlay()->SetOverlayTexture(overlay, layer->ColorTexture->Current());
+			vr::VROverlay()->SetOverlayTexture(overlay, layer->ColorTexture->Submitted);
 
 			// Show the overlay, unfortunately we have no control over the order in which
 			// overlays are drawn.
@@ -883,7 +885,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 				bounds.vMax = 1.0f - bounds.vMax;
 			}
 
-			err = vr::VRCompositor()->Submit((vr::EVREye)i, chain->Current(), &bounds);
+			err = vr::VRCompositor()->Submit((vr::EVREye)i, chain->Submitted, &bounds);
 			if (err != vr::VRCompositorError_None)
 				break;
 		}
@@ -920,7 +922,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 				bounds.vMax = 1.0f - bounds.vMax;
 			}
 
-			err = vr::VRCompositor()->Submit((vr::EVREye)i, chain->Current(), &bounds);
+			err = vr::VRCompositor()->Submit((vr::EVREye)i, chain->Submitted, &bounds);
 			if (err != vr::VRCompositorError_None)
 				break;
 		}
