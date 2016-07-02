@@ -36,6 +36,7 @@ struct ovrHmdStruct
 {
 	// Session status
 	bool ShouldQuit;
+	char StringBuffer[vr::k_unMaxPropertyStringSize];
 
 	// Controller states
 	bool ThumbStick[ovrHand_Count];

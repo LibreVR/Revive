@@ -24,7 +24,6 @@ _XInputGetState g_pXInputGetState;
 _XInputSetState g_pXInputSetState;
 
 vr::EVRInitError g_InitError = vr::VRInitError_None;
-char* g_StringBuffer = nullptr;
 long long g_FrameIndex = 0;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
@@ -56,10 +55,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
-	// Delete the global string property buffer.
-	delete g_StringBuffer;
-	g_StringBuffer = nullptr;
-
 	if (g_hXInputLib)
 		FreeLibrary(g_hXInputLib);
 
@@ -1092,14 +1087,11 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 	if (!session)
 		return nullptr;
 
-	if (!g_StringBuffer)
-		g_StringBuffer = new char[vr::k_unMaxPropertyStringSize];
-
 	if (strcmp(propertyName, OVR_KEY_GENDER) == 0)
 		return OVR_DEFAULT_GENDER;
 
-	vr::VRSettings()->GetString(REV_SETTINGS_SECTION, propertyName, g_StringBuffer, vr::k_unMaxPropertyStringSize, defaultVal);
-	return g_StringBuffer;
+	vr::VRSettings()->GetString(REV_SETTINGS_SECTION, propertyName, session->StringBuffer, vr::k_unMaxPropertyStringSize, defaultVal);
+	return session->StringBuffer;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* propertyName, const char* value)
