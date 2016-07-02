@@ -42,6 +42,7 @@ ovrMirrorTextureData::~ovrMirrorTextureData()
 
 ovrHmdStruct::ovrHmdStruct()
 	: ShouldQuit(false)
+	, FrameIndex(0)
 	, ThumbStickRange(0.0f)
 	, OverlayCount(0)
 	, MirrorTexture(nullptr)

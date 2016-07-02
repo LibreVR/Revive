@@ -24,7 +24,6 @@ _XInputGetState g_pXInputGetState;
 _XInputSetState g_pXInputSetState;
 
 vr::EVRInitError g_InitError = vr::VRInitError_None;
-long long g_FrameIndex = 0;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
@@ -928,9 +927,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 	// Increment the frame index.
 	if (frameIndex == 0)
-		g_FrameIndex++;
+		session->FrameIndex++;
 	else
-		g_FrameIndex = frameIndex;
+		session->FrameIndex = frameIndex;
 
 	if (session->MirrorTexture)
 	{
@@ -951,19 +950,27 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	float fDisplayFrequency = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
 	float fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
 
-	return double(frameIndex) / fDisplayFrequency + fVsyncToPhotons;
+	// Get the frame count and advance it based on which frame we're predicting
+	float fSecondsSinceLastVsync;
+	uint64_t unFrame;
+	vr::VRSystem()->GetTimeSinceLastVsync(&fSecondsSinceLastVsync, &unFrame);
+	unFrame += frameIndex - session->FrameIndex;
+
+	// Predict the display time based on the display frequency and the vsync-to-photon latency
+	return double(unFrame) / fDisplayFrequency + fVsyncToPhotons;
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 {
 	float fDisplayFrequency = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
 
-	// Get time in seconds
+	// Get the frame count and the time since the last VSync
 	float fSecondsSinceLastVsync;
 	uint64_t unFrame;
 	vr::VRSystem()->GetTimeSinceLastVsync(&fSecondsSinceLastVsync, &unFrame);
 
-	return double(g_FrameIndex) / fDisplayFrequency + fSecondsSinceLastVsync;
+	// Calculate the time since the first frame based on the display frequency
+	return double(unFrame) / fDisplayFrequency + fSecondsSinceLastVsync;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal)
