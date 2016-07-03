@@ -845,7 +845,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	{
 		// Find the overlay in the current active overlays, if it was not found then hide it.
 		// TODO: Handle overlay errors.
-		if (std::find(activeOverlays.begin(), activeOverlays.end(), overlay) != activeOverlays.end())
+		if (std::find(activeOverlays.begin(), activeOverlays.end(), overlay) == activeOverlays.end())
 			vr::VROverlay()->HideOverlay(overlay);
 	}
 	session->ActiveOverlays = activeOverlays;
