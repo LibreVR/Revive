@@ -222,8 +222,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 		}
 	}
 
-	// Fill in the status
-	sessionStatus->IsVisible = vr::VRCompositor()->CanRenderScene();
+	// Detect if the application has focus, but only return true after the first frame is displayed.
+	// If this is true from the beginning then some games will assume the Health-and-Safety warning
+	// is still being displayed.
+	sessionStatus->IsVisible = vr::VRCompositor()->CanRenderScene() && session->FrameIndex > 0;
+
+	// TODO: Use the HMD sensor to detect whether the headset is mounted.
+	// TODO: Detect if the display is lost, can this ever happen with OpenVR?
 	sessionStatus->HmdPresent = vr::VRSystem()->IsTrackedDeviceConnected(vr::k_unTrackedDeviceIndex_Hmd);
 	sessionStatus->HmdMounted = sessionStatus->HmdPresent;
 	sessionStatus->DisplayLost = false;
