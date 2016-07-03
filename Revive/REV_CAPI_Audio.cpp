@@ -33,6 +33,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuidStr(WCHAR deviceOutStrBu
 	if (!deviceOutStrBuffer)
 		return ovrError_InvalidParameter;
 
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
 	IMMDeviceEnumerator* pEnumerator;
 	const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
 	const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
@@ -58,6 +60,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuidStr(WCHAR deviceOutStrBu
 	// Cleanup
 	pDevice->Release();
 	pEnumerator->Release();
+	CoUninitialize();
 	return ovrSuccess;
 }
 
@@ -81,6 +84,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuidStr(WCHAR deviceInStrBuff
 {
 	if (!deviceInStrBuffer)
 		return ovrError_InvalidParameter;
+
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 	IMMDeviceEnumerator* pEnumerator;
 	const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
@@ -107,6 +112,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuidStr(WCHAR deviceInStrBuff
 	// Cleanup
 	pDevice->Release();
 	pEnumerator->Release();
+	CoUninitialize();
 	return ovrSuccess;
 }
 
