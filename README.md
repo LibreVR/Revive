@@ -2,7 +2,7 @@
 
 This is a compatibility layer between the Oculus SDK and OpenVR. It allows you to play Oculus-exclusive games on your HTC Vive.
 
-You can find a [community-compiled list of working games on the wiki](https://github.com/LibreVR/Revive/wiki/Compatibility-list), feel free to add your own results.
+You can find a [community-compiled list of working games on the wiki](https://github.com/LibreVR/Revive/wiki/Compatibility-list), feel free to add your own results. There's also a [troubleshooting page](https://github.com/LibreVR/Revive/wiki/Troubleshooting) if you run into any problems.
 
 # Installation
 
