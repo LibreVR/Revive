@@ -433,8 +433,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 							inputState->Thumbstick[i].y = y;
 						}
 
-						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad) &&
-							state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
 						{
 							if (session->ThumbStick[i])
 							{
@@ -499,8 +498,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 					if (type == vr::k_eControllerAxis_TrackPad)
 					{
-						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad) &&
-							state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
 						{
 							float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
 
