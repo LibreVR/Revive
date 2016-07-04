@@ -36,6 +36,7 @@ struct ovrHmdStruct
 {
 	// Session status
 	bool ShouldQuit;
+	bool IsVisible;
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
 	long long FrameIndex;
 
