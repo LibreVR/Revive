@@ -709,7 +709,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, o
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	out_Desc = &chain->Desc;
+	*out_Desc = chain->Desc;
 	return ovrSuccess;
 }
 
