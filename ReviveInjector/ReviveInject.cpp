@@ -25,7 +25,7 @@ int CreateProcessAndInject(wchar_t *programPath) {
 	wcsncpy(workingDir, programPath, MAX_PATH);
 
 	// Remove extension
-	wchar_t* ext = wcschr(workingDir, L'.');
+	wchar_t* ext = wcsstr(workingDir, L".exe");
 	if (ext)
 		*ext = L'\0';
 
