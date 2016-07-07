@@ -94,13 +94,6 @@ vr::VRTextureBounds_t rev_ViewportToTextureBounds(ovrRecti viewport, ovrTextureS
 	return bounds;
 }
 
-bool rev_IsTouchConnected(vr::TrackedDeviceIndex_t hands[ovrHand_Count])
-{
-	return hands[ovrHand_Left] != vr::k_unTrackedDeviceIndexInvalid &&
-		hands[ovrHand_Right] != vr::k_unTrackedDeviceIndexInvalid &&
-		hands[ovrHand_Left] != hands[ovrHand_Right];
-}
-
 unsigned int rev_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose)
 {
 	unsigned int result = 0;

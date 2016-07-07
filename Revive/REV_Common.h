@@ -62,7 +62,6 @@ struct ovrHmdStruct
 
 // Common functions
 
-bool rev_IsTouchConnected(vr::TrackedDeviceIndex_t hands[ovrHand_Count]);
 unsigned int rev_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 vr::VRTextureBounds_t rev_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
 vr::VROverlayHandle_t rev_CreateOverlay(ovrSession session);

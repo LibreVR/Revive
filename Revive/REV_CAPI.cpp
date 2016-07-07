@@ -369,14 +369,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
 
+	// Get controller indices.
+	vr::TrackedDeviceIndex_t controllers[vr::k_unMaxTrackedDeviceCount];
+	uint32_t controllerCount = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, controllers, vr::k_unMaxTrackedDeviceCount);
+
 	if (controllerType & ovrControllerType_Touch)
 	{
 		// Get controller indices.
 		vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
 			vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 
-		// Only if both controllers are assigned, then the touch controller is connected.
-		if (rev_IsTouchConnected(hands))
+		// Only if both controllers are available, then the touch controller is connected.
+		if (controllerCount > 1)
 		{
 			for (int i = 0; i < ovrHand_Count; i++)
 			{
@@ -473,19 +477,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 	if (controllerType & ovrControllerType_Remote)
 	{
-		// Get controller indices.
-		vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
-			vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
-
-		if (!rev_IsTouchConnected(hands))
+		// Emulate the remote if we have only one connected controller
+		if (controllerCount == 1)
 		{
-			for (int i = 0; i < ovrHand_Count; i++)
+			for (int i = 0; i < controllerCount; i++)
 			{
-				if (hands[i] == vr::k_unTrackedDeviceIndexInvalid)
+				if (controllers[i] == vr::k_unTrackedDeviceIndexInvalid)
 					continue;
 
 				vr::VRControllerState_t state;
-				vr::VRSystem()->GetControllerState(hands[i], &state);
+				vr::VRSystem()->GetControllerState(controllers[i], &state);
 
 				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 					inputState->Buttons |= ovrButton_Back;
@@ -494,7 +495,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 				for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
 				{
 					vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + j);
-					vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(hands[i], prop);
+					vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(controllers[i], prop);
 					vr::VRControllerAxis_t axis = state.rAxis[j];
 
 					if (type == vr::k_eControllerAxis_TrackPad)
@@ -637,17 +638,11 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 	unsigned int types = 0;
 
 	// Check for Vive controllers
-	vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
-		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
+	uint32_t controllerCount = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, nullptr, 0);
 
-	// If both controllers are assigned, it's a touch controller. If not, it's a remote.
-	if (rev_IsTouchConnected(hands))
-	{
-		if (vr::VRSystem()->IsTrackedDeviceConnected(hands[ovrHand_Left]))
-			types |= ovrControllerType_LTouch;
-		if (vr::VRSystem()->IsTrackedDeviceConnected(hands[ovrHand_Right]))
-			types |= ovrControllerType_RTouch;
-	}
+	// If both controllers are available, it's a touch controller. If not, it's a remote.
+	if (controllerCount > 1)
+		types |= ovrControllerType_Touch;
 	else
 		types |= ovrControllerType_Remote;
 
