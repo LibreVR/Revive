@@ -34,7 +34,8 @@ int CreateProcessAndInject(wchar_t *programPath) {
 	if (file)
 		*file = L'\0';
 
-	if (!CreateProcess(NULL, programPath, &sa, NULL, FALSE, CREATE_SUSPENDED, NULL, workingDir, &si, &pi))
+	// Create the injectee, specify the working directory if a path was found
+	if (!CreateProcess(NULL, programPath, &sa, NULL, FALSE, CREATE_SUSPENDED, NULL, (file && ext) ? workingDir : NULL, &si, &pi))
 	{
 		LOG("Failed to create process\n");
 		return -1;
