@@ -166,6 +166,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new ovrHmdStruct();
 
+	// Get the default universe origin from the settings
+	vr::ETrackingUniverseOrigin origin = (vr::ETrackingUniverseOrigin)vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, "DefaultTrackingOrigin", vr::TrackingUniverseSeated);
+	vr::VRCompositor()->SetTrackingSpace(origin);
+
 	// Apply settings
 	session->ThumbStickRange = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange", 0.8f);
 
