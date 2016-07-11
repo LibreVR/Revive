@@ -15,6 +15,7 @@
 #include "REV_Math.h"
 
 #define REV_SETTINGS_SECTION "revive"
+#define REV_LAYER_BIAS 0.0001f
 
 typedef DWORD(__stdcall* _XInputGetState)(DWORD dwUserIndex, XINPUT_STATE* pState);
 typedef DWORD(__stdcall* _XInputSetState)(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
@@ -820,8 +821,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 			//if (layer->Header.Flags & ovrLayerFlag_HighQuality)
 			//	vr::VROverlay()->SetHighQualityOverlay(overlay);
 
+			// Add a depth bias to the pose based on the layer order.
+			// TODO: Account for the orientation.
+			ovrPosef pose = layer->QuadPoseCenter;
+			pose.Position.z += (float)i * REV_LAYER_BIAS;
+
 			// Transform the overlay.
-			vr::HmdMatrix34_t transform = rev_OvrPoseToHmdMatrix(layer->QuadPoseCenter);
+			vr::HmdMatrix34_t transform = rev_OvrPoseToHmdMatrix(pose);
 			vr::VROverlay()->SetOverlayWidthInMeters(overlay, layer->QuadSize.x);
 			if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
 				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
