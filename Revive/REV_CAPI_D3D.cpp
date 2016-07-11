@@ -228,7 +228,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	mirrorTexture->Texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 
 	// Create a render target for the mirror texture.
-	hr = pDevice->CreateRenderTargetView(texture, NULL, (ID3D11RenderTargetView**)&mirrorTexture->Target);
+	D3D11_RENDER_TARGET_VIEW_DESC rdesc;
+	rdesc.Format = ovr_TextureFormatToDXGIFormat(desc->Format, 0);
+	rdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rdesc.Texture2D.MipSlice = 0;
+	hr = pDevice->CreateRenderTargetView(texture, &rdesc, (ID3D11RenderTargetView**)&mirrorTexture->Target);
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
 
