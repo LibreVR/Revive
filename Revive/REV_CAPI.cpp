@@ -942,13 +942,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	else
 		session->FrameIndex = frameIndex;
 
-	if (session->MirrorTexture)
-	{
-		if (session->MirrorTexture->ApiType == vr::API_DirectX)
-			rev_RenderMirrorTextureDX(session->MirrorTexture);
-		else if (session->MirrorTexture->ApiType == vr::API_OpenGL)
-			rev_RenderMirrorTextureGL(session->MirrorTexture);
-	}
+	// TODO: Render to the mirror texture here.
+	// Currently the mirror texture code is not stable enough yet.
 
 	return rev_CompositorErrorToOvrError(err);
 }
