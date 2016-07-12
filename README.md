@@ -28,9 +28,9 @@ Newly installed games will give you an `Entitlement check failed` error until yo
 Credit goes to @rjoudrey for implementing the injector.
 
 1. Download the [Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.8.5/ReviveInjector.zip)
-2. Go to the installation directory of the game.
-3. Find the main executable for the game. For Unreal Games the executable ends with `...-Shipping.exe`.
-4. Extract all Revive Injector files next to the executable.
+2. Extract all files to a folder.
+3. Go to the installation directory for the game.
+4. Find the main executable. For Unreal Games the executable ends with `...-Shipping.exe`.
 5. Make sure SteamVR is running and then drag main executable onto `ReviveInjector_x64.exe`.
 
 ## Steam games
