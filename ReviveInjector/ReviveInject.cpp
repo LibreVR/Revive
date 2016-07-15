@@ -81,7 +81,7 @@ int CreateProcessAndInject(wchar_t *programPath) {
 		return -1;
 	}
 
-	LOG("Injected dlls succesfully\n");
+	LOG("Injected dlls successfully\n");
 	ResumeThread(pi.hThread);
 	return 0;
 }
