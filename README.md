@@ -12,40 +12,41 @@ If you need to recenter the headset you can do so in the Steam VR dashboard by h
 
 Newly installed games will give you an `Entitlement check failed` error until you reboot the Oculus service, quickest way to do that is through Oculus Home `Settings > Beta > Restart Oculus`.
 
+
 ## Oculus Home games
 
 1. Install Oculus Home and remember to skip the first-time setup.
 2. Download the games you want to play, check the [compatibility list](https://github.com/LibreVR/Revive/wiki/Compatibility-list) before making a purchase.
-3. Download the [Revive installer here.](https://github.com/LibreVR/Revive/releases/download/0.8.5/ReviveInstaller.exe)
+3. Download the [Revive installer here.](https://github.com/LibreVR/Revive/releases/download/0.8.6/ReviveInstaller.exe)
 4. Install Revive in your preferred directory, you can overwrite existing installations without uninstalling Revive first.
 5. Start or reboot SteamVR.
 6. Open the dashboard and click the new Revive tab.
 
 *If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard.*
 
-## Standalone games
+## Standalone games (including the Steam version of Dirt Rally)
 
 Credit goes to @rjoudrey for implementing the injector.
 
-1. Download the [Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.8.5/ReviveInjector.zip)
-2. Extract all files to a folder.
-3. Go to the installation directory for the game.
-4. Find the main executable. For Unreal Games the executable ends with `...-Shipping.exe`.
-5. Make sure SteamVR is running and then drag main executable onto `ReviveInjector_x64.exe`.
+1. Install Oculus Home and remember to skip the first-time setup.
+2. Download the [Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.8.6/ReviveInjector.zip)
+3. Extract all files to a folder.
+4. Go to the installation directory for the game.
+5. Find the main executable. For Unreal Games the executable ends with `...-Shipping.exe`.
+6. Make sure SteamVR is running and then drag main executable onto `ReviveInjector_x64.exe`.
 
 ## Steam games
 
 Revive is not yet compatible with Steam, but for some games the following may work.
 
-*You need to have [Oculus Home](https://www.oculus.com/en-us/setup/) installed.*
-
-1. [Download the Revive patch here.](https://github.com/LibreVR/Revive/releases/download/0.8.5/RevivePatch.zip)
-2. Go to the properties of the game in the Steam Library.
-3. Uncheck "Use Desktop Game Theatre while SteamVR is active".
-4. Go to the Local Files tab and click "Browse Local Files...".
-5. Extract the patch into the folder that opened next to the executable.
-6. Make sure SteamVR is running and start the game.
-7. A dialog will incorrectly state the game does not support VR, ignore that and press OK.
+1. Install Oculus Home and remember to skip the first-time setup.
+2. [Download the Revive patch here.](https://github.com/LibreVR/Revive/releases/download/0.8.6/RevivePatch.zip)
+3. Go to the properties of the game in the Steam Library.
+4. Uncheck "Use Desktop Game Theatre while SteamVR is active".
+5. Go to the Local Files tab and click "Browse Local Files...".
+6. Extract the patch into the folder that opened next to the executable.
+7. Make sure SteamVR is running and start the game.
+8. A dialog will incorrectly state the game does not support VR, ignore that and press OK.
 
 # Controls
 
