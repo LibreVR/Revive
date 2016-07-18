@@ -12,7 +12,6 @@ If you need to recenter the headset you can do so in the Steam VR dashboard by h
 
 Newly installed games will give you an `Entitlement check failed` error until you reboot the Oculus service, quickest way to do that is through Oculus Home `Settings > Beta > Restart Oculus`.
 
-
 ## Oculus Home games
 
 1. Install Oculus Home and remember to skip the first-time setup.
@@ -24,7 +23,7 @@ Newly installed games will give you an `Entitlement check failed` error until yo
 
 *If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard.*
 
-## Standalone games (including the Steam version of Dirt Rally)
+## Standalone games
 
 Credit goes to @rjoudrey for implementing the injector.
 
