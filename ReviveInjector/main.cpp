@@ -9,7 +9,7 @@ FILE* g_LogFile = NULL;
 
 int wmain(int argc, wchar_t *argv[]) {
 	if (argc < 2) {
-		printf("usage: ReviveInjector.exe [/handle] <process path/process handle>\n");
+		printf("usage: ReviveInjector.exe [/handle|/p] <process path/handle/id>\n");
 		return -1;
 	}
 
@@ -32,9 +32,18 @@ int wmain(int argc, wchar_t *argv[]) {
 	WCHAR path[MAX_PATH] = { 0 };
 	for (int i = 1; i < argc; i++)
 	{
-		if (wcscmp(argv[i], L"/handle") == 0)
+		if (wcscmp(argv[i], L"-p") == 0)
 		{
-			return OpenProcessAndInject(argv[++i]);
+			int result = OpenProcessAndInject(argv[++i]);
+
+			/*if (wcscmp(argv[++i], L"-tid") == 0)
+			{
+				DWORD dwThreadId = wcstol(argv[++i], nullptr, 0);
+				HANDLE hThread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, dwThreadId);
+				ResumeThread(hThread);
+			}*/
+
+			return result;
 		}
 		else if (wcscmp(argv[i], L"/base") == 0)
 		{

@@ -6,6 +6,8 @@
 #include "MinHook.h"
 #include <DXGI.h>
 #include <Xinput.h>
+#include <Shlwapi.h>
+#include <Shobjidl.h>
 #include <vector>
 #include <algorithm>
 
@@ -13,6 +15,7 @@
 #include "REV_Common.h"
 #include "REV_Error.h"
 #include "REV_Math.h"
+#include "REV_UWP.h"
 
 #define REV_SETTINGS_SECTION "revive"
 #define REV_LAYER_BIAS 0.0001f
@@ -21,6 +24,7 @@ typedef DWORD(__stdcall* _XInputGetState)(DWORD dwUserIndex, XINPUT_STATE* pStat
 typedef DWORD(__stdcall* _XInputSetState)(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
 
 HMODULE g_hXInputLib;
+IPackageDebugSettings* g_pDebugSettings;
 _XInputGetState g_pXInputGetState;
 _XInputSetState g_pXInputSetState;
 
@@ -50,6 +54,29 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	MH_QueueEnableHook(OpenEventW);
 	MH_ApplyQueued();
 
+	WCHAR filename[MAX_PATH] = { 0 };
+	GetModuleFileNameW(NULL, filename, MAX_PATH);
+	if (wcscmp(PathFindFileNameW(filename), L"MinecraftWindows10EditionLauncher.exe") == 0)
+	{
+		// Gets the current application's UserModelId and PackageId from the registry
+		// Substitute your own methods in place of these
+		std::wstring appFullName = PackageFullNameFromFamilyName(L"Microsoft.MinecraftUWP_8wekyb3d8bbwe");
+
+		// Create a new instance of IPackageDebugSettings
+		HRESULT hr = S_OK;
+		hr = CoCreateInstance(
+			CLSID_PackageDebugSettings, NULL,
+			CLSCTX_ALL, IID_IPackageDebugSettings,
+			(void**)&g_pDebugSettings);
+		if (FAILED(hr))
+			return ovrError_RuntimeException;
+
+		// Enable debugging
+		hr = g_pDebugSettings->EnableDebugging(appFullName.c_str(), L"C:\\Source\\revive\\Debug\\Revive\\ReviveInjector_x64.exe", NULL);
+		if (FAILED(hr))
+			return ovrError_RuntimeException;
+	}
+
 	return rev_InitErrorToOvrError(g_InitError);
 }
 
@@ -57,6 +84,15 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
 	if (g_hXInputLib)
 		FreeLibrary(g_hXInputLib);
+
+	WCHAR filename[MAX_PATH] = { 0 };
+	GetModuleFileNameW(NULL, filename, MAX_PATH);
+	if (wcscmp(PathFindFileNameW(filename), L"MinecraftWindows10EditionLauncher.exe"))
+	{
+		// Stop debugging the application so it can run as normal
+		std::wstring appFullName = PackageFullNameFromFamilyName(L"Microsoft.MinecraftUWP_8wekyb3d8bbwe");
+		g_pDebugSettings->DisableDebugging(appFullName.c_str());
+	}
 
 	vr::VR_Shutdown();
 }

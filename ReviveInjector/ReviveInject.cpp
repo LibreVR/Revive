@@ -89,7 +89,8 @@ int CreateProcessAndInject(wchar_t *programPath) {
 int OpenProcessAndInject(wchar_t *processId) {
 	LOG("Injecting process handle: %ls\n", processId);
 
-	HANDLE hProcess = (HANDLE)wcstol(processId, nullptr, 0);
+	DWORD dwProcessId = wcstol(processId, nullptr, 0);
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwProcessId);
 	if (hProcess == NULL)
 	{
 		LOG("Failed to get process handle\n");
