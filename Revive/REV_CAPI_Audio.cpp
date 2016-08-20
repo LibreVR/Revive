@@ -8,6 +8,8 @@
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutWaveId(UINT* deviceOutId)
 {
+	REV_TRACE(ovr_GetAudioDeviceOutWaveId);
+
 	if (!deviceOutId)
 		return ovrError_InvalidParameter;
 
@@ -19,6 +21,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutWaveId(UINT* deviceOutId)
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInWaveId(UINT* deviceInId)
 {
+	REV_TRACE(ovr_GetAudioDeviceInWaveId);
+
 	if (!deviceInId)
 		return ovrError_InvalidParameter;
 
@@ -30,6 +34,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInWaveId(UINT* deviceInId)
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuidStr(WCHAR deviceOutStrBuffer[OVR_AUDIO_MAX_DEVICE_STR_SIZE])
 {
+	REV_TRACE(ovr_GetAudioDeviceOutGuidStr);
+
 	if (!deviceOutStrBuffer)
 		return ovrError_InvalidParameter;
 
@@ -67,6 +73,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuidStr(WCHAR deviceOutStrBu
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuid(GUID* deviceOutGuid)
 {
+	REV_TRACE(ovr_GetAudioDeviceOutGuid);
+
 	if (!deviceOutGuid)
 		return ovrError_InvalidParameter;
 
@@ -83,6 +91,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuid(GUID* deviceOutGuid)
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuidStr(WCHAR deviceInStrBuffer[OVR_AUDIO_MAX_DEVICE_STR_SIZE])
 {
+	REV_TRACE(ovr_GetAudioDeviceInGuidStr);
+
 	if (!deviceInStrBuffer)
 		return ovrError_InvalidParameter;
 
@@ -120,6 +130,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuidStr(WCHAR deviceInStrBuff
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuid(GUID* deviceInGuid)
 {
+	REV_TRACE(ovr_GetAudioDeviceInGuid);
+
 	if (!deviceInGuid)
 		return ovrError_InvalidParameter;
 

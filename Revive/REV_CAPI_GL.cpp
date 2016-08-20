@@ -82,6 +82,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
                                                             const ovrTextureSwapChainDesc* desc,
                                                             ovrTextureSwapChain* out_TextureSwapChain)
 {
+	REV_TRACE(ovr_CreateTextureSwapChainGL);
+
 	if (rev_GlewInit() != GLEW_OK)
 		return ovrError_RuntimeException;
 
@@ -120,6 +122,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferGL(ovrSession sessio
                                                                int index,
                                                                unsigned int* out_TexId)
 {
+	REV_TRACE(ovr_GetTextureSwapChainBufferGL);
+
 	if (!session)
 		return ovrError_InvalidSession;
 
@@ -137,6 +141,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
                                                          const ovrMirrorTextureDesc* desc,
                                                          ovrMirrorTexture* out_MirrorTexture)
 {
+	REV_TRACE(ovr_CreateMirrorTextureGL);
+
 	if (rev_GlewInit() != GLEW_OK)
 		return ovrError_RuntimeException;
 
@@ -173,6 +179,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,
                                                             ovrMirrorTexture mirrorTexture,
                                                             unsigned int* out_TexId)
 {
+	REV_TRACE(ovr_GetMirrorTextureBufferGL);
+
 	if (!session)
 		return ovrError_InvalidSession;
 

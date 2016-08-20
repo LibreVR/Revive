@@ -110,6 +110,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
                                                             const ovrTextureSwapChainDesc* desc,
                                                             ovrTextureSwapChain* out_TextureSwapChain)
 {
+	REV_TRACE(ovr_CreateTextureSwapChainDX);
+
 	if (!session)
 		return ovrError_InvalidSession;
 
@@ -167,6 +169,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
                                                                IID iid,
                                                                void** out_Buffer)
 {
+	REV_TRACE(ovr_GetTextureSwapChainBufferDX);
+
 	if (!session)
 		return ovrError_InvalidSession;
 
@@ -189,6 +193,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
                                                          const ovrMirrorTextureDesc* desc,
                                                          ovrMirrorTexture* out_MirrorTexture)
 {
+	REV_TRACE(ovr_CreateMirrorTextureDX);
+
 	if (!session)
 		return ovrError_InvalidSession;
 
@@ -278,6 +284,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
                                                             IID iid,
                                                             void** out_Buffer)
 {
+	REV_TRACE(ovr_GetMirrorTextureBufferDX);
+
 	if (!session)
 		return ovrError_InvalidSession;
 
