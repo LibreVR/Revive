@@ -1003,6 +1003,9 @@ OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName
 	if (!session)
 		return 0;
 
+	if (strcmp("TextureSwapChainDepth", propertyName) == 0)
+		return REV_SWAPCHAIN_LENGTH;
+
 	return vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, propertyName, defaultVal);
 }
 

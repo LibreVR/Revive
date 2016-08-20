@@ -6,6 +6,8 @@
 
 // Common structures
 
+#define REV_SWAPCHAIN_LENGTH 2
+
 struct ovrTextureSwapChainData
 {
 	ovrTextureSwapChainDesc Desc;

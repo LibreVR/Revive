@@ -6,7 +6,7 @@
 
 ovrTextureSwapChainData::ovrTextureSwapChainData(vr::EGraphicsAPIConvention api, ovrTextureSwapChainDesc desc)
 	: ApiType(api)
-	, Length(2)
+	, Length(REV_SWAPCHAIN_LENGTH)
 	, CurrentIndex(0)
 	, Submitted(nullptr)
 	, Desc(desc)
