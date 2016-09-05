@@ -1225,3 +1225,8 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* prope
 	vr::VRSettings()->Sync();
 	return error == vr::VRSettingsError_None;
 }
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_Lookup(const char* name, void** data)
+{
+	REV_UNIMPLEMENTED_RUNTIME;
+}
