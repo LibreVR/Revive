@@ -143,13 +143,10 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 			if (m_ThumbStick)
 			{
 				// Map the touchpad to the thumbstick with a slightly smaller range
-				float x = axis.x / m_ThumbStickRange;
-				float y = axis.y / m_ThumbStickRange;
-				if (x > 1.0f) x = 1.0f;
-				if (y > 1.0f) y = 1.0f;
-
-				inputState->Thumbstick[hand].x = x;
-				inputState->Thumbstick[hand].y = y;
+				float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y) / m_ThumbStickRange;
+				if (magnitude > 1.0f) magnitude = 1.0f;
+				inputState->Thumbstick[hand].x = axis.x * magnitude;
+				inputState->Thumbstick[hand].y = axis.y * magnitude;
 			}
 
 			if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
