@@ -700,6 +700,13 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 	return types;
 }
 
+
+OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession session, ovrControllerType controllerType)
+{
+	REV_TRACE(ovr_GetTouchHapticsDesc);
+	REV_UNIMPLEMENTED_STRUCT(ovrTouchHapticsDesc);
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
 {
 	REV_TRACE(ovr_SetControllerVibration);
@@ -725,6 +732,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ov
 	}
 
 	return ovrError_DeviceUnavailable;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer)
+{
+	REV_TRACE(ovr_SubmitControllerVibration);
+	REV_UNIMPLEMENTED_RUNTIME;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState)
+{
+	REV_TRACE(ovr_GetControllerVibrationState);
+	REV_UNIMPLEMENTED_RUNTIME;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session, ovrTextureSwapChain chain, int* out_Length)
