@@ -97,95 +97,92 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 {
 	// Get controller index
 	vr::TrackedDeviceIndex_t touch = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
+	ovrHandType hand = (m_Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
 
-	for (int i = 0; i < ovrHand_Count; i++)
+	if (touch == vr::k_unTrackedDeviceIndexInvalid)
+		return;
+
+	vr::VRControllerState_t state;
+	vr::VRSystem()->GetControllerState(touch, &state);
+
+	unsigned int buttons = 0, touches = 0;
+
+	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 	{
-		if (touch == vr::k_unTrackedDeviceIndexInvalid)
-			return;
+		if (!m_MenuWasPressed)
+			m_ThumbStick = !m_ThumbStick;
 
-		vr::VRControllerState_t state;
-		vr::VRSystem()->GetControllerState(touch, &state);
+		m_MenuWasPressed = true;
+	}
+	else
+	{
+		m_MenuWasPressed = false;
+	}
 
-		unsigned int buttons = 0, touches = 0;
-		bool isLeft = (i == ovrHand_Left);
+	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
+		buttons |= (hand == ovrHand_Left) ? ovrButton_LShoulder : ovrButton_RShoulder;
 
-		if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
+	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
+		inputState->HandTrigger[hand] = 1.0f;
+
+	if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+		touches |= (hand == ovrHand_Left) ? ovrTouch_LThumb : ovrTouch_RThumb;
+
+	if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
+		touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
+
+	// Convert the axes
+	for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
+	{
+		vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + j);
+		vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(touch, prop);
+		vr::VRControllerAxis_t axis = state.rAxis[j];
+
+		if (type == vr::k_eControllerAxis_TrackPad)
 		{
-			if (!m_MenuWasPressed)
-				m_ThumbStick = !m_ThumbStick;
+			if (m_ThumbStick)
+			{
+				// Map the touchpad to the thumbstick with a slightly smaller range
+				float x = axis.x / m_ThumbStickRange;
+				float y = axis.y / m_ThumbStickRange;
+				if (x > 1.0f) x = 1.0f;
+				if (y > 1.0f) y = 1.0f;
 
-			m_MenuWasPressed = true;
-		}
-		else
-		{
-			m_MenuWasPressed = false;
-		}
+				inputState->Thumbstick[hand].x = x;
+				inputState->Thumbstick[hand].y = y;
+			}
 
-		if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-			buttons |= isLeft ? ovrButton_LShoulder : ovrButton_RShoulder;
-
-		if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
-			inputState->HandTrigger[i] = 1.0f;
-
-		if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
-			touches |= isLeft ? ovrTouch_LThumb : ovrTouch_RThumb;
-
-		if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-			touches |= isLeft ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
-
-		// Convert the axes
-		for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
-		{
-			vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + j);
-			vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(touch, prop);
-			vr::VRControllerAxis_t axis = state.rAxis[j];
-
-			if (type == vr::k_eControllerAxis_TrackPad)
+			if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
 			{
 				if (m_ThumbStick)
 				{
-					// Map the touchpad to the thumbstick with a slightly smaller range
-					float x = axis.x / m_ThumbStickRange;
-					float y = axis.y / m_ThumbStickRange;
-					if (x > 1.0f) x = 1.0f;
-					if (y > 1.0f) y = 1.0f;
-
-					inputState->Thumbstick[i].x = x;
-					inputState->Thumbstick[i].y = y;
+					buttons |= (hand == ovrHand_Left) ? ovrButton_LThumb : ovrButton_RThumb;
 				}
-
-				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+				else
 				{
-					if (m_ThumbStick)
-					{
-						buttons |= isLeft ? ovrButton_LThumb : ovrButton_RThumb;
+					if (axis.y < axis.x) {
+						if (axis.y < -axis.x)
+							buttons |= ovrButton_A;
+						else
+							buttons |= ovrButton_B;
 					}
-					else
-					{
-						if (axis.y < axis.x) {
-							if (axis.y < -axis.x)
-								buttons |= ovrButton_A;
-							else
-								buttons |= ovrButton_B;
-						}
-						else {
-							if (axis.y < -axis.x)
-								buttons |= ovrButton_X;
-							else
-								buttons |= ovrButton_Y;
-						}
+					else {
+						if (axis.y < -axis.x)
+							buttons |= ovrButton_X;
+						else
+							buttons |= ovrButton_Y;
 					}
 				}
 			}
-
-			if (type == vr::k_eControllerAxis_Trigger)
-				inputState->IndexTrigger[i] = axis.x;
 		}
 
-		// Commit buttons/touches, count pressed buttons as touches.
-		inputState->Buttons |= buttons;
-		inputState->Touches |= touches | buttons;
+		if (type == vr::k_eControllerAxis_Trigger)
+			inputState->IndexTrigger[hand] = axis.x;
 	}
+
+	// Commit buttons/touches, count pressed buttons as touches.
+	inputState->Buttons |= buttons;
+	inputState->Touches |= touches | buttons;
 }
 
 void InputManager::OculusTouch::SetVibration(float frequency, float amplitude)
