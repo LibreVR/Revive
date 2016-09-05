@@ -19,6 +19,12 @@
     <Filter Include="Header Files\LibOVR\Extras">
       <UniqueIdentifier>{5d5ca7db-d5a5-48fa-913f-bca4b86d6d27}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\LibRevive">
+      <UniqueIdentifier>{dc5b70c5-2558-4bd7-bb37-ca1828e83953}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\LibRevive">
+      <UniqueIdentifier>{b3eaa487-d485-4b2a-8a6a-e3a3f3481153}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\LibOVR\Include\OVR_CAPI.h">
@@ -45,54 +51,69 @@
     <ClInclude Include="..\LibOVR\Include\Extras\OVR_CAPI_Util.h">
       <Filter>Header Files\LibOVR\Extras</Filter>
     </ClInclude>
-    <ClInclude Include="REV_Assert.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="REV_Error.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\LibOVR\Include\Extras\OVR_Math.h">
       <Filter>Header Files\LibOVR\Extras</Filter>
     </ClInclude>
     <ClInclude Include="..\LibOVR\Include\Extras\OVR_StereoProjection.h">
       <Filter>Header Files\LibOVR\Extras</Filter>
     </ClInclude>
-    <ClInclude Include="REV_Math.h">
+    <ClInclude Include="..\openvr\headers\openvr.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CompositorBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="REV_Assert.h">
+      <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
     <ClInclude Include="REV_Common.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="REV_Error.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="REV_Math.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="CompositorD3D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\openvr\headers\openvr.h">
+    <ClInclude Include="CompositorGL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="REV_CAPI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="REV_CAPI_Audio.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="REV_CAPI_D3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="REV_CAPI_GL.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="REV_CAPI_Util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="REV_Math.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_Audio.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_D3D.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_GL.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_Util.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
     <ClCompile Include="REV_Common.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="CompositorBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="REV_Math.cpp">
+    <ClCompile Include="CompositorD3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CompositorGL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

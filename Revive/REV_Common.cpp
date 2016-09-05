@@ -15,14 +15,6 @@ ovrTextureSwapChainData::ovrTextureSwapChainData(vr::EGraphicsAPIConvention api,
 	memset(Textures, 0, sizeof(Textures));
 }
 
-ovrTextureSwapChainData::~ovrTextureSwapChainData()
-{
-	if (ApiType == vr::API_DirectX)
-		rev_DestroyTextureSwapChainDX(this);
-	else if (ApiType == vr::API_OpenGL)
-		rev_DestroyTextureSwapChainGL(this);
-}
-
 ovrMirrorTextureData::ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc)
 	: ApiType(api)
 	, Desc(desc)
@@ -32,21 +24,12 @@ ovrMirrorTextureData::ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMi
 	memset(Views, 0, sizeof(Views));
 }
 
-ovrMirrorTextureData::~ovrMirrorTextureData()
-{
-	if (ApiType == vr::API_DirectX)
-		rev_DestroyMirrorTextureDX(this);
-	else if (ApiType == vr::API_OpenGL)
-		rev_DestroyMirrorTextureGL(this);
-}
-
 ovrHmdStruct::ovrHmdStruct()
 	: ShouldQuit(false)
 	, IsVisible(false)
 	, FrameIndex(0)
 	, ThumbStickRange(0.0f)
-	, OverlayCount(0)
-	, MirrorTexture(nullptr)
+	, Compositor(nullptr)
 {
 	memset(ThumbStick, false, sizeof(ThumbStick));
 	memset(MenuWasPressed, false, sizeof(MenuWasPressed));
@@ -108,15 +91,4 @@ unsigned int rev_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose)
 	}
 
 	return result;
-}
-
-vr::VROverlayHandle_t rev_CreateOverlay(ovrSession session)
-{
-	// Each overlay needs a unique key, so just count how many overlays we've created until now.
-	char keyName[vr::k_unVROverlayMaxKeyLength];
-	snprintf(keyName, vr::k_unVROverlayMaxKeyLength, "revive.runtime.layer%d", session->OverlayCount++);
-
-	vr::VROverlayHandle_t handle = vr::k_ulOverlayHandleInvalid;
-	vr::VROverlay()->CreateOverlay((const char*)keyName, "Revive Layer", &handle);
-	return handle;
 }

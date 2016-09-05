@@ -2,6 +2,8 @@
 
 #include "OVR_CAPI.h"
 #include "openvr.h"
+#include "CompositorBase.h"
+
 #include <vector>
 
 // Common structures
@@ -18,7 +20,6 @@ struct ovrTextureSwapChainData
 	vr::VROverlayHandle_t Overlay;
 
 	ovrTextureSwapChainData(vr::EGraphicsAPIConvention api, ovrTextureSwapChainDesc desc);
-	~ovrTextureSwapChainData();
 };
 
 struct ovrMirrorTextureData
@@ -31,7 +32,6 @@ struct ovrMirrorTextureData
 	void* Shader;
 
 	ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc);
-	~ovrMirrorTextureData();
 };
 
 struct ovrHmdStruct
@@ -51,12 +51,8 @@ struct ovrHmdStruct
 	vr::TrackedDevicePose_t Poses[vr::k_unMaxTrackedDeviceCount];
 	vr::TrackedDevicePose_t GamePoses[vr::k_unMaxTrackedDeviceCount];
 
-	// Overlays
-	unsigned int OverlayCount;
-	std::vector<vr::VROverlayHandle_t> ActiveOverlays;
-
-	// Mirror texture
-	ovrMirrorTexture MirrorTexture;
+	// Compositor
+	CompositorBase* Compositor;
 
 	ovrHmdStruct();
 	~ovrHmdStruct();
@@ -66,13 +62,3 @@ struct ovrHmdStruct
 
 unsigned int rev_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 vr::VRTextureBounds_t rev_ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
-vr::VROverlayHandle_t rev_CreateOverlay(ovrSession session);
-
-// Graphics functions
-
-void rev_DestroyTextureSwapChainDX(ovrTextureSwapChain chain);
-void rev_DestroyTextureSwapChainGL(ovrTextureSwapChain chain);
-void rev_DestroyMirrorTextureDX(ovrMirrorTexture mirrorTexture);
-void rev_DestroyMirrorTextureGL(ovrMirrorTexture mirrorTexture);
-void rev_RenderMirrorTextureDX(ovrMirrorTexture mirrorTexture);
-void rev_RenderMirrorTextureGL(ovrMirrorTexture mirrorTexture);
