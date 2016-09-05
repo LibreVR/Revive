@@ -8,7 +8,7 @@
 #define REV_UNIMPLEMENTED_NULL REV_UNIMPLEMENTED; return NULL;
 #define REV_UNIMPLEMENTED_RUNTIME REV_UNIMPLEMENTED; return ovrError_RuntimeException;
 
-#ifdef _DEBUG
+#if 0
 #define REV_TRACE(x) OutputDebugString(L"Revive: " #x "\n");
 #else
 #define REV_TRACE(x)
