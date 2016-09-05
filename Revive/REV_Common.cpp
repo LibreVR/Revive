@@ -29,14 +29,16 @@ ovrHmdStruct::ovrHmdStruct()
 	, IsVisible(false)
 	, FrameIndex(0)
 	, Compositor(nullptr)
+	, Input(new InputManager())
 {
-
 	memset(Poses, 0, sizeof(Poses));
 	memset(GamePoses, 0, sizeof(GamePoses));
 }
 
 ovrHmdStruct::~ovrHmdStruct()
 {
+	delete Input;
+	delete Compositor;
 }
 
 // Common functions
