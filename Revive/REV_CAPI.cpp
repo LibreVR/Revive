@@ -5,23 +5,11 @@
 #include "openvr.h"
 #include "MinHook.h"
 #include <DXGI.h>
-#include <Xinput.h>
-#include <vector>
-#include <algorithm>
 
 #include "REV_Assert.h"
 #include "REV_Common.h"
 #include "REV_Error.h"
 #include "REV_Math.h"
-
-#define REV_SETTINGS_SECTION "revive"
-
-typedef DWORD(__stdcall* _XInputGetState)(DWORD dwUserIndex, XINPUT_STATE* pState);
-typedef DWORD(__stdcall* _XInputSetState)(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
-
-HMODULE g_hXInputLib;
-_XInputGetState g_pXInputGetState;
-_XInputSetState g_pXInputSetState;
 
 vr::EVRInitError g_InitError = vr::VRInitError_None;
 
@@ -32,18 +20,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	MH_QueueDisableHook(LoadLibraryW);
 	MH_QueueDisableHook(OpenEventW);
 	MH_ApplyQueued();
-
-	g_hXInputLib = LoadLibraryW(L"xinput1_3.dll");
-	if (!g_hXInputLib)
-		return ovrError_LibLoad;
-
-	g_pXInputGetState = (_XInputGetState)GetProcAddress(g_hXInputLib, "XInputGetState");
-	if (!g_pXInputGetState)
-		return ovrError_LibLoad;
-
-	g_pXInputSetState = (_XInputSetState)GetProcAddress(g_hXInputLib, "XInputSetState");
-	if (!g_pXInputSetState)
-		return ovrError_LibLoad;
 
 	vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
 
@@ -57,9 +33,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
 	REV_TRACE(ovr_Shutdown);
-
-	if (g_hXInputLib)
-		FreeLibrary(g_hXInputLib);
 
 	vr::VR_Shutdown();
 }
@@ -190,9 +163,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 	// Get the first poses
 	vr::VRCompositor()->WaitGetPoses(session->Poses, vr::k_unMaxTrackedDeviceCount, session->GamePoses, vr::k_unMaxTrackedDeviceCount);
-
-	// Apply settings
-	session->ThumbStickRange = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange", 0.8f);
 
 	// Get the LUID for the default adapter
 	int32_t index;
@@ -406,297 +376,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 	if (!inputState)
 		return ovrError_InvalidParameter;
 
-	memset(inputState, 0, sizeof(ovrInputState));
-
-	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
-
-	// Get controller indices.
-	vr::TrackedDeviceIndex_t controllers[vr::k_unMaxTrackedDeviceCount];
-	uint32_t controllerCount = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, controllers, vr::k_unMaxTrackedDeviceCount);
-
-	if (controllerType & ovrControllerType_Touch)
-	{
-		// Get controller indices.
-		vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
-			vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
-
-		// Only if both controllers are available, then the touch controller is connected.
-		if (controllerCount > 1)
-		{
-			for (int i = 0; i < ovrHand_Count; i++)
-			{
-				if (hands[i] == vr::k_unTrackedDeviceIndexInvalid)
-					continue;
-
-				vr::VRControllerState_t state;
-				vr::VRSystem()->GetControllerState(hands[i], &state);
-
-				unsigned int buttons = 0, touches = 0;
-				bool isLeft = (i == ovrHand_Left);
-
-				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
-				{
-					if (!session->MenuWasPressed[i])
-						session->ThumbStick[i] = !session->ThumbStick[i];
-
-					session->MenuWasPressed[i] = true;
-				}
-				else
-				{
-					session->MenuWasPressed[i] = false;
-				}
-
-				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-					buttons |= isLeft ? ovrButton_LShoulder : ovrButton_RShoulder;
-
-				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
-					inputState->HandTrigger[i] = 1.0f;
-
-				if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
-					touches |= isLeft ? ovrTouch_LThumb : ovrTouch_RThumb;
-
-				if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
-					touches |= isLeft ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
-
-				// Convert the axes
-				for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
-				{
-					vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + j);
-					vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(hands[i], prop);
-					vr::VRControllerAxis_t axis = state.rAxis[j];
-
-					if (type == vr::k_eControllerAxis_TrackPad)
-					{
-						if (session->ThumbStick[i])
-						{
-							// Map the touchpad to the thumbstick with a slightly smaller range
-							float x = axis.x / session->ThumbStickRange;
-							float y = axis.y / session->ThumbStickRange;
-							if (x > 1.0f) x = 1.0f;
-							if (y > 1.0f) y = 1.0f;
-
-							inputState->Thumbstick[i].x = x;
-							inputState->Thumbstick[i].y = y;
-						}
-
-						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
-						{
-							if (session->ThumbStick[i])
-							{
-								buttons |= isLeft ? ovrButton_LThumb : ovrButton_RThumb;
-							}
-							else
-							{
-								if (axis.y < axis.x) {
-									if (axis.y < -axis.x)
-										buttons |= ovrButton_A;
-									else
-										buttons |= ovrButton_B;
-								}
-								else {
-									if (axis.y < -axis.x)
-										buttons |= ovrButton_X;
-									else
-										buttons |= ovrButton_Y;
-								}
-							}
-						}
-					}
-
-					if (type == vr::k_eControllerAxis_Trigger)
-						inputState->IndexTrigger[i] = axis.x;
-				}
-
-				// Commit buttons/touches, count pressed buttons as touches.
-				inputState->Buttons |= buttons;
-				inputState->Touches |= touches | buttons;
-			}
-
-			inputState->ControllerType = ovrControllerType_Touch;
-		}
-	}
-
-	if (controllerType & ovrControllerType_Remote)
-	{
-		// Emulate the remote if we have only one connected controller
-		if (controllerCount == 1)
-		{
-			for (int i = 0; i < controllerCount; i++)
-			{
-				if (controllers[i] == vr::k_unTrackedDeviceIndexInvalid)
-					continue;
-
-				vr::VRControllerState_t state;
-				vr::VRSystem()->GetControllerState(controllers[i], &state);
-
-				if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
-					inputState->Buttons |= ovrButton_Back;
-
-				// Convert the axes
-				for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
-				{
-					vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + j);
-					vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(controllers[i], prop);
-					vr::VRControllerAxis_t axis = state.rAxis[j];
-
-					if (type == vr::k_eControllerAxis_TrackPad)
-					{
-						if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
-						{
-							float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
-
-							if (magnitude < 0.5f)
-							{
-								inputState->Buttons |= ovrButton_Enter;
-							}
-							else
-							{
-								if (axis.y < axis.x) {
-									if (axis.y < -axis.x)
-										inputState->Buttons |= ovrButton_Down;
-									else
-										inputState->Buttons |= ovrButton_Right;
-								}
-								else {
-									if (axis.y < -axis.x)
-										inputState->Buttons |= ovrButton_Left;
-									else
-										inputState->Buttons |= ovrButton_Up;
-								}
-							}
-						}
-					}
-				}
-
-				inputState->ControllerType = ovrControllerType_Remote;
-			}
-		}
-	}
-
-	if (controllerType & ovrControllerType_XBox)
-	{
-		// Use XInput for Xbox controllers.
-		XINPUT_STATE state;
-		if (g_pXInputGetState(0, &state) == ERROR_SUCCESS)
-		{
-			// Convert the buttons
-			WORD buttons = state.Gamepad.wButtons;
-			if (buttons & XINPUT_GAMEPAD_DPAD_UP)
-				inputState->Buttons |= ovrButton_Up;
-			if (buttons & XINPUT_GAMEPAD_DPAD_DOWN)
-				inputState->Buttons |= ovrButton_Down;
-			if (buttons & XINPUT_GAMEPAD_DPAD_LEFT)
-				inputState->Buttons |= ovrButton_Left;
-			if (buttons & XINPUT_GAMEPAD_DPAD_RIGHT)
-				inputState->Buttons |= ovrButton_Right;
-			if (buttons & XINPUT_GAMEPAD_START)
-				inputState->Buttons |= ovrButton_Enter;
-			if (buttons & XINPUT_GAMEPAD_BACK)
-				inputState->Buttons |= ovrButton_Back;
-			if (buttons & XINPUT_GAMEPAD_LEFT_THUMB)
-				inputState->Buttons |= ovrButton_LThumb;
-			if (buttons & XINPUT_GAMEPAD_RIGHT_THUMB)
-				inputState->Buttons |= ovrButton_RThumb;
-			if (buttons & XINPUT_GAMEPAD_LEFT_SHOULDER)
-				inputState->Buttons |= ovrButton_LShoulder;
-			if (buttons & XINPUT_GAMEPAD_RIGHT_SHOULDER)
-				inputState->Buttons |= ovrButton_RShoulder;
-			if (buttons & XINPUT_GAMEPAD_A)
-				inputState->Buttons |= ovrButton_A;
-			if (buttons & XINPUT_GAMEPAD_B)
-				inputState->Buttons |= ovrButton_B;
-			if (buttons & XINPUT_GAMEPAD_X)
-				inputState->Buttons |= ovrButton_X;
-			if (buttons & XINPUT_GAMEPAD_Y)
-				inputState->Buttons |= ovrButton_Y;
-
-			// Convert the axes
-			SHORT deadzones[] = { XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE };
-			for (int i = 0; i < ovrHand_Count; i++)
-			{
-				float X, Y, trigger;
-				if (i == ovrHand_Left)
-				{
-					X = state.Gamepad.sThumbLX;
-					Y = state.Gamepad.sThumbLY;
-					trigger = state.Gamepad.bLeftTrigger;
-				}
-				if (i == ovrHand_Right)
-				{
-					X = state.Gamepad.sThumbRX;
-					Y = state.Gamepad.sThumbRY;
-					trigger = state.Gamepad.bRightTrigger;
-				}
-
-				//determine how far the controller is pushed
-				float magnitude = sqrt(X*X + Y*Y);
-
-				//determine the direction the controller is pushed
-				float normalizedX = X / magnitude;
-				float normalizedY = Y / magnitude;
-
-				//check if the controller is outside a circular dead zone
-				if (magnitude > deadzones[i])
-				{
-					//clip the magnitude at its expected maximum value
-					if (magnitude > 32767) magnitude = 32767;
-
-					//adjust magnitude relative to the end of the dead zone
-					magnitude -= deadzones[i];
-
-					//optionally normalize the magnitude with respect to its expected range
-					//giving a magnitude value of 0.0 to 1.0
-					float normalizedMagnitude = magnitude / (32767 - deadzones[i]);
-					inputState->Thumbstick[i].x = normalizedMagnitude * normalizedX;
-					inputState->Thumbstick[i].y = normalizedMagnitude * normalizedY;
-				}
-
-				if (trigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-				{
-					//clip the magnitude at its expected maximum value
-					if (trigger > 255) trigger = 255;
-
-					//adjust magnitude relative to the end of the dead zone
-					trigger -= XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
-
-					//optionally normalize the magnitude with respect to its expected range
-					//giving a magnitude value of 0.0 to 1.0
-					float normalizedTrigger = trigger / (255 - XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
-					inputState->IndexTrigger[i] = normalizedTrigger;
-				}
-			}
-
-			// Set the controller as connected.
-			inputState->ControllerType = ovrControllerType_XBox;
-		}
-	}
-
-	return ovrSuccess;
+	return session->Input->GetInputState(controllerType, inputState);
 }
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession session)
 {
 	REV_TRACE(ovr_GetConnectedControllerTypes);
 
-	unsigned int types = 0;
-
-	// Check for Vive controllers
-	uint32_t controllerCount = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, nullptr, 0);
-
-	// If both controllers are available, it's a touch controller. If not, it's a remote.
-	if (controllerCount > 1)
-		types |= ovrControllerType_Touch;
-	else
-		types |= ovrControllerType_Remote;
-
-	// Check for Xbox controller
-	XINPUT_STATE input;
-	if (g_pXInputGetState(0, &input) == ERROR_SUCCESS)
-	{
-		types |= ovrControllerType_XBox;
-	}
-
-	return types;
+	return session->Input->GetConnectedControllerTypes();
 }
 
 
@@ -710,27 +397,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ov
 {
 	REV_TRACE(ovr_SetControllerVibration);
 
-	// TODO: Disable the rumbler after a nominal amount of time.
-	// TODO: Implement Oculus Touch support.
+	if (!session)
+		return ovrError_InvalidSession;
 
-	if (controllerType == ovrControllerType_XBox)
-	{
-		XINPUT_VIBRATION vibration;
-		ZeroMemory(&vibration, sizeof(XINPUT_VIBRATION));
-		if (frequency > 0.0f)
-		{
-			// The right motor is the high-frequency motor, the left motor is the low-frequency motor.
-			if (frequency > 0.5f)
-				vibration.wRightMotorSpeed = WORD(65535.0f * amplitude);
-			else
-				vibration.wLeftMotorSpeed = WORD(65535.0f * amplitude);
-		}
-		g_pXInputSetState(0, &vibration);
-
-		return ovrSuccess;
-	}
-
-	return ovrError_DeviceUnavailable;
+	return session->Input->SetControllerVibration(controllerType, frequency, amplitude);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer)

@@ -205,6 +205,7 @@
     <ClInclude Include="CompositorBase.h" />
     <ClInclude Include="CompositorD3D.h" />
     <ClInclude Include="CompositorGL.h" />
+    <ClInclude Include="InputManager.h" />
     <ClInclude Include="REV_Common.h" />
     <ClInclude Include="REV_Math.h" />
     <ClInclude Include="..\LibOVR\Include\Extras\OVR_CAPI_Util.h" />
@@ -224,6 +225,7 @@
     <ClCompile Include="CompositorBase.cpp" />
     <ClCompile Include="CompositorD3D.cpp" />
     <ClCompile Include="CompositorGL.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="REV_CAPI.cpp" />
     <ClCompile Include="REV_CAPI_Audio.cpp" />

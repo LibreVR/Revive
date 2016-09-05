@@ -3,12 +3,14 @@
 #include "OVR_CAPI.h"
 #include "openvr.h"
 #include "CompositorBase.h"
+#include "InputManager.h"
 
 #include <vector>
 
 // Common structures
 
 #define REV_SWAPCHAIN_LENGTH 2
+#define REV_SETTINGS_SECTION "revive"
 
 struct ovrTextureSwapChainData
 {
@@ -42,17 +44,13 @@ struct ovrHmdStruct
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
 	long long FrameIndex;
 
-	// Controller states
-	bool ThumbStick[ovrHand_Count];
-	bool MenuWasPressed[ovrHand_Count];
-	float ThumbStickRange;
-
 	// Device poses
 	vr::TrackedDevicePose_t Poses[vr::k_unMaxTrackedDeviceCount];
 	vr::TrackedDevicePose_t GamePoses[vr::k_unMaxTrackedDeviceCount];
 
-	// Compositor
+	// Revive interfaces
 	CompositorBase* Compositor;
+	InputManager* Input;
 
 	ovrHmdStruct();
 	~ovrHmdStruct();

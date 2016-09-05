@@ -3,6 +3,7 @@
 #include "REV_Math.h"
 
 #include <vector>
+#include <algorithm>
 
 #define REV_LAYER_BIAS 0.0001f
 

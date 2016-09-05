@@ -28,17 +28,11 @@ ovrHmdStruct::ovrHmdStruct()
 	: ShouldQuit(false)
 	, IsVisible(false)
 	, FrameIndex(0)
-	, ThumbStickRange(0.0f)
 	, Compositor(nullptr)
 {
-	memset(ThumbStick, false, sizeof(ThumbStick));
-	memset(MenuWasPressed, false, sizeof(MenuWasPressed));
 
 	memset(Poses, 0, sizeof(Poses));
 	memset(GamePoses, 0, sizeof(GamePoses));
-
-	// Most games only use the left thumbstick
-	ThumbStick[ovrHand_Left] = true;
 }
 
 ovrHmdStruct::~ovrHmdStruct()
