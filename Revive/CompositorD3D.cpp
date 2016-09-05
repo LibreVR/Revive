@@ -243,7 +243,7 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 
 	// Draw a triangle strip, the vertex buffer is not used.
 	FLOAT clear[4] = { 0.0f };
-	D3D11_VIEWPORT viewport = { 0.0f, 0.0f, mirrorTexture->Desc.Width, mirrorTexture->Desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+	D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (float)mirrorTexture->Desc.Width, (float)mirrorTexture->Desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	pContext->RSSetViewports(1, &viewport);
 	pContext->ClearRenderTargetView((ID3D11RenderTargetView*)mirrorTexture->Target, clear);
 	pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->Target, NULL);

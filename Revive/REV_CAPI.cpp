@@ -693,7 +693,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const ch
 
 	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
 
-	for (size_t i = 0; i < valuesCapacity; i++)
+	for (unsigned int i = 0; i < valuesCapacity; i++)
 	{
 		vr::EVRSettingsError error;
 		snprintf(key, vr::k_unMaxSettingsKeyLength, "%s[%d]", propertyName, i);
@@ -715,7 +715,7 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* p
 
 	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
 
-	for (size_t i = 0; i < valuesSize; i++)
+	for (unsigned int i = 0; i < valuesSize; i++)
 	{
 		vr::EVRSettingsError error;
 		snprintf(key, vr::k_unMaxSettingsKeyLength, "%s[%d]", propertyName, i);
