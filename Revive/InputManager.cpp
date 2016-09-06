@@ -12,13 +12,16 @@ _XInputSetState InputManager::s_XInputSetState;
 InputManager::InputManager()
 {
 	m_XInputLib = LoadLibraryW(L"xinput1_3.dll");
-	s_XInputGetState = (_XInputGetState)GetProcAddress(m_XInputLib, "XInputGetState");
-	s_XInputSetState = (_XInputSetState)GetProcAddress(m_XInputLib, "XInputSetState");
+	if (m_XInputLib)
+	{
+		s_XInputGetState = (_XInputGetState)GetProcAddress(m_XInputLib, "XInputGetState");
+		s_XInputSetState = (_XInputSetState)GetProcAddress(m_XInputLib, "XInputSetState");
+		m_InputDevices.push_back(new XboxGamepad());
+	}
 
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
 	m_InputDevices.push_back(new OculusRemote());
-	m_InputDevices.push_back(new XboxGamepad());
 }
 
 InputManager::~InputManager()
