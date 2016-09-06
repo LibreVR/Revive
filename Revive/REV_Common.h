@@ -44,10 +44,6 @@ struct ovrHmdStruct
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
 	long long FrameIndex;
 
-	// Device poses
-	vr::TrackedDevicePose_t Poses[vr::k_unMaxTrackedDeviceCount];
-	vr::TrackedDevicePose_t GamePoses[vr::k_unMaxTrackedDeviceCount];
-
 	// Revive interfaces
 	CompositorBase* Compositor;
 	InputManager* Input;

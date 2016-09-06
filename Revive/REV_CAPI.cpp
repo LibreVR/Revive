@@ -161,9 +161,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	vr::ETrackingUniverseOrigin origin = (vr::ETrackingUniverseOrigin)vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, "DefaultTrackingOrigin", vr::TrackingUniverseSeated);
 	vr::VRCompositor()->SetTrackingSpace(origin);
 
-	// Get the first poses
-	vr::VRCompositor()->WaitGetPoses(session->Poses, vr::k_unMaxTrackedDeviceCount, session->GamePoses, vr::k_unMaxTrackedDeviceCount);
-
 	// Get the LUID for the default adapter
 	int32_t index;
 	vr::VRSystem()->GetDXGIOutputInfo(&index);
@@ -287,8 +284,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	if (!session)
 		return state;
 
-	// Get the absolute tracking poses
-	vr::TrackedDevicePose_t* poses = session->Poses;
+	// Get the device poses.
+	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+	vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 
 	// Convert the head pose
 	state.HeadPose = rev_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
@@ -326,44 +324,51 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 {
 	REV_TRACE(ovr_GetTrackerPose);
 
-	ovrTrackerPose pose = { 0 };
+	ovrTrackerPose tracker = { 0 };
 
 	if (!session)
-		return pose;
+		return tracker;
 
 	// Get the index for this tracker.
 	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount] = { vr::k_unTrackedDeviceIndexInvalid };
 	vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
 	vr::TrackedDeviceIndex_t index = trackers[trackerPoseIndex];
 
+	// Get the device poses.
+	vr::TrackedDevicePose_t pose;
+	vr::VRCompositor()->GetLastPoseForTrackedDeviceIndex(index, &pose, nullptr);
+
+	// TODO: Should the tracker pose always be in the standing universe?
+	//vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0, poses, vr::k_unMaxTrackedDeviceCount);
+
 	// Set the flags
-	pose.TrackerFlags = 0;
+	tracker.TrackerFlags = 0;
 	if (index != vr::k_unTrackedDeviceIndexInvalid)
 	{
-		if (session->Poses[index].bDeviceIsConnected)
-			pose.TrackerFlags |= ovrTracker_Connected;
-		if (session->Poses[index].bPoseIsValid)
-			pose.TrackerFlags |= ovrTracker_PoseTracked;
+		if (vr::VRSystem()->IsTrackedDeviceConnected(index))
+			tracker.TrackerFlags |= ovrTracker_Connected;
+		if (pose.bPoseIsValid)
+			tracker.TrackerFlags |= ovrTracker_PoseTracked;
 	}
 
 	// Convert the pose
 	OVR::Matrix4f matrix;
-	if (index != vr::k_unTrackedDeviceIndexInvalid && session->Poses[index].bPoseIsValid)
-		matrix = rev_HmdMatrixToOVRMatrix(session->Poses[index].mDeviceToAbsoluteTracking);
+	if (index != vr::k_unTrackedDeviceIndexInvalid && pose.bPoseIsValid)
+		matrix = rev_HmdMatrixToOVRMatrix(pose.mDeviceToAbsoluteTracking);
 
 	// We need to mirror the orientation along either the X or Y axis
 	OVR::Quatf quat = OVR::Quatf(matrix);
 	OVR::Quatf mirror = OVR::Quatf(1.0f, 0.0f, 0.0f, 0.0f);
-	pose.Pose.Orientation = quat * mirror;
-	pose.Pose.Position = matrix.GetTranslation();
+	tracker.Pose.Orientation = quat * mirror;
+	tracker.Pose.Position = matrix.GetTranslation();
 
 	// Level the pose
 	float yaw;
 	quat.GetYawPitchRoll(&yaw, nullptr, nullptr);
-	pose.LeveledPose.Orientation = OVR::Quatf(OVR::Axis_Y, yaw);
-	pose.LeveledPose.Position = matrix.GetTranslation();
+	tracker.LeveledPose.Orientation = OVR::Quatf(OVR::Axis_Y, yaw);
+	tracker.LeveledPose.Position = matrix.GetTranslation();
 
-	return pose;
+	return tracker;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
@@ -543,9 +548,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	vr::EVRCompositorError err = session->Compositor->SubmitFrame(viewScaleDesc, layerPtrList, layerCount);
 	if (err != vr::VRCompositorError_None)
 		return err;
-
-	// Call WaitGetPoses() to do some cleanup from the previous frame.
-	err = vr::VRCompositor()->WaitGetPoses(session->Poses, vr::k_unMaxTrackedDeviceCount, session->GamePoses, vr::k_unMaxTrackedDeviceCount);
 
 	// Increment the frame index.
 	if (frameIndex == 0)

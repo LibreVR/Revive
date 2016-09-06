@@ -105,7 +105,8 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 	// TODO: Render to the mirror texture here.
 	// Currently the mirror texture code is not stable enough yet.
 
-	return vr::VRCompositorError_None;
+	// Call WaitGetPoses() to actually display the frame.
+	return vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 }
 
 vr::VROverlayHandle_t CompositorBase::CreateOverlay()
