@@ -25,7 +25,10 @@ public:
 
 protected:
 	ovrMirrorTexture m_MirrorTexture;
+
 	vr::VROverlayHandle_t CreateOverlay();
+	vr::VRTextureBounds_t ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
+	vr::EVRCompositorError SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags);
 
 private:
 	// Overlays

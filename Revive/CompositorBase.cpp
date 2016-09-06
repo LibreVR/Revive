@@ -60,7 +60,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 				vr::VROverlay()->SetOverlayTransformAbsolute(overlay, vr::VRCompositor()->GetTrackingSpace(), &transform);
 
 			// Set the texture and show the overlay.
-			vr::VRTextureBounds_t bounds = rev_ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
+			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
 			vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
 			vr::VROverlay()->SetOverlayTexture(overlay, layer->ColorTexture->Submitted);
 
@@ -85,76 +85,21 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 	if (layerPtrList[0]->Type == ovrLayerType_EyeFov)
 	{
 		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[0];
-
-		// Submit the scene layer.
-		for (int i = 0; i < ovrEye_Count; i++)
-		{
-			ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
-			vr::VRTextureBounds_t bounds = rev_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
-
-			float left, right, top, bottom;
-			vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
-
-			// Shrink the bounds to account for the overlapping fov
-			ovrFovPort fov = sceneLayer->Fov[i];
-			float uMin = 0.5f + 0.5f * left / fov.LeftTan;
-			float uMax = 0.5f + 0.5f * right / fov.RightTan;
-			float vMin = 0.5f - 0.5f * bottom / fov.UpTan;
-			float vMax = 0.5f - 0.5f * top / fov.DownTan;
-
-			// Combine the fov bounds with the viewport bounds
-			bounds.uMin += uMin * bounds.uMax;
-			bounds.uMax *= uMax;
-			bounds.vMin += vMin * bounds.vMax;
-			bounds.vMax *= vMax;
-
-			if (chain->Textures[i].eType == vr::API_OpenGL)
-			{
-				bounds.vMin = 1.0f - bounds.vMin;
-				bounds.vMax = 1.0f - bounds.vMax;
-			}
-
-			vr::EVRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, chain->Submitted, &bounds);
-			if (err != vr::VRCompositorError_None)
-				return err;
-		}
+		vr::EVRCompositorError err = SubmitFovLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+		if (err != vr::VRCompositorError_None)
+			return err;
 	}
 	else if (layerPtrList[0]->Type == ovrLayerType_EyeMatrix)
 	{
 		ovrLayerEyeMatrix* sceneLayer = (ovrLayerEyeMatrix*)layerPtrList[0];
-
-		// Submit the scene layer.
-		for (int i = 0; i < ovrEye_Count; i++)
-		{
-			ovrTextureSwapChain chain = sceneLayer->ColorTexture[i];
-			vr::VRTextureBounds_t bounds = rev_ViewportToTextureBounds(sceneLayer->Viewport[i], sceneLayer->ColorTexture[i], sceneLayer->Header.Flags);
-
-			float left, right, top, bottom;
-			vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
-
-			// Shrink the bounds to account for the overlapping fov
-			ovrVector2f fov = { .5f / sceneLayer->Matrix[i].M[0][0], .5f / sceneLayer->Matrix[i].M[1][1] };
-			float uMin = 0.5f + 0.5f * left / fov.x;
-			float uMax = 0.5f + 0.5f * right / fov.x;
-			float vMin = 0.5f - 0.5f * bottom / fov.y;
-			float vMax = 0.5f - 0.5f * top / fov.y;
-
-			// Combine the fov bounds with the viewport bounds
-			bounds.uMin += uMin * bounds.uMax;
-			bounds.uMax *= uMax;
-			bounds.vMin += vMin * bounds.vMax;
-			bounds.vMax *= vMax;
-
-			if (chain->Textures[i].eType == vr::API_OpenGL)
-			{
-				bounds.vMin = 1.0f - bounds.vMin;
-				bounds.vMax = 1.0f - bounds.vMax;
-			}
-
-			vr::EVRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, chain->Submitted, &bounds);
-			if (err != vr::VRCompositorError_None)
-				return err;
-		}
+		ovrFovPort fov[ovrEye_Count];
+		fov[0].LeftTan = fov[0].RightTan = .5f / sceneLayer->Matrix[0].M[0][0];
+		fov[0].UpTan   = fov[0].DownTan  = .5f / sceneLayer->Matrix[0].M[1][1];
+		fov[1].LeftTan = fov[1].RightTan = .5f / sceneLayer->Matrix[1].M[0][0];
+		fov[1].UpTan   = fov[1].DownTan  = .5f / sceneLayer->Matrix[1].M[1][1];
+		vr::EVRCompositorError err = SubmitFovLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+		if (err != vr::VRCompositorError_None)
+			return err;
 	}
 
 	// TODO: Render to the mirror texture here.
@@ -172,4 +117,70 @@ vr::VROverlayHandle_t CompositorBase::CreateOverlay()
 	vr::VROverlayHandle_t handle = vr::k_ulOverlayHandleInvalid;
 	vr::VROverlay()->CreateOverlay((const char*)keyName, "Revive Layer", &handle);
 	return handle;
+}
+
+vr::VRTextureBounds_t CompositorBase::ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags)
+{
+	vr::VRTextureBounds_t bounds;
+	float w = (float)swapChain->Desc.Width;
+	float h = (float)swapChain->Desc.Height;
+	bounds.uMin = viewport.Pos.x / w;
+	bounds.vMin = viewport.Pos.y / h;
+
+	// Sanity check for the viewport size.
+	// Workaround for Defense Grid 2, which leaves these variables unintialized.
+	if (viewport.Size.w > 0 && viewport.Size.h > 0)
+	{
+		bounds.uMax = (viewport.Pos.x + viewport.Size.w) / w;
+		bounds.vMax = (viewport.Pos.y + viewport.Size.h) / h;
+	}
+	else
+	{
+		bounds.uMax = 1.0f;
+		bounds.vMax = 1.0f;
+	}
+
+	if (flags & ovrLayerFlag_TextureOriginAtBottomLeft)
+	{
+		bounds.vMin = 1.0f - bounds.vMin;
+		bounds.vMax = 1.0f - bounds.vMax;
+	}
+
+	return bounds;
+}
+
+vr::EVRCompositorError CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
+{
+	// Submit the scene layer.
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
+
+		float left, right, top, bottom;
+		vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
+
+		// Shrink the bounds to account for the overlapping fov
+		float uMin = 0.5f + 0.5f * left / fov[i].LeftTan;
+		float uMax = 0.5f + 0.5f * right / fov[i].RightTan;
+		float vMin = 0.5f - 0.5f * bottom / fov[i].UpTan;
+		float vMax = 0.5f - 0.5f * top / fov[i].DownTan;
+
+		// Combine the fov bounds with the viewport bounds
+		bounds.uMin += uMin * bounds.uMax;
+		bounds.uMax *= uMax;
+		bounds.vMin += vMin * bounds.vMax;
+		bounds.vMax *= vMax;
+
+		if (swapChain[i]->Textures[i].eType == vr::API_OpenGL)
+		{
+			bounds.vMin = 1.0f - bounds.vMin;
+			bounds.vMax = 1.0f - bounds.vMax;
+		}
+
+		vr::EVRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, swapChain[i]->Submitted, &bounds);
+		if (err != vr::VRCompositorError_None)
+			return err;
+	}
+
+	return vr::VRCompositorError_None;
 }
