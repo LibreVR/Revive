@@ -9,6 +9,20 @@
 
 typedef std::pair<ID3D11VertexShader*, ID3D11PixelShader*> ShaderProgram;
 
+CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
+{
+	// Get the device for this context
+	// TODO: DX12 support
+	ID3D11Device* pDevice;
+	HRESULT hr = d3dPtr->QueryInterface(&pDevice);
+	if (FAILED(hr))
+		return nullptr;
+
+	// Attach compositor to the device
+	return new CompositorD3D(pDevice);
+	pDevice->Release();
+}
+
 CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 {
 	m_pDevice = pDevice;

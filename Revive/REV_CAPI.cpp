@@ -386,7 +386,6 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 	return session->Input->GetConnectedControllerTypes();
 }
 
-
 OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession session, ovrControllerType controllerType)
 {
 	REV_TRACE(ovr_GetTouchHapticsDesc);

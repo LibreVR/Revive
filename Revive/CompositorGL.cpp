@@ -4,6 +4,31 @@
 #include <GL/glew.h>
 #include <Windows.h>
 
+GLboolean CompositorGL::glewInitialized = GL_FALSE;
+
+void CompositorGL::DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	OutputDebugStringA(message);
+	OutputDebugStringA("\n");
+}
+
+CompositorGL* CompositorGL::Create()
+{
+	if (!glewInitialized)
+	{
+		glewExperimental = GL_TRUE;
+		GLenum nGlewError = glewInit();
+		if (nGlewError != GLEW_OK)
+			return nullptr;
+#ifdef DEBUG
+		glDebugMessageCallback((GLDEBUGPROC)DebugCallback, nullptr);
+#endif // DEBUG
+		glGetError(); // to clear the error caused deep in GLEW
+		glewInitialized = GL_TRUE;
+	}
+	return new CompositorGL();
+}
+
 CompositorGL::CompositorGL()
 {
 }

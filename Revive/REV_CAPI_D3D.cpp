@@ -20,16 +20,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	if (!session->Compositor)
 	{
-		// Get the device for this context
-		// TODO: DX12 support
-		ID3D11Device* pDevice;
-		HRESULT hr = d3dPtr->QueryInterface(&pDevice);
-		if (FAILED(hr))
+		session->Compositor = CompositorD3D::Create(d3dPtr);
+		if (!session->Compositor)
 			return ovrError_RuntimeException;
-
-		// Attach compositor to the device
-		session->Compositor = new CompositorD3D(pDevice);
-		pDevice->Release();
 	}
 
 	if (session->Compositor->GetAPI() != vr::API_DirectX)
@@ -78,16 +71,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 
 	if (!session->Compositor)
 	{
-		// Get the device for this context
-		// TODO: DX12 support
-		ID3D11Device* pDevice;
-		HRESULT hr = d3dPtr->QueryInterface(&pDevice);
-		if (FAILED(hr))
+		session->Compositor = CompositorD3D::Create(d3dPtr);
+		if (!session->Compositor)
 			return ovrError_RuntimeException;
-
-		// Attach compositor to the device
-		session->Compositor = new CompositorD3D(pDevice);
-		pDevice->Release();
 	}
 
 	if (session->Compositor->GetAPI() != vr::API_DirectX)

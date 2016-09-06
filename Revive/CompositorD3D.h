@@ -12,6 +12,7 @@ public:
 	CompositorD3D(ID3D11Device* pDevice);
 	virtual ~CompositorD3D();
 
+	static CompositorD3D* Create(IUnknown* d3dPtr);
 	virtual vr::EGraphicsAPIConvention GetAPI() { return vr::API_DirectX; };
 
 	// Texture Swapchain

@@ -12,6 +12,7 @@ public:
 	CompositorGL();
 	virtual ~CompositorGL();
 
+	static CompositorGL* Create();
 	virtual vr::EGraphicsAPIConvention GetAPI() { return vr::API_OpenGL; };
 
 	// Texture Swapchain
@@ -26,4 +27,8 @@ public:
 protected:
 	static GLenum TextureFormatToInternalFormat(ovrTextureFormat format);
 	static GLenum TextureFormatToGLFormat(ovrTextureFormat format);
+	static GLboolean glewInitialized;
+
+private:
+	static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 };
