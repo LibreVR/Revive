@@ -85,9 +85,9 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 	if (layerPtrList[0]->Type == ovrLayerType_EyeFov)
 	{
 		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[0];
-		vr::EVRCompositorError err = SubmitFovLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
-		if (err != vr::VRCompositorError_None)
-			return err;
+
+		// TODO: Handle compositor errors.
+		SubmitFovLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
 	}
 	else if (layerPtrList[0]->Type == ovrLayerType_EyeMatrix)
 	{
@@ -97,9 +97,9 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 		fov[0].UpTan   = fov[0].DownTan  = .5f / sceneLayer->Matrix[0].M[1][1];
 		fov[1].LeftTan = fov[1].RightTan = .5f / sceneLayer->Matrix[1].M[0][0];
 		fov[1].UpTan   = fov[1].DownTan  = .5f / sceneLayer->Matrix[1].M[1][1];
-		vr::EVRCompositorError err = SubmitFovLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
-		if (err != vr::VRCompositorError_None)
-			return err;
+
+		// TODO: Handle compositor errors.
+		SubmitFovLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
 	}
 
 	// TODO: Render to the mirror texture here.
