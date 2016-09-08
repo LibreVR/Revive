@@ -31,4 +31,6 @@ protected:
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_MirrorVS;
+	Microsoft::WRL::ComPtr< ID3D11PixelShader> m_MirrorPS;
 };

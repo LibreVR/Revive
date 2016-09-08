@@ -7,8 +7,6 @@
 #include "MirrorVS.hlsl.h"
 #include "MirrorPS.hlsl.h"
 
-typedef std::pair<ID3D11VertexShader*, ID3D11PixelShader*> ShaderProgram;
-
 CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 {
 	// Get the device for this context
@@ -26,6 +24,10 @@ CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 {
 	m_pDevice = pDevice;
+
+	// Compile the mirror shaders.
+	m_pDevice->CreateVertexShader(g_MirrorVS, sizeof(g_MirrorVS), NULL, m_MirrorVS.GetAddressOf());
+	m_pDevice->CreatePixelShader(g_MirrorPS, sizeof(g_MirrorPS), NULL, m_MirrorPS.GetAddressOf());
 }
 
 CompositorD3D::~CompositorD3D()
@@ -52,7 +54,7 @@ DXGI_FORMAT CompositorD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, un
 			case OVR_FORMAT_D16_UNORM:            return DXGI_FORMAT_R16_TYPELESS;
 			case OVR_FORMAT_D24_UNORM_S8_UINT:    return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 			case OVR_FORMAT_D32_FLOAT:            return DXGI_FORMAT_R32_TYPELESS;
-			case OVR_FORMAT_D32_FLOAT_S8X24_UINT:	return DXGI_FORMAT_X32_TYPELESS_G8X24_UINT;
+			case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return DXGI_FORMAT_X32_TYPELESS_G8X24_UINT;
 
 			// Added in 1.5 compressed formats can be used for static layers
 			case OVR_FORMAT_BC1_UNORM:            return DXGI_FORMAT_BC1_TYPELESS;
@@ -204,19 +206,6 @@ ovrResult CompositorD3D::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, o
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
 
-	// Compile the blitting shaders.
-	ID3D11VertexShader* vs;
-	hr = m_pDevice->CreateVertexShader(g_MirrorVS, sizeof(g_MirrorVS), NULL, &vs);
-	if (FAILED(hr))
-		return ovrError_RuntimeException;
-
-	ID3D11PixelShader* ps;
-	hr = m_pDevice->CreatePixelShader(g_MirrorPS, sizeof(g_MirrorPS), NULL, &ps);
-	if (FAILED(hr))
-		return ovrError_RuntimeException;
-
-	mirrorTexture->Shader = new ShaderProgram(vs, ps);
-
 	// Get the mirror textures
 	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, m_pDevice.Get(), &mirrorTexture->Views[ovrEye_Left]);
 	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, m_pDevice.Get(), &mirrorTexture->Views[ovrEye_Right]);
@@ -231,12 +220,6 @@ void CompositorD3D::DestroyMirrorTexture(ovrMirrorTexture mirrorTexture)
 	((ID3D11RenderTargetView*)mirrorTexture->Target)->Release();
 	((ID3D11ShaderResourceView*)mirrorTexture->Views[ovrEye_Left])->Release();
 	((ID3D11ShaderResourceView*)mirrorTexture->Views[ovrEye_Right])->Release();
-
-	ShaderProgram* shader = (ShaderProgram*)mirrorTexture->Shader;
-	shader->first->Release();
-	shader->second->Release();
-	delete shader;
-
 	m_MirrorTexture = nullptr;
 }
 
@@ -250,9 +233,8 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	pDevice->GetImmediateContext(&pContext);
 
 	// Compile the shaders if it is not yet set
-	ShaderProgram* shader = (ShaderProgram*)mirrorTexture->Shader;
-	pContext->VSSetShader(shader->first, NULL, 0);
-	pContext->PSSetShader(shader->second, NULL, 0);
+	pContext->VSSetShader(m_MirrorVS.Get(), NULL, 0);
+	pContext->PSSetShader(m_MirrorPS.Get(), NULL, 0);
 	pContext->PSSetShaderResources(0, 2, (ID3D11ShaderResourceView**)mirrorTexture->Views);
 
 	// Draw a triangle strip, the vertex buffer is not used.
