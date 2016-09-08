@@ -17,8 +17,9 @@ CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 		return nullptr;
 
 	// Attach compositor to the device
-	return new CompositorD3D(pDevice);
+	CompositorD3D* compositor = new CompositorD3D(pDevice);
 	pDevice->Release();
+	return compositor;
 }
 
 CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
@@ -32,6 +33,8 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 
 CompositorD3D::~CompositorD3D()
 {
+  if (m_MirrorTexture)
+	DestroyMirrorTexture(m_MirrorTexture);
 }
 
 DXGI_FORMAT CompositorD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int flags)
@@ -128,22 +131,26 @@ UINT CompositorD3D::MiscFlagsToD3DMiscFlags(unsigned int flags)
 	return result;
 }
 
+HRESULT CompositorD3D::CreateTexture(UINT Width, UINT Height, UINT MipLevels, UINT ArraySize,
+  ovrTextureFormat Format, UINT MiscFlags, UINT BindFlags, ID3D11Texture2D** Texture)
+{
+  D3D11_TEXTURE2D_DESC desc;
+  desc.Width = Width;
+  desc.Height = Height;
+  desc.MipLevels = MipLevels;
+  desc.ArraySize = ArraySize;
+  desc.SampleDesc.Count = 1;
+  desc.SampleDesc.Quality = 0;
+  desc.Format = TextureFormatToDXGIFormat(Format, MiscFlags);
+  desc.Usage = D3D11_USAGE_DEFAULT;
+  desc.BindFlags = BindFlagsToD3DBindFlags(BindFlags);
+  desc.CPUAccessFlags = 0;
+  desc.MiscFlags = MiscFlagsToD3DMiscFlags(MiscFlags);
+  return m_pDevice->CreateTexture2D(&desc, nullptr, Texture);
+}
 
 ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
 {
-	D3D11_TEXTURE2D_DESC tdesc;
-	tdesc.Width = desc->Width;
-	tdesc.Height = desc->Height;
-	tdesc.MipLevels = desc->MipLevels;
-	tdesc.ArraySize = desc->ArraySize;
-	tdesc.SampleDesc.Count = 1;
-	tdesc.SampleDesc.Quality = 0;
-	tdesc.Format = TextureFormatToDXGIFormat(desc->Format, desc->MiscFlags);
-	tdesc.Usage = D3D11_USAGE_DEFAULT;
-	tdesc.BindFlags = BindFlagsToD3DBindFlags(desc->BindFlags);
-	tdesc.CPUAccessFlags = 0;
-	tdesc.MiscFlags = MiscFlagsToD3DMiscFlags(desc->MiscFlags);
-
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::API_DirectX, *desc);
 
 	for (int i = 0; i < swapChain->Length; i++)
@@ -151,11 +158,10 @@ ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* d
 		ID3D11Texture2D* texture;
 		swapChain->Textures[i].eType = vr::API_DirectX;
 		swapChain->Textures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-		HRESULT hr = m_pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
+		HRESULT hr = CreateTexture(desc->Width, desc->Height, desc->MipLevels, desc->ArraySize, desc->Format,
+		  desc->MiscFlags, desc->BindFlags, (ID3D11Texture2D**)&swapChain->Textures[i].handle);
 		if (FAILED(hr))
 			return ovrError_RuntimeException;
-
-		swapChain->Textures[i].handle = texture;
 	}
 
 	*out_TextureSwapChain = swapChain;
@@ -176,19 +182,8 @@ ovrResult CompositorD3D::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, o
 
 	// TODO: Implement support for texture flags.
 	ID3D11Texture2D* texture;
-	D3D11_TEXTURE2D_DESC tdesc;
-	tdesc.Width = desc->Width;
-	tdesc.Height = desc->Height;
-	tdesc.MipLevels = 1;
-	tdesc.ArraySize = 1;
-	tdesc.SampleDesc.Count = 1;
-	tdesc.SampleDesc.Quality = 0;
-	tdesc.Format = TextureFormatToDXGIFormat(desc->Format, desc->MiscFlags);
-	tdesc.Usage = D3D11_USAGE_DEFAULT;
-	tdesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-	tdesc.CPUAccessFlags = 0;
-	tdesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
-	HRESULT hr = m_pDevice->CreateTexture2D(&tdesc, nullptr, &texture);
+	HRESULT hr = CreateTexture(desc->Width, desc->Height, 1, 1, desc->Format,
+	  desc->MiscFlags | ovrTextureMisc_AllowGenerateMips, ovrTextureBind_DX_RenderTarget, &texture);
 	if (FAILED(hr))
 		return ovrError_RuntimeException;
 

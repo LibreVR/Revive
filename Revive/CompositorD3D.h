@@ -28,6 +28,8 @@ protected:
 	static DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int flags);
 	static UINT BindFlagsToD3DBindFlags(unsigned int flags);
 	static UINT MiscFlagsToD3DMiscFlags(unsigned int flags);
+	HRESULT CreateTexture(UINT Width, UINT Height, UINT MipLevels, UINT ArraySize,
+	  ovrTextureFormat Format, UINT MiscFlags, UINT BindFlags, ID3D11Texture2D** Texture);
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice;
