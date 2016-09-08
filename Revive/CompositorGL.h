@@ -14,7 +14,7 @@ public:
 
 	static CompositorGL* Create();
 	virtual vr::EGraphicsAPIConvention GetAPI() { return vr::API_OpenGL; };
-	virtual void ClearScreen() { };
+	virtual void ClearScreen();
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
@@ -30,6 +30,10 @@ protected:
 	static GLenum TextureFormatToInternalFormat(ovrTextureFormat format);
 	static GLenum TextureFormatToGLFormat(ovrTextureFormat format);
 	static GLboolean glewInitialized;
+
+	GLuint CreateTexture(GLsizei Width, GLsizei Height, ovrTextureFormat Format);
+	GLuint CreateFramebuffer(GLuint texture);
+	GLuint m_CompositorTargets[ovrEye_Count];
 
 private:
 	static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);

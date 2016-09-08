@@ -1,4 +1,5 @@
 #include "CompositorGL.h"
+#include "OVR_CAPI.h"
 #include "REV_Common.h"
 
 #include <GL/glew.h>
@@ -21,6 +22,7 @@ CompositorGL* CompositorGL::Create()
 		if (nGlewError != GLEW_OK)
 			return nullptr;
 #ifdef DEBUG
+		glEnable(GL_DEBUG_OUTPUT);
 		glDebugMessageCallback((GLDEBUGPROC)DebugCallback, nullptr);
 #endif // DEBUG
 		glGetError(); // to clear the error caused deep in GLEW
@@ -31,6 +33,17 @@ CompositorGL* CompositorGL::Create()
 
 CompositorGL::CompositorGL()
 {
+	// Create the compositor framebuffers.
+	uint32_t width, height;
+	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		m_CompositorTextures[i].eType = vr::API_OpenGL;
+		m_CompositorTextures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+		GLuint texture = CreateTexture(width, height, OVR_FORMAT_R8G8B8A8_UNORM_SRGB);
+		m_CompositorTextures[i].handle = (void*)texture;
+		m_CompositorTargets[i] = CreateFramebuffer(texture);
+	}
 }
 
 CompositorGL::~CompositorGL()
@@ -83,22 +96,42 @@ GLenum CompositorGL::TextureFormatToGLFormat(ovrTextureFormat format)
 	}
 }
 
+GLuint CompositorGL::CreateTexture(GLsizei Width, GLsizei Height, ovrTextureFormat Format)
+{
+	GLenum internalFormat = TextureFormatToInternalFormat(Format);
+	GLenum format = TextureFormatToGLFormat(Format);
+
+	GLuint tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, Width, Height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+	return tex;
+}
+
+GLuint CompositorGL::CreateFramebuffer(GLuint texture)
+{
+	GLuint fb;
+	glGenFramebuffers(1, &fb);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	return fb;
+}
+
 ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
 {
-	GLenum internalFormat = TextureFormatToInternalFormat(desc->Format);
-	GLenum format = TextureFormatToGLFormat(desc->Format);
-
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::API_OpenGL, *desc);
 
 	for (int i = 0; i < swapChain->Length; i++)
 	{
 		swapChain->Textures[i].eType = vr::API_OpenGL;
 		swapChain->Textures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-		glGenTextures(1, (GLuint*)&swapChain->Textures[i].handle);
-		glBindTexture(GL_TEXTURE_2D, (GLuint)swapChain->Textures[i].handle);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, desc->Width, desc->Height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+		GLuint texture = CreateTexture(desc->Width, desc->Height, desc->Format);
+		swapChain->Textures[i].handle = (void*)texture;
+		swapChain->Views[i] = (void*)CreateFramebuffer(texture);
 	}
 
 	*out_TextureSwapChain = swapChain;
@@ -107,6 +140,7 @@ ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* de
 
 void CompositorGL::DestroyTextureSwapChain(ovrTextureSwapChain chain)
 {
+	glDeleteFramebuffers(chain->Length, (GLuint*)chain->Views);
 	for (int i = 0; i < chain->Length; i++)
 		glDeleteTextures(1, (GLuint*)&chain->Textures[i].handle);
 }
@@ -123,11 +157,9 @@ ovrResult CompositorGL::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ov
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(vr::API_OpenGL, *desc);
 	mirrorTexture->Texture.eType = vr::API_OpenGL;
 	mirrorTexture->Texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-	glGenTextures(1, (GLuint*)&mirrorTexture->Texture.handle);
-	glBindTexture(GL_TEXTURE_2D, (GLuint)mirrorTexture->Texture.handle);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, desc->Width, desc->Height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+	GLuint texture = CreateTexture(desc->Width, desc->Height, desc->Format);
+	mirrorTexture->Texture.handle = (void*)texture;
+	mirrorTexture->Target = (void*)CreateFramebuffer(texture);
 
 	m_MirrorTexture = mirrorTexture;
 	*out_MirrorTexture = mirrorTexture;
@@ -136,6 +168,7 @@ ovrResult CompositorGL::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ov
 
 void CompositorGL::DestroyMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
+	glDeleteFramebuffers(1, (GLuint*)&mirrorTexture->Texture.handle);
 	glDeleteTextures(1, (GLuint*)&mirrorTexture->Texture.handle);
 	m_MirrorTexture = nullptr;
 }
@@ -147,5 +180,38 @@ void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 
 void CompositorGL::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye eye, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
 {
-	// TODO: Render swap chains, without this OpenGL support is broken.
+	// TODO: Support blending multiple scene layers
+	uint32_t width, height;
+	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
+
+	// Bind the buffer to copy from the swapchain to the compositor
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)chain->SubmittedView);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_CompositorTargets[eye]);
+
+	// Shrink the bounds to account for the overlapping fov
+	float uMin = 0.5f + 0.5f / quad.v[0];
+	float uMax = 0.5f + 0.5f / quad.v[1];
+	float vMin = 0.5f - 0.5f / quad.v[2];
+	float vMax = 0.5f - 0.5f / quad.v[3];
+
+	// Combine the fov bounds with the viewport bounds
+	bounds.uMin += uMin * bounds.uMax;
+	bounds.uMax *= uMax;
+	bounds.vMin += vMin * bounds.vMax;
+	bounds.vMax *= vMax;
+
+	// Scale the bounds to the size of the swapchain
+	// The vertical bounds are reversed for OpenGL
+	GLint srcX0 = (GLint)(bounds.uMin * (float)chain->Desc.Width);
+	GLint srcX1 = (GLint)(bounds.uMax * (float)chain->Desc.Width);
+	GLint srcY0 = (GLint)(bounds.vMax * (float)chain->Desc.Height);
+	GLint srcY1 = (GLint)(bounds.vMin * (float)chain->Desc.Height);
+
+	// Blit the framebuffers
+	glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+}
+
+void CompositorGL::ClearScreen()
+{
+	// Not needed, since we always blit the entire framebuffer
 }
