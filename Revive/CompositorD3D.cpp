@@ -155,7 +155,6 @@ ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* d
 
 	for (int i = 0; i < swapChain->Length; i++)
 	{
-		ID3D11Texture2D* texture;
 		swapChain->Textures[i].eType = vr::API_DirectX;
 		swapChain->Textures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 		HRESULT hr = CreateTexture(desc->Width, desc->Height, desc->MipLevels, desc->ArraySize, desc->Format,
@@ -220,14 +219,10 @@ void CompositorD3D::DestroyMirrorTexture(ovrMirrorTexture mirrorTexture)
 
 void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
-	ID3D11Texture2D* texture = (ID3D11Texture2D*)mirrorTexture->Texture.handle;
-
-	ID3D11Device* pDevice;
-	texture->GetDevice(&pDevice);
 	ID3D11DeviceContext* pContext;
-	pDevice->GetImmediateContext(&pContext);
+	m_pDevice->GetImmediateContext(&pContext);
 
-	// Compile the shaders if it is not yet set
+	// Set the mirror shaders.
 	pContext->VSSetShader(m_MirrorVS.Get(), NULL, 0);
 	pContext->PSSetShader(m_MirrorPS.Get(), NULL, 0);
 	pContext->PSSetShaderResources(0, 2, (ID3D11ShaderResourceView**)mirrorTexture->Views);
@@ -241,7 +236,6 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	pContext->Draw(4, 0);
 
-	// Clean up and return
-	pDevice->Release();
+	// Clean up and return.
 	pContext->Release();
 }
