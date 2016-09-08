@@ -1,12 +1,19 @@
 #include "CompositorD3D.h"
 #include "REV_Common.h"
 
-#include "openvr.h"
+#include <openvr.h>
 #include <d3d11.h>
+#include <wrl/client.h>
 
 #include "VertexShader.hlsl.h"
 #include "MirrorShader.hlsl.h"
 #include "CompositorShader.hlsl.h"
+
+struct Vertex
+{
+	ovrVector2f Position;
+	ovrVector2f TexCoord;
+};
 
 CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 {
@@ -28,10 +35,29 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 	m_pDevice = pDevice;
 	m_pDevice->GetImmediateContext(m_pContext.GetAddressOf());
 
-	// Compile the shaders.
+	// Create the shaders.
 	m_pDevice->CreateVertexShader(g_VertexShader, sizeof(g_VertexShader), NULL, m_VertexShader.GetAddressOf());
 	m_pDevice->CreatePixelShader(g_MirrorShader, sizeof(g_MirrorShader), NULL, m_MirrorShader.GetAddressOf());
 	m_pDevice->CreatePixelShader(g_CompositorShader, sizeof(g_CompositorShader), NULL, m_CompositorShader.GetAddressOf());
+
+	// Create the vertex buffer.
+	D3D11_BUFFER_DESC bufferDesc;
+	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc.ByteWidth = sizeof(Vertex) * 4;
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.MiscFlags = 0;
+	m_pDevice->CreateBuffer(&bufferDesc, nullptr, m_VertexBuffer.GetAddressOf());
+
+	// Create the input layout.
+	D3D11_INPUT_ELEMENT_DESC layout[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0,
+		D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8,
+		D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+	HRESULT hr = m_pDevice->CreateInputLayout(layout, 2, g_VertexShader, sizeof(g_VertexShader), m_InputLayout.GetAddressOf());
 
 	// Create the compositor render targets.
 	uint32_t width, height;
@@ -51,8 +77,19 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 		rdesc.Format = TextureFormatToDXGIFormat(OVR_FORMAT_R8G8B8A8_UNORM_SRGB, 0);
 		rdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		rdesc.Texture2D.MipSlice = 0;
-		m_pDevice->CreateRenderTargetView(texture, &rdesc, m_CompositorViews[i].GetAddressOf());
+		m_pDevice->CreateRenderTargetView(texture, &rdesc, m_CompositorTargets[i].GetAddressOf());
 	}
+
+	// Create state objects.
+	FirstLayer[0] = FirstLayer[1] = true;
+	D3D11_BLEND_DESC bm = { 0 };
+	bm.RenderTarget[0].BlendEnable = true;
+	bm.RenderTarget[0].BlendOp = bm.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	bm.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	bm.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	bm.RenderTarget[0].SrcBlendAlpha = bm.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	bm.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	m_pDevice->CreateBlendState(&bm, m_BlendState.GetAddressOf());
 }
 
 CompositorD3D::~CompositorD3D()
@@ -258,41 +295,94 @@ void CompositorD3D::DestroyMirrorTexture(ovrMirrorTexture mirrorTexture)
 
 void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
-	// Set the mirror shaders.
+	// Set the mirror shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
 	m_pContext->PSSetShader(m_MirrorShader.Get(), NULL, 0);
 	m_pContext->PSSetShaderResources(0, 2, (ID3D11ShaderResourceView**)mirrorTexture->Views);
 
-	// Draw a triangle strip, the vertex buffer is not used.
+	// Update the vertex buffer
+	Vertex vertices[4] = {
+		{ { -1.0f,  1.0f },{ 0.0f, 0.0f } },
+		{ {  1.0f,  1.0f },{ 1.0f, 0.0f } },
+		{ { -1.0f, -1.0f },{ 0.0f, 1.0f } },
+		{ {  1.0f, -1.0f },{ 1.0f, 1.0f } }
+	};
+	D3D11_MAPPED_SUBRESOURCE map = { 0 };
+	m_pContext->Map(m_VertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	memcpy(map.pData, vertices, sizeof(Vertex) * 4);
+	m_pContext->Unmap(m_VertexBuffer.Get(), 0);
+
+	// Prepare the render target
 	FLOAT clear[4] = { 0.0f };
 	D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (float)mirrorTexture->Desc.Width, (float)mirrorTexture->Desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	m_pContext->RSSetViewports(1, &viewport);
 	m_pContext->ClearRenderTargetView((ID3D11RenderTargetView*)mirrorTexture->Target, clear);
 	m_pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->Target, NULL);
+
+	// Set and draw the vertices
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
 	m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	m_pContext->IASetInputLayout(m_InputLayout.Get());
+	m_pContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
 	m_pContext->Draw(4, 0);
 }
 
-void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain[ovrEye_Count])
+void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye eye, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
 {
 	uint32_t width, height;
 	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
 
-	// TODO: Account for the viewport and field-of-view.
-	for (int i = 0; i < ovrEye_Count; i++)
-	{
-		// Set the compositor shaders.
-		m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
-		m_pContext->PSSetShader(m_CompositorShader.Get(), NULL, 0);
-		m_pContext->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&chain[i]->SubmittedView);
+	// Get the current state objects
+	Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
+	float blend_factor[4];
+	uint32_t sample_mask;
+	m_pContext->OMGetBlendState(blend_state.GetAddressOf(), blend_factor, &sample_mask);
 
-		// Draw a triangle strip, the vertex buffer is not used.
-		FLOAT clear[4] = { 0.0f };
-		D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (float)width, (float)height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
-		m_pContext->RSSetViewports(1, &viewport);
-		m_pContext->ClearRenderTargetView(m_CompositorViews[i].Get(), clear);
-		m_pContext->OMSetRenderTargets(1, m_CompositorViews[i].GetAddressOf(), NULL);
-		m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		m_pContext->Draw(4, 0);
-	}
+	D3D11_PRIMITIVE_TOPOLOGY topology;
+	m_pContext->IAGetPrimitiveTopology(&topology);
+
+	// Set the compositor shaders
+	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
+	m_pContext->PSSetShader(m_CompositorShader.Get(), NULL, 0);
+	m_pContext->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&chain->SubmittedView);
+
+	// Update the vertex buffer
+	Vertex vertices[4] = {
+		{ { quad.v[0], quad.v[2] },{ bounds.uMin, bounds.vMin } },
+		{ { quad.v[1], quad.v[2] },{ bounds.uMax, bounds.vMin } },
+		{ { quad.v[0], quad.v[3] },{ bounds.uMin, bounds.vMax } },
+		{ { quad.v[1], quad.v[3] },{ bounds.uMax, bounds.vMax } }
+	};
+	D3D11_MAPPED_SUBRESOURCE map = { 0 };
+	m_pContext->Map(m_VertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	memcpy(map.pData, vertices, sizeof(Vertex) * 4);
+	m_pContext->Unmap(m_VertexBuffer.Get(), 0);
+
+	// Prepare the render target
+	D3D11_VIEWPORT vp = { 0.0f, 0.0f, (float)width, (float)height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+	m_pContext->RSSetViewports(1, &vp);
+	m_pContext->OMSetRenderTargets(1, m_CompositorTargets[eye].GetAddressOf(), nullptr);
+	m_pContext->OMSetBlendState(FirstLayer[eye] ? nullptr : m_BlendState.Get(), nullptr, -1);
+
+	// Set and draw the vertices
+	uint32_t stride = sizeof(Vertex);
+	uint32_t offset = 0;
+	m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	m_pContext->IASetInputLayout(m_InputLayout.Get());
+	m_pContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
+	m_pContext->Draw(4, 0);
+	FirstLayer[eye] = false;
+
+	// Restore the state objects
+	m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
+	m_pContext->IASetPrimitiveTopology(topology);
+}
+
+void CompositorD3D::ClearScreen()
+{
+	FirstLayer[0] = FirstLayer[1] = true;
+	float clear[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	for (int i = 0; i < ovrEye_Count; i++)
+		m_pContext->ClearRenderTargetView(m_CompositorTargets[i].Get(), clear);
 }

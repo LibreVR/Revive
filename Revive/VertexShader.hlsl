@@ -1,5 +1,5 @@
-float4 main( in uint vI : SV_VERTEXID, out float2 tex : TEXCOORD0) : SV_POSITION
+float4 main( in float2 pos : POSITION, in float2 uv : TEXCOORD0, out float2 tex : TEXCOORD0) : SV_POSITION
 {
-	tex = float2(vI & 1,vI >> 1);
-	return float4(tex * float2(2, -2) + float2(-1, 1), 0, 1);
+	tex = uv;
+	return float4(pos, 0.0, 1.0);
 }

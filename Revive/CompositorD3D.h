@@ -14,11 +14,12 @@ public:
 
 	static CompositorD3D* Create(IUnknown* d3dPtr);
 	virtual vr::EGraphicsAPIConvention GetAPI() { return vr::API_DirectX; };
+	virtual void ClearScreen();
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
 	virtual void DestroyTextureSwapChain(ovrTextureSwapChain chain);
-	virtual void RenderTextureSwapChain(ovrTextureSwapChain chain[ovrEye_Count]);
+	virtual void RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye eye, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad);
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);
@@ -32,7 +33,6 @@ protected:
 	HRESULT CreateTexture(UINT Width, UINT Height, UINT MipLevels, UINT ArraySize,
 	  ovrTextureFormat Format, UINT MiscFlags, UINT BindFlags, ID3D11Texture2D** Texture);
 
-private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pContext;
 
@@ -41,6 +41,15 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_MirrorShader;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_CompositorShader;
 
+	// Input
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_VertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_InputLayout;
+
 	// Views
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_CompositorViews[2];
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_CompositorTargets[ovrEye_Count];
+
+	// States
+	bool FirstLayer[ovrEye_Count];
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterizerState;
+	Microsoft::WRL::ComPtr<ID3D11BlendState> m_BlendState;
 };

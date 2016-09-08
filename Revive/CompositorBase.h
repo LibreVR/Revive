@@ -11,11 +11,12 @@ public:
 	virtual ~CompositorBase();
 
 	virtual vr::EGraphicsAPIConvention GetAPI() = 0;
+	virtual void ClearScreen() = 0;
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain) = 0;
 	virtual void DestroyTextureSwapChain(ovrTextureSwapChain chain) = 0;
-	virtual void RenderTextureSwapChain(ovrTextureSwapChain chain[ovrEye_Count]) = 0;
+	virtual void RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye eye, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad) = 0;
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture) = 0;
@@ -30,7 +31,7 @@ protected:
 
 	vr::VROverlayHandle_t CreateOverlay();
 	vr::VRTextureBounds_t ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
-	vr::EVRCompositorError SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags);
+	void SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags);
 
 private:
 	// Overlays

@@ -14,11 +14,12 @@ public:
 
 	static CompositorGL* Create();
 	virtual vr::EGraphicsAPIConvention GetAPI() { return vr::API_OpenGL; };
+	virtual void ClearScreen() { };
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
 	virtual void DestroyTextureSwapChain(ovrTextureSwapChain chain);
-	virtual void RenderTextureSwapChain(ovrTextureSwapChain chain[ovrEye_Count]);
+	virtual void RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye eye, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad);
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);

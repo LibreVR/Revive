@@ -145,7 +145,7 @@ void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	// TODO: Blit the most recently submitted frame to the mirror texture.
 }
 
-void CompositorGL::RenderTextureSwapChain(ovrTextureSwapChain chain[ovrEye_Count])
+void CompositorGL::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye eye, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
 {
 	// TODO: Render swap chains, without this OpenGL support is broken.
 }
