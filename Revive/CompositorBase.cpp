@@ -62,12 +62,31 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 			// Set the texture and show the overlay.
 			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
 			vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
-			vr::VROverlay()->SetOverlayTexture(overlay, layer->ColorTexture->Submitted);
+			vr::VROverlay()->SetOverlayTexture(overlay, layer->ColorTexture->SubmittedTexture);
 
 			// Show the overlay, unfortunately we have no control over the order in which
 			// overlays are drawn.
 			// TODO: Handle overlay errors.
 			vr::VROverlay()->ShowOverlay(overlay);
+		}
+		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov)
+		{
+			ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[i];
+
+			// TODO: Handle compositor errors.
+			SubmitFovLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+		}
+		else if (layerPtrList[i]->Type == ovrLayerType_EyeMatrix)
+		{
+			ovrLayerEyeMatrix* sceneLayer = (ovrLayerEyeMatrix*)layerPtrList[i];
+			ovrFovPort fov[ovrEye_Count];
+			fov[0].LeftTan = fov[0].RightTan = .5f / sceneLayer->Matrix[0].M[0][0];
+			fov[0].UpTan = fov[0].DownTan = .5f / sceneLayer->Matrix[0].M[1][1];
+			fov[1].LeftTan = fov[1].RightTan = .5f / sceneLayer->Matrix[1].M[0][0];
+			fov[1].UpTan = fov[1].DownTan = .5f / sceneLayer->Matrix[1].M[1][1];
+
+			// TODO: Handle compositor errors.
+			SubmitFovLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
 		}
 	}
 
@@ -81,26 +100,8 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 	}
 	m_ActiveOverlays = activeOverlays;
 
-	// The first layer is assumed to be the application scene.
-	if (layerPtrList[0]->Type == ovrLayerType_EyeFov)
-	{
-		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[0];
-
-		// TODO: Handle compositor errors.
-		SubmitFovLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
-	}
-	else if (layerPtrList[0]->Type == ovrLayerType_EyeMatrix)
-	{
-		ovrLayerEyeMatrix* sceneLayer = (ovrLayerEyeMatrix*)layerPtrList[0];
-		ovrFovPort fov[ovrEye_Count];
-		fov[0].LeftTan = fov[0].RightTan = .5f / sceneLayer->Matrix[0].M[0][0];
-		fov[0].UpTan   = fov[0].DownTan  = .5f / sceneLayer->Matrix[0].M[1][1];
-		fov[1].LeftTan = fov[1].RightTan = .5f / sceneLayer->Matrix[1].M[0][0];
-		fov[1].UpTan   = fov[1].DownTan  = .5f / sceneLayer->Matrix[1].M[1][1];
-
-		// TODO: Handle compositor errors.
-		SubmitFovLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
-	}
+	for (int i = 0; i < ovrEye_Count; i++)
+		vr::VRCompositor()->Submit((vr::EVREye)i, &m_CompositorTextures[i], nullptr);
 
 	// TODO: Render to the mirror texture here.
 	// Currently the mirror texture code is not stable enough yet.
@@ -153,7 +154,7 @@ vr::VRTextureBounds_t CompositorBase::ViewportToTextureBounds(ovrRecti viewport,
 vr::EVRCompositorError CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
 {
 	// Submit the scene layer.
-	for (int i = 0; i < ovrEye_Count; i++)
+	/*for (int i = 0; i < ovrEye_Count; i++)
 	{
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
 
@@ -181,7 +182,10 @@ vr::EVRCompositorError CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_C
 		vr::EVRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, swapChain[i]->Submitted, &bounds);
 		if (err != vr::VRCompositorError_None)
 			return err;
-	}
+
+	}*/
+
+	RenderTextureSwapChain(swapChain);
 
 	return vr::VRCompositorError_None;
 }

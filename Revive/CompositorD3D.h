@@ -18,6 +18,7 @@ public:
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
 	virtual void DestroyTextureSwapChain(ovrTextureSwapChain chain);
+	virtual void RenderTextureSwapChain(ovrTextureSwapChain chain[ovrEye_Count]);
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);
@@ -33,6 +34,13 @@ protected:
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice;
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_MirrorVS;
-	Microsoft::WRL::ComPtr< ID3D11PixelShader> m_MirrorPS;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pContext;
+
+	// Shaders
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_VertexShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_MirrorShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_CompositorShader;
+
+	// Views
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_CompositorViews[2];
 };

@@ -15,6 +15,7 @@ public:
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain) = 0;
 	virtual void DestroyTextureSwapChain(ovrTextureSwapChain chain) = 0;
+	virtual void RenderTextureSwapChain(ovrTextureSwapChain chain[ovrEye_Count]) = 0;
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture) = 0;
@@ -24,6 +25,7 @@ public:
 	vr::EVRCompositorError SubmitFrame(const ovrViewScaleDesc* viewScaleDesc, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 
 protected:
+	vr::Texture_t m_CompositorTextures[ovrEye_Count];
 	ovrMirrorTexture m_MirrorTexture;
 
 	vr::VROverlayHandle_t CreateOverlay();

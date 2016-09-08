@@ -4,8 +4,9 @@
 #include "openvr.h"
 #include <d3d11.h>
 
-#include "MirrorVS.hlsl.h"
-#include "MirrorPS.hlsl.h"
+#include "VertexShader.hlsl.h"
+#include "MirrorShader.hlsl.h"
+#include "CompositorShader.hlsl.h"
 
 CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 {
@@ -25,16 +26,42 @@ CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 {
 	m_pDevice = pDevice;
+	m_pDevice->GetImmediateContext(m_pContext.GetAddressOf());
 
-	// Compile the mirror shaders.
-	m_pDevice->CreateVertexShader(g_MirrorVS, sizeof(g_MirrorVS), NULL, m_MirrorVS.GetAddressOf());
-	m_pDevice->CreatePixelShader(g_MirrorPS, sizeof(g_MirrorPS), NULL, m_MirrorPS.GetAddressOf());
+	// Compile the shaders.
+	m_pDevice->CreateVertexShader(g_VertexShader, sizeof(g_VertexShader), NULL, m_VertexShader.GetAddressOf());
+	m_pDevice->CreatePixelShader(g_MirrorShader, sizeof(g_MirrorShader), NULL, m_MirrorShader.GetAddressOf());
+	m_pDevice->CreatePixelShader(g_CompositorShader, sizeof(g_CompositorShader), NULL, m_CompositorShader.GetAddressOf());
+
+	// Create the compositor render targets.
+	uint32_t width, height;
+	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		// Create the texture
+		ID3D11Texture2D* texture;
+		m_CompositorTextures[i].eType = vr::API_DirectX;
+		m_CompositorTextures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
+		CreateTexture(width, height, 1, 1, OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
+			0, ovrTextureBind_DX_RenderTarget, &texture);
+		m_CompositorTextures[i].handle = texture;
+
+		// Create the view
+		D3D11_RENDER_TARGET_VIEW_DESC rdesc;
+		rdesc.Format = TextureFormatToDXGIFormat(OVR_FORMAT_R8G8B8A8_UNORM_SRGB, 0);
+		rdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		rdesc.Texture2D.MipSlice = 0;
+		m_pDevice->CreateRenderTargetView(texture, &rdesc, m_CompositorViews[i].GetAddressOf());
+	}
 }
 
 CompositorD3D::~CompositorD3D()
 {
   if (m_MirrorTexture)
 	DestroyMirrorTexture(m_MirrorTexture);
+
+  for (int i = 0; i < 2; i++)
+	  ((ID3D11Texture2D*)m_CompositorTextures[i].handle)->Release();
 }
 
 DXGI_FORMAT CompositorD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int flags)
@@ -155,12 +182,24 @@ ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* d
 
 	for (int i = 0; i < swapChain->Length; i++)
 	{
+		ID3D11Texture2D* texture;
 		swapChain->Textures[i].eType = vr::API_DirectX;
 		swapChain->Textures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 		HRESULT hr = CreateTexture(desc->Width, desc->Height, desc->MipLevels, desc->ArraySize, desc->Format,
-		  desc->MiscFlags, desc->BindFlags, (ID3D11Texture2D**)&swapChain->Textures[i].handle);
+		  desc->MiscFlags, desc->BindFlags, &texture);
 		if (FAILED(hr))
 			return ovrError_RuntimeException;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC view_desc;
+		view_desc.Format = TextureFormatToDXGIFormat(desc->Format, 0);
+		view_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		view_desc.Texture2D.MipLevels = desc->MipLevels;
+		view_desc.Texture2D.MostDetailedMip = 0;
+		hr = m_pDevice->CreateShaderResourceView(texture, &view_desc, (ID3D11ShaderResourceView**)&swapChain->Views[i]);
+		if (FAILED(hr))
+			return ovrError_RuntimeException;
+
+		swapChain->Textures[i].handle = texture;
 	}
 
 	*out_TextureSwapChain = swapChain;
@@ -219,23 +258,41 @@ void CompositorD3D::DestroyMirrorTexture(ovrMirrorTexture mirrorTexture)
 
 void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
-	ID3D11DeviceContext* pContext;
-	m_pDevice->GetImmediateContext(&pContext);
-
 	// Set the mirror shaders.
-	pContext->VSSetShader(m_MirrorVS.Get(), NULL, 0);
-	pContext->PSSetShader(m_MirrorPS.Get(), NULL, 0);
-	pContext->PSSetShaderResources(0, 2, (ID3D11ShaderResourceView**)mirrorTexture->Views);
+	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
+	m_pContext->PSSetShader(m_MirrorShader.Get(), NULL, 0);
+	m_pContext->PSSetShaderResources(0, 2, (ID3D11ShaderResourceView**)mirrorTexture->Views);
 
 	// Draw a triangle strip, the vertex buffer is not used.
 	FLOAT clear[4] = { 0.0f };
 	D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (float)mirrorTexture->Desc.Width, (float)mirrorTexture->Desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
-	pContext->RSSetViewports(1, &viewport);
-	pContext->ClearRenderTargetView((ID3D11RenderTargetView*)mirrorTexture->Target, clear);
-	pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->Target, NULL);
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	pContext->Draw(4, 0);
+	m_pContext->RSSetViewports(1, &viewport);
+	m_pContext->ClearRenderTargetView((ID3D11RenderTargetView*)mirrorTexture->Target, clear);
+	m_pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->Target, NULL);
+	m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	m_pContext->Draw(4, 0);
+}
 
-	// Clean up and return.
-	pContext->Release();
+void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain[ovrEye_Count])
+{
+	uint32_t width, height;
+	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
+
+	// TODO: Account for the viewport and field-of-view.
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		// Set the compositor shaders.
+		m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
+		m_pContext->PSSetShader(m_CompositorShader.Get(), NULL, 0);
+		m_pContext->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&chain[i]->SubmittedView);
+
+		// Draw a triangle strip, the vertex buffer is not used.
+		FLOAT clear[4] = { 0.0f };
+		D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (float)width, (float)height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+		m_pContext->RSSetViewports(1, &viewport);
+		m_pContext->ClearRenderTargetView(m_CompositorViews[i].Get(), clear);
+		m_pContext->OMSetRenderTargets(1, m_CompositorViews[i].GetAddressOf(), NULL);
+		m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		m_pContext->Draw(4, 0);
+	}
 }

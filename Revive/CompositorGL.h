@@ -18,6 +18,7 @@ public:
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
 	virtual void DestroyTextureSwapChain(ovrTextureSwapChain chain);
+	virtual void RenderTextureSwapChain(ovrTextureSwapChain chain[ovrEye_Count]);
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);

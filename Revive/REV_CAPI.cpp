@@ -459,7 +459,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	chain->Submitted = &chain->Textures[chain->CurrentIndex];
+	chain->SubmittedTexture = &chain->Textures[chain->CurrentIndex];
+	chain->SubmittedView = chain->Views[chain->CurrentIndex];
 	chain->CurrentIndex++;
 	chain->CurrentIndex %= chain->Length;
 	return ovrSuccess;
