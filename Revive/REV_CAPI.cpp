@@ -761,5 +761,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* prope
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Lookup(const char* name, void** data)
 {
-	REV_UNIMPLEMENTED_RUNTIME;
+	// We don't communicate with the Oculus service.
+	return ovrError_ServiceError;
 }
