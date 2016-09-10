@@ -161,6 +161,8 @@ ovrResult CompositorGL::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ov
 	mirrorTexture->Texture.handle = (void*)texture;
 	mirrorTexture->Target = (void*)CreateFramebuffer(texture);
 
+	// TODO: Get the mirror views from OpenVR once they fix the OpenGL implementation.
+
 	m_MirrorTexture = mirrorTexture;
 	*out_MirrorTexture = mirrorTexture;
 	return ovrSuccess;
@@ -175,7 +177,17 @@ void CompositorGL::DestroyMirrorTexture(ovrMirrorTexture mirrorTexture)
 
 void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
-	// TODO: Blit the most recently submitted frame to the mirror texture.
+	uint32_t width, height;
+	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
+
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		// Bind the buffer to copy from the compositor to the mirror texture
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)m_CompositorTargets[i]);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)mirrorTexture->Target);
+		GLint offset = (mirrorTexture->Desc.Width / 2) * i;
+		glBlitFramebuffer(0, 0, width, height, offset, mirrorTexture->Desc.Height, offset + mirrorTexture->Desc.Width / 2, 0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	}
 }
 
 void CompositorGL::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye eye, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)

@@ -95,8 +95,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	if (!mirrorTexture || !out_Buffer)
 		return ovrError_InvalidParameter;
 
-	session->Compositor->RenderMirrorTexture(mirrorTexture);
-
 	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)mirrorTexture->Texture.handle;
 	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))

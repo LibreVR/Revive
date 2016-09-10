@@ -8,6 +8,7 @@
 #define REV_LAYER_BIAS 0.0001f
 
 CompositorBase::CompositorBase()
+	: m_MirrorTexture(nullptr)
 {
 }
 
@@ -103,10 +104,10 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 	for (int i = 0; i < ovrEye_Count; i++)
 		vr::VRCompositor()->Submit((vr::EVREye)i, &m_CompositorTextures[i], nullptr);
 
-	ClearScreen();
+	if (m_MirrorTexture)
+		RenderMirrorTexture(m_MirrorTexture);
 
-	// TODO: Render to the mirror texture here.
-	// Currently the mirror texture code is not stable enough yet.
+	ClearScreen();
 
 	// Call WaitGetPoses() to actually display the frame.
 	return vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);

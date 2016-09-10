@@ -33,7 +33,10 @@ protected:
 
 	GLuint CreateTexture(GLsizei Width, GLsizei Height, ovrTextureFormat Format);
 	GLuint CreateFramebuffer(GLuint texture);
+
 	GLuint m_CompositorTargets[ovrEye_Count];
+	vr::glUInt_t m_MirrorTextures[ovrEye_Count];
+	vr::glSharedTextureHandle_t m_MirrorHandles[ovrEye_Count];
 
 private:
 	static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
