@@ -304,6 +304,9 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	D3D11_PRIMITIVE_TOPOLOGY topology;
 	m_pContext->IAGetPrimitiveTopology(&topology);
 
+	ID3D11RasterizerState* ras_state;
+	m_pContext->RSGetState(&ras_state);
+
 	// Set the mirror shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
 	m_pContext->PSSetShader(m_MirrorShader.Get(), NULL, 0);
@@ -328,6 +331,7 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_pContext->ClearRenderTargetView((ID3D11RenderTargetView*)mirrorTexture->Target, clear);
 	m_pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->Target, NULL);
 	m_pContext->OMSetBlendState(nullptr, nullptr, -1);
+	m_pContext->RSSetState(nullptr);
 
 	// Set and draw the vertices
 	UINT stride = sizeof(Vertex);
@@ -338,6 +342,7 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_pContext->Draw(4, 0);
 
 	// Restore the state objects
+	m_pContext->RSSetState(ras_state);
 	m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
 	m_pContext->IASetPrimitiveTopology(topology);
 }
@@ -355,6 +360,9 @@ void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye
 
 	D3D11_PRIMITIVE_TOPOLOGY topology;
 	m_pContext->IAGetPrimitiveTopology(&topology);
+
+	ID3D11RasterizerState* ras_state;
+	m_pContext->RSGetState(&ras_state);
 
 	// Set the compositor shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
@@ -378,6 +386,7 @@ void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye
 	m_pContext->RSSetViewports(1, &vp);
 	m_pContext->OMSetRenderTargets(1, m_CompositorTargets[eye].GetAddressOf(), nullptr);
 	m_pContext->OMSetBlendState(FirstLayer[eye] ? nullptr : m_BlendState.Get(), nullptr, -1);
+	m_pContext->RSSetState(nullptr);
 
 	// Set and draw the vertices
 	uint32_t stride = sizeof(Vertex);
@@ -389,6 +398,7 @@ void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye
 	FirstLayer[eye] = false;
 
 	// Restore the state objects
+	m_pContext->RSSetState(ras_state);
 	m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
 	m_pContext->IASetPrimitiveTopology(topology);
 }
