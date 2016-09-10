@@ -77,9 +77,9 @@ InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	: m_Role(role)
 	, m_ThumbStick(role == vr::TrackedControllerRole_LeftHand)
 	, m_MenuWasPressed(false)
-	, m_ThumbStickRange(0.0f)
+	, m_ThumbStickRange(1.0f)
 {
-	m_ThumbStickRange = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange", 0.8f);
+	m_ThumbStickRange = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange", 0.5f);
 }
 
 ovrControllerType InputManager::OculusTouch::GetType()
@@ -146,10 +146,12 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 			if (m_ThumbStick)
 			{
 				// Map the touchpad to the thumbstick with a slightly smaller range
-				float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y) / m_ThumbStickRange;
-				if (magnitude > 1.0f) magnitude = 1.0f;
-				inputState->Thumbstick[hand].x = axis.x * magnitude;
-				inputState->Thumbstick[hand].y = axis.y * magnitude;
+				float mappedX = axis.x / m_ThumbStickRange;
+				float mappedY = axis.y / m_ThumbStickRange;
+
+				// Clip and assign the new values
+				inputState->Thumbstick[hand].x = mappedX > 1.0f ? 1.0f : mappedX;
+				inputState->Thumbstick[hand].y = mappedY > 1.0f ? 1.0f : mappedY;
 			}
 
 			if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
