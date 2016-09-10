@@ -295,6 +295,15 @@ void CompositorD3D::DestroyMirrorTexture(ovrMirrorTexture mirrorTexture)
 
 void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
+	// Get the current state objects
+	Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
+	float blend_factor[4];
+	uint32_t sample_mask;
+	m_pContext->OMGetBlendState(blend_state.GetAddressOf(), blend_factor, &sample_mask);
+
+	D3D11_PRIMITIVE_TOPOLOGY topology;
+	m_pContext->IAGetPrimitiveTopology(&topology);
+
 	// Set the mirror shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
 	m_pContext->PSSetShader(m_MirrorShader.Get(), NULL, 0);
@@ -318,6 +327,7 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_pContext->RSSetViewports(1, &viewport);
 	m_pContext->ClearRenderTargetView((ID3D11RenderTargetView*)mirrorTexture->Target, clear);
 	m_pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&mirrorTexture->Target, NULL);
+	m_pContext->OMSetBlendState(nullptr, nullptr, -1);
 
 	// Set and draw the vertices
 	UINT stride = sizeof(Vertex);
@@ -326,6 +336,10 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_pContext->IASetInputLayout(m_InputLayout.Get());
 	m_pContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
 	m_pContext->Draw(4, 0);
+
+	// Restore the state objects
+	m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
+	m_pContext->IASetPrimitiveTopology(topology);
 }
 
 void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye eye, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
