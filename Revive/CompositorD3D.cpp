@@ -392,11 +392,3 @@ void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye
 	m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
 	m_pContext->IASetPrimitiveTopology(topology);
 }
-
-void CompositorD3D::ClearScreen()
-{
-	FirstLayer[0] = FirstLayer[1] = true;
-	float clear[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	for (int i = 0; i < ovrEye_Count; i++)
-		m_pContext->ClearRenderTargetView(m_CompositorTargets[i].Get(), clear);
-}

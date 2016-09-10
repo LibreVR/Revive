@@ -11,7 +11,7 @@ public:
 	virtual ~CompositorBase();
 
 	virtual vr::EGraphicsAPIConvention GetAPI() = 0;
-	virtual void ClearScreen() = 0;
+	virtual void OnSubmitComplete() = 0;
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain) = 0;

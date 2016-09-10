@@ -107,7 +107,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 	if (m_MirrorTexture)
 		RenderMirrorTexture(m_MirrorTexture);
 
-	ClearScreen();
+	OnSubmitComplete();
 
 	// Call WaitGetPoses() to actually display the frame.
 	return vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);

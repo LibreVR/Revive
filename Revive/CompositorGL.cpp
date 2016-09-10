@@ -222,8 +222,3 @@ void CompositorGL::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye 
 	// Blit the framebuffers
 	glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 }
-
-void CompositorGL::ClearScreen()
-{
-	// Not needed, since we always blit the entire framebuffer
-}

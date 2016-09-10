@@ -14,7 +14,7 @@ public:
 
 	static CompositorD3D* Create(IUnknown* d3dPtr);
 	virtual vr::EGraphicsAPIConvention GetAPI() { return vr::API_DirectX; };
-	virtual void ClearScreen();
+	virtual void OnSubmitComplete() { FirstLayer[0] = FirstLayer[1] = true; }
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);

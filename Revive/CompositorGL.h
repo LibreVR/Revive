@@ -14,7 +14,7 @@ public:
 
 	static CompositorGL* Create();
 	virtual vr::EGraphicsAPIConvention GetAPI() { return vr::API_OpenGL; };
-	virtual void ClearScreen();
+	virtual void OnSubmitComplete() { }
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
