@@ -30,6 +30,21 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	MH_QueueEnableHook(OpenEventW);
 	MH_ApplyQueued();
 
+	uint32_t timeout = params->ConnectionTimeoutMS;
+	if (timeout == 0)
+		timeout = REV_DEFAULT_TIMEOUT;
+
+	// Wait until the compositor is ready, if SteamVR still needs to start the nominal waiting time
+	// is 1.5 seconds. Thus we don't even attempt to wait if the requested timeout is only 100ms.
+	while (timeout > 100 && vr::VRCompositor() == nullptr)
+	{
+		Sleep(100);
+		timeout -= 100;
+	}
+
+	if (vr::VRCompositor() == nullptr)
+		return ovrError_Timeout;
+
 	return rev_InitErrorToOvrError(g_InitError);
 }
 
