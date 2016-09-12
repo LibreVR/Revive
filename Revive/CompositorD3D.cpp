@@ -280,6 +280,7 @@ ovrResult CompositorD3D::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, o
 	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, m_pDevice.Get(), &mirrorTexture->Views[ovrEye_Left]);
 	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, m_pDevice.Get(), &mirrorTexture->Views[ovrEye_Right]);
 
+	m_MirrorTexture = mirrorTexture;
 	*out_MirrorTexture = mirrorTexture;
 	return ovrSuccess;
 }
