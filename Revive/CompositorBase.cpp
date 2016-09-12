@@ -42,8 +42,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 			}
 			activeOverlays.push_back(overlay);
 
-			// Set the high quality overlay.
-			// FIXME: Why are High quality overlays headlocked in OpenVR?
+			// TODO: Set the high quality overlay when this is fixed in OpenVR.
 			//if (layer->Header.Flags & ovrLayerFlag_HighQuality)
 			//	vr::VROverlay()->SetHighQualityOverlay(overlay);
 
