@@ -284,9 +284,13 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	if (!session)
 		return state;
 
-	// Get the device poses.
+	// Get the device poses, in case prediction is required beyond the next frame
+	// we use the game prediction poses.
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+	if (absTime - ovr_GetPredictedDisplayTime(session, session->FrameIndex + 1) > 0.0)
+		vr::VRCompositor()->GetLastPoses(nullptr, 0, poses, vr::k_unMaxTrackedDeviceCount);
+	else
+		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 
 	// Convert the head pose
 	state.HeadPose = rev_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
