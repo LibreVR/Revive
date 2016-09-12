@@ -182,6 +182,11 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 			inputState->IndexTrigger[hand] = axis.x;
 	}
 
+	// We don't apply deadzones yet.
+	inputState->IndexTriggerNoDeadzone[hand] = inputState->IndexTrigger[hand];
+	inputState->HandTriggerNoDeadzone[hand] = inputState->HandTrigger[hand];
+	inputState->ThumbstickNoDeadzone[hand] = inputState->Thumbstick[hand];
+
 	// Commit buttons/touches, count pressed buttons as touches.
 	inputState->Buttons |= buttons;
 	inputState->Touches |= touches | buttons;
@@ -341,12 +346,15 @@ void InputManager::XboxGamepad::GetInputState(ovrInputState* inputState)
 				float normalizedMagnitude = magnitude / (32767 - deadzones[i]);
 				inputState->Thumbstick[i].x = normalizedMagnitude * normalizedX;
 				inputState->Thumbstick[i].y = normalizedMagnitude * normalizedY;
+				inputState->ThumbstickNoDeadzone[i].x = normalizedX;
+				inputState->ThumbstickNoDeadzone[i].y = normalizedY;
 			}
 
 			if (trigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
 			{
 				//clip the magnitude at its expected maximum value
 				if (trigger > 255) trigger = 255;
+				inputState->IndexTriggerNoDeadzone[i] = trigger / 255.0f;
 
 				//adjust magnitude relative to the end of the dead zone
 				trigger -= XINPUT_GAMEPAD_TRIGGER_THRESHOLD;

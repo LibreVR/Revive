@@ -12,10 +12,13 @@
 #include "REV_Math.h"
 
 vr::EVRInitError g_InitError = vr::VRInitError_None;
+uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
 	REV_TRACE(ovr_Initialize);
+
+	g_MinorVersion = params->RequestedMinorVersion;
 
 	MH_QueueDisableHook(LoadLibraryW);
 	MH_QueueDisableHook(OpenEventW);
@@ -375,6 +378,18 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 	return tracker;
 }
 
+// Pre-1.7 input state
+typedef struct ovrInputState1_
+{
+	double              TimeInSeconds;
+	unsigned int        Buttons;
+	unsigned int        Touches;
+	float               IndexTrigger[ovrHand_Count];
+	float               HandTrigger[ovrHand_Count];
+	ovrVector2f         Thumbstick[ovrHand_Count];
+	ovrControllerType   ControllerType;
+} ovrInputState1;
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
 	REV_TRACE(ovr_GetInputState);
@@ -385,7 +400,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 	if (!inputState)
 		return ovrError_InvalidParameter;
 
-	return session->Input->GetInputState(controllerType, inputState);
+	ovrInputState state;
+	ovrResult result = session->Input->GetInputState(controllerType, &state);
+
+	// We need to make sure we don't write outside of the bounds of the struct
+	// when the client expects a pre-1.7 version of LibOVR.
+	if (g_MinorVersion < 7)
+		memcpy(inputState, &state, sizeof(ovrInputState1));
+	else
+		memcpy(inputState, &state, sizeof(ovrInputState));
+
+	return result;
 }
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession session)
