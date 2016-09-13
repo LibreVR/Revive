@@ -4,7 +4,11 @@ import QtGraphicalEffects 1.0
 import QtMultimedia 5.6
 import "Oculus.js" as Oculus
 
-OverlayForm {
+Rectangle {
+    width: 1920
+    height: 1080
+    color: "#183755"
+
     FolderListModel {
         id: manifestsModel
         folder: baseURL + 'Software/Manifests/'
@@ -28,27 +32,8 @@ OverlayForm {
     Component {
         id: coverDelegate
         Item {
-            width: parent.parent.cellWidth
-            height: parent.parent.cellHeight
-
-            Rectangle {
-                id: coverRect
-                visible: coverArea.containsMouse
-                anchors.centerIn: parent
-                width: coverImage.paintedWidth + 10
-                height: coverImage.paintedHeight + 10
-                border.color: "#b4dff7"
-                border.width: 5
-                radius: 5
-
-                RectangularGlow {
-                    anchors.fill: parent
-                    glowRadius: 5
-                    spread: 0.2
-                    color: parent.border.color
-                    cornerRadius: parent.radius + glowRadius
-                }
-            }
+            width: coverGrid.cellWidth
+            height: coverGrid.cellHeight
 
             Image {
                 id: coverImage
@@ -59,6 +44,7 @@ OverlayForm {
                     id: coverArea
                     hoverEnabled: true
                     anchors.fill: parent
+                    onHoveredChanged: coverGrid.currentIndex = index
                     onClicked: {
                         activateSound.play();
                         ReviveManifest.launchApplication(appKey);
@@ -66,5 +52,40 @@ OverlayForm {
                 }
             }
         }
+    }
+
+    Component {
+        id: coverHighlight
+
+        Rectangle {
+            id: coverRect
+            x: coverGrid.currentItem.x + 5
+            y: coverGrid.currentItem.y + 5
+            width: coverGrid.cellWidth - 10
+            height: coverGrid.cellHeight - 10
+            border.color: "#b4dff7"
+            border.width: 5
+            radius: 5
+
+            RectangularGlow {
+                anchors.fill: parent
+                glowRadius: 5
+                spread: 0.2
+                color: parent.border.color
+                cornerRadius: parent.radius + glowRadius
+            }
+        }
+    }
+
+    GridView {
+        id: coverGrid
+        focus: true
+        cellHeight: 384
+        cellWidth: 384
+        anchors.fill: parent
+        model: coverModel
+        delegate: coverDelegate
+        highlight: coverHighlight
+        highlightFollowsCurrentItem: false
     }
 }

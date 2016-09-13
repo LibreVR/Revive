@@ -21,7 +21,6 @@ HEADERS  += \
     revivemanifestcontroller.h
 
 DISTFILES += \
-    OverlayForm.ui.qml \
     Overlay.qml \
     Oculus.js
 
