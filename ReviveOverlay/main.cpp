@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
 	// Create a QML engine.
 	QQmlEngine qmlEngine;
 	qmlEngine.rootContext()->setContextProperty("ReviveManifest", CReviveManifestController::SharedInstance());
+	qmlEngine.rootContext()->setContextProperty("OpenVR", COpenVROverlayController::SharedInstance());
 
 	// Set the properties.
 	QString str = QString::fromWCharArray(path);

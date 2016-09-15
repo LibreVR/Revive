@@ -2,6 +2,7 @@ import QtQuick 2.4
 import Qt.labs.folderlistmodel 2.1
 import QtGraphicalEffects 1.0
 import QtMultimedia 5.6
+import QtGamepad 1.0
 import "Oculus.js" as Oculus
 
 Rectangle {
@@ -87,5 +88,43 @@ Rectangle {
         delegate: coverDelegate
         highlight: coverHighlight
         highlightFollowsCurrentItem: false
+    }
+
+    Gamepad {
+        property real lastX: 0.0
+        property real lastY: 0.0
+
+        onAxisLeftXChanged: {
+            if (OpenVR.gamepadFocus) {
+                if (axisLeftX > 0.5 && lastX < 0.5)
+                    coverGrid.moveCurrentIndexRight();
+                if (axisLeftX < -0.5 && lastX > -0.5)
+                    coverGrid.moveCurrentIndexLeft();
+            }
+            lastX = axisLeftX;
+        }
+
+        onAxisLeftYChanged: {
+            if (OpenVR.gamepadFocus) {
+                if (axisLeftY > 0.5 && lastY < 0.5)
+                    coverGrid.moveCurrentIndexDown();
+                if (axisLeftY < -0.5 && lastY > -0.5)
+                    coverGrid.moveCurrentIndexUp();
+            }
+            lastY = axisLeftY;
+        }
+
+        onButtonLeftChanged: if (buttonLeft && OpenVR.gamepadFocus) coverGrid.moveCurrentIndexLeft();
+        onButtonUpChanged: if (buttonUp && OpenVR.gamepadFocus) coverGrid.moveCurrentIndexUp();
+        onButtonRightChanged: if (buttonRight && OpenVR.gamepadFocus) coverGrid.moveCurrentIndexRight();
+        onButtonDownChanged: if (buttonDown && OpenVR.gamepadFocus) coverGrid.moveCurrentIndexDown();
+
+        onButtonAChanged: {
+            if (buttonA && OpenVR.gamepadFocus && coverGrid.currentIndex != -1) {
+                var cover = coverModel.get(coverGrid.currentIndex);
+                activateSound.play();
+                ReviveManifest.launchApplication(cover.appKey);
+            }
+        }
     }
 }

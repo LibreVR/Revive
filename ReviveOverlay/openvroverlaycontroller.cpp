@@ -46,6 +46,7 @@ COpenVROverlayController::COpenVROverlayController()
 	, m_lastMouseButtons( 0 )
 	, m_ulOverlayHandle( vr::k_ulOverlayHandleInvalid )
 	, m_bManualMouseHandling( false )
+	, m_bGamepadFocus( false )
 {
 }
 
@@ -155,6 +156,7 @@ bool COpenVROverlayController::Init()
 		vr::VROverlay()->SetOverlayAlpha( m_ulOverlayHandle, 0.9f );
 		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_SendVRScrollEvents, true );
+		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_AcceptsGamepadEvents, true );
 
 		m_pPumpEventsTimer = new QTimer( this );
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
@@ -334,6 +336,14 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 			{
 				m_pWindow->update();
 			}
+			break;
+
+		case vr::VREvent_OverlayGamepadFocusGained:
+			m_bGamepadFocus = true;
+			break;
+
+		case vr::VREvent_OverlayGamepadFocusLost:
+			m_bGamepadFocus = false;
 			break;
 
 		case vr::VREvent_Quit:

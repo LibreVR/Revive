@@ -28,6 +28,8 @@ class COpenVROverlayController : public QObject
 	Q_OBJECT
 	typedef QObject BaseClass;
 
+	Q_PROPERTY(bool gamepadFocus READ GetGamepadFocus)
+
 public:
 	static COpenVROverlayController *SharedInstance();
 
@@ -46,6 +48,7 @@ public:
 	QString GetVRDriverString();
 	QString GetVRDisplayString();
 	QString GetName() { return m_strName; }
+	bool GetGamepadFocus() const { return m_bGamepadFocus; }
 
 	void SetQuickItem( QQuickItem *pItem );
 
@@ -90,6 +93,7 @@ private:
 	QPointF m_ptLastMouse;
 	Qt::MouseButtons m_lastMouseButtons;
 	bool m_bManualMouseHandling;
+	bool m_bGamepadFocus;
 };
 
 
