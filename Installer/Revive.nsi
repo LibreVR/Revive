@@ -84,9 +84,6 @@ Section "Revive" SecRevive
     "$INSTDIR\revive.vrmanifest" "(S-1-5-32-545)" "GenericRead + GenericWrite"
   Pop $0
   
-  ; Install redistributable
-  ExecWait '"$INSTDIR\vcredist_x64.exe" /install /quiet'
-  
   ; Execute the dashboard overlay with unelevated permissions
   ; This ensures we don't start the OpenVR server with admin permissions
   ShellExecAsUser::ShellExecAsUser "open" "$INSTDIR\ReviveOverlay.exe" "-manifest"
