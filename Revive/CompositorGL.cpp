@@ -216,8 +216,8 @@ void CompositorGL::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye 
 	// The vertical bounds are reversed for OpenGL
 	GLint srcX0 = (GLint)(bounds.uMin * (float)chain->Desc.Width);
 	GLint srcX1 = (GLint)(bounds.uMax * (float)chain->Desc.Width);
-	GLint srcY0 = (GLint)(bounds.vMax * (float)chain->Desc.Height);
-	GLint srcY1 = (GLint)(bounds.vMin * (float)chain->Desc.Height);
+	GLint srcY0 = (GLint)(bounds.vMin * (float)chain->Desc.Height);
+	GLint srcY1 = (GLint)(bounds.vMax * (float)chain->Desc.Height);
 
 	// Blit the framebuffers
 	glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
