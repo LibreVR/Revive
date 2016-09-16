@@ -50,14 +50,15 @@ bool CReviveManifestController::Init()
 		applications.append(overlay);
 		m_manifest["applications"] = applications;
 
-		return SaveDocument();
+		bSuccess = SaveDocument();
 	}
 	else
 	{
-		return LoadDocument();
+		bSuccess = LoadDocument();
 	}
 
 	vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true);
+	return bSuccess;
 }
 
 bool CReviveManifestController::LoadDocument()
