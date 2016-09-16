@@ -144,7 +144,7 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 	QString appKey = AppPrefix + canonicalName;
 	vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(appKey.toUtf8());
 	if (error != vr::VRApplicationError_None)
-		qWarning("Failed to launch application: %s (%s)", qUtf8Printable(appKey), QString(vr::VRApplications()->GetApplicationsErrorNameFromEnum(error)));
+		qWarning("Failed to launch application: %s (%s)", qUtf8Printable(appKey), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 	return error == vr::VRApplicationError_None;
 }
 
