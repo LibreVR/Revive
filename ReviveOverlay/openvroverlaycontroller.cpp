@@ -336,8 +336,8 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 
 		case vr::VREvent_Scroll:
 			{
-				// Wheel speed is defined by 2 * 360 * 8 = 5760
-				QPoint ptNewWheel( vrEvent.data.scroll.xdelta * 5760.0f, vrEvent.data.scroll.ydelta * 5760.0f );
+				// Wheel speed is defined in 1/8 of a degree
+				QPoint ptNewWheel( vrEvent.data.scroll.xdelta * 360.0f * 8.0f, vrEvent.data.scroll.ydelta * 360.0f * 8.0f );
 				QPoint ptGlobal = m_ptLastMouse.toPoint();
 				QWheelEvent wheelEvent( m_ptLastMouse,
 										ptGlobal,
