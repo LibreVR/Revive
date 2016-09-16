@@ -31,6 +31,12 @@ Rectangle {
         source: openvrURL + "tools/content/panorama/sounds/activation.wav"
     }
 
+    SoundEffect {
+        id: moveSound
+        source: openvrURL + "tools/content/panorama/sounds/focus_change.wav"
+        volume: 0.6
+    }
+
     Component {
         id: coverDelegate
         Item {
@@ -89,6 +95,7 @@ Rectangle {
         delegate: coverDelegate
         highlight: coverHighlight
         highlightFollowsCurrentItem: false
+        keyNavigationWraps: true
     }
 
     Gamepad {
@@ -97,28 +104,58 @@ Rectangle {
 
         onAxisLeftXChanged: {
             if (OpenVR.gamepadFocus) {
-                if (axisLeftX > 0.5 && lastX < 0.5)
+                if (axisLeftX > 0.5 && lastX < 0.5) {
+                    moveSound.play();
                     coverGrid.moveCurrentIndexRight();
-                if (axisLeftX < -0.5 && lastX > -0.5)
+                }
+                if (axisLeftX < -0.5 && lastX > -0.5) {
+                    moveSound.play();
                     coverGrid.moveCurrentIndexLeft();
+                }
             }
             lastX = axisLeftX;
         }
 
         onAxisLeftYChanged: {
             if (OpenVR.gamepadFocus) {
-                if (axisLeftY > 0.5 && lastY < 0.5)
+                if (axisLeftY > 0.5 && lastY < 0.5) {
+                    moveSound.play();
                     coverGrid.moveCurrentIndexDown();
-                if (axisLeftY < -0.5 && lastY > -0.5)
+                }
+                if (axisLeftY < -0.5 && lastY > -0.5) {
+                    moveSound.play();
                     coverGrid.moveCurrentIndexUp();
+                }
             }
             lastY = axisLeftY;
         }
 
-        onButtonLeftChanged: if (buttonLeft && OpenVR.gamepadFocus) coverGrid.moveCurrentIndexLeft();
-        onButtonUpChanged: if (buttonUp && OpenVR.gamepadFocus) coverGrid.moveCurrentIndexUp();
-        onButtonRightChanged: if (buttonRight && OpenVR.gamepadFocus) coverGrid.moveCurrentIndexRight();
-        onButtonDownChanged: if (buttonDown && OpenVR.gamepadFocus) coverGrid.moveCurrentIndexDown();
+        onButtonLeftChanged: {
+
+            if (buttonLeft && OpenVR.gamepadFocus) {
+                moveSound.play();
+                coverGrid.moveCurrentIndexLeft();
+            }
+        }
+        onButtonUpChanged: {
+
+            if (buttonUp && OpenVR.gamepadFocus) {
+                moveSound.play();
+                coverGrid.moveCurrentIndexUp();
+            }
+        }
+        onButtonRightChanged: {
+            if (buttonRight && OpenVR.gamepadFocus) {
+                moveSound.play();
+                coverGrid.moveCurrentIndexRight();
+            }
+        }
+        onButtonDownChanged: {
+            if (buttonDown && OpenVR.gamepadFocus) {
+                moveSound.play();
+                coverGrid.moveCurrentIndexDown();
+            }
+        }
 
         onButtonAChanged: {
             if (buttonA && OpenVR.gamepadFocus && coverGrid.currentIndex != -1) {
