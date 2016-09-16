@@ -170,12 +170,19 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="ReviveInject.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Revive\Revive.vcxproj">
       <Project>{bc34622b-5bfc-42d0-858a-331becc048ae}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ReviveInjector.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\ReviveOverlay\revive.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
