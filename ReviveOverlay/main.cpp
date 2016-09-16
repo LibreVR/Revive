@@ -21,6 +21,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 	QTextStream log(g_LogFile);
 	log << localMsg.constData() << "\n";
 	OutputDebugStringA(localMsg.constData());
+	OutputDebugStringA("\n");
 
 	if (type == QtFatalMsg)
 		abort();
@@ -113,8 +114,10 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize singletons
-	COpenVROverlayController::SharedInstance()->Init();
-	CReviveManifestController::SharedInstance()->Init();
+	if (!COpenVROverlayController::SharedInstance()->Init())
+		return -1;
+	if (!CReviveManifestController::SharedInstance()->Init())
+		return -1;
 
 	// Get the base path
 	WCHAR path[MAX_PATH];

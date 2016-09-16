@@ -105,7 +105,10 @@ bool COpenVROverlayController::Init()
 	m_pOpenGLContext->setFormat( format );
 	bSuccess = m_pOpenGLContext->create();
 	if( !bSuccess )
+	{
+		qDebug( "Failed to create OpenGL context" );
 		return false;
+	}
 
 	// create an offscreen surface to attach the context and FBO to
 	m_pOffscreenSurface = new QOffscreenSurface();
@@ -140,14 +143,31 @@ bool COpenVROverlayController::Init()
 
 	// Loading the OpenVR Runtime
 	bSuccess = ConnectToVRRuntime();
+	if( !bSuccess )
+	{
+		qDebug( "Failed to connect to OpenVR Runtime" );
+		return false;
+	}
 
+	// Check if the compositor is ready
 	bSuccess = bSuccess && vr::VRCompositor() != NULL;
+	if( !bSuccess )
+	{
+		qDebug( "Failed to connect to the compositor" );
+		return false;
+	}
 
 	if( vr::VROverlay() )
 	{
 		std::string sKey = m_strName.toStdString() + std::string( ".overlay" );
 		vr::VROverlayError overlayError = vr::VROverlay()->CreateDashboardOverlay( sKey.c_str(), m_strName.toStdString().c_str(), &m_ulOverlayHandle, &m_ulOverlayThumbnailHandle );
 		bSuccess = bSuccess && overlayError == vr::VROverlayError_None;
+	}
+
+	if( !bSuccess )
+	{
+		qDebug( "Failed to create the dashboard overlay (is it already running?)" );
+		return false;
 	}
 
 	if( bSuccess )
@@ -164,7 +184,7 @@ bool COpenVROverlayController::Init()
 		m_pPumpEventsTimer->start();
 
 	}
-	return true;
+	return bSuccess;
 }
 
 

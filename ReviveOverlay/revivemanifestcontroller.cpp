@@ -30,6 +30,8 @@ CReviveManifestController::~CReviveManifestController()
 
 bool CReviveManifestController::Init()
 {
+	bool bSuccess = true;
+
 	if (!vr::VRApplications()->IsApplicationInstalled(AppKey))
 	{
 		QJsonObject strings, english;
@@ -65,7 +67,7 @@ bool CReviveManifestController::LoadDocument()
 {
 	if (!m_manifestFile.open(QIODevice::ReadOnly))
 	{
-		qWarning("Couldn't open manifest file for reading.");
+		qWarning("Couldn't open manifest file for reading");
 		return false;
 	}
 
@@ -78,7 +80,7 @@ bool CReviveManifestController::LoadDocument()
 	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
 	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(filePath.toUtf8());
 	if (error != vr::VRApplicationError_None)
-		qWarning("Failed to add manifest file to OpenVR: %s (%s).", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
+		qWarning("Failed to add manifest file to OpenVR: %s (%s)", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 
 	qDebug("Loaded manifest from: %s", qUtf8Printable(filePath));
 
@@ -89,7 +91,7 @@ bool CReviveManifestController::SaveDocument()
 {
 	if (!m_manifestFile.open(QIODevice::WriteOnly))
 	{
-		qWarning("Couldn't open manifest file for writing.");
+		qWarning("Couldn't open manifest file for writing");
 		return false;
 	}
 
@@ -102,7 +104,7 @@ bool CReviveManifestController::SaveDocument()
 	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
 	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(filePath.toUtf8());
 	if (error != vr::VRApplicationError_None)
-		qWarning("Failed to add manifest file to OpenVR: %s (%s).", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
+		qWarning("Failed to add manifest file to OpenVR: %s (%s)", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 
 	qDebug("Saved manifest to: %s", qUtf8Printable(filePath));
 
