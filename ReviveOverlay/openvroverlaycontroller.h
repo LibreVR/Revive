@@ -48,7 +48,7 @@ public:
 	QString GetVRDriverString();
 	QString GetVRDisplayString();
 	QString GetName() { return m_strName; }
-	bool GetGamepadFocus() const { return m_bGamepadFocus; }
+	bool GetGamepadFocus() { return m_bGamepadFocus && vr::VROverlay()->IsDashboardVisible(); }
 
 	void SetQuickItem( QQuickItem *pItem );
 
