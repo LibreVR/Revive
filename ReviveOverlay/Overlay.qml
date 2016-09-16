@@ -12,8 +12,9 @@ Rectangle {
 
     FolderListModel {
         id: manifestsModel
-        folder: baseURL + 'Software/Manifests/'
+        folder: baseURL + 'Manifests/'
         nameFilters: ["*_assets.json"]
+        showDirs: false
         onCountChanged: {
             coverModel.clear();
             for (var i = 0; i < manifestsModel.count; i++)
