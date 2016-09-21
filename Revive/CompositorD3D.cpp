@@ -59,29 +59,7 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 	};
 	HRESULT hr = m_pDevice->CreateInputLayout(layout, 2, g_VertexShader, sizeof(g_VertexShader), m_InputLayout.GetAddressOf());
 
-	// Create the compositor render targets.
-	uint32_t width, height;
-	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
-	for (int i = 0; i < ovrEye_Count; i++)
-	{
-		// Create the texture
-		ID3D11Texture2D* texture;
-		m_CompositorTextures[i].eType = vr::API_DirectX;
-		m_CompositorTextures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-		CreateTexture(width, height, 1, 1, OVR_FORMAT_R8G8B8A8_UNORM_SRGB,
-			0, ovrTextureBind_DX_RenderTarget, &texture);
-		m_CompositorTextures[i].handle = texture;
-
-		// Create the view
-		D3D11_RENDER_TARGET_VIEW_DESC rdesc;
-		rdesc.Format = TextureFormatToDXGIFormat(OVR_FORMAT_R8G8B8A8_UNORM_SRGB, 0);
-		rdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-		rdesc.Texture2D.MipSlice = 0;
-		m_pDevice->CreateRenderTargetView(texture, &rdesc, m_CompositorTargets[i].GetAddressOf());
-	}
-
 	// Create state objects.
-	FirstLayer[0] = FirstLayer[1] = true;
 	D3D11_BLEND_DESC bm = { 0 };
 	bm.RenderTarget[0].BlendEnable = true;
 	bm.RenderTarget[0].BlendOp = bm.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
@@ -96,9 +74,6 @@ CompositorD3D::~CompositorD3D()
 {
   if (m_MirrorTexture)
 	DestroyMirrorTexture(m_MirrorTexture);
-
-  for (int i = 0; i < 2; i++)
-	  ((ID3D11Texture2D*)m_CompositorTextures[i].handle)->Release();
 }
 
 DXGI_FORMAT CompositorD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int flags)
@@ -236,6 +211,17 @@ ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* d
 		if (FAILED(hr))
 			return ovrError_RuntimeException;
 
+		if (desc->BindFlags & ovrTextureBind_DX_RenderTarget)
+		{
+			D3D11_RENDER_TARGET_VIEW_DESC target_desc;
+			target_desc.Format = TextureFormatToDXGIFormat(desc->Format, 0);
+			target_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+			target_desc.Texture2D.MipSlice = 0;
+			hr = m_pDevice->CreateRenderTargetView(texture, &target_desc, (ID3D11RenderTargetView**)&swapChain->Targets[i]);
+			if (FAILED(hr))
+				return ovrError_RuntimeException;
+		}
+
 		swapChain->Textures[i].handle = texture;
 	}
 
@@ -246,7 +232,11 @@ ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* d
 void CompositorD3D::DestroyTextureSwapChain(ovrTextureSwapChain chain)
 {
 	for (int i = 0; i < chain->Length; i++)
+	{
 		((ID3D11Texture2D*)chain->Textures[i].handle)->Release();
+		((ID3D11ShaderResourceView*)chain->Textures[i].handle)->Release();
+		((ID3D11Texture2D*)chain->Textures[i].handle)->Release();
+	}
 }
 
 ovrResult CompositorD3D::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture)
@@ -294,7 +284,7 @@ void CompositorD3D::DestroyMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_MirrorTexture = nullptr;
 }
 
-void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
+void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count])
 {
 	// Get the current state objects
 	Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
@@ -348,7 +338,7 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_pContext->IASetPrimitiveTopology(topology);
 }
 
-void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye eye, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
+void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
 {
 	uint32_t width, height;
 	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
@@ -368,7 +358,7 @@ void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye
 	// Set the compositor shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
 	m_pContext->PSSetShader(m_CompositorShader.Get(), NULL, 0);
-	m_pContext->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&chain->SubmittedView);
+	m_pContext->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&swapChain->SubmittedView);
 
 	// Update the vertex buffer
 	Vertex vertices[4] = {
@@ -383,10 +373,10 @@ void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye
 	m_pContext->Unmap(m_VertexBuffer.Get(), 0);
 
 	// Prepare the render target
-	D3D11_VIEWPORT vp = { 0.0f, 0.0f, (float)width, (float)height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+	D3D11_VIEWPORT vp = { 0.0f, 0.0f, (float)sceneChain->Desc.Width, (float)sceneChain->Desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	m_pContext->RSSetViewports(1, &vp);
-	m_pContext->OMSetRenderTargets(1, m_CompositorTargets[eye].GetAddressOf(), nullptr);
-	m_pContext->OMSetBlendState(FirstLayer[eye] ? nullptr : m_BlendState.Get(), nullptr, -1);
+	m_pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&sceneChain->SubmittedTarget, nullptr);
+	m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);
 	m_pContext->RSSetState(nullptr);
 
 	// Set and draw the vertices
@@ -396,7 +386,6 @@ void CompositorD3D::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye
 	m_pContext->IASetInputLayout(m_InputLayout.Get());
 	m_pContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
 	m_pContext->Draw(4, 0);
-	FirstLayer[eye] = false;
 
 	// Restore the state objects
 	m_pContext->RSSetState(ras_state);

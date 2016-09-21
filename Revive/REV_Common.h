@@ -21,9 +21,11 @@ struct ovrTextureSwapChainData
 	int Length, CurrentIndex;
 	vr::Texture_t Textures[REV_SWAPCHAIN_LENGTH];
 	void* Views[REV_SWAPCHAIN_LENGTH];
+	void* Targets[REV_SWAPCHAIN_LENGTH];
 
 	vr::Texture_t* SubmittedTexture;
 	void* SubmittedView;
+	void* SubmittedTarget;
 	vr::VROverlayHandle_t Overlay;
 
 	ovrTextureSwapChainData(vr::EGraphicsAPIConvention api, ovrTextureSwapChainDesc desc);

@@ -33,17 +33,6 @@ CompositorGL* CompositorGL::Create()
 
 CompositorGL::CompositorGL()
 {
-	// Create the compositor framebuffers.
-	uint32_t width, height;
-	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
-	for (int i = 0; i < ovrEye_Count; i++)
-	{
-		m_CompositorTextures[i].eType = vr::API_OpenGL;
-		m_CompositorTextures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-		GLuint texture = CreateTexture(width, height, OVR_FORMAT_R8G8B8A8_UNORM_SRGB);
-		m_CompositorTextures[i].handle = (void*)texture;
-		m_CompositorTargets[i] = CreateFramebuffer(texture);
-	}
 }
 
 CompositorGL::~CompositorGL()
@@ -131,7 +120,7 @@ ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* de
 		swapChain->Textures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
 		GLuint texture = CreateTexture(desc->Width, desc->Height, desc->Format);
 		swapChain->Textures[i].handle = (void*)texture;
-		swapChain->Views[i] = (void*)CreateFramebuffer(texture);
+		swapChain->Targets[i] = (void*)CreateFramebuffer(texture);
 	}
 
 	*out_TextureSwapChain = swapChain;
@@ -140,7 +129,7 @@ ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* de
 
 void CompositorGL::DestroyTextureSwapChain(ovrTextureSwapChain chain)
 {
-	glDeleteFramebuffers(chain->Length, (GLuint*)chain->Views);
+	glDeleteFramebuffers(chain->Length, (GLuint*)chain->Targets);
 	for (int i = 0; i < chain->Length; i++)
 		glDeleteTextures(1, (GLuint*)&chain->Textures[i].handle);
 }
@@ -175,7 +164,7 @@ void CompositorGL::DestroyMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_MirrorTexture = nullptr;
 }
 
-void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
+void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count])
 {
 	uint32_t width, height;
 	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
@@ -183,42 +172,14 @@ void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		// Bind the buffer to copy from the compositor to the mirror texture
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)m_CompositorTargets[i]);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)swapChain[i]->SubmittedTarget);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)mirrorTexture->Target);
 		GLint offset = (mirrorTexture->Desc.Width / 2) * i;
 		glBlitFramebuffer(0, 0, width, height, offset, mirrorTexture->Desc.Height, offset + mirrorTexture->Desc.Width / 2, 0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
 }
 
-void CompositorGL::RenderTextureSwapChain(ovrTextureSwapChain chain, vr::EVREye eye, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
+void CompositorGL::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
 {
 	// TODO: Support blending multiple scene layers
-	uint32_t width, height;
-	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
-
-	// Bind the buffer to copy from the swapchain to the compositor
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)chain->SubmittedView);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_CompositorTargets[eye]);
-
-	// Shrink the bounds to account for the overlapping fov
-	float uMin = 0.5f + 0.5f / quad.v[0];
-	float uMax = 0.5f + 0.5f / quad.v[1];
-	float vMin = 0.5f - 0.5f / quad.v[2];
-	float vMax = 0.5f - 0.5f / quad.v[3];
-
-	// Combine the fov bounds with the viewport bounds
-	bounds.uMin += uMin * bounds.uMax;
-	bounds.uMax *= uMax;
-	bounds.vMin += vMin * bounds.vMax;
-	bounds.vMax *= vMax;
-
-	// Scale the bounds to the size of the swapchain
-	// The vertical bounds are reversed for OpenGL
-	GLint srcX0 = (GLint)(bounds.uMin * (float)chain->Desc.Width);
-	GLint srcX1 = (GLint)(bounds.uMax * (float)chain->Desc.Width);
-	GLint srcY0 = (GLint)(bounds.vMin * (float)chain->Desc.Height);
-	GLint srcY1 = (GLint)(bounds.vMax * (float)chain->Desc.Height);
-
-	// Blit the framebuffers
-	glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 }
