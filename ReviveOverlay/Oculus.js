@@ -4,10 +4,10 @@ function generateManifest(manifest) {
 
     var launch = '/' + manifest["launchFile"];
 
-    // Find an executable ending with -Shipping.exe
-    var shipping = "-Shipping.exe";
+    // Findthe true executable for Unreal Engine games
+    var shipping = /Binaries\/Win64\/(.*)\.exe/i;
     for (var file in manifest["files"]) {
-        if (file.indexOf(shipping, file.length - shipping.length) != -1) {
+        if (shipping.exec(file) != null) {
             launch = '/' + file;
         }
     }
