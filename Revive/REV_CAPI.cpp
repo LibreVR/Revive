@@ -505,6 +505,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 
 	chain->SubmittedTexture = &chain->Textures[chain->CurrentIndex];
 	chain->SubmittedView = chain->Views[chain->CurrentIndex];
+	chain->SubmittedTarget = chain->Targets[chain->CurrentIndex];
 	chain->CurrentIndex++;
 	chain->CurrentIndex %= chain->Length;
 	return ovrSuccess;

@@ -10,6 +10,7 @@
 CompositorBase::CompositorBase()
 	: m_MirrorTexture(nullptr)
 {
+	m_SceneLayer = nullptr;
 }
 
 CompositorBase::~CompositorBase()
@@ -73,20 +74,24 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 		{
 			ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[i];
 
-			// TODO: Handle compositor errors.
-			SubmitFovLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+			if (!m_SceneLayer)
+				m_SceneLayer = layerPtrList[i];
+			else
+				SubmitFovLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeMatrix)
 		{
 			ovrLayerEyeMatrix* sceneLayer = (ovrLayerEyeMatrix*)layerPtrList[i];
-			ovrFovPort fov[ovrEye_Count];
-			fov[0].LeftTan = fov[0].RightTan = .5f / sceneLayer->Matrix[0].M[0][0];
-			fov[0].UpTan   = fov[0].DownTan  = .5f / sceneLayer->Matrix[0].M[1][1];
-			fov[1].LeftTan = fov[1].RightTan = .5f / sceneLayer->Matrix[1].M[0][0];
-			fov[1].UpTan   = fov[1].DownTan  = .5f / sceneLayer->Matrix[1].M[1][1];
 
-			// TODO: Handle compositor errors.
-			SubmitFovLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+			ovrFovPort fov[ovrEye_Count] = {
+				MatrixToFovPort(sceneLayer->Matrix[ovrEye_Left]),
+				MatrixToFovPort(sceneLayer->Matrix[ovrEye_Right])
+			};
+
+			if (!m_SceneLayer)
+				m_SceneLayer = layerPtrList[i];
+			else
+				SubmitFovLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
 		}
 	}
 
@@ -100,13 +105,31 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 	}
 	m_ActiveOverlays = activeOverlays;
 
-	for (int i = 0; i < ovrEye_Count; i++)
-		vr::VRCompositor()->Submit((vr::EVREye)i, &m_CompositorTextures[i], nullptr);
+	// TODO: Handle compositor errors.
+	if (m_SceneLayer && m_SceneLayer->Type == ovrLayerType_EyeFov)
+	{
+		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)m_SceneLayer;
+		SubmitSceneLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
 
-	if (m_MirrorTexture)
-		RenderMirrorTexture(m_MirrorTexture);
+		if (m_MirrorTexture)
+			RenderMirrorTexture(m_MirrorTexture, sceneLayer->ColorTexture);
+	}
+	else if (m_SceneLayer && m_SceneLayer->Type == ovrLayerType_EyeMatrix)
+	{
+		ovrLayerEyeMatrix* sceneLayer = (ovrLayerEyeMatrix*)m_SceneLayer;
 
-	OnSubmitComplete();
+		ovrFovPort fov[ovrEye_Count] = {
+			MatrixToFovPort(sceneLayer->Matrix[ovrEye_Left]),
+			MatrixToFovPort(sceneLayer->Matrix[ovrEye_Right])
+		};
+
+		SubmitSceneLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+
+		if (m_MirrorTexture)
+			RenderMirrorTexture(m_MirrorTexture, sceneLayer->ColorTexture);
+	}
+
+	m_SceneLayer = nullptr;
 
 	// Call WaitGetPoses() to actually display the frame.
 	return vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
@@ -159,24 +182,69 @@ vr::VRTextureBounds_t CompositorBase::ViewportToTextureBounds(ovrRecti viewport,
 	return bounds;
 }
 
+ovrFovPort CompositorBase::MatrixToFovPort(ovrMatrix4f matrix)
+{
+	ovrFovPort fov;
+	fov.LeftTan = fov.RightTan = .5f / matrix.M[0][0];
+	fov.UpTan   = fov.DownTan  = -.5f / matrix.M[1][1];
+	return fov;
+}
+
 void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
 {
 	// Render the scene layer
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
+		// Get the scene fov
+		ovrFovPort sceneFov;
+		if (m_SceneLayer->Type == ovrLayerType_EyeFov)
+			sceneFov = ((ovrLayerEyeFov*)m_SceneLayer)->Fov[i];
+		else if (m_SceneLayer->Type == ovrLayerType_EyeMatrix)
+			sceneFov = MatrixToFovPort(((ovrLayerEyeMatrix*)m_SceneLayer)->Matrix[i]);
+
 		// Calculate the fov quad
 		vr::HmdVector4_t quad;
-		float left, right, top, bottom;
-		vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
-		quad.v[0] = fov[i].LeftTan / left;
-		quad.v[1] = fov[i].RightTan / right;
-		quad.v[2] = fov[i].UpTan / bottom;
-		quad.v[3] = fov[i].DownTan / top;
+		quad.v[0] = fov[i].LeftTan / -sceneFov.LeftTan;
+		quad.v[1] = fov[i].RightTan / sceneFov.RightTan;
+		quad.v[2] = fov[i].UpTan / sceneFov.UpTan;
+		quad.v[3] = fov[i].DownTan / -sceneFov.DownTan;
 
 		// Calculate the texture bounds
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
 
 		// Composit the layer
-		RenderTextureSwapChain(swapChain[i], (vr::EVREye)i, bounds, quad);
+		if (m_SceneLayer->Type == ovrLayerType_EyeFov)
+			RenderTextureSwapChain((vr::EVREye)i, swapChain[i], ((ovrLayerEyeFov*)m_SceneLayer)->ColorTexture[i], bounds, quad);
+		else if (m_SceneLayer->Type == ovrLayerType_EyeMatrix)
+			RenderTextureSwapChain((vr::EVREye)i, swapChain[i], ((ovrLayerEyeMatrix*)m_SceneLayer)->ColorTexture[i], bounds, quad);
+	}
+}
+
+vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
+{
+	// Submit the scene layer.
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		ovrTextureSwapChain chain = swapChain[i];
+		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
+
+		float left, right, top, bottom;
+		vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
+
+		// Shrink the bounds to account for the overlapping fov
+		float uMin = 0.5f + 0.5f * left / fov[i].LeftTan;
+		float uMax = 0.5f + 0.5f * right / fov[i].RightTan;
+		float vMin = 0.5f - 0.5f * bottom / fov[i].UpTan;
+		float vMax = 0.5f - 0.5f * top / fov[i].DownTan;
+
+		// Combine the fov bounds with the viewport bounds
+		bounds.uMin += uMin * bounds.uMax;
+		bounds.uMax *= uMax;
+		bounds.vMin += vMin * bounds.vMax;
+		bounds.vMax *= vMax;
+
+		vr::VRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, chain->SubmittedTexture, &bounds);
+		if (err != vr::VRCompositorError_None)
+			return err;
 	}
 }
