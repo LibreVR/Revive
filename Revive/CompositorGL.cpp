@@ -179,7 +179,7 @@ void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextur
 	}
 }
 
-void CompositorGL::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
+void CompositorGL::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
 {
 	// TODO: Support blending multiple scene layers
 }

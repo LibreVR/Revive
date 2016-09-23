@@ -338,7 +338,7 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextu
 	m_pContext->IASetPrimitiveTopology(topology);
 }
 
-void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
+void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
 {
 	uint32_t width, height;
 	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
@@ -373,7 +373,7 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 	m_pContext->Unmap(m_VertexBuffer.Get(), 0);
 
 	// Prepare the render target
-	D3D11_VIEWPORT vp = { 0.0f, 0.0f, (float)sceneChain->Desc.Width, (float)sceneChain->Desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+	D3D11_VIEWPORT vp = { viewport.Pos.x, viewport.Pos.y, viewport.Size.w, viewport.Size.h, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	m_pContext->RSSetViewports(1, &vp);
 	m_pContext->OMSetRenderTargets(1, (ID3D11RenderTargetView**)&sceneChain->SubmittedTarget, nullptr);
 	m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);
