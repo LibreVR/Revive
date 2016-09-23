@@ -63,7 +63,7 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 	D3D11_BLEND_DESC bm = { 0 };
 	bm.RenderTarget[0].BlendEnable = true;
 	bm.RenderTarget[0].BlendOp = bm.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	bm.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	bm.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
 	bm.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 	bm.RenderTarget[0].SrcBlendAlpha = bm.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	bm.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
