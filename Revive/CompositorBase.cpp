@@ -214,9 +214,15 @@ void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort 
 
 		// Composit the layer
 		if (m_SceneLayer->Type == ovrLayerType_EyeFov)
-			RenderTextureSwapChain((vr::EVREye)i, swapChain[i], ((ovrLayerEyeFov*)m_SceneLayer)->ColorTexture[i], bounds, quad);
+		{
+			ovrLayerEyeFov* layer = (ovrLayerEyeFov*)m_SceneLayer;
+			RenderTextureSwapChain((vr::EVREye)i, swapChain[i], layer->ColorTexture[i], layer->Viewport[i], bounds, quad);
+		}
 		else if (m_SceneLayer->Type == ovrLayerType_EyeMatrix)
-			RenderTextureSwapChain((vr::EVREye)i, swapChain[i], ((ovrLayerEyeMatrix*)m_SceneLayer)->ColorTexture[i], bounds, quad);
+		{
+			ovrLayerEyeMatrix* layer = (ovrLayerEyeMatrix*)m_SceneLayer;
+			RenderTextureSwapChain((vr::EVREye)i, swapChain[i], layer->ColorTexture[i], layer->Viewport[i], bounds, quad);
+		}
 	}
 }
 
