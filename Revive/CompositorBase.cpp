@@ -253,4 +253,6 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 		if (err != vr::VRCompositorError_None)
 			return err;
 	}
+
+	return vr::VRCompositorError_None;
 }
