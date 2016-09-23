@@ -358,6 +358,10 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 	// Set the compositor shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
 	m_pContext->PSSetShader(m_CompositorShader.Get(), NULL, 0);
+
+	// Set the texture resource and generate mips if allowed
+	if (swapChain->Desc.MiscFlags & ovrTextureMisc_AllowGenerateMips)
+		m_pContext->GenerateMips((ID3D11ShaderResourceView*)swapChain->SubmittedView);
 	m_pContext->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&swapChain->SubmittedView);
 
 	// Update the vertex buffer
