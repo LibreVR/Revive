@@ -2,6 +2,7 @@
 #include "REV_Assert.h"
 #include "REV_Common.h"
 #include "CompositorD3D.h"
+#include "TextureD3D.h"
 
 #include <d3d11.h>
 
@@ -48,8 +49,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
 	if (index < 0)
 		index = chain->CurrentIndex;
 
-	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)chain->Textures[index].handle;
-	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
+	TextureD3D* texture = (TextureD3D*)chain->Textures[index].get();
+	HRESULT hr = texture->Texture()->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_InvalidParameter;
 
@@ -95,8 +96,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	if (!mirrorTexture || !out_Buffer)
 		return ovrError_InvalidParameter;
 
-	ID3D11Texture2D* texturePtr = (ID3D11Texture2D*)mirrorTexture->Texture.handle;
-	HRESULT hr = texturePtr->QueryInterface(iid, out_Buffer);
+	TextureD3D* texture = (TextureD3D*)mirrorTexture->Texture.get();
+	HRESULT hr = texture->Texture()->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_InvalidParameter;
 

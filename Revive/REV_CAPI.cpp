@@ -503,9 +503,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	chain->SubmittedTexture = &chain->Textures[chain->CurrentIndex];
-	chain->SubmittedView = chain->Views[chain->CurrentIndex];
-	chain->SubmittedTarget = chain->Targets[chain->CurrentIndex];
+	chain->Submitted = chain->Textures[chain->CurrentIndex].get();
 	chain->CurrentIndex++;
 	chain->CurrentIndex %= chain->Length;
 	return ovrSuccess;
@@ -519,7 +517,6 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTex
 		return;
 
 	vr::VROverlay()->DestroyOverlay(chain->Overlay);
-	session->Compositor->DestroyTextureSwapChain(chain);
 	delete chain;
 }
 
@@ -530,7 +527,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirror
 	if (!mirrorTexture)
 		return;
 
-	session->Compositor->DestroyMirrorTexture(mirrorTexture);
+	session->Compositor->SetMirrorTexture(nullptr);
 	delete mirrorTexture;
 }
 

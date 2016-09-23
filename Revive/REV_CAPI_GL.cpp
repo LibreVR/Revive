@@ -2,6 +2,7 @@
 #include "REV_Assert.h"
 #include "REV_Common.h"
 #include "CompositorGL.h"
+#include "TextureGL.h"
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
                                                             const ovrTextureSwapChainDesc* desc,
@@ -41,7 +42,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferGL(ovrSession sessio
 	if (index < 0)
 		index = chain->CurrentIndex;
 
-	*out_TexId = (GLuint)chain->Textures[index].handle;
+	TextureGL* texture = (TextureGL*)chain->Textures[index].get();
+	*out_TexId = texture->Texture;
 	return ovrSuccess;
 }
 
@@ -79,6 +81,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,
 	if (!mirrorTexture || !out_TexId)
 		return ovrError_InvalidParameter;
 
-	*out_TexId = (GLuint)mirrorTexture->Texture.handle;
+	TextureGL* texture = (TextureGL*)mirrorTexture->Texture.get();
+	*out_TexId = texture->Texture;
 	return ovrSuccess;
 }

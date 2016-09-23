@@ -4,8 +4,10 @@
 #include "openvr.h"
 #include "CompositorBase.h"
 #include "InputManager.h"
+#include "TextureBase.h"
 
 #include <vector>
+#include <memory>
 
 // Common structures
 
@@ -17,16 +19,11 @@ struct ovrTextureSwapChainData
 {
 	ovrTextureSwapChainDesc Desc;
 	vr::EGraphicsAPIConvention ApiType;
+	vr::VROverlayHandle_t Overlay;
 
 	int Length, CurrentIndex;
-	vr::Texture_t Textures[REV_SWAPCHAIN_LENGTH];
-	void* Views[REV_SWAPCHAIN_LENGTH];
-	void* Targets[REV_SWAPCHAIN_LENGTH];
-
-	vr::Texture_t* SubmittedTexture;
-	void* SubmittedView;
-	void* SubmittedTarget;
-	vr::VROverlayHandle_t Overlay;
+	std::unique_ptr<TextureBase> Textures[REV_SWAPCHAIN_LENGTH];
+	TextureBase* Submitted;
 
 	ovrTextureSwapChainData(vr::EGraphicsAPIConvention api, ovrTextureSwapChainDesc desc);
 };
@@ -35,9 +32,7 @@ struct ovrMirrorTextureData
 {
 	ovrMirrorTextureDesc Desc;
 	vr::EGraphicsAPIConvention ApiType;
-	vr::Texture_t Texture;
-	void* Views[ovrEye_Count];
-	void* Target;
+	std::unique_ptr<TextureBase> Texture;
 
 	ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc);
 };

@@ -1,4 +1,5 @@
 #include "CompositorGL.h"
+#include "TextureGL.h"
 #include "OVR_CAPI.h"
 #include "REV_Common.h"
 
@@ -33,81 +34,11 @@ CompositorGL* CompositorGL::Create()
 
 CompositorGL::CompositorGL()
 {
+	// TODO: Get the mirror views from OpenVR once they fix the OpenGL implementation.
 }
 
 CompositorGL::~CompositorGL()
 {
-}
-
-GLenum CompositorGL::TextureFormatToInternalFormat(ovrTextureFormat format)
-{
-	switch (format)
-	{
-	case OVR_FORMAT_UNKNOWN:              return GL_RGBA8;
-	case OVR_FORMAT_B5G6R5_UNORM:         return GL_RGB565;
-	case OVR_FORMAT_B5G5R5A1_UNORM:       return GL_RGB5_A1;
-	case OVR_FORMAT_B4G4R4A4_UNORM:       return GL_RGBA4;
-	case OVR_FORMAT_R8G8B8A8_UNORM:       return GL_RGBA8;
-	case OVR_FORMAT_R8G8B8A8_UNORM_SRGB:  return GL_SRGB8_ALPHA8;
-	case OVR_FORMAT_B8G8R8A8_UNORM:       return GL_RGBA8;
-	case OVR_FORMAT_B8G8R8A8_UNORM_SRGB:  return GL_SRGB8_ALPHA8;
-	case OVR_FORMAT_B8G8R8X8_UNORM:       return GL_RGBA8;
-	case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return GL_SRGB8_ALPHA8;
-	case OVR_FORMAT_R16G16B16A16_FLOAT:   return GL_RGBA16F;
-	case OVR_FORMAT_D16_UNORM:            return GL_DEPTH_COMPONENT16;
-	case OVR_FORMAT_D24_UNORM_S8_UINT:    return GL_DEPTH24_STENCIL8;
-	case OVR_FORMAT_D32_FLOAT:            return GL_DEPTH_COMPONENT32F;
-	case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return GL_DEPTH32F_STENCIL8;
-	default: return GL_RGBA8;
-	}
-}
-
-GLenum CompositorGL::TextureFormatToGLFormat(ovrTextureFormat format)
-{
-	switch (format)
-	{
-	case OVR_FORMAT_UNKNOWN:              return GL_RGBA;
-	case OVR_FORMAT_B5G6R5_UNORM:         return GL_BGR;
-	case OVR_FORMAT_B5G5R5A1_UNORM:       return GL_BGRA;
-	case OVR_FORMAT_B4G4R4A4_UNORM:       return GL_BGRA;
-	case OVR_FORMAT_R8G8B8A8_UNORM:       return GL_RGBA;
-	case OVR_FORMAT_R8G8B8A8_UNORM_SRGB:  return GL_RGBA;
-	case OVR_FORMAT_B8G8R8A8_UNORM:       return GL_BGRA;
-	case OVR_FORMAT_B8G8R8A8_UNORM_SRGB:  return GL_BGRA;
-	case OVR_FORMAT_B8G8R8X8_UNORM:       return GL_BGRA;
-	case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return GL_BGRA;
-	case OVR_FORMAT_R16G16B16A16_FLOAT:   return GL_RGBA;
-	case OVR_FORMAT_D16_UNORM:            return GL_DEPTH_COMPONENT;
-	case OVR_FORMAT_D24_UNORM_S8_UINT:    return GL_DEPTH_STENCIL;
-	case OVR_FORMAT_D32_FLOAT:            return GL_DEPTH_COMPONENT;
-	case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return GL_DEPTH_STENCIL;
-	default: return GL_RGBA;
-	}
-}
-
-GLuint CompositorGL::CreateTexture(GLsizei Width, GLsizei Height, ovrTextureFormat Format)
-{
-	GLenum internalFormat = TextureFormatToInternalFormat(Format);
-	GLenum format = TextureFormatToGLFormat(Format);
-
-	GLuint tex;
-	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, Width, Height, 0, format, GL_UNSIGNED_BYTE, nullptr);
-	return tex;
-}
-
-GLuint CompositorGL::CreateFramebuffer(GLuint texture)
-{
-	GLuint fb;
-	glGenFramebuffers(1, &fb);
-	glBindFramebuffer(GL_FRAMEBUFFER, fb);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
-	return fb;
 }
 
 ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
@@ -116,22 +47,16 @@ ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* de
 
 	for (int i = 0; i < swapChain->Length; i++)
 	{
-		swapChain->Textures[i].eType = vr::API_OpenGL;
-		swapChain->Textures[i].eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-		GLuint texture = CreateTexture(desc->Width, desc->Height, desc->Format);
-		swapChain->Textures[i].handle = (void*)texture;
-		swapChain->Targets[i] = (void*)CreateFramebuffer(texture);
+		TextureGL* texture = new TextureGL();
+		bool success = texture->Create(desc->Width, desc->Height, desc->MipLevels, desc->ArraySize, desc->Format,
+			desc->MiscFlags, desc->BindFlags);
+		if (!success)
+			return ovrError_RuntimeException;
+		swapChain->Textures[i].reset(texture);
 	}
 
 	*out_TextureSwapChain = swapChain;
 	return ovrSuccess;
-}
-
-void CompositorGL::DestroyTextureSwapChain(ovrTextureSwapChain chain)
-{
-	glDeleteFramebuffers(chain->Length, (GLuint*)chain->Targets);
-	for (int i = 0; i < chain->Length; i++)
-		glDeleteTextures(1, (GLuint*)&chain->Textures[i].handle);
 }
 
 ovrResult CompositorGL::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture)
@@ -140,28 +65,17 @@ ovrResult CompositorGL::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ov
 	if (m_MirrorTexture)
 		return ovrError_RuntimeException;
 
-	GLenum internalFormat = TextureFormatToInternalFormat(desc->Format);
-	GLenum format = TextureFormatToGLFormat(desc->Format);
-
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(vr::API_OpenGL, *desc);
-	mirrorTexture->Texture.eType = vr::API_OpenGL;
-	mirrorTexture->Texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format.
-	GLuint texture = CreateTexture(desc->Width, desc->Height, desc->Format);
-	mirrorTexture->Texture.handle = (void*)texture;
-	mirrorTexture->Target = (void*)CreateFramebuffer(texture);
-
-	// TODO: Get the mirror views from OpenVR once they fix the OpenGL implementation.
+	TextureGL* texture = new TextureGL();
+	bool success = texture->Create(desc->Width, desc->Height, 1, 1, desc->Format,
+		desc->MiscFlags, 0);
+	if (!success)
+		return ovrError_RuntimeException;
+	mirrorTexture->Texture.reset(texture);
 
 	m_MirrorTexture = mirrorTexture;
 	*out_MirrorTexture = mirrorTexture;
 	return ovrSuccess;
-}
-
-void CompositorGL::DestroyMirrorTexture(ovrMirrorTexture mirrorTexture)
-{
-	glDeleteFramebuffers(1, (GLuint*)&mirrorTexture->Texture.handle);
-	glDeleteTextures(1, (GLuint*)&mirrorTexture->Texture.handle);
-	m_MirrorTexture = nullptr;
 }
 
 void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count])
@@ -169,11 +83,13 @@ void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextur
 	uint32_t width, height;
 	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
 
+	TextureGL* texture = (TextureGL*)mirrorTexture->Texture.get();
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, texture->Framebuffer);
+
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		// Bind the buffer to copy from the compositor to the mirror texture
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, (GLuint)swapChain[i]->SubmittedTarget);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (GLuint)mirrorTexture->Target);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, ((TextureGL*)swapChain[i]->Submitted)->Framebuffer);
 		GLint offset = (mirrorTexture->Desc.Width / 2) * i;
 		glBlitFramebuffer(0, 0, width, height, offset, mirrorTexture->Desc.Height, offset + mirrorTexture->Desc.Width / 2, 0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}
