@@ -15,6 +15,8 @@ CompositorBase::CompositorBase()
 
 CompositorBase::~CompositorBase()
 {
+	if (m_MirrorTexture)
+		delete m_MirrorTexture;
 }
 
 vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewScaleDesc, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
@@ -63,7 +65,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 			// Set the texture and show the overlay.
 			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
 			vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
-			vr::VROverlay()->SetOverlayTexture(overlay, layer->ColorTexture->SubmittedTexture);
+			vr::VROverlay()->SetOverlayTexture(overlay, &layer->ColorTexture->Submitted->ToVRTexture());
 
 			// Show the overlay, unfortunately we have no control over the order in which
 			// overlays are drawn.
@@ -249,10 +251,15 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 		bounds.vMin += vMin * bounds.vMax;
 		bounds.vMax *= vMax;
 
-		vr::VRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, chain->SubmittedTexture, &bounds);
+		vr::VRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, &chain->Submitted->ToVRTexture(), &bounds);
 		if (err != vr::VRCompositorError_None)
 			return err;
 	}
 
 	return vr::VRCompositorError_None;
+}
+
+void CompositorBase::SetMirrorTexture(ovrMirrorTexture mirrorTexture)
+{
+	m_MirrorTexture = mirrorTexture;
 }

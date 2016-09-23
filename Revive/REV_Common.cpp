@@ -8,8 +8,6 @@ ovrTextureSwapChainData::ovrTextureSwapChainData(vr::EGraphicsAPIConvention api,
 	: ApiType(api)
 	, Length(REV_SWAPCHAIN_LENGTH)
 	, CurrentIndex(0)
-	, SubmittedTexture(nullptr)
-	, SubmittedView(nullptr)
 	, Desc(desc)
 	, Overlay(vr::k_ulOverlayHandleInvalid)
 {
@@ -19,9 +17,7 @@ ovrTextureSwapChainData::ovrTextureSwapChainData(vr::EGraphicsAPIConvention api,
 ovrMirrorTextureData::ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc)
 	: ApiType(api)
 	, Desc(desc)
-	, Target(nullptr)
 {
-	memset(Views, 0, sizeof(Views));
 }
 
 ovrHmdStruct::ovrHmdStruct()

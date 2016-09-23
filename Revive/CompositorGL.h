@@ -17,21 +17,14 @@ public:
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
-	virtual void DestroyTextureSwapChain(ovrTextureSwapChain chain);
 	virtual void RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad);
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);
-	virtual void DestroyMirrorTexture(ovrMirrorTexture mirrorTexture);
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count]);
 
 protected:
-	static GLenum TextureFormatToInternalFormat(ovrTextureFormat format);
-	static GLenum TextureFormatToGLFormat(ovrTextureFormat format);
 	static GLboolean glewInitialized;
-
-	GLuint CreateTexture(GLsizei Width, GLsizei Height, ovrTextureFormat Format);
-	GLuint CreateFramebuffer(GLuint texture);
 
 	GLuint m_CompositorTargets[ovrEye_Count];
 	vr::glUInt_t m_MirrorTextures[ovrEye_Count];

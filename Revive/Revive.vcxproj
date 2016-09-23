@@ -220,6 +220,9 @@
     <ClInclude Include="..\LibOVR\Include\OVR_Version.h" />
     <ClInclude Include="REV_Assert.h" />
     <ClInclude Include="REV_Error.h" />
+    <ClInclude Include="TextureBase.h" />
+    <ClInclude Include="TextureD3D.h" />
+    <ClInclude Include="TextureGL.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CompositorBase.cpp" />
@@ -234,6 +237,8 @@
     <ClCompile Include="REV_CAPI_Util.cpp" />
     <ClCompile Include="REV_Common.cpp" />
     <ClCompile Include="REV_Math.cpp" />
+    <ClCompile Include="TextureD3D.cpp" />
+    <ClCompile Include="TextureGL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\minhook\build\VC15\libMinHook.vcxproj">
