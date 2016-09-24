@@ -212,7 +212,7 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 	m_pContext->Unmap(m_VertexBuffer.Get(), 0);
 
 	// Prepare the render target
-	D3D11_VIEWPORT vp = { viewport.Pos.x, viewport.Pos.y, viewport.Size.w, viewport.Size.h, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+	D3D11_VIEWPORT vp = { (float)viewport.Pos.x, (float)viewport.Pos.y, (float)viewport.Size.w, (float)viewport.Size.h, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	m_pContext->RSSetViewports(1, &vp);
 	ID3D11RenderTargetView* target = ((TextureD3D*)sceneChain->Submitted)->Target();
 	m_pContext->OMSetRenderTargets(1, &target, nullptr);

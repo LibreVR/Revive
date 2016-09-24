@@ -13,8 +13,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutWaveId(UINT* deviceOutId)
 	if (!deviceOutId)
 		return ovrError_InvalidParameter;
 
+#pragma warning( disable : 4312 )
 	if (waveOutMessage((HWAVEOUT)WAVE_MAPPER, DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)deviceOutId, NULL) != 0)
 		return ovrError_RuntimeException;
+#pragma warning( default : 4312 )
 
 	return ovrSuccess;
 }
@@ -26,8 +28,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInWaveId(UINT* deviceInId)
 	if (!deviceInId)
 		return ovrError_InvalidParameter;
 
+#pragma warning( disable : 4312 )
 	if (waveInMessage((HWAVEIN)WAVE_MAPPER, DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)deviceInId, NULL) != 0)
 		return ovrError_RuntimeException;
+#pragma warning( default : 4312 )
 
 	return ovrSuccess;
 }
