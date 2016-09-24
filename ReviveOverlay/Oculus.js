@@ -48,7 +48,7 @@ function generateManifest(manifest) {
             ReviveManifest.addManifest(manifest["canonicalName"], JSON.stringify(revive));
         }
     }
-    xhr.open('GET', "https://www2.oculus.com/experiences/app/" + manifest["appId"]);
+    xhr.open('GET', "https://www.oculus.com/experiences/rift/" + manifest["appId"]);
     xhr.send();
 }
 
