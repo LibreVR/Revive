@@ -53,7 +53,7 @@ Rectangle {
                     hoverEnabled: true
                     anchors.fill: parent
                     onHoveredChanged: coverGrid.currentIndex = index
-                    onClicked: {
+                    onPressed: {
                         activateSound.play();
                         ReviveManifest.launchApplication(appKey);
                     }
