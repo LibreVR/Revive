@@ -462,6 +462,142 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetControllerVibrationState(ovrSession sessio
 	REV_UNIMPLEMENTED_RUNTIME;
 }
 
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDeviceType deviceBitmask,
+	ovrBoundaryType boundaryType, ovrBoundaryTestResult* outTestResult)
+{
+	outTestResult->ClosestDistance = INFINITY;
+
+	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+	vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+
+	if (vr::VRChaperone()->GetCalibrationState() != vr::ChaperoneCalibrationState_OK)
+		return ovrSuccess_BoundaryInvalid;
+
+	if (deviceBitmask & ovrTrackedDevice_HMD)
+	{
+		ovrBoundaryTestResult result = { 0 };
+		OVR::Matrix4f matrix = rev_HmdMatrixToOVRMatrix(poses[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+		ovrVector3f point = matrix.GetTranslation();
+
+		ovrResult err = ovr_TestBoundaryPoint(session, &point, boundaryType, &result);
+		if (OVR_SUCCESS(err) && result.ClosestDistance < outTestResult->ClosestDistance)
+			*outTestResult = result;
+	}
+
+
+	vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
+		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
+
+	for (int i = 0; i < ovrHand_Count; i++)
+	{
+		if (deviceBitmask & (ovrTrackedDevice_LTouch << i))
+		{
+			ovrBoundaryTestResult result = { 0 };
+			if (hands[i] != vr::k_unTrackedDeviceIndexInvalid)
+			{
+				OVR::Matrix4f matrix = rev_HmdMatrixToOVRMatrix(poses[hands[i]].mDeviceToAbsoluteTracking);
+				ovrVector3f point = matrix.GetTranslation();
+
+				ovrResult err = ovr_TestBoundaryPoint(session, &point, boundaryType, &result);
+				if (OVR_SUCCESS(err) && result.ClosestDistance < outTestResult->ClosestDistance)
+					*outTestResult = result;
+			}
+		}
+	}
+
+	return ovrSuccess;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundaryPoint(ovrSession session, const ovrVector3f* point,
+	ovrBoundaryType singleBoundaryType, ovrBoundaryTestResult* outTestResult)
+{
+	ovrBoundaryTestResult result = { 0 };
+
+	if (vr::VRChaperone()->GetCalibrationState() != vr::ChaperoneCalibrationState_OK)
+		return ovrSuccess_BoundaryInvalid;
+
+	result.IsTriggering = vr::VRChaperone()->AreBoundsVisible();
+
+	vr::HmdQuad_t playRect;
+	if (!vr::VRChaperone()->GetPlayAreaRect(&playRect))
+		return ovrSuccess_BoundaryInvalid;
+
+	result.ClosestDistance = INFINITY;
+	OVR::Vector3f p(*point);
+	for (int i = 0; i < 4; i++)
+	{
+		OVR::Vector3f start = rev_HmdVectorToOVRVector(playRect.vCorners[i]);
+		OVR::Vector3f end = rev_HmdVectorToOVRVector(playRect.vCorners[(i+1)%4]);
+
+		// Get the line as a vector
+		OVR::Vector3f line = end - start;
+
+		// Get the delta between the start of the line and the point
+		OVR::Vector3f delta = p - start;
+
+		// Project the delta onto the plane to get the normal
+		OVR::Vector3f normal = delta.ProjectToPlane(line);
+
+		// Compute the length of the normal for the distance
+		float distance = normal.Length();
+		if (distance < result.ClosestDistance)
+		{
+			result.ClosestDistance = distance;
+			result.ClosestPointNormal = normal.Normalized();
+			result.ClosestPoint = start + delta.ProjectTo(line);
+		}
+	}
+
+	// We don't have a ceiling, use the height from the original point
+	result.ClosestPoint.y = point->y;
+
+	*outTestResult = result;
+	return ovrSuccess;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetBoundaryLookAndFeel(ovrSession session, const ovrBoundaryLookAndFeel* lookAndFeel)
+{
+	// Cast to HmdColor_t
+	vr::HmdColor_t color = *(vr::HmdColor_t*)&lookAndFeel->Color;
+	vr::VRChaperone()->SetSceneColor(color);
+	return ovrSuccess;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetBoundaryLookAndFeel(ovrSession session)
+{
+	vr::HmdColor_t color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	vr::VRChaperone()->SetSceneColor(color);
+	return ovrSuccess;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryGeometry(ovrSession session, ovrBoundaryType boundaryType, ovrVector3f* outFloorPoints, int* outFloorPointsCount)
+{
+	vr::HmdQuad_t playRect;
+	bool valid = vr::VRChaperone()->GetPlayAreaRect(&playRect);
+	memcpy(outFloorPoints, playRect.vCorners, 4 * sizeof(outFloorPoints));
+	*outFloorPointsCount = valid ? 4 : 0;
+	return valid ? ovrSuccess : ovrSuccess_BoundaryInvalid;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryDimensions(ovrSession session, ovrBoundaryType boundaryType, ovrVector3f* outDimensions)
+{
+	outDimensions->y = 0.0f; // TODO: Find some good default height
+	bool valid = vr::VRChaperone()->GetPlayAreaSize(&outDimensions->x, &outDimensions->z);
+	return valid ? ovrSuccess : ovrSuccess_BoundaryInvalid;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryVisible(ovrSession session, ovrBool* outIsVisible)
+{
+	*outIsVisible = vr::VRChaperone()->AreBoundsVisible();
+	return ovrSuccess;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_RequestBoundaryVisible(ovrSession session, ovrBool visible)
+{
+	vr::VRChaperone()->ForceBoundsVisible(visible);
+	return ovrSuccess;
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session, ovrTextureSwapChain chain, int* out_Length)
 {
 	REV_TRACE(ovr_GetTextureSwapChainLength);
@@ -598,6 +734,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		session->FrameIndex = frameIndex;
 
 	return rev_CompositorErrorToOvrError(err);
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats* outStats)
+{
+	// TODO: Return correct performance stats.
+	memset(outStats, 0, sizeof(ovrPerfStats));
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetPerfStats(ovrSession session)
+{
+	// Do nothing.
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
