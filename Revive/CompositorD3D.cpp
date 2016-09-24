@@ -1,5 +1,5 @@
 #include "CompositorD3D.h"
-#include "REV_Common.h"
+#include "Common.h"
 #include "TextureD3D.h"
 
 #include <openvr.h>

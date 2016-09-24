@@ -25,6 +25,9 @@
     <Filter Include="Header Files\LibRevive">
       <UniqueIdentifier>{b3eaa487-d485-4b2a-8a6a-e3a3f3481153}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\LibOVR">
+      <UniqueIdentifier>{a809efad-2f20-49f9-b190-86668467211b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\LibOVR\Include\OVR_CAPI.h">
@@ -60,82 +63,76 @@
     <ClInclude Include="..\openvr\headers\openvr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Assert.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="Error.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
     <ClInclude Include="CompositorBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="REV_Assert.h">
-      <Filter>Header Files\LibRevive</Filter>
-    </ClInclude>
-    <ClInclude Include="REV_Common.h">
-      <Filter>Header Files\LibRevive</Filter>
-    </ClInclude>
-    <ClInclude Include="REV_Error.h">
-      <Filter>Header Files\LibRevive</Filter>
-    </ClInclude>
-    <ClInclude Include="REV_Math.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
     <ClInclude Include="CompositorD3D.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
     <ClInclude Include="CompositorGL.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
     <ClInclude Include="InputManager.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
     <ClInclude Include="TextureBase.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
     <ClInclude Include="TextureD3D.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
     <ClInclude Include="TextureGL.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="REV_Math.cpp">
-      <Filter>Source Files\LibRevive</Filter>
-    </ClCompile>
-    <ClCompile Include="REV_CAPI.cpp">
-      <Filter>Source Files\LibRevive</Filter>
-    </ClCompile>
-    <ClCompile Include="REV_CAPI_Audio.cpp">
-      <Filter>Source Files\LibRevive</Filter>
-    </ClCompile>
-    <ClCompile Include="REV_CAPI_D3D.cpp">
-      <Filter>Source Files\LibRevive</Filter>
-    </ClCompile>
-    <ClCompile Include="REV_CAPI_GL.cpp">
+    <ClCompile Include="Common.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="REV_CAPI_Util.cpp">
-      <Filter>Source Files\LibRevive</Filter>
+      <Filter>Source Files\LibOVR</Filter>
     </ClCompile>
-    <ClCompile Include="REV_Common.cpp">
-      <Filter>Source Files\LibRevive</Filter>
+    <ClCompile Include="REV_CAPI.cpp">
+      <Filter>Source Files\LibOVR</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_Audio.cpp">
+      <Filter>Source Files\LibOVR</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_D3D.cpp">
+      <Filter>Source Files\LibOVR</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_GL.cpp">
+      <Filter>Source Files\LibOVR</Filter>
     </ClCompile>
     <ClCompile Include="CompositorBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CompositorD3D.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="CompositorGL.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="CompositorD3D.cpp">
+      <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="InputManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureD3D.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="TextureGL.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureD3D.cpp">
+      <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

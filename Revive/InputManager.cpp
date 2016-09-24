@@ -1,6 +1,6 @@
 #include "InputManager.h"
 #include "OVR_CAPI.h"
-#include "REV_Common.h"
+#include "Common.h"
 
 #include <openvr.h>
 #include <Windows.h>

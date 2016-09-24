@@ -1,7 +1,7 @@
 #include "CompositorGL.h"
 #include "TextureGL.h"
 #include "OVR_CAPI.h"
-#include "REV_Common.h"
+#include "Common.h"
 
 #include <GL/glew.h>
 #include <Windows.h>

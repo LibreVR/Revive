@@ -4,7 +4,7 @@
 #include <Mmddk.h>
 #include <Mmdeviceapi.h>
 
-#include "REV_Assert.h"
+#include "Assert.h"
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutWaveId(UINT* deviceOutId)
 {

@@ -1,6 +1,5 @@
 #include "CompositorBase.h"
-#include "REV_Common.h"
-#include "REV_Math.h"
+#include "Common.h"
 
 #include <vector>
 #include <algorithm>

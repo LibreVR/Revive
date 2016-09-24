@@ -2,7 +2,7 @@
 
 #include "openvr.h"
 
-#include "REV_Assert.h"
+#include "Assert.h"
 
 OVR_PUBLIC_FUNCTION(ovrDetectResult) ovr_Detect(int timeoutMilliseconds)
 {

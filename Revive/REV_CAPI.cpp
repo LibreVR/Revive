@@ -6,10 +6,9 @@
 #include "MinHook.h"
 #include <DXGI.h>
 
-#include "REV_Assert.h"
-#include "REV_Common.h"
-#include "REV_Error.h"
-#include "REV_Math.h"
+#include "Assert.h"
+#include "Common.h"
+#include "Error.h"
 
 vr::EVRInitError g_InitError = vr::VRInitError_None;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;

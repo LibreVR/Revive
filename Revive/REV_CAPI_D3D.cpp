@@ -1,6 +1,6 @@
 #include "OVR_CAPI_D3D.h"
-#include "REV_Assert.h"
-#include "REV_Common.h"
+#include "Assert.h"
+#include "Common.h"
 #include "CompositorD3D.h"
 #include "TextureD3D.h"
 
