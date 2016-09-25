@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <Mmddk.h>
 #include <Mmdeviceapi.h>
+#include <DSound.h>
 
 #include "Assert.h"
 
@@ -82,12 +83,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuid(GUID* deviceOutGuid)
 	if (!deviceOutGuid)
 		return ovrError_InvalidParameter;
 
-	WCHAR deviceOut[OVR_AUDIO_MAX_DEVICE_STR_SIZE];
-	ovrResult result = ovr_GetAudioDeviceOutGuidStr(deviceOut);
-	if (result != ovrSuccess)
-		return result;
-
-	if (UuidFromString((RPC_WSTR)deviceOut, deviceOutGuid) != RPC_S_OK)
+	HRESULT hr = GetDeviceID(&DSDEVID_DefaultPlayback, deviceOutGuid);
+	if (FAILED(hr))
 		return ovrError_RuntimeException;
 
 	return ovrSuccess;
@@ -139,12 +136,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuid(GUID* deviceInGuid)
 	if (!deviceInGuid)
 		return ovrError_InvalidParameter;
 
-	WCHAR deviceIn[OVR_AUDIO_MAX_DEVICE_STR_SIZE];
-	ovrResult result = ovr_GetAudioDeviceInGuidStr(deviceIn);
-	if (result != ovrSuccess)
-		return result;
-
-	if (UuidFromString((RPC_WSTR)deviceIn, deviceInGuid) != RPC_S_OK)
+	HRESULT hr = GetDeviceID(&DSDEVID_DefaultCapture, deviceInGuid);
+	if (FAILED(hr))
 		return ovrError_RuntimeException;
 
 	return ovrSuccess;
