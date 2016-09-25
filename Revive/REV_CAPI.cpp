@@ -466,6 +466,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetControllerVibrationState(ovrSession sessio
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDeviceType deviceBitmask,
 	ovrBoundaryType boundaryType, ovrBoundaryTestResult* outTestResult)
 {
+	REV_TRACE(ovr_TestBoundary);
+
 	outTestResult->ClosestDistance = INFINITY;
 
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
@@ -512,6 +514,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDe
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundaryPoint(ovrSession session, const ovrVector3f* point,
 	ovrBoundaryType singleBoundaryType, ovrBoundaryTestResult* outTestResult)
 {
+	REV_TRACE(ovr_TestBoundaryPoint);
+
 	ovrBoundaryTestResult result = { 0 };
 
 	if (vr::VRChaperone()->GetCalibrationState() != vr::ChaperoneCalibrationState_OK)
@@ -558,6 +562,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundaryPoint(ovrSession session, const o
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetBoundaryLookAndFeel(ovrSession session, const ovrBoundaryLookAndFeel* lookAndFeel)
 {
+	REV_TRACE(ovr_SetBoundaryLookAndFeel);
+
 	// Cast to HmdColor_t
 	vr::HmdColor_t color = *(vr::HmdColor_t*)&lookAndFeel->Color;
 	vr::VRChaperone()->SetSceneColor(color);
@@ -566,6 +572,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetBoundaryLookAndFeel(ovrSession session, co
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetBoundaryLookAndFeel(ovrSession session)
 {
+	REV_TRACE(ovr_ResetBoundaryLookAndFeel);
+
 	vr::HmdColor_t color = { 1.0f, 1.0f, 1.0f, 1.0f };
 	vr::VRChaperone()->SetSceneColor(color);
 	return ovrSuccess;
@@ -573,6 +581,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetBoundaryLookAndFeel(ovrSession session)
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryGeometry(ovrSession session, ovrBoundaryType boundaryType, ovrVector3f* outFloorPoints, int* outFloorPointsCount)
 {
+	REV_TRACE(ovr_GetBoundaryGeometry);
+
 	vr::HmdQuad_t playRect;
 	bool valid = vr::VRChaperone()->GetPlayAreaRect(&playRect);
 	memcpy(outFloorPoints, playRect.vCorners, 4 * sizeof(outFloorPoints));
@@ -582,6 +592,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryGeometry(ovrSession session, ovrBo
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryDimensions(ovrSession session, ovrBoundaryType boundaryType, ovrVector3f* outDimensions)
 {
+	REV_TRACE(ovr_GetBoundaryDimensions);
+
 	outDimensions->y = 0.0f; // TODO: Find some good default height
 	bool valid = vr::VRChaperone()->GetPlayAreaSize(&outDimensions->x, &outDimensions->z);
 	return valid ? ovrSuccess : ovrSuccess_BoundaryInvalid;
@@ -589,12 +601,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryDimensions(ovrSession session, ovr
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryVisible(ovrSession session, ovrBool* outIsVisible)
 {
+	REV_TRACE(ovr_GetBoundaryVisible);
+
 	*outIsVisible = vr::VRChaperone()->AreBoundsVisible();
 	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RequestBoundaryVisible(ovrSession session, ovrBool visible)
 {
+	REV_TRACE(ovr_RequestBoundaryVisible);
+
 	vr::VRChaperone()->ForceBoundsVisible(!!visible);
 	return ovrSuccess;
 }
@@ -744,6 +760,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats* outStats)
 {
+	REV_TRACE(ovr_GetPerfStats);
+
 	memset(outStats, 0, sizeof(ovrPerfStats));
 
 	// TODO: Implement performance scale heuristics
@@ -789,6 +807,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetPerfStats(ovrSession session)
 {
+	REV_TRACE(ovr_ResetPerfStats);
+
 	ovrPerfStats perfStats = { 0 };
 	ovrResult result = ovr_GetPerfStats(session, &perfStats);
 	if (OVR_SUCCESS(result))
