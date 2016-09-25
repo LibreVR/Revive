@@ -682,6 +682,9 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	float vMin = 0.5f - 0.5f * bottom / fov.UpTan;
 	float vMax = 0.5f - 0.5f * top / fov.DownTan;
 
+	// Check if an override for pixelsPerDisplayPixel is present
+	pixelsPerDisplayPixel = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "pixelsPerDisplayPixel", pixelsPerDisplayPixel);
+
 	// Grow the recommended size to account for the overlapping fov
 	size.w = int((size.w * pixelsPerDisplayPixel) / (uMax - uMin));
 	size.h = int((size.h * pixelsPerDisplayPixel) / (vMax - vMin));
