@@ -142,7 +142,7 @@ bool TextureD3D::Create(int Width, int Height, int MipLevels, int ArraySize,
 		D3D11_SHADER_RESOURCE_VIEW_DESC desc;
 		desc.Format = TextureFormatToDXGIFormat(Format, 0);
 		desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		desc.Texture2D.MipLevels = MipLevels;
+		desc.Texture2D.MipLevels = -1;
 		desc.Texture2D.MostDetailedMip = 0;
 		HRESULT hr = m_pDevice->CreateShaderResourceView(m_pTexture.Get(), &desc, m_pResource.GetAddressOf());
 		if (FAILED(hr))
