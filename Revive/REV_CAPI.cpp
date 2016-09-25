@@ -594,7 +594,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryVisible(ovrSession session, ovrBoo
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RequestBoundaryVisible(ovrSession session, ovrBool visible)
 {
-	vr::VRChaperone()->ForceBoundsVisible(visible);
+	vr::VRChaperone()->ForceBoundsVisible(!!visible);
 	return ovrSuccess;
 }
 
@@ -733,18 +733,63 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	else
 		session->FrameIndex = frameIndex;
 
+	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
+
 	return rev_CompositorErrorToOvrError(err);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats* outStats)
 {
-	// TODO: Return correct performance stats.
 	memset(outStats, 0, sizeof(ovrPerfStats));
+
+	// TODO: Implement performance scale heuristics
+	outStats->AdaptiveGpuPerformanceScale = 1.0f;
+	outStats->AnyFrameStatsDropped = (session->FrameIndex - session->StatsIndex) > ovrMaxProvidedFrameStats;
+	outStats->FrameStatsCount = outStats->AnyFrameStatsDropped ? ovrMaxProvidedFrameStats : int(session->FrameIndex - session->StatsIndex);
+	session->StatsIndex = session->FrameIndex;
+
+	float fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
+	float fDisplayFrequency = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
+	float fFrameDuration = 1.0f / fDisplayFrequency;
+	for (int i = 0; i < outStats->FrameStatsCount; i++)
+	{
+		vr::Compositor_FrameTiming timing;
+		timing.m_nSize = sizeof(vr::Compositor_FrameTiming);
+		if (!vr::VRCompositor()->GetFrameTiming(&timing, i))
+			return ovrError_RuntimeException;
+
+		ovrPerfStatsPerCompositorFrame* stats = &outStats->FrameStats[i];
+		stats->HmdVsyncIndex = timing.m_nFrameIndex - session->ResetStats.HmdVsyncIndex;
+		stats->AppFrameIndex = (int)session->FrameIndex - session->ResetStats.AppFrameIndex;
+		stats->AppDroppedFrameCount = session->Stats[i].m_nNumDroppedFrames - session->ResetStats.AppDroppedFrameCount;
+		// TODO: Improve latency handling with sensor timestamps and latency markers
+		stats->AppMotionToPhotonLatency = (fFrameDuration * timing.m_nNumFramePresents) + fVsyncToPhotons;
+		stats->AppQueueAheadTime = timing.m_flCompositorIdleCpuMs / 1000.0f;
+		stats->AppCpuElapsedTime = timing.m_flClientFrameIntervalMs / 1000.0f;
+		stats->AppGpuElapsedTime = timing.m_flPreSubmitGpuMs / 1000.0f;
+
+		stats->CompositorFrameIndex = session->Stats[i].m_nNumFramePresents - session->ResetStats.CompositorFrameIndex;
+		stats->CompositorDroppedFrameCount = (session->Stats[i].m_nNumDroppedFramesOnStartup +
+			session->Stats[i].m_nNumDroppedFramesLoading + session->Stats[i].m_nNumDroppedFramesTimedOut) -
+			session->ResetStats.CompositorDroppedFrameCount;
+		stats->CompositorLatency = fVsyncToPhotons; // OpenVR doesn't have timewarp
+		stats->CompositorCpuElapsedTime = timing.m_flCompositorRenderCpuMs / 1000.0f;
+		stats->CompositorGpuElapsedTime = timing.m_flCompositorRenderGpuMs / 1000.0f;
+		stats->CompositorCpuStartToGpuEndElapsedTime = ((timing.m_flCompositorRenderStartMs + timing.m_flCompositorRenderGpuMs) -
+			timing.m_flNewFrameReadyMs) / 1000.0f;
+		stats->CompositorGpuEndToVsyncElapsedTime = fFrameDuration - timing.m_flTotalRenderGpuMs / 1000.0f;
+	}
+
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetPerfStats(ovrSession session)
 {
-	// Do nothing.
+	ovrPerfStats perfStats = { 0 };
+	ovrResult result = ovr_GetPerfStats(session, &perfStats);
+	if (OVR_SUCCESS(result))
+		session->ResetStats = perfStats.FrameStats[0];
+	return result;
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)

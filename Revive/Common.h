@@ -44,7 +44,12 @@ struct ovrHmdStruct
 	bool ShouldQuit;
 	bool IsVisible;
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
+
+	// Compositor statistics
 	long long FrameIndex;
+	long long StatsIndex;
+	ovrPerfStatsPerCompositorFrame ResetStats;
+	vr::Compositor_CumulativeStats Stats[ovrMaxProvidedFrameStats];
 
 	// Revive interfaces
 	CompositorBase* Compositor;
