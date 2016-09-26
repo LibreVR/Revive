@@ -16,7 +16,7 @@ Newly installed games will give you an `Entitlement check failed` error until yo
 
 1. Install [Oculus Home](https://www.oculus.com/en-us/setup/) and skip the first-time setup.
 2. Download the games you want to play, check the [compatibility list](https://github.com/LibreVR/Revive/wiki/Compatibility-list) before making a purchase.
-3. Download the [Revive Dashboard installer here.](https://github.com/LibreVR/Revive/releases/download/0.9.5/ReviveInstaller.exe)
+3. Download the [Revive Dashboard installer here.](https://github.com/LibreVR/Revive/releases/download/0.9.6/ReviveInstaller.exe)
 4. Install Revive in your preferred directory, you can overwrite existing installations without uninstalling Revive first.
 5. Start or reboot SteamVR.
 6. Open the dashboard and click the new Revive tab.
@@ -28,7 +28,7 @@ Newly installed games will give you an `Entitlement check failed` error until yo
 Credit goes to @rjoudrey for implementing the injector.
 
 1. Install Oculus Home and remember to skip the first-time setup.
-2. Download the [Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.9.5/ReviveInjector.zip)
+2. Download the [Revive Injector here.](https://github.com/LibreVR/Revive/releases/download/0.9.6/ReviveInjector.zip)
 3. Extract all files to a folder.
 4. Go to the installation directory for the game.
 5. Find the main executable. For Unreal Games the executable ends with `...-Shipping.exe`.
@@ -39,7 +39,7 @@ Credit goes to @rjoudrey for implementing the injector.
 Revive is not yet compatible with Steam, but for some games the following may work.
 
 1. Install Oculus Home and remember to skip the first-time setup.
-2. [Download the Revive patch here.](https://github.com/LibreVR/Revive/releases/download/0.9.5/RevivePatch.zip)
+2. [Download the Revive patch here.](https://github.com/LibreVR/Revive/releases/download/0.9.6/RevivePatch.zip)
 3. Go to the properties of the game in the Steam Library.
 4. Uncheck "Use Desktop Game Theatre while SteamVR is active".
 5. Go to the Local Files tab and click "Browse Local Files...".
