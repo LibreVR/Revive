@@ -7,7 +7,7 @@ function generateManifest(manifest) {
     // Find the true executable for Unreal Engine games
     var shipping = /Binaries\/Win64\/(.*)\.exe/i;
     for (var file in manifest["files"]) {
-        if (file.indexOf("Engine/Binaries/Win64") == -1 && shipping.exec(file) != null) {
+        if (file.indexOf("CrashReportClient.exe") == -1 && shipping.exec(file) != null) {
             launch = '/' + file;
         }
     }
