@@ -242,10 +242,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	sessionStatus->IsVisible = vr::VRCompositor()->CanRenderScene() && session->IsVisible;
 	session->IsVisible = true;
 
-	// TODO: Use the HMD sensor to detect whether the headset is mounted.
 	// TODO: Detect if the display is lost, can this ever happen with OpenVR?
 	sessionStatus->HmdPresent = vr::VRSystem()->IsTrackedDeviceConnected(vr::k_unTrackedDeviceIndex_Hmd);
-	sessionStatus->HmdMounted = sessionStatus->HmdPresent;
+	sessionStatus->HmdMounted = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd) ==
+		vr::k_EDeviceActivityLevel_UserInteraction;
 	sessionStatus->DisplayLost = false;
 	sessionStatus->ShouldQuit = session->ShouldQuit;
 	sessionStatus->ShouldRecenter = false;
