@@ -235,6 +235,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 		}
 	}
 
+    vr::EDeviceActivityLevel activityLevel = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd);
+
 	// Detect if the application has focus, but only return false the first time the status is requested.
 	// If this is true from the beginning then some games will assume the Health-and-Safety warning
 	// is still being displayed.
@@ -243,8 +245,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 
 	// TODO: Detect if the display is lost, can this ever happen with OpenVR?
 	sessionStatus->HmdPresent = vr::VRSystem()->IsTrackedDeviceConnected(vr::k_unTrackedDeviceIndex_Hmd);
-	sessionStatus->HmdMounted = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd) ==
-		vr::k_EDeviceActivityLevel_UserInteraction;
+	sessionStatus->HmdMounted = (activityLevel == vr::k_EDeviceActivityLevel_UserInteraction || activityLevel == vr::k_EDeviceActivityLevel_Unknown);
 	sessionStatus->DisplayLost = false;
 	sessionStatus->ShouldQuit = session->ShouldQuit;
 	sessionStatus->ShouldRecenter = false;
