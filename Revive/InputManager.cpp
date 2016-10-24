@@ -77,9 +77,11 @@ InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	: m_Role(role)
 	, m_ThumbStick(role == vr::TrackedControllerRole_LeftHand)
 	, m_MenuWasPressed(false)
-	, m_ThumbStickRange(1.0f)
+	, m_ThumbStickRange(0.5f)
 {
-	m_ThumbStickRange = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange", 0.5f);
+	float range = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange");
+	if (range != 0.0f)
+		m_ThumbStickRange = range;
 }
 
 ovrControllerType InputManager::OculusTouch::GetType()

@@ -175,8 +175,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	ovrSession session = new ovrHmdStruct();
 
 	// Get the default universe origin from the settings
-	vr::ETrackingUniverseOrigin origin = (vr::ETrackingUniverseOrigin)vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, "DefaultTrackingOrigin", vr::TrackingUniverseSeated);
-	vr::VRCompositor()->SetTrackingSpace(origin);
+	vr::EVRSettingsError error;
+	vr::ETrackingUniverseOrigin origin = (vr::ETrackingUniverseOrigin)vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, "DefaultTrackingOrigin", &error);
+	if (error == vr::VRSettingsError_None)
+	  vr::VRCompositor()->SetTrackingSpace(origin);
 
 	// Get the LUID for the default adapter
 	int32_t index;
@@ -235,7 +237,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 		}
 	}
 
-    vr::EDeviceActivityLevel activityLevel = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd);
+	vr::EDeviceActivityLevel activityLevel = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd);
 
 	// Detect if the application has focus, but only return false the first time the status is requested.
 	// If this is true from the beginning then some games will assume the Health-and-Safety warning
@@ -695,7 +697,10 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	float vMax = 0.5f - 0.5f * top / fov.DownTan;
 
 	// Check if an override for pixelsPerDisplayPixel is present
-	pixelsPerDisplayPixel = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "pixelsPerDisplayPixel", pixelsPerDisplayPixel);
+	vr::EVRSettingsError error;
+	float multiplier = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "pixelsPerDisplayPixel", &error);
+	if (error == vr::VRSettingsError_None)
+	  pixelsPerDisplayPixel = multiplier;
 
 	// Grow the recommended size to account for the overlapping fov
 	size.w = int((size.w * pixelsPerDisplayPixel) / (uMax - uMin));
@@ -854,7 +859,9 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propert
 	if (!session)
 		return ovrFalse;
 
-	return vr::VRSettings()->GetBool(REV_SETTINGS_SECTION, propertyName, !!defaultVal);
+	vr::EVRSettingsError error;
+	ovrBool result = vr::VRSettings()->GetBool(REV_SETTINGS_SECTION, propertyName, &error);
+	return (error == vr::VRSettingsError_None) ? result : defaultVal;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propertyName, ovrBool value)
@@ -880,7 +887,9 @@ OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName
 	if (strcmp("TextureSwapChainDepth", propertyName) == 0)
 		return REV_SWAPCHAIN_LENGTH;
 
-	return vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, propertyName, defaultVal);
+	vr::EVRSettingsError error;
+	int result = vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, propertyName, &error);
+	return (error == vr::VRSettingsError_None) ? result : defaultVal;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* propertyName, int value)
@@ -912,7 +921,9 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 	else if (strcmp(propertyName, OVR_KEY_EYE_HEIGHT) == 0)
 		defaultVal = OVR_DEFAULT_EYE_HEIGHT;
 
-	return vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, propertyName, defaultVal);
+	vr::EVRSettingsError error;
+	float result = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, propertyName, &error);
+	return (error == vr::VRSettingsError_None) ? result : defaultVal;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* propertyName, float value)
@@ -952,7 +963,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const ch
 	{
 		vr::EVRSettingsError error;
 		snprintf(key, vr::k_unMaxSettingsKeyLength, "%s[%d]", propertyName, i);
-		values[i] = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, key, 0.0f, &error);
+		values[i] = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, key, &error);
 
 		if (error != vr::VRSettingsError_None)
 			return i;
@@ -995,8 +1006,9 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 	if (strcmp(propertyName, OVR_KEY_GENDER) == 0)
 		defaultVal = OVR_DEFAULT_GENDER;
 
-	vr::VRSettings()->GetString(REV_SETTINGS_SECTION, propertyName, session->StringBuffer, vr::k_unMaxPropertyStringSize, defaultVal);
-	return session->StringBuffer;
+	vr::EVRSettingsError error;
+	vr::VRSettings()->GetString(REV_SETTINGS_SECTION, propertyName, session->StringBuffer, vr::k_unMaxPropertyStringSize, &error);
+	return (error == vr::VRSettingsError_None) ? session->StringBuffer : defaultVal;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* propertyName, const char* value)
