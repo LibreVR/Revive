@@ -856,9 +856,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propert
 {
 	REV_TRACE(ovr_GetBool);
 
-	if (!session)
-		return ovrFalse;
-
 	vr::EVRSettingsError error;
 	ovrBool result = vr::VRSettings()->GetBool(REV_SETTINGS_SECTION, propertyName, &error);
 	return (error == vr::VRSettingsError_None) ? result : defaultVal;
@@ -867,9 +864,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propert
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propertyName, ovrBool value)
 {
 	REV_TRACE(ovr_SetBool);
-
-	if (!session)
-		return ovrFalse;
 
 	vr::EVRSettingsError error;
 	vr::VRSettings()->SetBool(REV_SETTINGS_SECTION, propertyName, !!value, &error);
@@ -880,9 +874,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propert
 OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName, int defaultVal)
 {
 	REV_TRACE(ovr_GetInt);
-
-	if (!session)
-		return 0;
 
 	if (strcmp("TextureSwapChainDepth", propertyName) == 0)
 		return REV_SWAPCHAIN_LENGTH;
@@ -896,9 +887,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* property
 {
 	REV_TRACE(ovr_SetInt);
 
-	if (!session)
-		return ovrFalse;
-
 	vr::EVRSettingsError error;
 	vr::VRSettings()->SetInt32(REV_SETTINGS_SECTION, propertyName, value, &error);
 	vr::VRSettings()->Sync();
@@ -908,9 +896,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* property
 OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* propertyName, float defaultVal)
 {
 	REV_TRACE(ovr_GetFloat);
-
-	if (!session)
-		return 0.0f;
 
 	if (strcmp(propertyName, "IPD") == 0)
 		return vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_UserIpdMeters_Float);
@@ -930,9 +915,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* proper
 {
 	REV_TRACE(ovr_SetFloat);
 
-	if (!session)
-		return ovrFalse;
-
 	vr::EVRSettingsError error;
 	vr::VRSettings()->SetFloat(REV_SETTINGS_SECTION, propertyName, value, &error);
 	vr::VRSettings()->Sync();
@@ -942,9 +924,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* proper
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const char* propertyName, float values[], unsigned int valuesCapacity)
 {
 	REV_TRACE(ovr_GetFloatArray);
-
-	if (!session)
-		return 0;
 
 	if (strcmp(propertyName, OVR_KEY_NECK_TO_EYE_DISTANCE) == 0)
 	{
@@ -976,9 +955,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* p
 {
 	REV_TRACE(ovr_SetFloatArray);
 
-	if (!session)
-		return ovrFalse;
-
 	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
 
 	for (unsigned int i = 0; i < valuesSize; i++)
@@ -1000,7 +976,7 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 	REV_TRACE(ovr_GetString);
 
 	if (!session)
-		return nullptr;
+		return defaultVal;
 
 	// Override defaults, we should always return a valid value for these
 	if (strcmp(propertyName, OVR_KEY_GENDER) == 0)
@@ -1014,9 +990,6 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* propertyName, const char* value)
 {
 	REV_TRACE(ovr_SetString);
-
-	if (!session)
-		return ovrFalse;
 
 	vr::EVRSettingsError error;
 	vr::VRSettings()->SetString(REV_SETTINGS_SECTION, propertyName, value, &error);
