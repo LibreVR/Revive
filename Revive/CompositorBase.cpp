@@ -106,13 +106,13 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 	}
 	m_ActiveOverlays = activeOverlays;
 
-	// TODO: Handle compositor errors.
+	vr::EVRCompositorError error;
 	if (m_SceneLayer && m_SceneLayer->Type == ovrLayerType_EyeFov)
 	{
 		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)m_SceneLayer;
-		SubmitSceneLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+		error = SubmitSceneLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
 
-		if (m_MirrorTexture)
+		if (m_MirrorTexture && error == vr::VRCompositorError_None)
 			RenderMirrorTexture(m_MirrorTexture, sceneLayer->ColorTexture);
 	}
 	else if (m_SceneLayer && m_SceneLayer->Type == ovrLayerType_EyeMatrix)
@@ -124,16 +124,18 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 			MatrixToFovPort(sceneLayer->Matrix[ovrEye_Right])
 		};
 
-		SubmitSceneLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+		error = SubmitSceneLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
 
-		if (m_MirrorTexture)
+		if (m_MirrorTexture && error == vr::VRCompositorError_None)
 			RenderMirrorTexture(m_MirrorTexture, sceneLayer->ColorTexture);
 	}
 
 	m_SceneLayer = nullptr;
 
-	// Call WaitGetPoses() to actually display the frame.
-	return vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	// Call PostPresentHandoff() to actually display the frame.
+	vr::VRCompositor()->PostPresentHandoff();
+
+	return error;
 }
 
 vr::VROverlayHandle_t CompositorBase::CreateOverlay()

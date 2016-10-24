@@ -41,6 +41,7 @@ struct ovrMirrorTextureData
 struct ovrHmdStruct
 {
 	// Session status
+	bool Submitted;
 	bool ShouldQuit;
 	bool IsVisible;
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
