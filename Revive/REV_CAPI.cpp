@@ -237,7 +237,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 		}
 	}
 
+	// Don't use the activity level while debugging, so I don't have to put on the HMD
+#ifdef DEBUG
+	vr::EDeviceActivityLevel activityLevel = vr::k_EDeviceActivityLevel_Unknown;
+#else
 	vr::EDeviceActivityLevel activityLevel = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd);
+#endif
 
 	// Detect if the application has focus, but only return false the first time the status is requested.
 	// If this is true from the beginning then some games will assume the Health-and-Safety warning
