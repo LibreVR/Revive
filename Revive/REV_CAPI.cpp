@@ -175,10 +175,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	ovrSession session = new ovrHmdStruct();
 
 	// Get the default universe origin from the settings
-	vr::EVRSettingsError error;
-	vr::ETrackingUniverseOrigin origin = (vr::ETrackingUniverseOrigin)vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, "DefaultTrackingOrigin", &error);
-	if (error == vr::VRSettingsError_None)
-	  vr::VRCompositor()->SetTrackingSpace(origin);
+	vr::ETrackingUniverseOrigin origin = (vr::ETrackingUniverseOrigin)vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, "DefaultTrackingOrigin");
+	vr::VRCompositor()->SetTrackingSpace(origin);
 
 	// Get the LUID for the default adapter
 	int32_t index;
