@@ -347,6 +347,19 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	return state;
 }
 
+struct ovrSensorData_;
+typedef struct ovrSensorData_ ovrSensorData;
+
+OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingStateWithSensorData(ovrSession session, double absTime, ovrBool latencyMarker, ovrSensorData* sensorData)
+{
+	REV_TRACE(ovr_GetTrackingStateWithSensorData);
+
+	// This is a private API, ignore the raw sensor data request and hope for the best.
+	_ASSERT(sensorData == nullptr);
+
+	return ovr_GetTrackingState(session, absTime, latencyMarker);
+}
+
 OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsigned int trackerPoseIndex)
 {
 	REV_TRACE(ovr_GetTrackerPose);
