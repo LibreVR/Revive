@@ -10,11 +10,13 @@
 #include <vector>
 #include <memory>
 
-// Common structures
+// Common definitions
 
 #define REV_SWAPCHAIN_LENGTH 2
 #define REV_SETTINGS_SECTION "revive"
 #define REV_DEFAULT_TIMEOUT 10000
+
+// Common structures
 
 struct ovrTextureSwapChainData
 {
