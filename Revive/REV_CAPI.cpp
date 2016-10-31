@@ -456,7 +456,8 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession session, ovrControllerType controllerType)
 {
 	REV_TRACE(ovr_GetTouchHapticsDesc);
-	REV_UNIMPLEMENTED_STRUCT(ovrTouchHapticsDesc);
+
+	return session->Input->GetTouchHapticsDesc(controllerType);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
@@ -472,13 +473,21 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ov
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer)
 {
 	REV_TRACE(ovr_SubmitControllerVibration);
-	REV_UNIMPLEMENTED_RUNTIME;
+
+	if (!session)
+		return ovrError_InvalidSession;
+
+	return session->Input->SubmitControllerVibration(controllerType, buffer);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState)
 {
 	REV_TRACE(ovr_GetControllerVibrationState);
-	REV_UNIMPLEMENTED_RUNTIME;
+
+	if (!session)
+		return ovrError_InvalidSession;
+
+	return session->Input->GetControllerVibrationState(controllerType, outState);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDeviceType deviceBitmask,

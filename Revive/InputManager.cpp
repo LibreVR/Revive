@@ -9,8 +9,53 @@
 _XInputGetState InputManager::s_XInputGetState;
 _XInputSetState InputManager::s_XInputSetState;
 
+bool InputManager::m_bHapticsRunning;
+
+HapticsBuffer::HapticsBuffer()
+	: m_ReadIndex(0)
+	, m_WriteIndex(0)
+{
+	memset(m_Buffer, 0, sizeof(m_Buffer));
+}
+
+void HapticsBuffer::AddSamples(const ovrHapticsBuffer* buffer)
+{
+	uint8_t* samples = (uint8_t*)buffer->Samples;
+
+	for (int i = 0; i < buffer->SamplesCount; i++)
+	{
+		// Index will overflow correctly, so no need for a modulo operator
+		m_Buffer[m_WriteIndex++] = samples[i];
+	}
+}
+
+float HapticsBuffer::GetSample()
+{
+	// We can't pass the write index, so the buffer is now empty
+	if (m_ReadIndex == m_WriteIndex)
+		return 0.0f;
+
+	// Index will overflow correctly, so no need for a modulo operator
+	return m_Buffer[m_ReadIndex++] / 255.0f;
+}
+
+ovrHapticsPlaybackState HapticsBuffer::GetState()
+{
+	ovrHapticsPlaybackState state = { 0 };
+
+	for (uint8_t i = m_WriteIndex; i != m_ReadIndex; i++)
+		state.RemainingQueueSpace++;
+
+	for (uint8_t i = m_ReadIndex; i != m_WriteIndex; i++)
+		state.SamplesQueued++;
+
+	return state;
+}
+
 InputManager::InputManager()
 {
+	m_bHapticsRunning = true;
+
 	m_XInputLib = LoadLibraryW(L"xinput1_3.dll");
 	if (m_XInputLib)
 	{
@@ -26,6 +71,8 @@ InputManager::InputManager()
 
 InputManager::~InputManager()
 {
+	m_bHapticsRunning = false;
+
 	for (InputDevice* device : m_InputDevices)
 		delete device;
 
@@ -73,6 +120,62 @@ ovrResult InputManager::GetInputState(ovrControllerType controllerType, ovrInput
 	return ovrSuccess;
 }
 
+ovrResult InputManager::SubmitControllerVibration(ovrControllerType controllerType, const ovrHapticsBuffer* buffer)
+{
+	for (InputDevice* device : m_InputDevices)
+	{
+		if (controllerType & device->GetType() && device->IsConnected())
+			device->SubmitVibration(buffer);
+	}
+
+	return ovrSuccess;
+}
+
+ovrResult InputManager::GetControllerVibrationState(ovrControllerType controllerType, ovrHapticsPlaybackState* outState)
+{
+	memset(outState, 0, sizeof(ovrHapticsPlaybackState));
+
+	for (InputDevice* device : m_InputDevices)
+	{
+		if (controllerType & device->GetType() && device->IsConnected())
+			device->GetVibrationState(outState);
+	}
+
+	return ovrSuccess;
+}
+
+ovrTouchHapticsDesc InputManager::GetTouchHapticsDesc(ovrControllerType controllerType)
+{
+	ovrTouchHapticsDesc desc = { 0 };
+
+	if (controllerType & ovrControllerType_Touch)
+	{
+		desc.SampleRateHz = REV_HAPTICS_SAMPLE_RATE;
+		desc.SampleSizeInBytes = sizeof(uint8_t);
+		desc.SubmitMaxSamples = REV_HAPTICS_MAX_SAMPLES;
+		desc.SubmitMinSamples = 1;
+		desc.SubmitOptimalSamples = 1;
+	}
+
+	return desc;
+}
+
+void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
+{
+	std::chrono::microseconds freq(std::chrono::seconds(1) / REV_HAPTICS_SAMPLE_RATE);
+
+	while (m_bHapticsRunning)
+	{
+		vr::TrackedDeviceIndex_t touch = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(device->GetRole());
+
+		uint16_t duration = (uint16_t)((float)freq.count() * device->m_Haptics.GetSample());
+		if (duration > 0)
+			vr::VRSystem()->TriggerHapticPulse(touch, vr::k_EButton_SteamVR_Touchpad, duration);
+
+		std::this_thread::sleep_for(freq);
+	}
+}
+
 InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	: m_Role(role)
 	, m_ThumbStick(role == vr::TrackedControllerRole_LeftHand)
@@ -82,6 +185,8 @@ InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	float range = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange");
 	if (range != 0.0f)
 		m_ThumbStickRange = range;
+
+	m_HapticsThread = std::thread(HapticsThread, this);
 }
 
 ovrControllerType InputManager::OculusTouch::GetType()
@@ -196,7 +301,21 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 
 void InputManager::OculusTouch::SetVibration(float frequency, float amplitude)
 {
-	// TODO: Implement OpenVR haptics support
+	// Fill the buffer with samples, this will last about 1.2 seconds, which
+	// is less than the specified maximum of 2.5 seconds.
+	// TODO: Support the maximum duration.
+	uint8_t samples[REV_HAPTICS_MAX_SAMPLES] = { 0 };
+	for (int i = 0; i < REV_HAPTICS_MAX_SAMPLES; i++)
+	{
+		if (frequency > 0.5f || i % 2 == 0)
+			samples[i] = (uint8_t)(amplitude * 255.0);
+	}
+
+	ovrHapticsBuffer buffer = { 0 };
+	buffer.Samples = samples;
+	buffer.SamplesCount = REV_HAPTICS_MAX_SAMPLES;
+	buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;
+	SubmitVibration(&buffer);
 }
 
 bool InputManager::OculusRemote::IsConnected()
@@ -258,11 +377,6 @@ void InputManager::OculusRemote::GetInputState(ovrInputState* inputState)
 			}
 		}
 	}
-}
-
-void InputManager::OculusRemote::SetVibration(float frequency, float amplitude)
-{
-	// TODO: Implement OpenVR haptics support
 }
 
 bool InputManager::XboxGamepad::IsConnected()
