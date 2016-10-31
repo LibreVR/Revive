@@ -36,7 +36,7 @@ bool CReviveManifestController::Init()
 	{
 		QJsonObject strings, english;
 		english["name"] = "Revive Dashboard";
-		english["description"] = "Revive Dashboard overlay";
+		english["description"] = "Revive Dashboard Overlay";
 		strings["en_us"] = english;
 
 		QJsonObject overlay;
