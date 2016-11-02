@@ -16,10 +16,9 @@ typedef HRESULT(__stdcall* _CreateDXGIFactory)(REFIID riid, void **ppFactory);
 
 _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
-_CreateDXGIFactory TrueDXGIFactory;
+_CreateDXGIFactory DXGIFactory;
 
 HMODULE ReviveModule;
-FARPROC DXGIFactory;
 WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
 
@@ -66,13 +65,12 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 	{
 		case DLL_PROCESS_ATTACH:
 			ReviveModule = (HMODULE)hModule;
-			DXGIFactory = GetProcAddress(GetModuleHandleW(L"dxgi.dll"), "CreateDXGIFactory");
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 			swprintf(revModuleName, MAX_PATH, L"LibRevive%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 			MH_Initialize();
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
-			MH_CreateHook(DXGIFactory, HookDXGIFactory, (PVOID*)&TrueDXGIFactory);
+			MH_CreateHookApi(L"dxgi.dll", "CreateDXGIFactory", HookDXGIFactory, (PVOID*)&DXGIFactory);
 			MH_EnableHook(LoadLibraryW);
 			MH_EnableHook(OpenEventW);
 			MH_EnableHook(DXGIFactory);
