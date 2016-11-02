@@ -7,8 +7,9 @@
 #include "InputManager.h"
 #include "TextureBase.h"
 
-#include <vector>
 #include <memory>
+#include <thread>
+#include <vector>
 
 // Common definitions
 
@@ -43,10 +44,10 @@ struct ovrMirrorTextureData
 struct ovrHmdStruct
 {
 	// Session status
-	bool Submitted;
 	bool ShouldQuit;
 	bool IsVisible;
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
+	std::atomic_ulong SubmitThreadId;
 
 	// Compositor statistics
 	long long FrameIndex;

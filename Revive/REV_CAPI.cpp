@@ -307,13 +307,13 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	if (!session)
 		return state;
 
-	// Get the device poses.
+	// Get the device poses, only the submission thread is allowed to request new poses.
+	DWORD threadId = GetCurrentThreadId();
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	if (session->Submitted)
+	if (session->SubmitThreadId.compare_exchange_strong(threadId, 0))
 		vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 	else
 		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
-	session->Submitted = false;
 
 	// Convert the head pose
 	state.HeadPose = rev_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
@@ -766,6 +766,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 	// TODO: Implement scaling through ApplyTransform().
 
+	session->SubmitThreadId = GetCurrentThreadId();
+
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
 
@@ -782,7 +784,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		session->FrameIndex++;
 	else
 		session->FrameIndex = frameIndex;
-	session->Submitted = true;
 
 	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
 
