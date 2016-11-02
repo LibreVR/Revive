@@ -1,3 +1,8 @@
+function decodeHtml(str) {
+  return str.replace(/&#(\d+);/g, function(match, dec) {
+    return String.fromCharCode(dec);
+  });
+};
 
 function generateManifest(manifest) {
     console.log("Generating manifest for " + manifest["canonicalName"]);
@@ -29,7 +34,7 @@ function generateManifest(manifest) {
             var title = manifest["canonicalName"];
             var result = regEx.exec(xhr.responseText);
             if (result != null)
-                title = result[1];
+                title = decodeHtml(result[1]);
 
             var revive = {
                 "launch_type" : "binary",
