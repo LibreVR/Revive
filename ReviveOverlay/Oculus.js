@@ -34,7 +34,7 @@ function generateManifest(manifest) {
             var title = manifest["canonicalName"];
             var result = regEx.exec(xhr.responseText);
             if (result != null)
-                title = decodeHtml(result[1]);
+                title = decodeHtml(result[1]).replace('’', '\'');
 
             var revive = {
                 "launch_type" : "binary",
