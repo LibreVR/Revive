@@ -17,9 +17,25 @@ Rectangle {
         showDirs: false
         onCountChanged: {
             coverModel.clear();
+            emptyText.visible = (manifestsModel.count == 0);
             for (var i = 0; i < manifestsModel.count; i++)
                 Oculus.loadAssetsManifest(manifestsModel.get(i, "fileURL"));
         }
+    }
+
+    Text {
+        id: emptyText
+        x: 644
+        y: 363
+        width: 1052
+        height: 134
+        color: "#1cc4f7"
+        text: qsTr("No Oculus Store games found, please make sure the Oculus software is installed")
+        horizontalAlignment: Text.AlignHCenter
+        wrapMode: Text.WordWrap
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        font.pixelSize: 56
     }
 
     ListModel {
