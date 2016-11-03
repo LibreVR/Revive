@@ -1,6 +1,8 @@
 #include "openvroverlaycontroller.h"
 #include "revivemanifestcontroller.h"
 #include <qt_windows.h>
+#include <wrl.h>
+#include <Shlobj.h>
 
 #include <QGuiApplication>
 #include <QQmlEngine>
@@ -85,6 +87,44 @@ bool GetDefaultLibraryPath(PWCHAR path, DWORD length)
 	return true;
 }
 
+bool InstallShortcut(QString shortcutPath, QString exePath)
+{
+	Microsoft::WRL::ComPtr<IShellLink> shellLink;
+	HRESULT hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&shellLink));
+	if (SUCCEEDED(hr))
+	{
+		hr = shellLink->SetPath((LPCWSTR)exePath.utf16());
+		if (SUCCEEDED(hr))
+		{
+			Microsoft::WRL::ComPtr<IPersistFile> persistFile;
+			hr = shellLink.As(&persistFile);
+			if (SUCCEEDED(hr))
+			{
+				hr = persistFile->Save((LPCOLESTR)shortcutPath.utf16(), TRUE);
+			}
+		}
+	}
+	return SUCCEEDED(hr);
+}
+
+bool RegisterAppForNotificationSupport()
+{
+	// In order to display toasts, a desktop application must have a shortcut on the Start menu.
+	QString appData = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
+	if (appData.isEmpty())
+		return false;
+
+	QString shortcutPath = appData + "/Revive Dashboard.lnk";
+	QFileInfo attributes(shortcutPath);
+	if (!attributes.exists())
+	{
+		QString exePath = QCoreApplication::applicationFilePath();
+		return InstallShortcut(QDir::toNativeSeparators(shortcutPath), QDir::toNativeSeparators(exePath));
+	}
+
+	return true;
+}
+
 int main(int argc, char *argv[])
 {
 	// Open the log file and install our handler.
@@ -96,6 +136,9 @@ int main(int argc, char *argv[])
 	qInstallMessageHandler(myMessageOutput);
 
 	QGuiApplication a(argc, argv);
+
+	if (!RegisterAppForNotificationSupport())
+		qWarning("Failed to register for notification support.");
 
 	// Handle command-line arguments
 	if (a.arguments().contains("-manifest")) {

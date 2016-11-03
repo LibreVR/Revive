@@ -21,7 +21,9 @@ CReviveManifestController *CReviveManifestController::SharedInstance()
 CReviveManifestController::CReviveManifestController()
 	: BaseClass()
 	, m_manifestFile(QCoreApplication::applicationDirPath() + "/revive.vrmanifest")
+	, m_trayIcon(QIcon(":/revive.ico"))
 {
+	m_trayIcon.show();
 }
 
 CReviveManifestController::~CReviveManifestController()
@@ -43,10 +45,17 @@ bool CReviveManifestController::Init()
 	if (!vr::VRApplications()->GetApplicationAutoLaunch(AppKey))
 	{
 		vr::EVRApplicationError error = vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true);
-		/*if (error == vr::VRApplicationError_None)
-			QMessageBox::information(nullptr, "Revive", "Revive has been succesfully installed, it will automatically add any detect Oculus Store games to your library.");
+		if (error == vr::VRApplicationError_None)
+		{
+			m_trayIcon.showMessage("Revive Dashboard",
+								   "Revive has been set to auto-launch and will automatically add Oculus Store games to your library.");
+		}
 		else
-			QMessageBox::information(nullptr, "Revive", "Revive failed to install, please report this on the issue tracker.");*/
+		{
+			m_trayIcon.showMessage("Revive Dashboard",
+								   "Unable to set the auto-launch flag, please report this to the Revive issue tracker.");
+			qWarning("Failed to set auto-launch flag (%s)", vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
+		}
 	}
 
 	return bSuccess;

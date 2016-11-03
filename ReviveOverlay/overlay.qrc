@@ -3,5 +3,6 @@
         <file>Overlay.qml</file>
         <file>Oculus.js</file>
         <file>revive_overlay.png</file>
+        <file>revive.ico</file>
     </qresource>
 </RCC>

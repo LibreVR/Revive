@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QFile>
 #include <QJsonObject>
+#include <QSystemTrayIcon>
 
 class CReviveManifestController : public QObject
 {
@@ -30,6 +31,8 @@ public:
 private:
 	bool LoadDocument();
 	bool SaveDocument();
+
+	QSystemTrayIcon m_trayIcon;
 
 	QFile m_manifestFile;
 	QJsonObject m_manifest;
