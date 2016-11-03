@@ -162,7 +162,8 @@ ovrTouchHapticsDesc InputManager::GetTouchHapticsDesc(ovrControllerType controll
 
 void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 {
-	std::chrono::microseconds freq(std::chrono::seconds(1) / REV_HAPTICS_SAMPLE_RATE);
+	std::chrono::microseconds freq(std::chrono::seconds(1));
+	freq /= REV_HAPTICS_SAMPLE_RATE;
 
 	while (m_bHapticsRunning)
 	{
