@@ -93,14 +93,14 @@ bool InstallShortcut(QString shortcutPath, QString exePath)
 	HRESULT hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&shellLink));
 	if (SUCCEEDED(hr))
 	{
-		hr = shellLink->SetPath((LPCWSTR)exePath.utf16());
+		hr = shellLink->SetPath(qUtf16Printable(exePath));
 		if (SUCCEEDED(hr))
 		{
 			Microsoft::WRL::ComPtr<IPersistFile> persistFile;
 			hr = shellLink.As(&persistFile);
 			if (SUCCEEDED(hr))
 			{
-				hr = persistFile->Save((LPCOLESTR)shortcutPath.utf16(), TRUE);
+				hr = persistFile->Save(qUtf16Printable(shortcutPath), TRUE);
 			}
 		}
 	}

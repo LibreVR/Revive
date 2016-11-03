@@ -76,7 +76,7 @@ bool CReviveManifestController::LoadDocument()
 
 	QFileInfo info(m_manifestFile);
 	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
-	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(filePath.toUtf8());
+	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(qPrintable(filePath));
 	if (error != vr::VRApplicationError_None)
 		qWarning("Failed to add manifest file to OpenVR: %s (%s)", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 
@@ -100,7 +100,7 @@ bool CReviveManifestController::SaveDocument()
 
 	QFileInfo info(m_manifestFile);
 	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
-	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(filePath.toUtf8());
+	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(qPrintable(filePath));
 	if (error != vr::VRApplicationError_None)
 		qWarning("Failed to add manifest file to OpenVR: %s (%s)", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 
@@ -140,7 +140,7 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 {
 	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
-	vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(appKey.toUtf8());
+	vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(qPrintable(appKey));
 	if (error != vr::VRApplicationError_None)
 		qWarning("Failed to launch application: %s (%s)", qUtf8Printable(appKey), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 	return error == vr::VRApplicationError_None;
@@ -149,6 +149,5 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 bool CReviveManifestController::isApplicationInstalled(const QString &canonicalName)
 {
 	QString appKey = AppPrefix + canonicalName;
-	std::string key = appKey.toStdString();
-	return vr::VRApplications()->IsApplicationInstalled(key.c_str());
+	return vr::VRApplications()->IsApplicationInstalled(qPrintable(appKey));
 }
