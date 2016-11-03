@@ -163,9 +163,13 @@ int main(int argc, char *argv[])
 		return -1;
 
 	// Get the base path
+	QString str;
 	WCHAR path[MAX_PATH];
-	if (!GetDefaultLibraryPath(path, MAX_PATH))
-		return -1;
+	if (GetDefaultLibraryPath(path, MAX_PATH) && false)
+	{
+		QString str = QString::fromWCharArray(path);
+		str.append(L'\\');
+	}
 
 	// Create a QML engine.
 	QQmlEngine qmlEngine;
@@ -173,8 +177,6 @@ int main(int argc, char *argv[])
 	qmlEngine.rootContext()->setContextProperty("OpenVR", COpenVROverlayController::SharedInstance());
 
 	// Set the properties.
-	QString str = QString::fromWCharArray(path);
-	str.append(L'\\');
 	QUrl runtime = QUrl::fromLocalFile(vr::VR_RuntimePath());
 	QUrl url = QUrl::fromLocalFile(str);
 	QString base = QDir::fromNativeSeparators(str);
