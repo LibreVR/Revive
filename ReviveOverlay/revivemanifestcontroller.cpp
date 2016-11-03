@@ -122,12 +122,12 @@ bool CReviveManifestController::Init()
 			vr::EVRApplicationError error = vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true);
 			if (error == vr::VRApplicationError_None)
 			{
-				m_trayIcon.showMessage("Revive Dashboard",
-									   "Revive has been set to auto-launch and will automatically add Oculus Store games to your library.");
+				m_trayIcon.showMessage("Revive succesfully installed",
+									   "Revive will automatically add Oculus Store games to your library while SteamVR is running.");
 			}
 			else
 			{
-				m_trayIcon.showMessage("Revive Dashboard",
+				m_trayIcon.showMessage("Revive did not start correctly",
 									   "Unable to set the auto-launch flag, please report this to the Revive issue tracker.");
 				qWarning("Failed to set auto-launch flag (%s)", vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 			}
@@ -135,7 +135,7 @@ bool CReviveManifestController::Init()
 	}
 	else
 	{
-		m_trayIcon.showMessage("Revive Dashboard",
+		m_trayIcon.showMessage("Revive did not start correctly",
 							   "No Oculus Library was found, please install the Oculus Software from oculus.com/setup.");
 	}
 
