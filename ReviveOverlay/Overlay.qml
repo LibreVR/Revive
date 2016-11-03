@@ -12,7 +12,7 @@ Rectangle {
 
     FolderListModel {
         id: manifestsModel
-        folder: baseURL + 'Manifests/'
+        folder: Revive.LibraryURL + 'Manifests/'
         nameFilters: ["*_assets.json"]
         showDirs: false
         onCountChanged: {
@@ -44,12 +44,12 @@ Rectangle {
 
     SoundEffect {
         id: activateSound
-        source: openvrURL + "tools/content/panorama/sounds/activation.wav"
+        source: OpenVR.URL + "tools/content/panorama/sounds/activation.wav"
     }
 
     SoundEffect {
         id: moveSound
-        source: openvrURL + "tools/content/panorama/sounds/focus_change.wav"
+        source: OpenVR.URL + "tools/content/panorama/sounds/focus_change.wav"
         volume: 0.6
     }
 
@@ -71,7 +71,7 @@ Rectangle {
                     onHoveredChanged: coverGrid.currentIndex = index
                     onPressed: {
                         activateSound.play();
-                        ReviveManifest.launchApplication(appKey);
+                        Revive.launchApplication(appKey);
                     }
                 }
             }
@@ -177,7 +177,7 @@ Rectangle {
             if (buttonA && OpenVR.gamepadFocus && coverGrid.currentIndex != -1) {
                 var cover = coverModel.get(coverGrid.currentIndex);
                 activateSound.play();
-                ReviveManifest.launchApplication(cover.appKey);
+                Revive.launchApplication(cover.appKey);
             }
         }
     }

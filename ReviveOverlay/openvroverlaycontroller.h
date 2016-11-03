@@ -29,6 +29,7 @@ class COpenVROverlayController : public QObject
 	typedef QObject BaseClass;
 
 	Q_PROPERTY(bool gamepadFocus READ GetGamepadFocus)
+	Q_PROPERTY(QString URL READ GetRuntimeURL NOTIFY RuntimeChanged)
 
 public:
 	static COpenVROverlayController *SharedInstance();
@@ -49,6 +50,7 @@ public:
 	QString GetVRDisplayString();
 	QString GetName() { return m_strName; }
 	bool GetGamepadFocus() { return m_bGamepadFocus && vr::VROverlay()->IsDashboardVisible(); }
+	QString GetRuntimeURL() { return m_strRuntimeURL; }
 
 	void SetQuickItem( QQuickItem *pItem );
 
@@ -59,6 +61,9 @@ public slots:
 
 protected:
 
+signals:
+	void RuntimeChanged();
+
 private:
 	bool ConnectToVRRuntime();
 	void DisconnectFromVRRuntime();
@@ -68,6 +73,7 @@ private:
 	QString m_strVRDriver;
 	QString m_strVRDisplay;
 	QString m_strName;
+	QString m_strRuntimeURL;
 
 	vr::HmdError m_eLastHmdError;
 
