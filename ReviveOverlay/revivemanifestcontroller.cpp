@@ -30,36 +30,25 @@ CReviveManifestController::~CReviveManifestController()
 
 bool CReviveManifestController::Init()
 {
-	bool bSuccess = true;
+	bool bSuccess = LoadDocument();
 
-	if (!vr::VRApplications()->IsApplicationInstalled(AppKey))
+	if (!bSuccess)
 	{
-		QJsonObject strings, english;
-		english["name"] = "Revive Dashboard";
-		english["description"] = "Revive Dashboard Overlay";
-		strings["en_us"] = english;
-
-		QJsonObject overlay;
-		overlay["app_key"] = AppKey;
-		overlay["launch_type"] = "binary";
-		overlay["binary_path_windows"] = "ReviveOverlay.exe";
-		overlay["arguments"] = "";
-		overlay["image_path"] = "revive.png";
-		overlay["is_dashboard_overlay"] = true;
-		overlay["strings"] = strings;
-
 		QJsonArray applications;
-		applications.append(overlay);
 		m_manifest["applications"] = applications;
 
 		bSuccess = SaveDocument();
 	}
-	else
+
+	if (!vr::VRApplications()->GetApplicationAutoLaunch(AppKey))
 	{
-		bSuccess = LoadDocument();
+		vr::EVRApplicationError error = vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true);
+		/*if (error == vr::VRApplicationError_None)
+			QMessageBox::information(nullptr, "Revive", "Revive has been succesfully installed, it will automatically add any detect Oculus Store games to your library.");
+		else
+			QMessageBox::information(nullptr, "Revive", "Revive failed to install, please report this on the issue tracker.");*/
 	}
 
-	vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true);
 	return bSuccess;
 }
 
