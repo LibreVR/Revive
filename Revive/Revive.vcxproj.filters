@@ -134,6 +134,9 @@
     <ClCompile Include="TextureD3D.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
+    <ClCompile Include="xinput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CompositorShader.hlsl">
@@ -145,5 +148,10 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="xinput.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

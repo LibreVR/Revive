@@ -98,6 +98,7 @@
       <AdditionalDependencies>openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -125,6 +126,7 @@
       <AdditionalDependencies>openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -156,6 +158,7 @@
       <AdditionalDependencies>openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <GenerateDebugInformation>No</GenerateDebugInformation>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -187,6 +190,7 @@
       <AdditionalDependencies>openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <GenerateDebugInformation>No</GenerateDebugInformation>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -237,6 +241,7 @@
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="TextureD3D.cpp" />
     <ClCompile Include="TextureGL.cpp" />
+    <ClCompile Include="xinput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\minhook\build\VC15\libMinHook.vcxproj">
@@ -262,6 +267,9 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="xinput.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

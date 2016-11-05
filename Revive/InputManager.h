@@ -9,9 +9,6 @@
 #include <Windows.h>
 #include <Xinput.h>
 
-typedef DWORD(__stdcall* _XInputGetState)(DWORD dwUserIndex, XINPUT_STATE* pState);
-typedef DWORD(__stdcall* _XInputSetState)(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
-
 #define REV_HAPTICS_SAMPLE_RATE 200
 #define REV_HAPTICS_MAX_SAMPLES 256
 
@@ -113,10 +110,5 @@ public:
 protected:
 	std::vector<InputDevice*> m_InputDevices;
 	static bool m_bHapticsRunning;
-
-private:
-	HMODULE m_XInputLib;
-	static _XInputGetState s_XInputGetState;
-	static _XInputSetState s_XInputSetState;
 };
 

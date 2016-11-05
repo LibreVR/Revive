@@ -6,9 +6,6 @@
 #include <Windows.h>
 #include <Xinput.h>
 
-_XInputGetState InputManager::s_XInputGetState;
-_XInputSetState InputManager::s_XInputSetState;
-
 bool InputManager::m_bHapticsRunning;
 
 HapticsBuffer::HapticsBuffer()
@@ -56,14 +53,7 @@ InputManager::InputManager()
 {
 	m_bHapticsRunning = true;
 
-	m_XInputLib = LoadLibraryW(L"xinput1_3.dll");
-	if (m_XInputLib)
-	{
-		s_XInputGetState = (_XInputGetState)GetProcAddress(m_XInputLib, "XInputGetState");
-		s_XInputSetState = (_XInputSetState)GetProcAddress(m_XInputLib, "XInputSetState");
-		m_InputDevices.push_back(new XboxGamepad());
-	}
-
+	m_InputDevices.push_back(new XboxGamepad());
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
 	m_InputDevices.push_back(new OculusRemote());
@@ -75,9 +65,6 @@ InputManager::~InputManager()
 
 	for (InputDevice* device : m_InputDevices)
 		delete device;
-
-	if (m_XInputLib)
-		FreeLibrary(m_XInputLib);
 }
 
 unsigned int InputManager::GetConnectedControllerTypes()
@@ -384,14 +371,14 @@ bool InputManager::XboxGamepad::IsConnected()
 {
 	// Check for Xbox controller
 	XINPUT_STATE input;
-	return s_XInputGetState(0, &input) == ERROR_SUCCESS;
+	return XInputGetState(0, &input) == ERROR_SUCCESS;
 }
 
 void InputManager::XboxGamepad::GetInputState(ovrInputState* inputState)
 {
 	// Use XInput for Xbox controllers.
 	XINPUT_STATE state;
-	if (s_XInputGetState(0, &state) == ERROR_SUCCESS)
+	if (XInputGetState(0, &state) == ERROR_SUCCESS)
 	{
 		// Convert the buttons
 		WORD buttons = state.Gamepad.wButtons;
@@ -498,5 +485,5 @@ void InputManager::XboxGamepad::SetVibration(float frequency, float amplitude)
 		else
 			vibration.wLeftMotorSpeed = WORD(65535.0f * amplitude);
 	}
-	s_XInputSetState(0, &vibration);
+	XInputSetState(0, &vibration);
 }

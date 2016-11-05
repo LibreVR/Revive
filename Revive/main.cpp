@@ -18,7 +18,6 @@ _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
 _CreateDXGIFactory DXGIFactory;
 
-HMODULE ReviveModule;
 WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
 
@@ -64,9 +63,8 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 	switch (ul_reason_for_call)
 	{
 		case DLL_PROCESS_ATTACH:
-			ReviveModule = (HMODULE)hModule;
+			GetModuleFileName((HMODULE)hModule, revModuleName, MAX_PATH);
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
-			swprintf(revModuleName, MAX_PATH, L"LibRevive%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 			MH_Initialize();
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
