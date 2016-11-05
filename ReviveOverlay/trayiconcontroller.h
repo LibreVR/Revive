@@ -29,6 +29,7 @@ public:
 
 protected slots:
 	void inject();
+	void patch();
 	void showHelp();
 	void messageClicked();
 
@@ -36,6 +37,8 @@ private:
 	QSystemTrayIcon m_trayIcon;
 	QMenu m_trayIconMenu;
 	ETrayInfo m_LastInfo;
+
+	QString openDialog();
 };
 
 #endif // CTRAYICONCONTROLLER_H

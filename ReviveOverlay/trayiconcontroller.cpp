@@ -1,8 +1,11 @@
 #include "trayiconcontroller.h"
+#include <windowsservices.h>
+#include <qt_windows.h>
 
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QIcon>
 #include <QProcess>
 #include <QUrl>
@@ -33,6 +36,7 @@ bool CTrayIconController::Init()
 {
 	m_trayIcon.show();
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
+	m_trayIconMenu.addAction("&Patch...", this, SLOT(patch()));
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("&Quit", QCoreApplication::quit);
@@ -67,13 +71,41 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 
 void CTrayIconController::inject()
 {
+	QString file = openDialog();
+	if (file.isNull())
+		return;
+
 	QStringList args;
-	QString file = QFileDialog::getOpenFileName(
-				nullptr, "Revive Injector",
-				QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
-				"Application (*.exe)");
 	args.append(file);
-	QProcess::execute("Revive/ReviveInjector_x64.exe", args);
+	QProcess::execute(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe", args);
+}
+
+void CTrayIconController::patch()
+{
+	QString file = openDialog();
+	if (file.isNull())
+		return;
+
+	DWORD type;
+	if (!GetBinaryType(qUtf16Printable(file), &type))
+		return;
+
+	QString dir = QCoreApplication::applicationDirPath();
+	QStringList files;
+	if (type == SCS_32BIT_BINARY)
+	{
+		files.append(dir + "/Revive/x86/LibRevive32_1.dll");
+		files.append(dir + "/Revive/x86/openvr_api.dll");
+	}
+	if (type == SCS_64BIT_BINARY)
+	{
+		files.append(dir + "/Revive/x64/LibRevive64_1.dll");
+		files.append(dir + "/Revive/x64/openvr_api.dll");
+	}
+	QStringList names = { "xinput1_3.dll", "openvr_api.dll" };
+
+	QFileInfo info(file);
+	WindowsServices::CopyFiles(files, info.absolutePath(), names);
 }
 
 void CTrayIconController::showHelp()
@@ -92,4 +124,12 @@ void CTrayIconController::messageClicked()
 			QDesktopServices::openUrl(QUrl("https://oculus.com/setup"));
 		break;
 	}
+}
+
+QString CTrayIconController::openDialog()
+{
+	return QFileDialog::getOpenFileName(
+				nullptr, "Revive",
+				QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+				"Application (*.exe)");
 }
