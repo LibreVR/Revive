@@ -1,3 +1,4 @@
+#include "trayiconcontroller.h"
 #include "openvroverlaycontroller.h"
 #include "revivemanifestcontroller.h"
 #include <qt_windows.h>
@@ -99,6 +100,8 @@ int main(int argc, char *argv[])
 	}
 
 	// Initialize singletons
+	if (!CTrayIconController::SharedInstance()->Init())
+		return -1;
 	if (!COpenVROverlayController::SharedInstance()->Init())
 		return -1;
 	if (!CReviveManifestController::SharedInstance()->Init())

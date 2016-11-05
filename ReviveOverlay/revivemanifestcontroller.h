@@ -40,8 +40,6 @@ private:
 	bool SaveDocument();
 	bool GetDefaultLibraryPath(wchar_t* path, uint32_t length);
 
-	QSystemTrayIcon m_trayIcon;
-
 	QFile m_manifestFile;
 	QJsonObject m_manifest;
 	QString m_strLibraryPath;

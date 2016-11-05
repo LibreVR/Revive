@@ -14,11 +14,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     openvroverlaycontroller.cpp \
-    revivemanifestcontroller.cpp
+    revivemanifestcontroller.cpp \
+    trayiconcontroller.cpp
 
 HEADERS  += \
     openvroverlaycontroller.h \
-    revivemanifestcontroller.h
+    revivemanifestcontroller.h \
+    trayiconcontroller.h
 
 DISTFILES += \
     Overlay.qml \

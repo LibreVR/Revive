@@ -1,4 +1,5 @@
 #include "revivemanifestcontroller.h"
+#include "trayiconcontroller.h"
 #include "openvr.h"
 #include <qt_windows.h>
 
@@ -82,7 +83,6 @@ bool CReviveManifestController::GetDefaultLibraryPath(wchar_t* path, uint32_t le
 CReviveManifestController::CReviveManifestController()
 	: BaseClass()
 	, m_manifestFile(QCoreApplication::applicationDirPath() + "/revive.vrmanifest")
-	, m_trayIcon(QIcon(":/revive.ico"))
 {
 }
 
@@ -92,8 +92,6 @@ CReviveManifestController::~CReviveManifestController()
 
 bool CReviveManifestController::Init()
 {
-	m_trayIcon.show();
-
 	bool bSuccess = LoadDocument();
 
 	if (!bSuccess)
@@ -122,21 +120,18 @@ bool CReviveManifestController::Init()
 			vr::EVRApplicationError error = vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true);
 			if (error == vr::VRApplicationError_None)
 			{
-				m_trayIcon.showMessage("Revive succesfully installed",
-									   "Revive will automatically add Oculus Store games to your library while SteamVR is running.");
+				CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_AutoLaunchEnabled);
 			}
 			else
 			{
-				m_trayIcon.showMessage("Revive did not start correctly",
-									   "Unable to set the auto-launch flag, please report this to the Revive issue tracker.");
+				CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_AutoLaunchFailed);
 				qWarning("Failed to set auto-launch flag (%s)", vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 			}
 		}
 	}
 	else
 	{
-		m_trayIcon.showMessage("Revive did not start correctly",
-							   "No Oculus Library was found, please install the Oculus Software from oculus.com/setup.");
+		CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_OculusLibraryNotFound);
 	}
 
 	return bSuccess;
