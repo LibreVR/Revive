@@ -310,10 +310,11 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	if (!session)
 		return state;
 
-	// Get the device poses, only the submission thread is allowed to request new poses.
+	// Get the device poses, if WaitGetPoses() was postponed (WaitThreadId == 0) then we need to call it here.
+	DWORD waitId = 0;
 	DWORD threadId = GetCurrentThreadId();
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	if (session->SubmitThreadId.compare_exchange_strong(threadId, 0))
+	if (session->WaitThreadId.compare_exchange_strong(waitId, threadId))
 		vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 	else
 		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
@@ -769,8 +770,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 	// TODO: Implement scaling through ApplyTransform().
 
-	session->SubmitThreadId = GetCurrentThreadId();
-
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
 
@@ -781,6 +780,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	vr::EVRCompositorError err = session->Compositor->SubmitFrame(viewScaleDesc, layerPtrList, layerCount);
 	if (err != vr::VRCompositorError_None)
 		return err;
+
+	// If we're the same thread that requested the tracking state, then we can postpone WaitGetPoses().
+	DWORD threadId = GetCurrentThreadId();
+	if (!session->WaitThreadId.compare_exchange_strong(threadId, 0))
+		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 
 	// Increment the frame index.
 	if (frameIndex == 0)

@@ -47,9 +47,9 @@ struct ovrHmdStruct
 	bool ShouldQuit;
 	bool IsVisible;
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
-	std::atomic_ulong SubmitThreadId;
 
 	// Compositor statistics
+	std::atomic_ulong WaitThreadId;
 	long long FrameIndex;
 	long long StatsIndex;
 	ovrPerfStatsPerCompositorFrame ResetStats;
