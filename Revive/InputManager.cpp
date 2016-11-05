@@ -82,6 +82,10 @@ unsigned int InputManager::GetConnectedControllerTypes()
 
 ovrResult InputManager::SetControllerVibration(ovrControllerType controllerType, float frequency, float amplitude)
 {
+	// Clamp the input
+	frequency = min(max(frequency, 0.0f), 1.0f);
+	amplitude = min(max(amplitude, 0.0f), 1.0f);
+
 	for (InputDevice* device : m_InputDevices)
 	{
 		if (controllerType & device->GetType() && device->IsConnected())
@@ -158,7 +162,7 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 
 		uint16_t duration = (uint16_t)((float)freq.count() * device->m_Haptics.GetSample());
 		if (duration > 0)
-			vr::VRSystem()->TriggerHapticPulse(touch, vr::k_EButton_SteamVR_Touchpad, duration);
+			vr::VRSystem()->TriggerHapticPulse(touch, 0, duration);
 
 		std::this_thread::sleep_for(freq);
 	}
