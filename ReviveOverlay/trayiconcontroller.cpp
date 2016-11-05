@@ -1,7 +1,10 @@
 #include "trayiconcontroller.h"
 
+#include <QCoreApplication>
 #include <QDesktopServices>
+#include <QFileDialog>
 #include <QIcon>
+#include <QProcess>
 #include <QUrl>
 
 CTrayIconController *s_pSharedTrayController = NULL;
@@ -29,6 +32,12 @@ CTrayIconController::~CTrayIconController()
 bool CTrayIconController::Init()
 {
 	m_trayIcon.show();
+	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
+	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
+	m_trayIconMenu.addSeparator();
+	m_trayIconMenu.addAction("&Quit", QCoreApplication::quit);
+	m_trayIcon.setContextMenu(&m_trayIconMenu);
+
 	return true;
 }
 
@@ -54,6 +63,22 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 								   QSystemTrayIcon::Warning);
 		break;
 	}
+}
+
+void CTrayIconController::inject()
+{
+	QStringList args;
+	QString file = QFileDialog::getOpenFileName(
+				nullptr, "Revive Injector",
+				QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
+				"Application (*.exe)");
+	args.append(file);
+	QProcess::execute("Revive/ReviveInjector_x64.exe", args);
+}
+
+void CTrayIconController::showHelp()
+{
+	QDesktopServices::openUrl(QUrl("https://github.com/LibreVR/Revive/wiki"));
 }
 
 void CTrayIconController::messageClicked()

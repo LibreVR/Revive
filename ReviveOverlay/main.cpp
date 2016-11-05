@@ -5,7 +5,7 @@
 #include <wrl.h>
 #include <Shlobj.h>
 
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlEngine>
 #include <QQmlComponent>
 #include <QQuickItem>
@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
 	}
 	qInstallMessageHandler(myMessageOutput);
 
-	QGuiApplication a(argc, argv);
+	QApplication a(argc, argv);
+	a.setQuitOnLastWindowClosed(false);
 
 	if (!RegisterAppForNotificationSupport())
 		qWarning("Failed to register for notification support.");

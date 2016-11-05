@@ -2,6 +2,7 @@
 #define CTRAYICONCONTROLLER_H
 
 #include <QObject>
+#include <QMenu>
 #include <QSystemTrayIcon>
 
 enum ETrayInfo
@@ -27,10 +28,13 @@ public:
 	void ShowInformation(ETrayInfo info);
 
 protected slots:
+	void inject();
+	void showHelp();
 	void messageClicked();
 
 private:
 	QSystemTrayIcon m_trayIcon;
+	QMenu m_trayIconMenu;
 	ETrayInfo m_LastInfo;
 };
 
