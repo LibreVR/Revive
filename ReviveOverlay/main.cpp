@@ -1,9 +1,8 @@
 #include "trayiconcontroller.h"
 #include "openvroverlaycontroller.h"
 #include "revivemanifestcontroller.h"
+#include "windowsservices.h"
 #include <qt_windows.h>
-#include <wrl.h>
-#include <Shlobj.h>
 
 #include <QApplication>
 #include <QQmlEngine>
@@ -30,26 +29,6 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 		abort();
 }
 
-bool InstallShortcut(QString shortcutPath, QString exePath)
-{
-	Microsoft::WRL::ComPtr<IShellLink> shellLink;
-	HRESULT hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&shellLink));
-	if (SUCCEEDED(hr))
-	{
-		hr = shellLink->SetPath(qUtf16Printable(exePath));
-		if (SUCCEEDED(hr))
-		{
-			Microsoft::WRL::ComPtr<IPersistFile> persistFile;
-			hr = shellLink.As(&persistFile);
-			if (SUCCEEDED(hr))
-			{
-				hr = persistFile->Save(qUtf16Printable(shortcutPath), TRUE);
-			}
-		}
-	}
-	return SUCCEEDED(hr);
-}
-
 bool RegisterAppForNotificationSupport()
 {
 	// In order to display toasts, a desktop application must have a shortcut on the Start menu.
@@ -62,7 +41,7 @@ bool RegisterAppForNotificationSupport()
 	if (!attributes.exists())
 	{
 		QString exePath = QCoreApplication::applicationFilePath();
-		return InstallShortcut(QDir::toNativeSeparators(shortcutPath), QDir::toNativeSeparators(exePath));
+		return WindowsServices::CreateShortcut(shortcutPath, exePath);
 	}
 
 	return true;

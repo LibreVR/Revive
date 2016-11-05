@@ -15,12 +15,14 @@ TEMPLATE = app
 SOURCES += main.cpp\
     openvroverlaycontroller.cpp \
     revivemanifestcontroller.cpp \
-    trayiconcontroller.cpp
+    trayiconcontroller.cpp \
+    windowsservices.cpp
 
 HEADERS  += \
     openvroverlaycontroller.h \
     revivemanifestcontroller.h \
-    trayiconcontroller.h
+    trayiconcontroller.h \
+    windowsservices.h
 
 DISTFILES += \
     Overlay.qml \
