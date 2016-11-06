@@ -26,9 +26,7 @@ CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 		return nullptr;
 
 	// Attach compositor to the device
-	CompositorD3D* compositor = new CompositorD3D(pDevice);
-	pDevice->Release();
-	return compositor;
+	return new CompositorD3D(pDevice);
 }
 
 CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
