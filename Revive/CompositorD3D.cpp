@@ -69,8 +69,15 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 	m_pDevice->CreateBlendState(&bm, m_BlendState.GetAddressOf());
 
 	// Get the mirror textures
-	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, m_pDevice.Get(), (void**)m_pMirror[ovrEye_Left].GetAddressOf());
-	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, m_pDevice.Get(), (void**)m_pMirror[ovrEye_Right].GetAddressOf());
+	ID3D11ShaderResourceView *left, *right;
+	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, m_pDevice.Get(), (void**)&left);
+	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, m_pDevice.Get(), (void**)&right);
+
+	// OpenVR doesn't increment the reference counter as it should, so we have to do it ourselves
+	left->AddRef();
+	right->AddRef();
+	m_pMirror[ovrEye_Left] = left;
+	m_pMirror[ovrEye_Right] = right;
 }
 
 CompositorD3D::~CompositorD3D()
