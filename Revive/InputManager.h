@@ -19,6 +19,7 @@ public:
 	~HapticsBuffer() { }
 
 	void AddSamples(const ovrHapticsBuffer* buffer);
+	void SetConstant(float frequency, float amplitude);
 	float GetSample();
 	ovrHapticsPlaybackState GetState();
 
@@ -27,6 +28,11 @@ private:
 	std::atomic_uint8_t m_ReadIndex;
 	std::atomic_uint8_t m_WriteIndex;
 	uint8_t m_Buffer[REV_HAPTICS_MAX_SAMPLES];
+
+	// Constant feedback
+	std::atomic_uint16_t m_ConstantTimeout;
+	float m_Frequency;
+	float m_Amplitude;
 };
 
 class InputManager
@@ -59,7 +65,7 @@ public:
 		virtual ovrControllerType GetType();
 		virtual bool IsConnected();
 		virtual void GetInputState(ovrInputState* inputState);
-		virtual void SetVibration(float frequency, float amplitude);
+		virtual void SetVibration(float frequency, float amplitude) { m_Haptics.SetConstant(frequency, amplitude); }
 		virtual void SubmitVibration(const ovrHapticsBuffer* buffer) { m_Haptics.AddSamples(buffer); }
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { *outState = m_Haptics.GetState(); }
 

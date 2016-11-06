@@ -17,17 +17,41 @@ HapticsBuffer::HapticsBuffer()
 
 void HapticsBuffer::AddSamples(const ovrHapticsBuffer* buffer)
 {
+	// Force constant vibration off
+	m_ConstantTimeout = 0;
+
 	uint8_t* samples = (uint8_t*)buffer->Samples;
 
 	for (int i = 0; i < buffer->SamplesCount; i++)
 	{
+		if (m_WriteIndex == m_ReadIndex - 1)
+			return;
+
 		// Index will overflow correctly, so no need for a modulo operator
 		m_Buffer[m_WriteIndex++] = samples[i];
 	}
 }
 
+void HapticsBuffer::SetConstant(float frequency, float amplitude)
+{
+	// The documentation specifies a constant vibration should time out after 2.5 seconds
+	m_Amplitude = amplitude;
+	m_Frequency = frequency;
+	m_ConstantTimeout = (uint16_t)(REV_HAPTICS_SAMPLE_RATE * 2.5);
+}
+
 float HapticsBuffer::GetSample()
 {
+	if (m_ConstantTimeout > 0)
+	{
+		float sample = m_Amplitude;
+		if (m_Frequency <= 0.5f && m_ConstantTimeout % 2 == 0)
+			sample = 0.0f;
+
+		m_ConstantTimeout--;
+		return sample;
+	}
+
 	// We can't pass the write index, so the buffer is now empty
 	if (m_ReadIndex == m_WriteIndex)
 		return 0.0f;
@@ -289,25 +313,6 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 	// Commit buttons/touches, count pressed buttons as touches.
 	inputState->Buttons |= buttons;
 	inputState->Touches |= touches | buttons;
-}
-
-void InputManager::OculusTouch::SetVibration(float frequency, float amplitude)
-{
-	// Fill the buffer with samples, this will last about 1.2 seconds, which
-	// is less than the specified maximum of 2.5 seconds.
-	// TODO: Support the maximum duration.
-	uint8_t samples[REV_HAPTICS_MAX_SAMPLES] = { 0 };
-	for (int i = 0; i < REV_HAPTICS_MAX_SAMPLES; i++)
-	{
-		if (frequency > 0.5f || i % 2 == 0)
-			samples[i] = (uint8_t)(amplitude * 255.0);
-	}
-
-	ovrHapticsBuffer buffer = { 0 };
-	buffer.Samples = samples;
-	buffer.SamplesCount = REV_HAPTICS_MAX_SAMPLES;
-	buffer.SubmitMode = ovrHapticsBufferSubmit_Enqueue;
-	SubmitVibration(&buffer);
 }
 
 bool InputManager::OculusRemote::IsConnected()
