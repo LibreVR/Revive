@@ -9,7 +9,7 @@
 #include <Windows.h>
 #include <Xinput.h>
 
-#define REV_HAPTICS_SAMPLE_RATE 200
+#define REV_HAPTICS_SAMPLE_RATE 320
 #define REV_HAPTICS_MAX_SAMPLES 256
 
 class HapticsBuffer
