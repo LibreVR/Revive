@@ -597,6 +597,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetBoundaryLookAndFeel(ovrSession session, co
 
 	// Cast to HmdColor_t
 	vr::HmdColor_t color = *(vr::HmdColor_t*)&lookAndFeel->Color;
+	color.a = 1.0f; // Ignore alpha
 	vr::VRChaperone()->SetSceneColor(color);
 	return ovrSuccess;
 }
