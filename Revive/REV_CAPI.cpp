@@ -617,7 +617,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryGeometry(ovrSession session, ovrBo
 	vr::HmdQuad_t playRect;
 	bool valid = vr::VRChaperone()->GetPlayAreaRect(&playRect);
 	if (outFloorPoints)
-		memcpy(outFloorPoints, playRect.vCorners, 4 * sizeof(outFloorPoints));
+		memcpy(outFloorPoints, playRect.vCorners, 4 * sizeof(ovrVector3f));
 	if (outFloorPointsCount)
 		*outFloorPointsCount = valid ? 4 : 0;
 	return valid ? ovrSuccess : ovrSuccess_BoundaryInvalid;
