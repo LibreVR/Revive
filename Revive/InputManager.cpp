@@ -195,12 +195,16 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	: m_Role(role)
 	, m_ThumbStick(role == vr::TrackedControllerRole_LeftHand)
-	, m_MenuWasPressed(false)
-	, m_ThumbStickRange(0.5f)
+	, m_ThumbDeadzone(0.2f)
 {
-	float range = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbStickRange");
-	if (range != 0.0f)
-		m_ThumbStickRange = range;
+	memset(&m_LastState, 0, sizeof(m_LastState));
+	memset(&m_ThumbCenter, 0, sizeof(m_ThumbCenter));
+
+	// Get the thumb stick deadzone from the settings
+	vr::EVRSettingsError error;
+	float deadzone = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbDeadzone", &error);
+	if (error != vr::VRSettingsError_None)
+		deadzone = 0.2f;
 
 	m_HapticsThread = std::thread(HapticsThread, this);
 }
@@ -233,16 +237,10 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 
 	unsigned int buttons = 0, touches = 0;
 
-	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
+	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu) &&
+		!(m_LastState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu)))
 	{
-		if (!m_MenuWasPressed)
-			m_ThumbStick = !m_ThumbStick;
-
-		m_MenuWasPressed = true;
-	}
-	else
-	{
-		m_MenuWasPressed = false;
+		m_ThumbStick = !m_ThumbStick;
 	}
 
 	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
@@ -266,15 +264,29 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 
 		if (type == vr::k_eControllerAxis_TrackPad)
 		{
-			if (m_ThumbStick)
+			if (m_ThumbStick && (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad)))
 			{
-				// Map the touchpad to the thumbstick with a slightly smaller range
-				float mappedX = axis.x / m_ThumbStickRange;
-				float mappedY = axis.y / m_ThumbStickRange;
+				// Always center the joystick at the point the pad was first touched
+				if (!(m_LastState.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad)))
+					m_ThumbCenter = axis;
+				ovrVector2f stick = { axis.x - m_ThumbCenter.x, axis.y - m_ThumbCenter.y };
+				inputState->ThumbstickNoDeadzone[hand] = stick;
 
-				// Clip and assign the new values
-				inputState->Thumbstick[hand].x = mappedX > 1.0f ? 1.0f : mappedX;
-				inputState->Thumbstick[hand].y = mappedY > 1.0f ? 1.0f : mappedY;
+				float magnitude = sqrt(stick.x*stick.x + stick.y*stick.y);
+				if (magnitude > m_ThumbDeadzone)
+				{
+					//clip the magnitude at its expected maximum value
+					if (magnitude > 1.0f) magnitude = 1.0f;
+
+					//adjust magnitude relative to the end of the dead zone
+					magnitude -= m_ThumbDeadzone;
+
+					//optionally normalize the magnitude with respect to its expected range
+					//giving a magnitude value of 0.0 to 1.0
+					float normalizedMagnitude = magnitude / (1.0f - m_ThumbDeadzone);
+					inputState->Thumbstick[hand].x = stick.x * normalizedMagnitude;
+					inputState->Thumbstick[hand].y = stick.y * normalizedMagnitude;
+				}
 			}
 
 			if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
@@ -305,14 +317,16 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 			inputState->IndexTrigger[hand] = axis.x;
 	}
 
-	// We don't apply deadzones yet.
+	// We don't apply deadzones yet on triggers and grips
 	inputState->IndexTriggerNoDeadzone[hand] = inputState->IndexTrigger[hand];
 	inputState->HandTriggerNoDeadzone[hand] = inputState->HandTrigger[hand];
-	inputState->ThumbstickNoDeadzone[hand] = inputState->Thumbstick[hand];
 
-	// Commit buttons/touches, count pressed buttons as touches.
+	// Commit buttons/touches, count pressed buttons as touches
 	inputState->Buttons |= buttons;
 	inputState->Touches |= touches | buttons;
+
+	// Save the state
+	m_LastState = state;
 }
 
 bool InputManager::OculusRemote::IsConnected()

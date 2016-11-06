@@ -71,9 +71,11 @@ public:
 
 	private:
 		vr::ETrackedControllerRole m_Role;
+		vr::VRControllerState_t m_LastState;
+
 		bool m_ThumbStick;
-		bool m_MenuWasPressed;
-		float m_ThumbStickRange;
+		float m_ThumbDeadzone;
+		vr::VRControllerAxis_t m_ThumbCenter;
 
 		std::thread m_HapticsThread;
 		static void HapticsThread(OculusTouch* device);
