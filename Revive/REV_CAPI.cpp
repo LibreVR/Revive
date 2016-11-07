@@ -554,38 +554,38 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundaryPoint(ovrSession session, const o
 
 	result.IsTriggering = vr::VRChaperone()->AreBoundsVisible();
 
-	vr::HmdQuad_t playRect;
-	if (!vr::VRChaperone()->GetPlayAreaRect(&playRect))
+	OVR::Vector2f playArea;
+	if (!vr::VRChaperone()->GetPlayAreaSize(&playArea.x, &playArea.y))
 		return ovrSuccess_BoundaryInvalid;
 
-	result.ClosestDistance = INFINITY;
-	OVR::Vector3f p(*point);
-	for (int i = 0; i < 4; i++)
+	// Clamp the point to the AABB
+	OVR::Vector2f p(point->x, point->z);
+	OVR::Vector2f halfExtents(playArea.x / 2.0f, playArea.y / 2.0f);
+	OVR::Vector2f clamped = OVR::Vector2f::Min(OVR::Vector2f::Max(p, -halfExtents), halfExtents);
+
+	// If the point is inside the AABB, we need to do some extra work
+	if (clamped.Compare(p))
 	{
-		OVR::Vector3f start = rev_HmdVectorToOVRVector(playRect.vCorners[i]);
-		OVR::Vector3f end = rev_HmdVectorToOVRVector(playRect.vCorners[(i+1)%4]);
-
-		// Get the line as a vector
-		OVR::Vector3f line = end - start;
-
-		// Get the delta between the start of the line and the point
-		OVR::Vector3f delta = p - start;
-
-		// Project the delta onto the plane to get the normal
-		OVR::Vector3f normal = delta.ProjectToPlane(line);
-
-		// Compute the length of the normal for the distance
-		float distance = normal.Length();
-		if (distance < result.ClosestDistance)
-		{
-			result.ClosestDistance = distance;
-			result.ClosestPointNormal = normal.Normalized();
-			result.ClosestPoint = start + delta.ProjectTo(line);
-		}
+		if (std::abs(p.x) > std::abs(p.y))
+			clamped.x = halfExtents.x * (p.x / std::abs(p.x));
+		else
+			clamped.y = halfExtents.y * (p.y / std::abs(p.y));
 	}
 
 	// We don't have a ceiling, use the height from the original point
+	result.ClosestPoint.x = clamped.x;
 	result.ClosestPoint.y = point->y;
+	result.ClosestPoint.z = clamped.y;
+
+	// Get the normal, closest distance is the length of this normal
+	OVR::Vector2f normal = p - clamped;
+	result.ClosestDistance = normal.Length();
+
+	// Normalize the normal
+	normal.Normalize();
+	result.ClosestPointNormal.x = normal.x;
+	result.ClosestPointNormal.y = 0.0f;
+	result.ClosestPointNormal.z = normal.y;
 
 	*outTestResult = result;
 	return ovrSuccess;
