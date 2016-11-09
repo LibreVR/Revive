@@ -106,7 +106,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewS
 	}
 	m_ActiveOverlays = activeOverlays;
 
-	vr::EVRCompositorError error;
+	vr::EVRCompositorError error = vr::VRCompositorError_None;
 	if (m_SceneLayer && m_SceneLayer->Type == ovrLayerType_EyeFov)
 	{
 		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)m_SceneLayer;
