@@ -73,9 +73,10 @@ public:
 		vr::ETrackedControllerRole m_Role;
 		vr::VRControllerState_t m_LastState;
 
-		float m_ThumbRange;
-		float m_ThumbDeadzone;
-		vr::VRControllerAxis_t m_ThumbCenter;
+		bool m_StickTouched;
+		float m_Sensitivity;
+		float m_Deadzone;
+		ovrVector2f m_ThumbStick;
 		ovrTouch AxisToTouch(vr::VRControllerAxis_t axis);
 
 		std::thread m_HapticsThread;
