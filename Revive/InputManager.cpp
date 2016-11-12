@@ -196,8 +196,8 @@ ovrTouch InputManager::OculusTouch::AxisToTouch(vr::VRControllerAxis_t axis)
 {
 	if (m_Role == vr::TrackedControllerRole_LeftHand)
 	{
-		if (axis.y < axis.x) {
-			if (axis.y < -axis.x)
+		if (axis.x > 0.0f) {
+			if (axis.y < 0.0f)
 				return ovrTouch_X;
 			else
 				return ovrTouch_Y;
@@ -208,8 +208,8 @@ ovrTouch InputManager::OculusTouch::AxisToTouch(vr::VRControllerAxis_t axis)
 	}
 	else
 	{
-		if (axis.y < -axis.x) {
-			if (axis.y < axis.x)
+		if (axis.x < 0.0f) {
+			if (axis.y < 0.0f)
 				return ovrTouch_A;
 			else
 				return ovrTouch_B;
