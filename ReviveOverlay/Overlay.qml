@@ -16,8 +16,7 @@ Rectangle {
         nameFilters: ["*_assets.json"]
         showDirs: false
         onCountChanged: {
-            coverModel.clear();
-            emptyText.visible = (manifestsModel.count == 0);
+            coverModel.remove(4, coverModel.count - 4);
             for (var i = 0; i < manifestsModel.count; i++)
                 Oculus.loadAssetsManifest(manifestsModel.get(i, "fileURL"));
         }
@@ -25,6 +24,7 @@ Rectangle {
 
     Text {
         id: emptyText
+        visible: !Revive.LibraryFound
         x: 644
         y: 363
         width: 1052
@@ -40,6 +40,23 @@ Rectangle {
 
     ListModel {
         id: coverModel
+
+        ListElement {
+            coverURL: "SupportAssets/oculus-dreamdeck-nux/cover_square_image.jpg"
+            appKey: "oculus-dreamdeck-nux"
+        }
+        ListElement {
+            coverURL: "SupportAssets/oculus-touch-tutorial/cover_square_image.jpg"
+            appKey: "oculus-touch-tutorial"
+        }
+        ListElement {
+            coverURL: "SupportAssets/oculus-first-contact/cover_square_image.jpg"
+            appKey: "oculus-first-contact"
+        }
+        ListElement {
+            coverURL: "SupportAssets/oculus-avatar-editor/cover_square_image.jpg"
+            appKey: "oculus-avatar-editor"
+        }
     }
 
     SoundEffect {
@@ -103,6 +120,7 @@ Rectangle {
 
     GridView {
         id: coverGrid
+        visible: Revive.LibraryFound
         focus: true
         cellHeight: 384
         cellWidth: 384

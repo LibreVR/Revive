@@ -83,6 +83,8 @@ bool CReviveManifestController::GetDefaultLibraryPath(wchar_t* path, uint32_t le
 CReviveManifestController::CReviveManifestController()
 	: BaseClass()
 	, m_manifestFile(QCoreApplication::applicationDirPath() + "/revive.vrmanifest")
+	, m_supportFile(QCoreApplication::applicationDirPath() + "/support.vrmanifest")
+	, m_bLibraryFound(false)
 {
 }
 
@@ -102,6 +104,8 @@ bool CReviveManifestController::Init()
 		bSuccess = SaveDocument();
 	}
 
+	// Add support manifest
+	AddApplicationManifest(m_supportFile);
 
 	// Get the base path
 	WCHAR path[MAX_PATH];
@@ -111,6 +115,7 @@ bool CReviveManifestController::Init()
 		library.append(L'\\');
 		qDebug("Oculus Library found: %s", qUtf8Printable(library));
 
+		m_bLibraryFound = true;
 		m_strLibraryURL = QUrl::fromLocalFile(library).url();
 		m_strLibraryPath = QDir::fromNativeSeparators(library);
 		emit LibraryChanged();
@@ -137,6 +142,22 @@ bool CReviveManifestController::Init()
 	return bSuccess;
 }
 
+bool CReviveManifestController::AddApplicationManifest(QFile& file)
+{
+	QFileInfo info(file);
+	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
+	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(qPrintable(filePath));
+	if (error != vr::VRApplicationError_None)
+	{
+		qWarning("Failed to add manifest file to OpenVR: %s (%s)", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
+		return false;
+	}
+
+	qDebug("Loaded manifest: %s", qUtf8Printable(filePath));
+
+	return true;
+}
+
 bool CReviveManifestController::LoadDocument()
 {
 	if (!m_manifestFile.open(QIODevice::ReadOnly))
@@ -150,13 +171,7 @@ bool CReviveManifestController::LoadDocument()
 	m_manifest = doc.object();
 	m_manifestFile.close();
 
-	QFileInfo info(m_manifestFile);
-	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
-	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(qPrintable(filePath));
-	if (error != vr::VRApplicationError_None)
-		qWarning("Failed to add manifest file to OpenVR: %s (%s)", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
-
-	qDebug("Loaded manifest from: %s", qUtf8Printable(filePath));
+	AddApplicationManifest(m_manifestFile);
 
 	return true;
 }
@@ -174,13 +189,7 @@ bool CReviveManifestController::SaveDocument()
 	m_manifestFile.write(array);
 	m_manifestFile.close();
 
-	QFileInfo info(m_manifestFile);
-	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
-	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(qPrintable(filePath));
-	if (error != vr::VRApplicationError_None)
-		qWarning("Failed to add manifest file to OpenVR: %s (%s)", qUtf8Printable(filePath), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
-
-	qDebug("Saved manifest to: %s", qUtf8Printable(filePath));
+	AddApplicationManifest(m_manifestFile);
 
 	return true;
 }

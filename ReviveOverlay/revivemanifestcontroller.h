@@ -11,6 +11,7 @@ class CReviveManifestController : public QObject
 	Q_OBJECT
 	typedef QObject BaseClass;
 
+	Q_PROPERTY(bool LibraryFound READ IsLibraryFound NOTIFY LibraryChanged)
 	Q_PROPERTY(QString LibraryURL READ GetLibraryURL NOTIFY LibraryChanged)
 	Q_PROPERTY(QString LibraryPath READ GetLibraryPath NOTIFY LibraryChanged)
 public:
@@ -24,6 +25,7 @@ public:
 	virtual ~CReviveManifestController();
 
 	bool Init();
+	bool IsLibraryFound() { return m_bLibraryFound; }
 	QString GetLibraryURL() { return m_strLibraryURL; }
 	QString GetLibraryPath() { return m_strLibraryPath; }
 
@@ -39,9 +41,13 @@ private:
 	bool LoadDocument();
 	bool SaveDocument();
 	bool GetDefaultLibraryPath(wchar_t* path, uint32_t length);
+	bool AddApplicationManifest(QFile& file);
 
 	QFile m_manifestFile;
+	QFile m_supportFile;
 	QJsonObject m_manifest;
+
+	bool m_bLibraryFound;
 	QString m_strLibraryPath;
 	QString m_strLibraryURL;
 };
