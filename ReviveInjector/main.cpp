@@ -7,6 +7,28 @@
 
 FILE* g_LogFile = NULL;
 
+bool GetOculusBasePath(PWCHAR path, DWORD length)
+{
+	LONG error = ERROR_SUCCESS;
+
+	HKEY oculusKey;
+	error = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
+	if (error != ERROR_SUCCESS)
+	{
+		LOG("Unable to open Oculus key.");
+		return false;
+	}
+	error = RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)path, &length);
+	if (error != ERROR_SUCCESS)
+	{
+		LOG("Unable to read Base path.");
+		return false;
+	}
+	RegCloseKey(oculusKey);
+
+	return true;
+}
+
 bool GetDefaultLibraryPath(PWCHAR path, DWORD length)
 {
 	LONG error = ERROR_SUCCESS;
@@ -94,15 +116,26 @@ int wmain(int argc, wchar_t *argv[]) {
 		{
 			return OpenProcessAndInject(argv[++i]);
 		}
-		else if (wcscmp(argv[i], L"/base") == 0)
+		
+		bool base = wcscmp(argv[i], L"/base") == 0;
+		bool library = wcscmp(argv[i], L"/library") == 0;
+		if (base || library)
 		{
 			// Replace all forward slashes with backslashes in the argument
 			wchar_t* arg = argv[++i];
 			for (wchar_t* ptr = arg; *ptr != L'\0'; ptr++)
 				if (*ptr == L'/') *ptr = L'\\';
 
-			if (!GetDefaultLibraryPath(path, MAX_PATH))
-				return -1;
+			if (base)
+			{
+				if (!GetOculusBasePath(path, MAX_PATH))
+					return -1;
+			}
+			else if (library)
+			{
+				if (!GetDefaultLibraryPath(path, MAX_PATH))
+					return -1;
+			}
 
 			wnsprintf(path, MAX_PATH, L"%s\\%s", path, arg);
 		}

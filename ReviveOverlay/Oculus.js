@@ -39,7 +39,7 @@ function generateManifest(manifest) {
             var revive = {
                 "launch_type" : "binary",
                 "binary_path_windows" : "Revive/ReviveInjector_x64.exe",
-                "arguments" : "/base \"Software/" + manifest["canonicalName"] + launch + "\"" + parameters,
+                "arguments" : "/library \"Software/" + manifest["canonicalName"] + launch + "\"" + parameters,
 
                 "image_path" : Revive.LibraryPath + "Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
 
