@@ -72,9 +72,9 @@ int main(int argc, char *argv[])
 		if ( err != vr::VRInitError_None )
 			return -1;
 
-		if (!CReviveManifestController::SharedInstance()->Init())
-			return -1;
-
+		QString filePath = QDir::toNativeSeparators(QCoreApplication::applicationDirPath() + "/app.vrmanifest");
+		vr::VRApplications()->AddApplicationManifest(qPrintable(filePath));
+		vr::VRApplications()->SetApplicationAutoLaunch(CReviveManifestController::SharedInstance()->AppKey, true);
 		vr::VR_Shutdown();
 		return 0;
 	}
