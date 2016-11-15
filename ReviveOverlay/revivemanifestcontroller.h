@@ -43,6 +43,7 @@ private:
 	bool GetDefaultLibraryPath(wchar_t* path, uint32_t length);
 	bool AddApplicationManifest(QFile& file);
 
+	QFile m_appFile;
 	QFile m_manifestFile;
 	QFile m_supportFile;
 	QJsonObject m_manifest;

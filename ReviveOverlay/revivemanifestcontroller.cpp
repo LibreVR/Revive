@@ -82,6 +82,7 @@ bool CReviveManifestController::GetDefaultLibraryPath(wchar_t* path, uint32_t le
 
 CReviveManifestController::CReviveManifestController()
 	: BaseClass()
+	, m_appFile(QCoreApplication::applicationDirPath() + "/app.vrmanifest")
 	, m_manifestFile(QCoreApplication::applicationDirPath() + "/revive.vrmanifest")
 	, m_supportFile(QCoreApplication::applicationDirPath() + "/support.vrmanifest")
 	, m_bLibraryFound(false)
@@ -105,6 +106,7 @@ bool CReviveManifestController::Init()
 	}
 
 	// Add support manifest
+	AddApplicationManifest(m_appFile);
 	AddApplicationManifest(m_supportFile);
 
 	// Get the base path
