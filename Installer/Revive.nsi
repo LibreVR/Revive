@@ -69,8 +69,11 @@ Section "Revive" SecRevive
   
   ; Main application files
   File "..\LICENSE"
+  File "${BASE_DIR}\app.vrmanifest"
+  File "${BASE_DIR}\support.vrmanifest"
   File /r "${BASE_DIR}\*.exe"
   File /r "${BASE_DIR}\*.dll"
+  File /r "${BASE_DIR}\*.jpg"
   File /r "${BASE_DIR}\Qt*"
   File /r "${BASE_DIR}\translations"
   
