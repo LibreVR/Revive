@@ -7,13 +7,13 @@ function decodeHtml(str) {
 function generateManifest(manifest) {
     console.log("Generating manifest for " + manifest["canonicalName"]);
 
-    var launch = '/' + manifest["launchFile"];
+    var launch = manifest["launchFile"].replace(/\//g, '\\');
 
     // Find the true executable for Unreal Engine games
-    var shipping = /Binaries\/Win64\/(.*)\.exe/i;
+    var shipping = /Binaries(\\|\/)Win64(\\|\/)(.*)\.exe/i;
     for (var file in manifest["files"]) {
         if (file.indexOf("CrashReportClient.exe") == -1 && shipping.exec(file) != null) {
-            launch = '/' + file;
+            launch = file.replace(/\//g, '\\');
         }
     }
 
@@ -34,12 +34,12 @@ function generateManifest(manifest) {
             var title = manifest["canonicalName"];
             var result = regEx.exec(xhr.responseText);
             if (result != null)
-                title = decodeHtml(result[1]).replace('’', '\'');
+                title = decodeHtml(result[1]).replace(/’/g, '\'');
 
             var revive = {
                 "launch_type" : "binary",
                 "binary_path_windows" : "Revive/ReviveInjector_x64.exe",
-                "arguments" : "/library \"Software/" + manifest["canonicalName"] + launch + "\"" + parameters,
+                "arguments" : "/library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
 
                 "image_path" : Revive.LibraryPath + "Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
 
