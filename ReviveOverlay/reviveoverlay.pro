@@ -46,4 +46,7 @@ openvr.files   += ../openvr/bin/win64/openvr_api.dll
 images.path    = $${DESTDIR}/SupportAssets
 images.files   += SupportAssets/*
 
-INSTALLS       += openvr images
+manifests.path    = $${DESTDIR}
+manifests.files   += *.vrmanifest
+
+INSTALLS       += openvr images manifests

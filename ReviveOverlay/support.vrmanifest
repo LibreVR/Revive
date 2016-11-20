@@ -1,0 +1,52 @@
+{
+    "applications": [
+        {
+            "app_key": "revive.app.oculus-dreamdeck-nux",
+            "arguments": "/base \"Support/oculus-dreamdeck-nux/Dreamdeck/Binaries/Win64/Dreamdeck-Win64-Shipping.exe\" -vr -dreamdeck=NUX",
+            "binary_path_windows": "Revive/ReviveInjector_x64.exe",
+            "image_path": "SupportAssets/oculus-dreamdeck-nux/cover_landscape_image.jpg",
+            "launch_type": "binary",
+            "strings": {
+                "en_us": {
+                    "name": "Dreamdeck"
+                }
+            }
+        },
+        {
+            "app_key": "revive.app.oculus-touch-tutorial",
+            "arguments": "/base \"Support/oculus-touch-tutorial/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=nux",
+            "binary_path_windows": "Revive/ReviveInjector_x64.exe",
+            "image_path": "SupportAssets/oculus-touch-tutorial/cover_landscape_image.jpg",
+            "launch_type": "binary",
+            "strings": {
+                "en_us": {
+                    "name": "Touch Tutorial"
+                }
+            }
+        },
+        {
+            "app_key": "revive.app.oculus-first-contact",
+            "arguments": "/base \"Support/oculus-touch-tutorial/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=\"experienceonly\" -guardianMode=\"off\"",
+            "binary_path_windows": "Revive/ReviveInjector_x64.exe",
+            "image_path": "SupportAssets/oculus-first-contact/cover_landscape_image.jpg",
+            "launch_type": "binary",
+            "strings": {
+                "en_us": {
+                    "name": "Touch Experience"
+                }
+            }
+        },
+        {
+            "app_key": "revive.app.oculus-avatar-editor",
+            "arguments": "/base \"Support/oculus-avatar-editor/OVRAvatarEditor.exe\"",
+            "binary_path_windows": "Revive/ReviveInjector_x64.exe",
+            "image_path": "SupportAssets/oculus-avatar-editor/cover_landscape_image.jpg",
+            "launch_type": "binary",
+            "strings": {
+                "en_us": {
+                    "name": "Oculus Avatar Editor"
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "applications": [
+        {
+            "app_key": "revive.dashboard.overlay",
+            "arguments": "",
+            "binary_path_windows": "ReviveOverlay.exe",
+            "image_path": "revive.png",
+            "is_dashboard_overlay": true,
+            "launch_type": "binary",
+            "strings": {
+                "en_us": {
+                    "description": "Revive Dashboard Overlay",
+                    "name": "Revive Dashboard"
+                }
+            }
+        }
+    ]
+}
