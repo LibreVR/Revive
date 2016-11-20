@@ -39,3 +39,11 @@ RESOURCES += \
     overlay.qrc
 
 win32:RC_ICONS += revive.ico
+
+openvr.path    = $${DESTDIR}
+openvr.files   += ../openvr/bin/win64/openvr_api.dll
+
+images.path    = $${DESTDIR}/SupportAssets
+images.files   += SupportAssets/*
+
+INSTALLS       += openvr images
