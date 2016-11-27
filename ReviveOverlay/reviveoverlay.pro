@@ -50,3 +50,5 @@ manifests.path    = $${DESTDIR}
 manifests.files   += *.vrmanifest
 
 INSTALLS       += openvr images manifests
+
+VERSION = 1.0.0.0

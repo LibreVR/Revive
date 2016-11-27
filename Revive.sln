@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Revive", "Revive\Revive.vcxproj", "{BC34622B-5BFC-42D0-858A-331BECC048AE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libMinHook", "minhook\build\VC15\libMinHook.vcxproj", "{F142A341-5EE0-442D-A15F-98AE9B48DBAE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReviveInjector", "ReviveInjector\ReviveInjector.vcxproj", "{589559C6-2B51-41F4-A896-5D9DB2537A7F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reviveoverlay", "ReviveOverlay\reviveoverlay.vcxproj", "{D5B03597-023D-3F4C-BEB0-19B80A700A2B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,12 @@ Global
 		{589559C6-2B51-41F4-A896-5D9DB2537A7F}.Release|x64.Build.0 = Release|x64
 		{589559C6-2B51-41F4-A896-5D9DB2537A7F}.Release|x86.ActiveCfg = Release|Win32
 		{589559C6-2B51-41F4-A896-5D9DB2537A7F}.Release|x86.Build.0 = Release|Win32
+		{D5B03597-023D-3F4C-BEB0-19B80A700A2B}.Debug|x64.ActiveCfg = Debug|x64
+		{D5B03597-023D-3F4C-BEB0-19B80A700A2B}.Debug|x64.Build.0 = Debug|x64
+		{D5B03597-023D-3F4C-BEB0-19B80A700A2B}.Debug|x86.ActiveCfg = Debug|x64
+		{D5B03597-023D-3F4C-BEB0-19B80A700A2B}.Release|x64.ActiveCfg = Release|x64
+		{D5B03597-023D-3F4C-BEB0-19B80A700A2B}.Release|x64.Build.0 = Release|x64
+		{D5B03597-023D-3F4C-BEB0-19B80A700A2B}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -262,3 +262,6 @@ Installer/*.exe
 
 # Ignore Nvidia NSight config
 *.nvuser
+
+# Ignore Qt generated files
+GeneratedFiles
