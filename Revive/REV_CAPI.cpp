@@ -187,20 +187,22 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		OVR::Matrix4f x = OVR::Matrix4f::RotationX(OVR::DegreeToRad(ovr_GetFloat(session, "TouchPitch", -28.0f)));
 		OVR::Matrix4f y = OVR::Matrix4f::RotationY(OVR::DegreeToRad(ovr_GetFloat(session, "TouchYaw", 5.0f)));
 		OVR::Matrix4f z = OVR::Matrix4f::RotationZ(OVR::DegreeToRad(ovr_GetFloat(session, "TouchRoll", -14.0f)));
+		OVR::Vector3f v(
+			ovr_GetFloat(session, "TouchX", 0.016f),
+			ovr_GetFloat(session, "TouchY", 0.0f),
+			ovr_GetFloat(session, "TouchZ", 0.054f)
+		);
 
-		// Mirror the right touch controller offset
+		// Mirror the right touch controller offsets
 		if (i == ovrHand_Right)
 		{
 			y.Invert();
 			z.Invert();
+			v.x *= -1.0f;
 		}
 
 		OVR::Matrix4f matrix(x * y * z);
-		matrix.SetTranslation(OVR::Vector3f(
-			ovr_GetFloat(session, "TouchX", (i == ovrHand_Right) ? -0.016f : 0.016f),
-			ovr_GetFloat(session, "TouchY", 0.0f),
-			ovr_GetFloat(session, "TouchZ", 0.054f)
-		));
+		matrix.SetTranslation(v);
 		memcpy(session->TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
 	}
 
