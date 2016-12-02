@@ -174,12 +174,35 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new ovrHmdStruct();
 
-	// First call to WaitGetPoses() to update the poses.
+	// First call to WaitGetPoses() to update the poses
 	vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 
 	// Get the default universe origin from the settings
 	vr::ETrackingUniverseOrigin origin = (vr::ETrackingUniverseOrigin)vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, "DefaultTrackingOrigin");
 	vr::VRCompositor()->SetTrackingSpace(origin);
+
+	// Get the touch offsets from the settings
+	for (int i = 0; i < ovrHand_Count; i++)
+	{
+		OVR::Matrix4f x = OVR::Matrix4f::RotationX(OVR::DegreeToRad(ovr_GetFloat(session, "TouchPitch", -28.0f)));
+		OVR::Matrix4f y = OVR::Matrix4f::RotationY(OVR::DegreeToRad(ovr_GetFloat(session, "TouchYaw", 5.0f)));
+		OVR::Matrix4f z = OVR::Matrix4f::RotationZ(OVR::DegreeToRad(ovr_GetFloat(session, "TouchRoll", -14.0f)));
+
+		// Mirror the right touch controller offset
+		if (i == ovrHand_Right)
+		{
+			y.Invert();
+			z.Invert();
+		}
+
+		OVR::Matrix4f matrix(x * y * z);
+		matrix.SetTranslation(OVR::Vector3f(
+			ovr_GetFloat(session, "TouchX", (i == ovrHand_Right) ? -0.016f : 0.016f),
+			ovr_GetFloat(session, "TouchY", 0.0f),
+			ovr_GetFloat(session, "TouchZ", 0.054f)
+		));
+		memcpy(session->TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
+	}
 
 	// Get the LUID for the default adapter
 	int32_t index;
@@ -335,7 +358,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 			continue;
 		}
 
-		state.HandPoses[i] = rev_TrackedDevicePoseToOVRPose(poses[deviceIndex], absTime);
+		vr::TrackedDevicePose_t pose;
+		vr::VRSystem()->ApplyTransform(&pose, &poses[deviceIndex], &session->TouchOffset[i]);
+		state.HandPoses[i] = rev_TrackedDevicePoseToOVRPose(pose, absTime);
 		state.HandStatusFlags[i] = rev_TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
 

@@ -59,6 +59,9 @@ struct ovrHmdStruct
 	CompositorBase* Compositor;
 	InputManager* Input;
 
+	// Revive settings
+	vr::HmdMatrix34_t TouchOffset[ovrHand_Count];
+
 	ovrHmdStruct();
 	~ovrHmdStruct();
 };
