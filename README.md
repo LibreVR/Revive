@@ -19,7 +19,9 @@ Newly installed games will give you an `Entitlement check failed` error until yo
 3. Download the [Revive Dashboard installer here.](https://github.com/LibreVR/Revive/releases/download/0.9.7/ReviveInstaller.exe)
 4. Install Revive in your preferred directory, you can overwrite existing installations without uninstalling Revive first.
 5. Start or reboot SteamVR.
-6. Open the dashboard and click the new Revive tab.
+6. Enable Vive Dashboard in SteamVR by navigating to Settings, Applications, and checking Revive Dashboard.
+7. Reboot SteamVR for settings to be applied. 
+8. Open the dashboard and click the new Revive tab.
 
 *If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard.*
 
