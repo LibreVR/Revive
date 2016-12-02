@@ -47,6 +47,8 @@ Revive is not yet compatible with Steam, but for some games the following may wo
 7. Make sure SteamVR is running and start the game.
 8. A dialog will incorrectly state the game does not support VR, ignore that and press OK.
 
+Note: For Dirt Rally, [use the 32-bit patch instead.](https://github.com/LibreVR/Revive/releases/download/0.9.7/RevivePatch32.zip)
+
 # Controls
 
 ## Xbox Controller
