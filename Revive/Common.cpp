@@ -27,6 +27,7 @@ ovrHmdStruct::ovrHmdStruct()
 	, WaitThreadId(0)
 	, FrameIndex(0)
 	, StatsIndex(0)
+	, PixelsPerDisplayPixel(0.0f)
 	, Compositor(nullptr)
 	, Input(new InputManager())
 {

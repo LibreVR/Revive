@@ -204,6 +204,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		memcpy(session->TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
 	}
 
+	// Get the render target multiplier
+	session->PixelsPerDisplayPixel = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "pixelsPerDisplayPixel");
+
 	// Get the LUID for the default adapter
 	int32_t index;
 	vr::VRSystem()->GetDXGIOutputInfo(&index);
@@ -758,10 +761,8 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	float vMax = 0.5f - 0.5f * top / fov.DownTan;
 
 	// Check if an override for pixelsPerDisplayPixel is present
-	vr::EVRSettingsError error;
-	float multiplier = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "pixelsPerDisplayPixel", &error);
-	if (error == vr::VRSettingsError_None)
-	  pixelsPerDisplayPixel = multiplier;
+	if (session->PixelsPerDisplayPixel > 0.0f)
+		pixelsPerDisplayPixel = session->PixelsPerDisplayPixel;
 
 	// Grow the recommended size to account for the overlapping fov
 	size.w = int((size.w * pixelsPerDisplayPixel) / (uMax - uMin));

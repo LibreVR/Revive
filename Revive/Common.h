@@ -60,6 +60,7 @@ struct ovrHmdStruct
 	InputManager* Input;
 
 	// Revive settings
+	float PixelsPerDisplayPixel;
 	vr::HmdMatrix34_t TouchOffset[ovrHand_Count];
 
 	ovrHmdStruct();
