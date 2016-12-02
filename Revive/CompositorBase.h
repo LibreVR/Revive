@@ -21,7 +21,7 @@ public:
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count]) = 0;
 
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
-	vr::EVRCompositorError SubmitFrame(const ovrViewScaleDesc* viewScaleDesc, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
+	vr::EVRCompositorError SubmitFrame(ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 
 protected:
 	const ovrLayerHeader* m_SceneLayer;

@@ -780,7 +780,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		return ovrError_InvalidParameter;
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	vr::EVRCompositorError err = session->Compositor->SubmitFrame(viewScaleDesc, layerPtrList, layerCount);
+	vr::EVRCompositorError err = session->Compositor->SubmitFrame(layerPtrList, layerCount);
 	if (err != vr::VRCompositorError_None)
 		return err;
 

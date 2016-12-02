@@ -18,7 +18,7 @@ CompositorBase::~CompositorBase()
 		delete m_MirrorTexture;
 }
 
-vr::EVRCompositorError CompositorBase::SubmitFrame(const ovrViewScaleDesc* viewScaleDesc, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	// Other layers are interpreted as overlays.
 	std::vector<vr::VROverlayHandle_t> activeOverlays;
