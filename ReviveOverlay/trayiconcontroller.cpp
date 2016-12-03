@@ -26,6 +26,7 @@ CTrayIconController::CTrayIconController()
 	, m_trayIcon(QIcon(":/revive_white.ico"))
 {
 	QObject::connect(&m_trayIcon, SIGNAL(messageClicked()), this, SLOT(messageClicked()));
+	QObject::connect(&m_trayIcon, SIGNAL(QCoreApplication::aboutToQuit), this, SLOT(hide()));
 }
 
 CTrayIconController::~CTrayIconController()

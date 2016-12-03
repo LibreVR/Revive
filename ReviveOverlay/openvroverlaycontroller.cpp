@@ -2,7 +2,7 @@
 
 
 #include "openvroverlaycontroller.h"
-
+#include "trayiconcontroller.h"
 
 #include <QOpenGLFramebufferObjectFormat>
 #include <QOpenGLFunctions>
@@ -368,7 +368,9 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 			break;
 
 		case vr::VREvent_Quit:
-			QCoreApplication::exit();
+			vr::VRSystem()->AcknowledgeQuit_Exiting();
+			CTrayIconController::SharedInstance()->SetVisible(false);
+			QCoreApplication::quit();
 			break;
 		}
 	}
@@ -385,6 +387,7 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 				emit LoadingChanged();
 			}
 			break;
+
 		case vr::VREvent_ApplicationTransitionNewAppStarted:
 			m_bLoading = true;
 			emit LoadingChanged();

@@ -26,6 +26,7 @@ public:
 
 	bool Init();
 	void ShowInformation(ETrayInfo info);
+	void SetVisible(bool visible) { m_trayIcon.setVisible(visible); }
 
 protected slots:
 	void inject();
