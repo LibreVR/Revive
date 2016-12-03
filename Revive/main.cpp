@@ -73,14 +73,9 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
 			MH_CreateHookApi(L"dxgi.dll", "CreateDXGIFactory", HookDXGIFactory, (PVOID*)&DXGIFactory);
-			MH_EnableHook(LoadLibraryW);
-			MH_EnableHook(OpenEventW);
-			MH_EnableHook(DXGIFactory);
+			MH_EnableHook(MH_ALL_HOOKS);
 			break;
 		case DLL_PROCESS_DETACH:
-			MH_RemoveHook(LoadLibraryW);
-			MH_RemoveHook(OpenEventW);
-			MH_RemoveHook(DXGIFactory);
 			MH_Uninitialize();
 			break;
 		default:
