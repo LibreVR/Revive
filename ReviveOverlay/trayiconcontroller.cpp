@@ -34,13 +34,14 @@ CTrayIconController::~CTrayIconController()
 
 bool CTrayIconController::Init()
 {
-	m_trayIcon.show();
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
 	m_trayIconMenu.addAction("&Patch...", this, SLOT(patch()));
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("&Quit", QCoreApplication::quit);
 	m_trayIcon.setContextMenu(&m_trayIconMenu);
+	m_trayIcon.setToolTip("Revive Dashboard");
+	m_trayIcon.show();
 
 	return true;
 }
