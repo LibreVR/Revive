@@ -809,8 +809,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
 	vr::EVRCompositorError err = session->Compositor->SubmitFrame(layerPtrList, layerCount);
-	if (err != vr::VRCompositorError_None)
-		return err;
 
 	// If we're the same thread that requested the tracking state, then we can postpone WaitGetPoses().
 	DWORD threadId = GetCurrentThreadId();
