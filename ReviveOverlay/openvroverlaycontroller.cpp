@@ -47,6 +47,7 @@ COpenVROverlayController::COpenVROverlayController()
 	, m_ulOverlayHandle( vr::k_ulOverlayHandleInvalid )
 	, m_bManualMouseHandling( false )
 	, m_bGamepadFocus( false )
+	, m_bLoading( false )
 {
 }
 
@@ -368,6 +369,18 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 
 		case vr::VREvent_Quit:
 			QCoreApplication::exit();
+			break;
+		}
+	}
+
+	while( vr::VRSystem()->PollNextEvent( &vrEvent, sizeof( vrEvent )  ) )
+	{
+		switch( vrEvent.eventType )
+		{
+		case vr::VREvent_SceneApplicationChanged:
+		case vr::VREvent_ApplicationTransitionNewAppStarted:
+			m_bLoading = vrEvent.eventType == VREvent_ApplicationTransitionNewAppStarted;
+			emit LoadingChanged();
 			break;
 		}
 	}

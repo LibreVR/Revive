@@ -38,6 +38,7 @@ Rectangle {
         font.pixelSize: 56
     }
 
+
     ListModel {
         id: coverModel
 
@@ -59,16 +60,21 @@ Rectangle {
         }
     }
 
+
+
     SoundEffect {
         id: activateSound
         source: OpenVR.URL + "tools/content/panorama/sounds/activation.wav"
     }
+
+
 
     SoundEffect {
         id: moveSound
         source: OpenVR.URL + "tools/content/panorama/sounds/focus_change.wav"
         volume: 0.6
     }
+
 
     Component {
         id: coverDelegate
@@ -199,4 +205,22 @@ Rectangle {
             }
         }
     }
+
+    Rectangle {
+        id: loading
+        color: "#80000000"
+        visible: OpenVR.loading
+        anchors.fill: parent
+        z: 1
+
+        AnimatedImage {
+            id: loadingIcon
+            width: 100
+            height: 100
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            source: OpenVR.URL + "tools/bin/content/vrmonitor/icons/icon_loading.gif"
+        }
+    }
+
 }
