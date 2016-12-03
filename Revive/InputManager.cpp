@@ -265,7 +265,7 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 		return;
 
 	vr::VRControllerState_t state;
-	vr::VRSystem()->GetControllerState(touch, &state);
+	vr::VRSystem()->GetControllerState(touch, &state, sizeof(state));
 
 	unsigned int buttons = 0, touches = 0;
 
@@ -384,7 +384,7 @@ void InputManager::OculusRemote::GetInputState(ovrInputState* inputState)
 		return;
 
 	vr::VRControllerState_t state;
-	vr::VRSystem()->GetControllerState(remote, &state);
+	vr::VRSystem()->GetControllerState(remote, &state, sizeof(state));
 
 	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 		inputState->Buttons |= ovrButton_Back;
