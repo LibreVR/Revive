@@ -38,7 +38,6 @@ Rectangle {
         font.pixelSize: 56
     }
 
-
     ListModel {
         id: coverModel
 
@@ -60,21 +59,21 @@ Rectangle {
         }
     }
 
-
-
     SoundEffect {
         id: activateSound
         source: OpenVR.URL + "tools/content/panorama/sounds/activation.wav"
     }
 
-
+    SoundEffect {
+        id: failSound
+        source: OpenVR.URL + "tools/content/panorama/sounds/activation_change_fail.wav"
+    }
 
     SoundEffect {
         id: moveSound
         source: OpenVR.URL + "tools/content/panorama/sounds/focus_change.wav"
         volume: 0.6
     }
-
 
     Component {
         id: coverDelegate
@@ -93,8 +92,10 @@ Rectangle {
                     anchors.fill: parent
                     onHoveredChanged: coverGrid.currentIndex = index
                     onPressed: {
-                        activateSound.play();
-                        Revive.launchApplication(appKey);
+                        if (Revive.launchApplication(appKey))
+                            activateSound.play();
+                        else
+                            failSound.play();
                     }
                 }
             }
