@@ -225,8 +225,13 @@ bool CReviveManifestController::removeManifest(const QString &canonicalName)
 
 bool CReviveManifestController::launchApplication(const QString &canonicalName)
 {
-	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
+
+	// Don't attempt to launch already-running applications
+	if (vr::VRApplications()->GetApplicationProcessId(qPrintable(appKey)) != 0)
+		return false;
+
+	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(qPrintable(appKey));
 	if (error != vr::VRApplicationError_None)
 		qWarning("Failed to launch application: %s (%s)", qUtf8Printable(appKey), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
