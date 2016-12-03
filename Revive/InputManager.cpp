@@ -248,11 +248,9 @@ ovrControllerType InputManager::OculusTouch::GetType()
 
 bool InputManager::OculusTouch::IsConnected()
 {
-	// Check if both Vive controllers are available
-	uint32_t controllerCount = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, nullptr, 0);
-
-	// If both controllers are available, the Oculus Touch is connected
-	return controllerCount > 1;
+	// Check if the Vive controller is assigned
+	vr::TrackedDeviceIndex_t touch = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
+	return touch != vr::k_unTrackedDeviceIndexInvalid;
 }
 
 void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
@@ -370,7 +368,7 @@ bool InputManager::OculusRemote::IsConnected()
 	// Check if a Vive controller is available
 	uint32_t controllerCount = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, nullptr, 0);
 
-	// If one controller are available, the Oculus Remote is connected
+	// If only one controller is available, the Oculus Remote is connected
 	return controllerCount == 1;
 }
 
