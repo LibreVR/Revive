@@ -23,7 +23,7 @@ CTrayIconController *CTrayIconController::SharedInstance()
 
 CTrayIconController::CTrayIconController()
 	: BaseClass()
-	, m_trayIcon(QIcon(":/revive.ico"))
+	, m_trayIcon(QIcon(":/revive_white.ico"))
 {
 	QObject::connect(&m_trayIcon, SIGNAL(messageClicked()), this, SLOT(messageClicked()));
 }
