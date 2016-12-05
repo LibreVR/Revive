@@ -5,31 +5,20 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.0.0</title>
+			<title>Version 1.0.1</title>
 			<description>
 			<![CDATA[
-				<h1>New features</h1>
-				<ul>
-					<li>Updated to Oculus Runtime 1.10.0</li>
-					<li>Updated to OpenVR 1.0.4</li>
-					<li>Improved Oculus Touch support</li>
-					<li>Added Oculus Touch Haptics support</li>
-					<li>Added Oculus tutorial experiences to the dashboard</li>
-					<li>Added Revive tray icon; the ReviveInjector and RevivePatch have been moved to the tray icon</li>
-					<li>Added an automatic update checker</li>
-				</ul>
 				<h1>Bug fixes</h1>
 				<ul>
-					<li>Unreal games with OpenVR support crash when launched with Revive (#312)</li>
-					<li>Dashboard fails to remove uninstalled games until restart</li>
-					<li>Prevent the user from attempting to start an application multiple times</li>
+					<li>OpenGL Error when launching Oculus Medium (#335)</li>
+					<li>Bullet Train failed to open descriptor file (#331)</li>
 				</ul>
 			]]>
 			</description>
 			<pubDate>5 Dec 2016</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.0/ReviveInstaller.exe"
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.0.1/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.0.0.0"
+					   sparkle:version="1.0.1.0"
 					   sparkle:os="windows-x64"
 					   sparkle:installerArguments="/S"/>
 		</item>
