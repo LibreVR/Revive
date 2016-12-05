@@ -13,12 +13,12 @@ Rectangle {
     FolderListModel {
         id: manifestsModel
         folder: Revive.LibraryURL + 'Manifests/'
-        nameFilters: ["*_assets.json"]
+        nameFilters: ["*.json"]
         showDirs: false
         onCountChanged: {
             coverModel.remove(4, coverModel.count - 4);
             for (var i = 0; i < manifestsModel.count; i++)
-                Oculus.loadAssetsManifest(manifestsModel.get(i, "fileURL"));
+                Oculus.loadManifest(manifestsModel.get(i, "fileURL"));
         }
     }
 

@@ -57,25 +57,14 @@ function generateManifest(manifest) {
     xhr.send();
 }
 
-function loadAppManifest(appKey, coverURL) {
-    var manifestURL = Revive.LibraryURL + 'Manifests/' + appKey + '.json';
+function verifyAppManifest(appKey) {
+    // Load the smaller mini file since we only want to verify whether it exists.
+    var manifestURL = Revive.LibraryURL + 'Manifests/' + appKey + '.json.mini';
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
             // Check if the application is still installed.
-            if (xhr.status == 200)
-            {
-                var manifest = JSON.parse(xhr.responseText);
-
-                // Add the application manifest to the Revive manifest.
-                if (manifest["packageType"] == "APP" && !manifest["isCore"]) {
-                    console.log("Found application " + manifest["canonicalName"]);
-                    coverModel.append({coverURL: coverURL, appKey: manifest["canonicalName"]});
-                    if (!Revive.isApplicationInstalled(manifest["canonicalName"]))
-                        generateManifest(manifest);
-                }
-            }
-            else
+            if (xhr.status != 200)
             {
                 // If the manifest no longer exists, then the application has been removed.
                 if (Revive.isApplicationInstalled(appKey))
@@ -85,26 +74,34 @@ function loadAppManifest(appKey, coverURL) {
     }
     xhr.open('GET', manifestURL);
     xhr.send();
-    console.log("Loading application manifest: " + manifestURL);
 }
 
-function loadAssetsManifest(manifestURL) {
+function loadManifest(manifestURL) {
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
             var manifest = JSON.parse(xhr.responseText);
 
-            // Assume only games have asset bundles and include their cover.
+            // If an application was previously installed, it's assets bundle remains.
+            // Check if the corresponding applications is still installed.
             if (manifest["packageType"] == "ASSET_BUNDLE") {
                 console.log("Found assets bundle " + manifest["canonicalName"]);
-                var cover = Revive.LibraryURL + "Software/StoreAssets/" + manifest["canonicalName"] + "/cover_square_image.jpg";
                 var key = manifest["canonicalName"];
                 key = key.substring(0, key.indexOf("_assets"));
-                loadAppManifest(key, cover);
+                verifyAppManifest(key);
+            }
+
+            // Add the application manifest to the Revive manifest and include their cover.
+            if (manifest["packageType"] == "APP" && !manifest["isCore"]) {
+                console.log("Found application " + manifest["canonicalName"]);
+                var cover = Revive.LibraryURL + "Software/StoreAssets/" + manifest["canonicalName"] + "/cover_square_image.jpg";
+                coverModel.append({coverURL: cover, appKey: manifest["canonicalName"]});
+                if (!Revive.isApplicationInstalled(manifest["canonicalName"]))
+                    generateManifest(manifest);
             }
         }
     }
     xhr.open('GET', manifestURL);
     xhr.send();
-    console.log("Loading assets manifest: " + manifestURL);
+    console.log("Loading manifest: " + manifestURL);
 }
