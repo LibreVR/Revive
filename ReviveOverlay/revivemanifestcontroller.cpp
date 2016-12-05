@@ -211,7 +211,10 @@ bool CReviveManifestController::removeManifest(const QString &canonicalName)
 	{
 		QJsonObject obj = it->toObject();
 		if (obj["app_key"] == appKey)
+		{
 			apps.erase(it);
+			break;
+		}
 	}
 	m_manifest["applications"] = apps;
 	return SaveDocument();
