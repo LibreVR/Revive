@@ -90,11 +90,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\openvr\samples\thirdparty\glew\glew-1.11.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew-2.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\openvr\lib\win32;..\openvr\samples\thirdparty\glew\glew-1.11.0\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\openvr\lib\win32;..\glew-2.0.0\lib\Release\Win32</AdditionalLibraryDirectories>
       <AdditionalDependencies>openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
@@ -118,11 +118,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\openvr\samples\thirdparty\glew\glew-1.11.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew-2.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\openvr\lib\win64;..\openvr\samples\thirdparty\glew\glew-1.11.0\lib\Release\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\openvr\lib\win64;..\glew-2.0.0\lib\Release\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
@@ -148,13 +148,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\openvr\samples\thirdparty\glew\glew-1.11.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew-2.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\openvr\lib\win32;..\openvr\samples\thirdparty\glew\glew-1.11.0\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\openvr\lib\win32;..\glew-2.0.0\lib\Release\Win32</AdditionalLibraryDirectories>
       <AdditionalDependencies>openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <GenerateDebugInformation>No</GenerateDebugInformation>
@@ -180,13 +180,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\openvr\samples\thirdparty\glew\glew-1.11.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew-2.0.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\openvr\lib\win64;..\openvr\samples\thirdparty\glew\glew-1.11.0\lib\Release\x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\openvr\lib\win64;..\glew-2.0.0\lib\Release\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <GenerateDebugInformation>No</GenerateDebugInformation>

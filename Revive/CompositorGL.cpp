@@ -18,7 +18,6 @@ CompositorGL* CompositorGL::Create()
 {
 	if (!glewInitialized)
 	{
-		glewExperimental = GL_TRUE;
 		GLenum nGlewError = glewInit();
 		if (nGlewError != GLEW_OK)
 			return nullptr;
