@@ -95,6 +95,14 @@ Section "Revive" SecRevive
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   
+  ; Add uninstaller to Programs and Features
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Revive" \
+                   "DisplayName" "Revive Dashboard"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Revive" \
+                   "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Revive" \
+                   "DisplayIcon" "$INSTDIR\ReviveOverlay.exe,0"
+  
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     
     ;Create shortcuts
@@ -127,5 +135,6 @@ Section "Uninstall"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
   
   DeleteRegKey HKCU "Software\Revive"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Revive"
 
 SectionEnd
