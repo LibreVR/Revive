@@ -6,6 +6,8 @@ This is a compatibility layer between the Oculus SDK and OpenVR. It allows you t
 
 # Installation
 
+*Always check the [compatibility list](https://github.com/LibreVR/Revive/wiki/Compatibility-list) before making a purchase.*
+
 1. Install [Oculus Home](https://www.oculus.com/en-us/setup/) and skip the first-time setup.
 2. [Download the latest Revive installer from the releases page.](https://github.com/LibreVR/Revive/releases)
 4. Install Revive in your preferred directory, exit SteamVR before overwriting an existing installation.
