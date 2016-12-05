@@ -87,7 +87,7 @@ Section "Revive" SecRevive
   ExecWait '"$INSTDIR\vcredist_x64.exe" /install /quiet'
   
   ; Execute the dashboard to add the application manifest
-  ;ExecWait '"$INSTDIR\ReviveOverlay.exe" -manifest'
+  ExecWait '"$INSTDIR\ReviveOverlay.exe" -manifest'
   
   ;Store installation folder
   WriteRegStr HKCU "Software\Revive" "" $INSTDIR
@@ -112,8 +112,9 @@ Section "Revive" SecRevive
   
   !insertmacro MUI_STARTMENU_WRITE_END
 
-  ; Execute the dashboard as the user if this is a silent install
-  IfSilent 0 +2
+  ; If SteamVR is already running, execute the dashboard as the user
+  FindWindow $0 "Qt5QWindowIcon" "SteamVR Status"
+  StrCmp $0 0 +2
   Exec '"$WINDIR\explorer.exe" "$INSTDIR\ReviveOverlay.exe"'
 SectionEnd
  
