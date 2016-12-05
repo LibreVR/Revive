@@ -106,6 +106,8 @@ int main(int argc, char *argv[])
 	COpenVROverlayController::SharedInstance()->SetQuickItem( rootItem );
 
 	win_sparkle_set_appcast_url("https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml");
+	win_sparkle_set_can_shutdown_callback([]() { return (BOOL)!QApplication::startingUp(); });
+	win_sparkle_set_shutdown_request_callback([]() { CTrayIconController::SharedInstance()->quit(); });
 	win_sparkle_init();
 	QObject::connect(&a, &QApplication::aboutToQuit, win_sparkle_cleanup);
 	return a.exec();

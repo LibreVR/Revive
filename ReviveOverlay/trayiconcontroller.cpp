@@ -41,7 +41,7 @@ bool CTrayIconController::Init()
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("Check for &updates", win_sparkle_check_update_with_ui);
-	m_trayIconMenu.addAction("&Quit", QCoreApplication::quit);
+	m_trayIconMenu.addAction("&Quit", this, SLOT(quit()));
 	m_trayIcon.setContextMenu(&m_trayIconMenu);
 	m_trayIcon.setToolTip("Revive Dashboard");
 	m_trayIcon.show();
@@ -71,6 +71,12 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 								   QSystemTrayIcon::Warning);
 		break;
 	}
+}
+
+void CTrayIconController::quit()
+{
+	m_trayIcon.setVisible(false);
+	QCoreApplication::quit();
 }
 
 void CTrayIconController::inject()

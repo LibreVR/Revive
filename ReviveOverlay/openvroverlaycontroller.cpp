@@ -369,8 +369,7 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 
 		case vr::VREvent_Quit:
 			vr::VRSystem()->AcknowledgeQuit_Exiting();
-			CTrayIconController::SharedInstance()->SetVisible(false);
-			QCoreApplication::quit();
+			CTrayIconController::SharedInstance()->quit();
 			break;
 		}
 	}
