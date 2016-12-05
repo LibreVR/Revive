@@ -122,18 +122,12 @@ bool CReviveManifestController::Init()
 		m_strLibraryPath = QDir::fromNativeSeparators(library);
 		emit LibraryChanged();
 
-		if (!vr::VRApplications()->GetApplicationAutoLaunch(AppKey))
+		if (!QCoreApplication::arguments().contains("-compositor"))
 		{
-			vr::EVRApplicationError error = vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true);
-			if (error == vr::VRApplicationError_None)
-			{
+			if (vr::VRApplications()->IsApplicationInstalled(AppKey) && vr::VRApplications()->GetApplicationAutoLaunch(AppKey))
 				CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_AutoLaunchEnabled);
-			}
 			else
-			{
 				CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_AutoLaunchFailed);
-				qWarning("Failed to set auto-launch flag (%s)", vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
-			}
 		}
 	}
 	else

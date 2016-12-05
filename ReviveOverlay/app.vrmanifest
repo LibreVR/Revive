@@ -2,7 +2,7 @@
     "applications": [
         {
             "app_key": "revive.dashboard.overlay",
-            "arguments": "",
+            "arguments": "-compositor",
             "binary_path_windows": "ReviveOverlay.exe",
             "image_path": "revive.png",
             "is_dashboard_overlay": true,
