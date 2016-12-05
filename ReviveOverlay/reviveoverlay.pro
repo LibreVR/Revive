@@ -28,9 +28,9 @@ DISTFILES += \
     Overlay.qml \
     Oculus.js
 
-INCLUDEPATH += ../openvr/headers
+INCLUDEPATH += ../openvr/headers ../WinSparkle/include
 
-LIBS += -L../openvr/lib/win64 -lopenvr_api -lAdvapi32
+LIBS += -L../openvr/lib/win64 -L../WinSparkle/x64/Release -lopenvr_api -lWinSparkle -lAdvapi32
 
 Debug:DESTDIR = ../Debug
 Release:DESTDIR = ../Release
@@ -49,6 +49,9 @@ images.files   += SupportAssets/*
 manifests.path    = $${DESTDIR}
 manifests.files   += *.vrmanifest
 
-INSTALLS       += openvr images manifests
+winsparkle.path    = $${DESTDIR}
+winsparkle.files   += ../WinSparkle/x64/Release/WinSparkle.dll
+
+INSTALLS       += openvr winsparkle images manifests
 
 VERSION = 1.0.0.0
