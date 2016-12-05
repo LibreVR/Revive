@@ -1,6 +1,7 @@
 #include "trayiconcontroller.h"
 #include <windowsservices.h>
 #include <qt_windows.h>
+#include <winsparkle.h>
 
 #include <QCoreApplication>
 #include <QDesktopServices>
@@ -39,6 +40,7 @@ bool CTrayIconController::Init()
 	m_trayIconMenu.addAction("&Patch...", this, SLOT(patch()));
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addSeparator();
+	m_trayIconMenu.addAction("Check for &updates", win_sparkle_check_update_with_ui);
 	m_trayIconMenu.addAction("&Quit", QCoreApplication::quit);
 	m_trayIcon.setContextMenu(&m_trayIconMenu);
 	m_trayIcon.setToolTip("Revive Dashboard");
