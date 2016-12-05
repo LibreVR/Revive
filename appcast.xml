@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+	<channel>
+		<title>Revive Changelog</title>
+		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
+		<language>en</language>
+		<item>
+			<title>Version 1.0.3</title>
+			<description>
+			<![CDATA[
+				<ul>
+					<li>Updated to Oculus Runtime 1.10.0</li>
+					<li>Fixed Revive Dashboard being unable to start Unreal Engine games (#307)</li>
+				</ul>
+			]]>
+			</description>
+			<pubDate>5 Dec 2016</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.0-preview-3/ReviveInstaller.exe"
+					   type="application/exe"
+					   sparkle:version="1.0.3"
+					   sparkle:os="windows-x64"/>
+		</item>
+	</channel>
+</rss>

@@ -23,12 +23,12 @@ VS_VERSION_INFO VERSIONINFO
 		BEGIN
 			BLOCK "040904b0"
 			BEGIN
-				VALUE "CompanyName", "\0"
+				VALUE "CompanyName", "LibreVR\0"
 				VALUE "FileDescription", "\0"
 				VALUE "FileVersion", "1.0.0.0\0"
 				VALUE "LegalCopyright", "\0"
 				VALUE "OriginalFilename", "ReviveOverlay.exe\0"
-				VALUE "ProductName", "ReviveOverlay\0"
+				VALUE "ProductName", "Revive\0"
 				VALUE "ProductVersion", "1.0.0.0\0"
 			END
 		END

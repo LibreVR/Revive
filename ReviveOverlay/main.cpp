@@ -3,6 +3,7 @@
 #include "revivemanifestcontroller.h"
 #include "windowsservices.h"
 #include <qt_windows.h>
+#include <winsparkle.h>
 
 #include <QApplication>
 #include <QQmlEngine>
@@ -104,5 +105,8 @@ int main(int argc, char *argv[])
 
 	COpenVROverlayController::SharedInstance()->SetQuickItem( rootItem );
 
+	win_sparkle_set_appcast_url("https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml");
+	win_sparkle_init();
+	QObject::connect(&a, &QApplication::aboutToQuit, win_sparkle_cleanup);
 	return a.exec();
 }
