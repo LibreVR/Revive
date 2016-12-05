@@ -94,7 +94,7 @@ function loadManifest(manifestURL) {
             // Add the application manifest to the Revive manifest and include their cover.
             if (manifest["packageType"] == "APP" && !manifest["isCore"]) {
                 console.log("Found application " + manifest["canonicalName"]);
-                var cover = Revive.LibraryURL + "Software/StoreAssets/" + manifest["canonicalName"] + "/cover_square_image.jpg";
+                var cover = Revive.LibraryURL + "Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_square_image.jpg";
                 coverModel.append({coverURL: cover, appKey: manifest["canonicalName"]});
                 if (!Revive.isApplicationInstalled(manifest["canonicalName"]))
                     generateManifest(manifest);
