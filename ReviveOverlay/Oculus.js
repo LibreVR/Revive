@@ -26,6 +26,8 @@ function generateManifest(manifest) {
         parameters = " ..\\..\\..\\ShowdownVRDemo\\ShowdownVRDemo.uproject";
     if (manifest["canonicalName"] == "hammerhead-vr-abe-vr")
         parameters = " ..\\..\\..\\Abe\\Abe.uproject";
+    if (manifest["canonicalName"] == "epic-games-bullet-train-gdc")
+        parameters = " ..\\..\\..\\showup\showup.uproject";
 
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
