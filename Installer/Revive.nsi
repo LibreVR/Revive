@@ -123,7 +123,7 @@ Section "Uninstall"
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
     
   Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
-  Delete "$SMPROGRAMS\$StartMenuFolder\Revive.lnk"
+  Delete "$SMPROGRAMS\$StartMenuFolder\Revive Dashboard.lnk"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
   
   DeleteRegKey HKCU "Software\Revive"

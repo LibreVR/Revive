@@ -30,24 +30,6 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 		abort();
 }
 
-bool RegisterAppForNotificationSupport()
-{
-	// In order to display toasts, a desktop application must have a shortcut on the Start menu.
-	QString appData = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation);
-	if (appData.isEmpty())
-		return false;
-
-	QString shortcutPath = appData + "/Revive Dashboard.lnk";
-	QFileInfo attributes(shortcutPath);
-	if (!attributes.exists())
-	{
-		QString exePath = QCoreApplication::applicationFilePath();
-		return WindowsServices::CreateShortcut(shortcutPath, exePath);
-	}
-
-	return true;
-}
-
 int main(int argc, char *argv[])
 {
 	// Open the log file and install our handler.
@@ -60,9 +42,6 @@ int main(int argc, char *argv[])
 
 	QApplication a(argc, argv);
 	a.setQuitOnLastWindowClosed(false);
-
-	if (!RegisterAppForNotificationSupport())
-		qWarning("Failed to register for notification support.");
 
 	// Handle command-line arguments
 	if (a.arguments().contains("-manifest")) {
