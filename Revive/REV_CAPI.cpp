@@ -319,10 +319,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	// When an Oculus game recenters the tracking origin it is implied that the tracking origin
-	// should now be seated.
-	vr::VRCompositor()->SetTrackingSpace(vr::TrackingUniverseSeated);
-
 	vr::VRSystem()->ResetSeatedZeroPose();
 	return ovrSuccess;
 }
