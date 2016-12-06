@@ -237,20 +237,14 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 		ovrTextureSwapChain chain = swapChain[i];
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
 
-		float left, right, top, bottom;
-		vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &left, &right, &top, &bottom);
-
 		// Shrink the bounds to account for the overlapping fov
-		float uMin = 0.5f + 0.5f * left / fov[i].LeftTan;
-		float uMax = 0.5f + 0.5f * right / fov[i].RightTan;
-		float vMin = 0.5f - 0.5f * bottom / fov[i].UpTan;
-		float vMax = 0.5f - 0.5f * top / fov[i].DownTan;
+		vr::VRTextureBounds_t fovBounds = rev_FovPortToTextureBounds((ovrEyeType)i, fov[i]);
 
 		// Combine the fov bounds with the viewport bounds
-		bounds.uMin += uMin * bounds.uMax;
-		bounds.uMax *= uMax;
-		bounds.vMin += vMin * bounds.vMax;
-		bounds.vMax *= vMax;
+		bounds.uMin += fovBounds.uMin * bounds.uMax;
+		bounds.uMax *= fovBounds.uMax;
+		bounds.vMin += fovBounds.vMin * bounds.vMax;
+		bounds.vMax *= fovBounds.vMax;
 
 		vr::VRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, &chain->Submitted->ToVRTexture(), &bounds);
 		if (err != vr::VRCompositorError_None)

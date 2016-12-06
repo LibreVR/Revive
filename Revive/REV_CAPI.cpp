@@ -754,21 +754,14 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	ovrSizei size;
 	vr::VRSystem()->GetRecommendedRenderTargetSize((uint32_t*)&size.w, (uint32_t*)&size.h);
 
-	float left, right, top, bottom;
-	vr::VRSystem()->GetProjectionRaw((vr::EVREye)eye, &left, &right, &top, &bottom);
-
-	float uMin = 0.5f + 0.5f * left / fov.LeftTan;
-	float uMax = 0.5f + 0.5f * right / fov.RightTan;
-	float vMin = 0.5f - 0.5f * bottom / fov.UpTan;
-	float vMax = 0.5f - 0.5f * top / fov.DownTan;
-
 	// Check if an override for pixelsPerDisplayPixel is present
-	if (session->PixelsPerDisplayPixel > 0.0f)
+	if (session && session->PixelsPerDisplayPixel > 0.0f)
 		pixelsPerDisplayPixel = session->PixelsPerDisplayPixel;
 
 	// Grow the recommended size to account for the overlapping fov
-	size.w = int((size.w * pixelsPerDisplayPixel) / (uMax - uMin));
-	size.h = int((size.h * pixelsPerDisplayPixel) / (vMax - vMin));
+	vr::VRTextureBounds_t bounds = rev_FovPortToTextureBounds(eye, fov);
+	size.w = int((size.w * pixelsPerDisplayPixel) / (bounds.uMax - bounds.uMin));
+	size.h = int((size.h * pixelsPerDisplayPixel) / (bounds.vMax - bounds.vMin));
 
 	return size;
 }
