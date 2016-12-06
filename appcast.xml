@@ -5,20 +5,20 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.0.1</title>
+			<title>Version 1.0.2</title>
 			<description>
 			<![CDATA[
 				<h1>Bug fixes</h1>
 				<ul>
-					<li>OpenGL Error when launching Oculus Medium (#335)</li>
-					<li>Bullet Train failed to open descriptor file (#331)</li>
+					<li>Fixed The Unspoken freezing after the language selection (#344)</li>
+					<li>Fixed incorrect player height in The Unspoken and Obduction</li>
 				</ul>
 			]]>
 			</description>
 			<pubDate>5 Dec 2016</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.0.1/ReviveInstaller.exe"
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.0.2/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.0.1.1"
+					   sparkle:version="1.0.2.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
