@@ -124,14 +124,18 @@ ovrResult InputManager::GetInputState(ovrControllerType controllerType, ovrInput
 	memset(inputState, 0, sizeof(ovrInputState));
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
-	inputState->ControllerType = controllerType;
 
+	uint32_t connected = 0;
 	for (InputDevice* device : m_InputDevices)
 	{
 		if (controllerType & device->GetType() && device->IsConnected())
-			device->GetInputState(inputState);
+		{
+			if (device->GetInputState(inputState))
+				connected |= device->GetType();
+		}
 	}
 
+	inputState->ControllerType = (ovrControllerType)connected;
 	return ovrSuccess;
 }
 
@@ -254,14 +258,14 @@ bool InputManager::OculusTouch::IsConnected()
 	return touch != vr::k_unTrackedDeviceIndexInvalid;
 }
 
-void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
+bool InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 {
 	// Get controller index
 	vr::TrackedDeviceIndex_t touch = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
 	ovrHandType hand = (m_Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
 
 	if (touch == vr::k_unTrackedDeviceIndexInvalid)
-		return;
+		return false;
 
 	vr::VRControllerState_t state;
 	vr::VRSystem()->GetControllerState(touch, &state, sizeof(state));
@@ -366,6 +370,7 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 
 	// Save the state
 	m_LastState = state;
+	return true;
 }
 
 bool InputManager::OculusRemote::IsConnected()
@@ -377,15 +382,16 @@ bool InputManager::OculusRemote::IsConnected()
 	return controllerCount == 1;
 }
 
-void InputManager::OculusRemote::GetInputState(ovrInputState* inputState)
+bool InputManager::OculusRemote::GetInputState(ovrInputState* inputState)
 {
 	// Get controller indices.
 	vr::TrackedDeviceIndex_t remote;
 	vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, &remote, 1);
 
 	if (remote == vr::k_unTrackedDeviceIndexInvalid)
-		return;
+		return false;
 
+	bool active = false;
 	vr::VRControllerState_t state;
 	vr::VRSystem()->GetControllerState(remote, &state, sizeof(state));
 
@@ -403,6 +409,7 @@ void InputManager::OculusRemote::GetInputState(ovrInputState* inputState)
 		{
 			if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
 			{
+				active = true;
 				float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
 
 				if (magnitude < 0.5f)
@@ -427,6 +434,8 @@ void InputManager::OculusRemote::GetInputState(ovrInputState* inputState)
 			}
 		}
 	}
+
+	return active;
 }
 
 bool InputManager::XboxGamepad::IsConnected()
@@ -436,13 +445,14 @@ bool InputManager::XboxGamepad::IsConnected()
 	return XInputGetState(0, &input) == ERROR_SUCCESS;
 }
 
-void InputManager::XboxGamepad::GetInputState(ovrInputState* inputState)
+bool InputManager::XboxGamepad::GetInputState(ovrInputState* inputState)
 {
 	// Use XInput for Xbox controllers.
 	XINPUT_STATE state;
 	if (XInputGetState(0, &state) == ERROR_SUCCESS)
 	{
 		// Convert the buttons
+		bool active = false;
 		WORD buttons = state.Gamepad.wButtons;
 		if (buttons & XINPUT_GAMEPAD_DPAD_UP)
 			inputState->Buttons |= ovrButton_Up;
@@ -472,6 +482,8 @@ void InputManager::XboxGamepad::GetInputState(ovrInputState* inputState)
 			inputState->Buttons |= ovrButton_X;
 		if (buttons & XINPUT_GAMEPAD_Y)
 			inputState->Buttons |= ovrButton_Y;
+
+		active = (buttons != 0);
 
 		// Convert the axes
 		SHORT deadzones[] = { XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE };
@@ -514,6 +526,7 @@ void InputManager::XboxGamepad::GetInputState(ovrInputState* inputState)
 				inputState->Thumbstick[i].y = normalizedMagnitude * normalizedY;
 				inputState->ThumbstickNoDeadzone[i].x = normalizedX;
 				inputState->ThumbstickNoDeadzone[i].y = normalizedY;
+				active = true;
 			}
 
 			if (trigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
@@ -529,9 +542,13 @@ void InputManager::XboxGamepad::GetInputState(ovrInputState* inputState)
 				//giving a magnitude value of 0.0 to 1.0
 				float normalizedTrigger = trigger / (255 - XINPUT_GAMEPAD_TRIGGER_THRESHOLD);
 				inputState->IndexTrigger[i] = normalizedTrigger;
+				active = true;
 			}
 		}
+
+		return active;
 	}
+	return false;
 }
 
 void InputManager::XboxGamepad::SetVibration(float frequency, float amplitude)

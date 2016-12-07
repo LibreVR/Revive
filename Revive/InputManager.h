@@ -45,7 +45,7 @@ public:
 		virtual vr::ETrackedControllerRole GetRole() { return vr::TrackedControllerRole_Invalid; }
 		virtual ovrControllerType GetType() = 0;
 		virtual bool IsConnected() = 0;
-		virtual void GetInputState(ovrInputState* inputState) = 0;
+		virtual bool GetInputState(ovrInputState* inputState) = 0;
 
 		// Haptics
 		virtual void SetVibration(float frequency, float amplitude) { }
@@ -64,7 +64,7 @@ public:
 		virtual vr::ETrackedControllerRole GetRole() { return m_Role; }
 		virtual ovrControllerType GetType();
 		virtual bool IsConnected();
-		virtual void GetInputState(ovrInputState* inputState);
+		virtual bool GetInputState(ovrInputState* inputState);
 		virtual void SetVibration(float frequency, float amplitude) { m_Haptics.SetConstant(frequency, amplitude); }
 		virtual void SubmitVibration(const ovrHapticsBuffer* buffer) { m_Haptics.AddSamples(buffer); }
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { *outState = m_Haptics.GetState(); }
@@ -91,7 +91,7 @@ public:
 
 		virtual ovrControllerType GetType() { return ovrControllerType_Remote; }
 		virtual bool IsConnected();
-		virtual void GetInputState(ovrInputState* inputState);
+		virtual bool GetInputState(ovrInputState* inputState);
 	};
 
 	class XboxGamepad : public InputDevice
@@ -102,7 +102,7 @@ public:
 
 		virtual ovrControllerType GetType() { return ovrControllerType_XBox; }
 		virtual bool IsConnected();
-		virtual void GetInputState(ovrInputState* inputState);
+		virtual bool GetInputState(ovrInputState* inputState);
 		virtual void SetVibration(float frequency, float amplitude);
 	};
 
