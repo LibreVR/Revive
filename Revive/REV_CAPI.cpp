@@ -190,7 +190,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		OVR::Vector3f v(
 			ovr_GetFloat(session, "TouchX", 0.016f),
 			ovr_GetFloat(session, "TouchY", 0.0f),
-			ovr_GetFloat(session, "TouchZ", 0.054f)
+			ovr_GetFloat(session, "TouchZ", 0.016f)
 		);
 
 		// Mirror the right touch controller offsets
