@@ -230,6 +230,8 @@ InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	, m_StickTouched(false)
 	, m_Sensitivity(2.0f)
 	, m_Deadzone(0.3f)
+	, m_ToggleGrip(false)
+	, m_Gripped(false)
 {
 	memset(&m_LastState, 0, sizeof(m_LastState));
 	m_ThumbStick.x = m_ThumbStick.y = 0.0f;
@@ -242,6 +244,9 @@ InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	float sensitivity = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbRange", &error);
 	if (error == vr::VRSettingsError_None)
 		m_Sensitivity = sensitivity;
+	bool toggle = vr::VRSettings()->GetBool(REV_SETTINGS_SECTION, "ToggleGrip", &error);
+	if (error == vr::VRSettingsError_None)
+		m_ToggleGrip = toggle;
 
 	m_HapticsThread = std::thread(HapticsThread, this);
 }
@@ -278,14 +283,27 @@ bool InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
 		buttons |= (hand == ovrHand_Left) ? ovrButton_LShoulder : ovrButton_RShoulder;
 
+	// Allow users to enable a toggled grip.
+	if (m_ToggleGrip)
+	{
+		if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip) &&
+			!(m_LastState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip)))
+			m_Gripped = !m_Gripped;
+	}
+	else
+	{
+		m_Gripped = !!(state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip));
+	}
+
 	if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
 		touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
-	else if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
+	else if (m_Gripped)
 		touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexPointing : ovrTouch_RIndexPointing;
+
 
 	// When we release the grip we need to keep it just a little bit pressed, because games like Toybox
 	// can't handle a sudden jump to absolute zero.
-	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
+	if (m_Gripped)
 		inputState->HandTrigger[hand] = 1.0f;
 	else
 		inputState->HandTrigger[hand] = 0.1f;

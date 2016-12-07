@@ -79,6 +79,9 @@ public:
 		ovrVector2f m_ThumbStick;
 		ovrTouch AxisToTouch(vr::VRControllerAxis_t axis);
 
+		bool m_ToggleGrip;
+		bool m_Gripped;
+
 		std::thread m_HapticsThread;
 		static void HapticsThread(OculusTouch* device);
 	};
