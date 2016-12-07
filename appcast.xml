@@ -12,7 +12,7 @@
 				<ul>
 					<li>Fixed issues with grabbing/dropping objects in Toybox (#337)</li>
 					<li>Fixed Haptics not working in various Unreal Engine demos such as First Contact (#336)</li>
-					<li>Refined touch rotation and translation offsets (#341)</li>
+					<li>Refined touch translation offsets (#341)</li>
 				</ul>
 			]]>
 			</description>
