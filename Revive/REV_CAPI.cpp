@@ -185,7 +185,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	for (int i = 0; i < ovrHand_Count; i++)
 	{
 		OVR::Matrix4f x = OVR::Matrix4f::RotationX(OVR::DegreeToRad(ovr_GetFloat(session, "TouchPitch", -28.0f)));
-		OVR::Matrix4f y = OVR::Matrix4f::RotationY(OVR::DegreeToRad(ovr_GetFloat(session, "TouchYaw", 21.0f)));
+		OVR::Matrix4f y = OVR::Matrix4f::RotationY(OVR::DegreeToRad(ovr_GetFloat(session, "TouchYaw", 0.0f)));
 		OVR::Matrix4f z = OVR::Matrix4f::RotationZ(OVR::DegreeToRad(ovr_GetFloat(session, "TouchRoll", -14.0f)));
 		OVR::Vector3f v(
 			ovr_GetFloat(session, "TouchX", 0.016f),
