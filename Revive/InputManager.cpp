@@ -168,8 +168,9 @@ ovrTouchHapticsDesc InputManager::GetTouchHapticsDesc(ovrControllerType controll
 		desc.SampleRateHz = REV_HAPTICS_SAMPLE_RATE;
 		desc.SampleSizeInBytes = sizeof(uint8_t);
 		desc.SubmitMaxSamples = REV_HAPTICS_MAX_SAMPLES;
-		desc.SubmitMinSamples = 10;
+		desc.SubmitMinSamples = 1;
 		desc.SubmitOptimalSamples = 20;
+		desc.QueueMinSizeToAvoidStarvation = 5;
 	}
 
 	return desc;
