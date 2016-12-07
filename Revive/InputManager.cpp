@@ -278,8 +278,12 @@ void InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 	else if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
 		touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexPointing : ovrTouch_RIndexPointing;
 
+	// When we release the grip we need to keep it just a little bit pressed, because games like Toybox
+	// can't handle a sudden jump to absolute zero.
 	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
 		inputState->HandTrigger[hand] = 1.0f;
+	else
+		inputState->HandTrigger[hand] = 0.1f;
 
 	// Convert the axes
 	for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
