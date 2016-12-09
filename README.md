@@ -12,7 +12,7 @@ This is a compatibility layer between the Oculus SDK and OpenVR. It allows you t
 2. [Download the latest Revive installer from the releases page.](https://github.com/LibreVR/Revive/releases)
 4. Install Revive in your preferred directory, exit SteamVR before overwriting an existing installation.
 5. Start SteamVR if it's not already running.
-6. Open the dashboard and click the new Revive tab.
+6. Put on the headset, open the dashboard and click the new Revive tab.
 
 *If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard.*
 
