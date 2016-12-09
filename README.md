@@ -10,9 +10,9 @@ This is a compatibility layer between the Oculus SDK and OpenVR. It allows you t
 
 1. Install [Oculus Home](https://www.oculus.com/en-us/setup/) and skip the first-time setup.
 2. [Download the latest Revive installer from the releases page.](https://github.com/LibreVR/Revive/releases)
-4. Install Revive in your preferred directory, exit SteamVR before overwriting an existing installation.
-5. Start SteamVR if it's not already running.
-6. Put on the headset, open the dashboard and click the new Revive tab.
+3. Install Revive in your preferred directory, exit SteamVR before overwriting an existing installation.
+4. Start SteamVR if it's not already running.
+5. Put on the headset, open the dashboard and click the new Revive tab.
 
 *If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard.*
 
