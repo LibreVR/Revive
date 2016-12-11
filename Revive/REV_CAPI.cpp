@@ -799,10 +799,19 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	// Use our own intermediate compositor to convert the frame to OpenVR.
 	vr::EVRCompositorError err = session->Compositor->SubmitFrame(layerPtrList, layerCount);
 
-	// If we're the same thread that requested the tracking state, then we can postpone WaitGetPoses().
 	DWORD threadId = GetCurrentThreadId();
-	if (!session->WaitThreadId.compare_exchange_strong(threadId, 0))
+	if (session->Compositor->GetAPI() == vr::API_DirectX)
+	{
+		// If we're the same thread that requested the tracking state, then we can postpone WaitGetPoses().
+		if (!session->WaitThreadId.compare_exchange_strong(threadId, 0))
+			vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	}
+	else
+	{
+		// Always call WaitGetPoses() in OpenGL, don't postpone it.
+		session->WaitThreadId.exchange(threadId);
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	}
 
 	// Increment the frame index.
 	if (frameIndex == 0)
