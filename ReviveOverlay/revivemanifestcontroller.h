@@ -40,12 +40,14 @@ signals:
 private:
 	bool LoadDocument();
 	bool SaveDocument();
+	bool SetDefaults();
 	bool GetDefaultLibraryPath(wchar_t* path, uint32_t length);
 	bool AddApplicationManifest(QFile& file);
 
 	QFile m_appFile;
 	QFile m_manifestFile;
 	QFile m_supportFile;
+	QFile m_defaultsFile;
 	QJsonObject m_manifest;
 
 	bool m_bLibraryFound;

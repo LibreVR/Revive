@@ -221,6 +221,7 @@
     <ClInclude Include="..\LibOVR\Include\OVR_Version.h" />
     <ClInclude Include="Assert.h" />
     <ClInclude Include="Error.h" />
+    <ClInclude Include="Settings.h" />
     <ClInclude Include="TextureBase.h" />
     <ClInclude Include="TextureD3D.h" />
     <ClInclude Include="TextureGL.h" />

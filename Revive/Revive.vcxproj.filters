@@ -93,6 +93,9 @@
     <ClInclude Include="TextureGL.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
+    <ClInclude Include="Settings.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

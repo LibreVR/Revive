@@ -6,6 +6,7 @@
 #include "CompositorBase.h"
 #include "InputManager.h"
 #include "TextureBase.h"
+#include "Settings.h"
 
 #include <memory>
 #include <thread>
@@ -14,7 +15,6 @@
 // Common definitions
 
 #define REV_SWAPCHAIN_LENGTH 2
-#define REV_SETTINGS_SECTION "revive"
 #define REV_DEFAULT_TIMEOUT 10000
 
 // Common structures

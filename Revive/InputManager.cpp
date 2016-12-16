@@ -228,9 +228,9 @@ ovrTouch InputManager::OculusTouch::AxisToTouch(vr::VRControllerAxis_t axis)
 InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	: m_Role(role)
 	, m_StickTouched(false)
-	, m_Sensitivity(2.0f)
-	, m_Deadzone(0.3f)
-	, m_ToggleGrip(false)
+	, m_Sensitivity(REV_DEFAULT_THUMB_SENSITIVITY)
+	, m_Deadzone(REV_DEFAULT_THUMB_DEADZONE)
+	, m_ToggleGrip(REV_DEFAULT_TOGGLE_GRIP)
 	, m_Gripped(false)
 {
 	memset(&m_LastState, 0, sizeof(m_LastState));
@@ -238,15 +238,9 @@ InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 
 	// Get the thumb stick deadzone and range from the settings
 	vr::EVRSettingsError error;
-	float deadzone = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbDeadzone", &error);
-	if (error == vr::VRSettingsError_None)
-		m_Deadzone = deadzone;
-	float sensitivity = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "ThumbRange", &error);
-	if (error == vr::VRSettingsError_None)
-		m_Sensitivity = sensitivity;
-	bool toggle = vr::VRSettings()->GetBool(REV_SETTINGS_SECTION, "ToggleGrip", &error);
-	if (error == vr::VRSettingsError_None)
-		m_ToggleGrip = toggle;
+	m_Deadzone = ovr_GetFloat(nullptr, REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE);
+	m_Sensitivity = ovr_GetFloat(nullptr, REV_KEY_THUMB_SENSITIVITY, REV_DEFAULT_THUMB_SENSITIVITY);
+	m_ToggleGrip = ovr_GetBool(nullptr, REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);
 
 	m_HapticsThread = std::thread(HapticsThread, this);
 }

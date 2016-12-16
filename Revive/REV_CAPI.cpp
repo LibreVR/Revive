@@ -178,20 +178,25 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 
 	// Get the default universe origin from the settings
-	vr::ETrackingUniverseOrigin origin = (vr::ETrackingUniverseOrigin)vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, "DefaultTrackingOrigin");
-	vr::VRCompositor()->SetTrackingSpace(origin);
+	vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)ovr_GetInt(session, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN));
 
 	// Get the touch offsets from the settings
 	for (int i = 0; i < ovrHand_Count; i++)
 	{
-		OVR::Matrix4f x = OVR::Matrix4f::RotationX(OVR::DegreeToRad(ovr_GetFloat(session, "TouchPitch", -28.0f)));
-		OVR::Matrix4f y = OVR::Matrix4f::RotationY(OVR::DegreeToRad(ovr_GetFloat(session, "TouchYaw", 0.0f)));
-		OVR::Matrix4f z = OVR::Matrix4f::RotationZ(OVR::DegreeToRad(ovr_GetFloat(session, "TouchRoll", -14.0f)));
-		OVR::Vector3f v(
-			ovr_GetFloat(session, "TouchX", 0.016f),
-			ovr_GetFloat(session, "TouchY", 0.0f),
-			ovr_GetFloat(session, "TouchZ", 0.016f)
+		OVR::Vector3f angles(
+			OVR::DegreeToRad(ovr_GetFloat(session, REV_KEY_TOUCH_PITCH, REV_DEFAULT_TOUCH_PITCH)),
+			OVR::DegreeToRad(ovr_GetFloat(session, REV_KEY_TOUCH_YAW, REV_DEFAULT_TOUCH_YAW)),
+			OVR::DegreeToRad(ovr_GetFloat(session, REV_KEY_TOUCH_ROLL, REV_DEFAULT_TOUCH_ROLL))
 		);
+		OVR::Vector3f v(
+			ovr_GetFloat(session, REV_KEY_TOUCH_X, REV_DEFAULT_TOUCH_X),
+			ovr_GetFloat(session, REV_KEY_TOUCH_Y, REV_DEFAULT_TOUCH_Y),
+			ovr_GetFloat(session, REV_KEY_TOUCH_Z, REV_DEFAULT_TOUCH_Z)
+		);
+
+		OVR::Matrix4f x = OVR::Matrix4f::RotationX(angles.x);
+		OVR::Matrix4f y = OVR::Matrix4f::RotationY(angles.y);
+		OVR::Matrix4f z = OVR::Matrix4f::RotationZ(angles.z);
 
 		// Mirror the right touch controller offsets
 		if (i == ovrHand_Right)
@@ -207,7 +212,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	}
 
 	// Get the render target multiplier
-	session->PixelsPerDisplayPixel = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, "pixelsPerDisplayPixel");
+	session->PixelsPerDisplayPixel = ovr_GetFloat(session, REV_KEY_PIXELS_PER_DISPLAY, REV_DEFAULT_PIXELS_PER_DISPLAY);
 
 	// Get the LUID for the default adapter
 	int32_t index;
