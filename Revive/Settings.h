@@ -1,5 +1,12 @@
 #pragma once
 
+typedef enum revGripType_
+{
+	revGrip_Normal = 0,
+	revGrip_Toggle = 1,
+	revGrip_Hybrid = 2,
+} revGripType;
+
 #define REV_SETTINGS_SECTION				"revive"
 #define REV_ROUND(x)						round((double)x * pow(10.0, 4)) / pow(10.0, 4);
 
@@ -16,7 +23,10 @@
 #define REV_DEFAULT_THUMB_SENSITIVITY		2.0f
 
 #define REV_KEY_TOGGLE_GRIP					"ToggleGrip"
-#define REV_DEFAULT_TOGGLE_GRIP				false
+#define REV_DEFAULT_TOGGLE_GRIP				revGrip_Normal
+
+#define REV_KEY_TOGGLE_DELAY				"ToggleDelay"
+#define REV_DEFAULT_TOGGLE_DELAY			0.5f
 
 #define REV_KEY_TOUCH_PITCH					"TouchPitch"
 #define REV_DEFAULT_TOUCH_PITCH				-28.0f

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Settings.h"
 #include "OVR_CAPI.h"
 
 #include <atomic>
@@ -79,8 +80,12 @@ public:
 		ovrVector2f m_ThumbStick;
 		ovrTouch AxisToTouch(vr::VRControllerAxis_t axis);
 
-		bool m_ToggleGrip;
+		revGripType m_ToggleGrip;
 		bool m_Gripped;
+		double m_GrippedTime;
+		float m_ToggleDelay;
+		bool IsPressed(vr::VRControllerState_t newState, vr::EVRButtonId button);
+		bool IsReleased(vr::VRControllerState_t newState, vr::EVRButtonId button);
 
 		std::thread m_HapticsThread;
 		static void HapticsThread(OculusTouch* device);

@@ -225,6 +225,18 @@ ovrTouch InputManager::OculusTouch::AxisToTouch(vr::VRControllerAxis_t axis)
 	}
 }
 
+bool InputManager::OculusTouch::IsPressed(vr::VRControllerState_t newState, vr::EVRButtonId button)
+{
+	return newState.ulButtonPressed & vr::ButtonMaskFromId(button) &&
+		!(m_LastState.ulButtonPressed & vr::ButtonMaskFromId(button));
+}
+
+bool InputManager::OculusTouch::IsReleased(vr::VRControllerState_t newState, vr::EVRButtonId button)
+{
+	return !(newState.ulButtonPressed & vr::ButtonMaskFromId(button)) &&
+		m_LastState.ulButtonPressed & vr::ButtonMaskFromId(button);
+}
+
 InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	: m_Role(role)
 	, m_StickTouched(false)
@@ -232,15 +244,17 @@ InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	, m_Deadzone(REV_DEFAULT_THUMB_DEADZONE)
 	, m_ToggleGrip(REV_DEFAULT_TOGGLE_GRIP)
 	, m_Gripped(false)
+	, m_GrippedTime(0.0)
+	, m_ToggleDelay(REV_DEFAULT_TOGGLE_DELAY)
 {
 	memset(&m_LastState, 0, sizeof(m_LastState));
 	m_ThumbStick.x = m_ThumbStick.y = 0.0f;
 
 	// Get the thumb stick deadzone and range from the settings
-	vr::EVRSettingsError error;
 	m_Deadzone = ovr_GetFloat(nullptr, REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE);
 	m_Sensitivity = ovr_GetFloat(nullptr, REV_KEY_THUMB_SENSITIVITY, REV_DEFAULT_THUMB_SENSITIVITY);
-	m_ToggleGrip = ovr_GetBool(nullptr, REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);
+	m_ToggleGrip = (revGripType)ovr_GetInt(nullptr, REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);
+	m_ToggleDelay = ovr_GetFloat(nullptr, REV_KEY_TOGGLE_DELAY, REV_DEFAULT_TOGGLE_DELAY);
 
 	m_HapticsThread = std::thread(HapticsThread, this);
 }
@@ -278,10 +292,29 @@ bool InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 		buttons |= (hand == ovrHand_Left) ? ovrButton_LShoulder : ovrButton_RShoulder;
 
 	// Allow users to enable a toggled grip.
-	if (m_ToggleGrip)
+	if (m_ToggleGrip == revGrip_Hybrid)
 	{
-		if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip) &&
-			!(m_LastState.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip)))
+		if (IsPressed(state, vr::k_EButton_Grip))
+		{
+			// Only set the timestamp on the first grip toggle, we don't want to toggle twice
+			if (!m_Gripped)
+				m_GrippedTime = ovr_GetTimeInSeconds();
+
+			m_Gripped = true;
+		}
+
+		if (IsReleased(state, vr::k_EButton_Grip))
+		{
+			if (ovr_GetTimeInSeconds() - m_GrippedTime > m_ToggleDelay)
+				m_Gripped = false;
+
+			// Next time we always want to release grip
+			m_GrippedTime = 0.0;
+		}
+	}
+	else if (m_ToggleGrip == revGrip_Toggle)
+	{
+		if (IsPressed(state, vr::k_EButton_Grip))
 			m_Gripped = !m_Gripped;
 	}
 	else
