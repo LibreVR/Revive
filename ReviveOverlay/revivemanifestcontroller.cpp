@@ -121,7 +121,8 @@ bool CReviveManifestController::Init()
 	if (GetDefaultLibraryPath(path, MAX_PATH))
 	{
 		QString library = QString::fromWCharArray(path);
-		library.append(L'\\');
+		if (!library.endsWith('\\'))
+			library.append('\\');
 		qDebug("Oculus Library found: %s", qUtf8Printable(library));
 
 		m_bLibraryFound = true;
