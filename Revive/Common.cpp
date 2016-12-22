@@ -135,3 +135,36 @@ vr::VRTextureBounds_t rev_FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov)
 
 	return result;
 }
+
+void rev_LoadTouchSettings(ovrSession session)
+{
+	for (int i = 0; i < ovrHand_Count; i++)
+	{
+		OVR::Vector3f angles(
+			OVR::DegreeToRad(ovr_GetFloat(session, REV_KEY_TOUCH_PITCH, REV_DEFAULT_TOUCH_PITCH)),
+			OVR::DegreeToRad(ovr_GetFloat(session, REV_KEY_TOUCH_YAW, REV_DEFAULT_TOUCH_YAW)),
+			OVR::DegreeToRad(ovr_GetFloat(session, REV_KEY_TOUCH_ROLL, REV_DEFAULT_TOUCH_ROLL))
+		);
+		OVR::Vector3f v(
+			ovr_GetFloat(session, REV_KEY_TOUCH_X, REV_DEFAULT_TOUCH_X),
+			ovr_GetFloat(session, REV_KEY_TOUCH_Y, REV_DEFAULT_TOUCH_Y),
+			ovr_GetFloat(session, REV_KEY_TOUCH_Z, REV_DEFAULT_TOUCH_Z)
+		);
+
+		OVR::Matrix4f x = OVR::Matrix4f::RotationX(angles.x);
+		OVR::Matrix4f y = OVR::Matrix4f::RotationY(angles.y);
+		OVR::Matrix4f z = OVR::Matrix4f::RotationZ(angles.z);
+
+		// Mirror the right touch controller offsets
+		if (i == ovrHand_Right)
+		{
+			y.Invert();
+			z.Invert();
+			v.x *= -1.0f;
+		}
+
+		OVR::Matrix4f matrix(x * y * z);
+		matrix.SetTranslation(v);
+		memcpy(session->TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
+	}
+}

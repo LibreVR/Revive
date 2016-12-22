@@ -75,3 +75,4 @@ OVR::Vector3f rev_HmdVectorToOVRVector(vr::HmdVector3_t v);
 vr::HmdMatrix34_t rev_OvrPoseToHmdMatrix(ovrPosef pose);
 ovrPoseStatef rev_TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, double time);
 vr::VRTextureBounds_t rev_FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov);
+void rev_LoadTouchSettings(ovrSession session);

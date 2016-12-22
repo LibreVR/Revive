@@ -181,35 +181,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)ovr_GetInt(session, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN));
 
 	// Get the touch offsets from the settings
-	for (int i = 0; i < ovrHand_Count; i++)
-	{
-		OVR::Vector3f angles(
-			OVR::DegreeToRad(ovr_GetFloat(session, REV_KEY_TOUCH_PITCH, REV_DEFAULT_TOUCH_PITCH)),
-			OVR::DegreeToRad(ovr_GetFloat(session, REV_KEY_TOUCH_YAW, REV_DEFAULT_TOUCH_YAW)),
-			OVR::DegreeToRad(ovr_GetFloat(session, REV_KEY_TOUCH_ROLL, REV_DEFAULT_TOUCH_ROLL))
-		);
-		OVR::Vector3f v(
-			ovr_GetFloat(session, REV_KEY_TOUCH_X, REV_DEFAULT_TOUCH_X),
-			ovr_GetFloat(session, REV_KEY_TOUCH_Y, REV_DEFAULT_TOUCH_Y),
-			ovr_GetFloat(session, REV_KEY_TOUCH_Z, REV_DEFAULT_TOUCH_Z)
-		);
-
-		OVR::Matrix4f x = OVR::Matrix4f::RotationX(angles.x);
-		OVR::Matrix4f y = OVR::Matrix4f::RotationY(angles.y);
-		OVR::Matrix4f z = OVR::Matrix4f::RotationZ(angles.z);
-
-		// Mirror the right touch controller offsets
-		if (i == ovrHand_Right)
-		{
-			y.Invert();
-			z.Invert();
-			v.x *= -1.0f;
-		}
-
-		OVR::Matrix4f matrix(x * y * z);
-		matrix.SetTranslation(v);
-		memcpy(session->TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
-	}
+	rev_LoadTouchSettings(session);
 
 	// Get the render target multiplier
 	session->PixelsPerDisplayPixel = ovr_GetFloat(session, REV_KEY_PIXELS_PER_DISPLAY, REV_DEFAULT_PIXELS_PER_DISPLAY);
@@ -256,6 +228,13 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessionStatus* sessionStatus)
 {
 	REV_TRACE(ovr_GetSessionStatus);
+
+	if (!session)
+		return ovrError_InvalidSession;
+
+	// Use this oppertunity to refresh some settings from the settings interface.
+	rev_LoadTouchSettings(session);
+	InputManager::LoadSettings();
 
 	if (!sessionStatus)
 		return ovrError_InvalidParameter;
