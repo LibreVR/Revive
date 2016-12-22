@@ -7,6 +7,10 @@
 #include <Xinput.h>
 
 bool InputManager::m_bHapticsRunning;
+float InputManager::m_Deadzone;
+float InputManager::m_Sensitivity;
+revGripType InputManager::m_ToggleGrip;
+float InputManager::m_ToggleDelay;
 
 HapticsBuffer::HapticsBuffer()
 	: m_ReadIndex(0)
@@ -75,6 +79,8 @@ ovrHapticsPlaybackState HapticsBuffer::GetState()
 
 InputManager::InputManager()
 {
+	LoadSettings();
+
 	m_bHapticsRunning = true;
 
 	m_InputDevices.push_back(new XboxGamepad());
@@ -89,6 +95,15 @@ InputManager::~InputManager()
 
 	for (InputDevice* device : m_InputDevices)
 		delete device;
+}
+
+void InputManager::LoadSettings()
+{
+	// Get the thumb stick deadzone and range from the settings
+	m_Deadzone = ovr_GetFloat(nullptr, REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE);
+	m_Sensitivity = ovr_GetFloat(nullptr, REV_KEY_THUMB_SENSITIVITY, REV_DEFAULT_THUMB_SENSITIVITY);
+	m_ToggleGrip = (revGripType)ovr_GetInt(nullptr, REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);
+	m_ToggleDelay = ovr_GetFloat(nullptr, REV_KEY_TOGGLE_DELAY, REV_DEFAULT_TOGGLE_DELAY);
 }
 
 unsigned int InputManager::GetConnectedControllerTypes()
@@ -240,21 +255,11 @@ bool InputManager::OculusTouch::IsReleased(vr::VRControllerState_t newState, vr:
 InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	: m_Role(role)
 	, m_StickTouched(false)
-	, m_Sensitivity(REV_DEFAULT_THUMB_SENSITIVITY)
-	, m_Deadzone(REV_DEFAULT_THUMB_DEADZONE)
-	, m_ToggleGrip(REV_DEFAULT_TOGGLE_GRIP)
 	, m_Gripped(false)
 	, m_GrippedTime(0.0)
-	, m_ToggleDelay(REV_DEFAULT_TOGGLE_DELAY)
 {
 	memset(&m_LastState, 0, sizeof(m_LastState));
 	m_ThumbStick.x = m_ThumbStick.y = 0.0f;
-
-	// Get the thumb stick deadzone and range from the settings
-	m_Deadzone = ovr_GetFloat(nullptr, REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE);
-	m_Sensitivity = ovr_GetFloat(nullptr, REV_KEY_THUMB_SENSITIVITY, REV_DEFAULT_THUMB_SENSITIVITY);
-	m_ToggleGrip = (revGripType)ovr_GetInt(nullptr, REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);
-	m_ToggleDelay = ovr_GetFloat(nullptr, REV_KEY_TOGGLE_DELAY, REV_DEFAULT_TOGGLE_DELAY);
 
 	m_HapticsThread = std::thread(HapticsThread, this);
 }

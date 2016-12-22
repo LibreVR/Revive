@@ -75,15 +75,11 @@ public:
 		vr::VRControllerState_t m_LastState;
 
 		bool m_StickTouched;
-		float m_Sensitivity;
-		float m_Deadzone;
 		ovrVector2f m_ThumbStick;
 		ovrTouch AxisToTouch(vr::VRControllerAxis_t axis);
 
-		revGripType m_ToggleGrip;
 		bool m_Gripped;
 		double m_GrippedTime;
-		float m_ToggleDelay;
 		bool IsPressed(vr::VRControllerState_t newState, vr::EVRButtonId button);
 		bool IsReleased(vr::VRControllerState_t newState, vr::EVRButtonId button);
 
@@ -117,6 +113,7 @@ public:
 	InputManager();
 	~InputManager();
 
+	static void LoadSettings();
 	unsigned int GetConnectedControllerTypes();
 	ovrTouchHapticsDesc GetTouchHapticsDesc(ovrControllerType controllerType);
 
@@ -128,5 +125,10 @@ public:
 protected:
 	std::vector<InputDevice*> m_InputDevices;
 	static bool m_bHapticsRunning;
+
+	static float m_Deadzone;
+	static float m_Sensitivity;
+	static revGripType m_ToggleGrip;
+	static float m_ToggleDelay;
 };
 
