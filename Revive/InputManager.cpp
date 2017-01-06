@@ -108,8 +108,7 @@ void InputManager::LoadSettings()
 
 unsigned int InputManager::GetConnectedControllerTypes()
 {
-	unsigned int types = 0;
-
+	uint32_t types = 0;
 	for (InputDevice* device : m_InputDevices)
 	{
 		if (device->IsConnected())
@@ -140,17 +139,17 @@ ovrResult InputManager::GetInputState(ovrControllerType controllerType, ovrInput
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
 
-	uint32_t connected = 0;
+	uint32_t types = 0;
 	for (InputDevice* device : m_InputDevices)
 	{
 		if (controllerType & device->GetType() && device->IsConnected())
 		{
 			if (device->GetInputState(inputState))
-				connected |= device->GetType();
+				types |= device->GetType();
 		}
 	}
 
-	inputState->ControllerType = (ovrControllerType)connected;
+	inputState->ControllerType = (ovrControllerType)types;
 	return ovrSuccess;
 }
 
@@ -441,7 +440,6 @@ bool InputManager::OculusRemote::GetInputState(ovrInputState* inputState)
 	if (remote == vr::k_unTrackedDeviceIndexInvalid)
 		return false;
 
-	bool active = false;
 	vr::VRControllerState_t state;
 	vr::VRSystem()->GetControllerState(remote, &state, sizeof(state));
 
@@ -459,7 +457,6 @@ bool InputManager::OculusRemote::GetInputState(ovrInputState* inputState)
 		{
 			if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
 			{
-				active = true;
 				float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
 
 				if (magnitude < 0.5f)
@@ -485,7 +482,7 @@ bool InputManager::OculusRemote::GetInputState(ovrInputState* inputState)
 		}
 	}
 
-	return active;
+	return state.ulButtonPressed != 0;
 }
 
 bool InputManager::XboxGamepad::IsConnected()
