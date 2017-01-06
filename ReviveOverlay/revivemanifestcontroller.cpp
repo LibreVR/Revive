@@ -116,6 +116,10 @@ bool CReviveManifestController::Init()
 	AddApplicationManifest(m_appFile);
 	AddApplicationManifest(m_supportFile);
 
+	// Ensure the auto-launch flag is set
+	if (vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true) != vr::VRApplicationError_None)
+		CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_AutoLaunchFailed);
+
 	// Get the base path
 	WCHAR path[MAX_PATH];
 	if (GetDefaultLibraryPath(path, MAX_PATH))
@@ -134,8 +138,6 @@ bool CReviveManifestController::Init()
 		{
 			if (vr::VRApplications()->IsApplicationInstalled(AppKey) && vr::VRApplications()->GetApplicationAutoLaunch(AppKey))
 				CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_AutoLaunchEnabled);
-			else
-				CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_AutoLaunchFailed);
 		}
 	}
 	else
