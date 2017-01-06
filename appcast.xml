@@ -5,21 +5,21 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.0.3</title>
+			<title>Version 1.0.4</title>
 			<description>
 			<![CDATA[
 				<h1>Bug fixes</h1>
 				<ul>
-					<li>Fixed issues with grabbing/dropping objects in Toybox (#337)</li>
-					<li>Fixed Haptics not working in various Unreal Engine demos such as First Contact (#336)</li>
-					<li>Refined touch translation offsets (#341)</li>
+					<li>Added a Hybrid Grip option (#342)</li>
+					<li>Fixed Oculus Games not being detected when installed in the root of a separate drive (#402)</li>
+					<li>Fixed auto-launch flags not being restored automatically (#361)</li>
 				</ul>
 			]]>
 			</description>
-			<pubDate>5 Dec 2016</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.0.3/ReviveInstaller.exe"
+			<pubDate>6 Jan 2017</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.0.4/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.0.3.1"
+					   sparkle:version="1.0.4.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
