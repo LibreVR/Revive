@@ -17,4 +17,6 @@ This is a compatibility layer between the Oculus SDK and OpenVR. It allows you t
 
 *If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard.*
 
+If you want to adjust the advanced settings in Revive you should download [OpenVR-AdvancedSettings](https://github.com/matzman666/OpenVR-AdvancedSettings) which includes a settings menu for Revive.
+
 ![logo](revive_black.png)
