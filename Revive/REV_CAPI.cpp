@@ -794,6 +794,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	else
 		session->FrameIndex = frameIndex;
 
+	// Flip the profiler.
+	MicroProfileFlip(nullptr);
+
 	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
 
 	return rev_CompositorErrorToOvrError(err);

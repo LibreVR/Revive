@@ -28,6 +28,12 @@
     <Filter Include="Source Files\LibOVR">
       <UniqueIdentifier>{a809efad-2f20-49f9-b190-86668467211b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\microprofile">
+      <UniqueIdentifier>{75f22e69-5dfc-45d2-830f-4a73125cadaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\microprofile">
+      <UniqueIdentifier>{1e9acdab-ebce-4152-81ab-53815bbac024}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\LibOVR\Include\OVR_CAPI.h">
@@ -96,6 +102,12 @@
     <ClInclude Include="Settings.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
+    <ClInclude Include="..\microprofile\microprofile.h">
+      <Filter>Header Files\microprofile</Filter>
+    </ClInclude>
+    <ClInclude Include="..\microprofile\microprofile_html.h">
+      <Filter>Header Files\microprofile</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -139,6 +151,9 @@
     </ClCompile>
     <ClCompile Include="xinput.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\microprofile\microprofile.cpp">
+      <Filter>Source Files\microprofile</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

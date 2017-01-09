@@ -10,3 +10,6 @@
 [submodule "WinSparkle"]
 	path = WinSparkle
 	url = https://github.com/LibreVR/ext-win-sparkle.git
+[submodule "microprofile"]
+	path = microprofile
+	url = https://github.com/jonasmr/microprofile.git
