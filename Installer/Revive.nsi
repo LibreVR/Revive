@@ -66,6 +66,10 @@ IfSilent install
 install:
   SectionIn RO
   
+  ; If the directory already exists, use a subfolder
+  IfFileExists $INSTDIR\*.* 0 +2
+  StrCpy $INSTDIR "$INSTDIR\Revive"
+  
   SetOutPath "$INSTDIR"
   
   ; Main application files
