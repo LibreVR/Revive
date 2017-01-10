@@ -152,7 +152,7 @@
     <ClCompile Include="xinput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\microprofile\microprofile.cpp">
+    <ClCompile Include="microprofile.cpp">
       <Filter>Source Files\microprofile</Filter>
     </ClCompile>
   </ItemGroup>

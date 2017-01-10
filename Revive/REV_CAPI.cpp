@@ -15,7 +15,11 @@ uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
-	REV_TRACE(ovr_Initialize);
+	MicroProfileOnThreadCreate("Main");
+	MicroProfileSetForceEnable(true);
+	MicroProfileSetEnableAllGroups(true);
+	MicroProfileSetForceMetaCounters(true);
+	MicroProfileWebServerStart();
 
 	g_MinorVersion = params->RequestedMinorVersion;
 
@@ -49,9 +53,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
-	REV_TRACE(ovr_Shutdown);
-
 	vr::VR_Shutdown();
+	MicroProfileShutdown();
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
@@ -795,7 +798,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		session->FrameIndex = frameIndex;
 
 	// Flip the profiler.
-	MicroProfileFlip(nullptr);
+	MicroProfileFlip();
 
 	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
 
