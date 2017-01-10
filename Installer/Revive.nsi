@@ -67,6 +67,7 @@ install:
   SectionIn RO
   
   ; If the directory already exists, use a subfolder
+  IfFileExists $INSTDIR\ReviveOverlay.exe +3 0
   IfFileExists $INSTDIR\*.* 0 +2
   StrCpy $INSTDIR "$INSTDIR\Revive"
   
