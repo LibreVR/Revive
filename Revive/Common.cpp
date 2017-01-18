@@ -24,7 +24,7 @@ ovrMirrorTextureData::ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMi
 ovrHmdStruct::ovrHmdStruct()
 	: ShouldQuit(false)
 	, IsVisible(false)
-	, WaitThreadId(0)
+	, HasWaited(false)
 	, FrameIndex(0)
 	, StatsIndex(0)
 	, PixelsPerDisplayPixel(0.0f)
