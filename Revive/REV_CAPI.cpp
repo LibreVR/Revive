@@ -235,10 +235,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	if (!session)
 		return ovrError_InvalidSession;
 
-	// Use this oppertunity to refresh some settings from the settings interface.
-	rev_LoadTouchSettings(session);
-	InputManager::LoadSettings();
-
 	if (!sessionStatus)
 		return ovrError_InvalidParameter;
 
@@ -786,6 +782,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	// Use our own intermediate compositor to convert the frame to OpenVR.
 	vr::EVRCompositorError err = session->Compositor->SubmitFrame(layerPtrList, layerCount);
 
+	// Flip the profiler.
+	MicroProfileFlip();
+
+	// The frame has been submitted, so we can now safely refresh some settings from the settings interface.
+	rev_LoadTouchSettings(session);
+	InputManager::LoadSettings();
+
 	// If we're the same thread that requested the tracking state, then we can postpone WaitGetPoses().
 	DWORD threadId = GetCurrentThreadId();
 	if (!session->WaitThreadId.compare_exchange_strong(threadId, 0))
@@ -796,9 +799,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		session->FrameIndex++;
 	else
 		session->FrameIndex = frameIndex;
-
-	// Flip the profiler.
-	MicroProfileFlip();
 
 	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
 
