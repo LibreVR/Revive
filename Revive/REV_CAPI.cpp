@@ -317,8 +317,11 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	if (!session)
 		return state;
 
+	// Get the device poses, if WaitGetPoses() was postponed (WaitThreadId == 0) then we need to call it here.
+	DWORD waitId = 0;
+	DWORD threadId = GetCurrentThreadId();
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	if (!session->HasWaited.exchange(true))
+	if (session->WaitThreadId.compare_exchange_strong(waitId, threadId))
 		vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 	else
 		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
@@ -786,7 +789,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	rev_LoadTouchSettings(session);
 	InputManager::LoadSettings();
 
-	session->HasWaited = false;
+	// If we're the same thread that requested the tracking state, then we can postpone WaitGetPoses().
+	DWORD threadId = GetCurrentThreadId();
+	if (!session->WaitThreadId.compare_exchange_strong(threadId, 0))
+		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 
 	// Increment the frame index.
 	if (frameIndex == 0)
