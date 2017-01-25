@@ -49,7 +49,6 @@ struct ovrHmdStruct
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
 
 	// Compositor statistics
-	std::atomic_ulong WaitThreadId;
 	long long FrameIndex;
 	long long StatsIndex;
 	ovrPerfStatsPerCompositorFrame ResetStats;
