@@ -34,9 +34,15 @@ int main(int argc, char *argv[])
 {
 	// Open the log file and install our handler.
 	QString logPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-	if (QDir().mkpath(logPath + "/Revive")) {
-		g_LogFile = new QFile(logPath + "/Revive/ReviveOverlay.log");
+	logPath.append("/Revive");
+	if (QDir().mkpath(logPath)) {
+		g_LogFile = new QFile(logPath + "/ReviveOverlay.txt");
 		g_LogFile->open(QIODevice::WriteOnly | QIODevice::Truncate);
+
+		// Remove obsolete log files
+		QDir logDir(logPath);
+		logDir.remove("ReviveOverlay.log");
+		logDir.remove("ReviveInjector.log");
 	}
 	qInstallMessageHandler(myMessageOutput);
 

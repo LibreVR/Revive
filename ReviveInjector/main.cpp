@@ -102,7 +102,7 @@ int wmain(int argc, wchar_t *argv[]) {
 		if (!exists)
 			exists = CreateDirectory(LogPath, NULL);
 
-		wcsncat(LogPath, L"\\ReviveInjector.log", MAX_PATH);
+		wcsncat(LogPath, L"\\ReviveInjector.txt", MAX_PATH);
 		if (exists)
 			g_LogFile = _wfopen(LogPath, L"w");
 	}
