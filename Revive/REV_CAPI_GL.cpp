@@ -15,7 +15,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 
 	if (!session->Compositor)
 	{
-		session->Compositor = CompositorGL::Create();
+		session->Compositor.reset(CompositorGL::Create());
 		if (!session->Compositor)
 			return ovrError_RuntimeException;
 	}
@@ -58,7 +58,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 
 	if (!session->Compositor)
 	{
-		session->Compositor = CompositorGL::Create();
+		session->Compositor.reset(CompositorGL::Create());
 		if (!session->Compositor)
 			return ovrError_RuntimeException;
 	}

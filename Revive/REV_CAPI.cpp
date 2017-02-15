@@ -319,7 +319,10 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 	// Get the device poses
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+	if (session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
+		vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+	else
+		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 
 	// Convert the head pose
 	state.HeadPose = rev_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
@@ -785,7 +788,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	InputManager::LoadSettings();
 
 	// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
-	vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
+		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 
 	// Increment the frame index.
 	if (frameIndex == 0)

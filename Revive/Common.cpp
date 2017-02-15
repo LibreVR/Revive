@@ -29,17 +29,12 @@ ovrHmdStruct::ovrHmdStruct()
 	, PixelsPerDisplayPixel(0.0f)
 	, Compositor(nullptr)
 	, Input(new InputManager())
+	, Details(new SessionDetails())
 {
 	memset(StringBuffer, 0, sizeof(StringBuffer));
 	memset(&ResetStats, 0, sizeof(ResetStats));
 	memset(Stats, 0, sizeof(Stats));
 	memset(TouchOffset, 0, sizeof(TouchOffset));
-}
-
-ovrHmdStruct::~ovrHmdStruct()
-{
-	delete Input;
-	delete Compositor;
 }
 
 // Common functions

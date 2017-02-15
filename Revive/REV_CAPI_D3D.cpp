@@ -21,7 +21,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	if (!session->Compositor)
 	{
-		session->Compositor = CompositorD3D::Create(d3dPtr);
+		session->Compositor.reset(CompositorD3D::Create(d3dPtr));
 		if (!session->Compositor)
 			return ovrError_RuntimeException;
 	}
@@ -72,7 +72,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 
 	if (!session->Compositor)
 	{
-		session->Compositor = CompositorD3D::Create(d3dPtr);
+		session->Compositor.reset(CompositorD3D::Create(d3dPtr));
 		if (!session->Compositor)
 			return ovrError_RuntimeException;
 	}

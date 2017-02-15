@@ -4,6 +4,7 @@
 #include "Extras/OVR_Math.h"
 #include "openvr.h"
 #include "CompositorBase.h"
+#include "SessionDetails.h"
 #include "InputManager.h"
 #include "TextureBase.h"
 #include "Settings.h"
@@ -55,15 +56,15 @@ struct ovrHmdStruct
 	vr::Compositor_CumulativeStats Stats[ovrMaxProvidedFrameStats];
 
 	// Revive interfaces
-	CompositorBase* Compositor;
-	InputManager* Input;
+	std::unique_ptr<CompositorBase> Compositor;
+	std::unique_ptr<InputManager> Input;
+	std::unique_ptr<SessionDetails> Details;
 
 	// Revive settings
 	float PixelsPerDisplayPixel;
 	vr::HmdMatrix34_t TouchOffset[ovrHand_Count];
 
 	ovrHmdStruct();
-	~ovrHmdStruct();
 };
 
 // Common functions

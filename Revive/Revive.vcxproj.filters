@@ -114,6 +114,9 @@
     <ClInclude Include="..\microprofile\microprofileui.h">
       <Filter>Header Files\microprofile</Filter>
     </ClInclude>
+    <ClInclude Include="SessionDetails.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -160,6 +163,9 @@
     </ClCompile>
     <ClCompile Include="microprofile.cpp">
       <Filter>Source Files\microprofile</Filter>
+    </ClCompile>
+    <ClCompile Include="SessionDetails.cpp">
+      <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
