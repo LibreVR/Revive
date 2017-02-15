@@ -104,14 +104,16 @@ void CTrayIconController::patch()
 	if (type == SCS_32BIT_BINARY)
 	{
 		files.append(dir + "/Revive/x86/LibRevive32_1.dll");
+		files.append(dir + "/Revive/x86/LibRevive32_1.dll");
 		files.append(dir + "/Revive/x86/openvr_api.dll");
 	}
 	if (type == SCS_64BIT_BINARY)
 	{
 		files.append(dir + "/Revive/x64/LibRevive64_1.dll");
+		files.append(dir + "/Revive/x64/LibRevive64_1.dll");
 		files.append(dir + "/Revive/x64/openvr_api.dll");
 	}
-	QStringList names = { "xinput1_3.dll", "openvr_api.dll" };
+	QStringList names = { "xinput1_3.dll", "xinput9_1_0.dll", "openvr_api.dll" };
 
 	QFileInfo info(file);
 	WindowsServices::CopyFiles(files, info.absolutePath(), names);
