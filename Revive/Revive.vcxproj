@@ -204,7 +204,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\microprofile\microprofile.h" />
-    <ClInclude Include="..\microprofile\microprofile_html.h" />
+    <ClInclude Include="..\microprofile\microprofiledraw.h" />
+    <ClInclude Include="..\microprofile\microprofilehtml.h" />
+    <ClInclude Include="..\microprofile\microprofileui.h" />
     <ClInclude Include="..\openvr\headers\openvr.h" />
     <ClInclude Include="CompositorBase.h" />
     <ClInclude Include="CompositorD3D.h" />

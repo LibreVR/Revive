@@ -105,7 +105,13 @@
     <ClInclude Include="..\microprofile\microprofile.h">
       <Filter>Header Files\microprofile</Filter>
     </ClInclude>
-    <ClInclude Include="..\microprofile\microprofile_html.h">
+    <ClInclude Include="..\microprofile\microprofiledraw.h">
+      <Filter>Header Files\microprofile</Filter>
+    </ClInclude>
+    <ClInclude Include="..\microprofile\microprofilehtml.h">
+      <Filter>Header Files\microprofile</Filter>
+    </ClInclude>
+    <ClInclude Include="..\microprofile\microprofileui.h">
       <Filter>Header Files\microprofile</Filter>
     </ClInclude>
   </ItemGroup>
