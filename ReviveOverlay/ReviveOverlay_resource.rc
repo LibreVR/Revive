@@ -7,8 +7,8 @@
 IDI_ICON1	ICON	DISCARDABLE	"revive.ico"
 
 VS_VERSION_INFO VERSIONINFO
-	FILEVERSION 1,0,4,0
-	PRODUCTVERSION 1,0,4,0
+	FILEVERSION 1,0,5,0
+	PRODUCTVERSION 1,0,5,0
 	FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
 	FILEFLAGS VS_FF_DEBUG
@@ -25,11 +25,11 @@ VS_VERSION_INFO VERSIONINFO
 			BEGIN
 				VALUE "CompanyName", "LibreVR\0"
 				VALUE "FileDescription", "\0"
-				VALUE "FileVersion", "1.0.4.0\0"
+				VALUE "FileVersion", "1.0.5.0\0"
 				VALUE "LegalCopyright", "\0"
 				VALUE "OriginalFilename", "ReviveOverlay.exe\0"
 				VALUE "ProductName", "Revive\0"
-				VALUE "ProductVersion", "1.0.4.0\0"
+				VALUE "ProductVersion", "1.0.5.0\0"
 			END
 		END
 		BLOCK "VarFileInfo"
