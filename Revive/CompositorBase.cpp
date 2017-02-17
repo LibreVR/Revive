@@ -132,9 +132,6 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 
 	m_SceneLayer = nullptr;
 
-	// Call PostPresentHandoff() to actually display the frame.
-	vr::VRCompositor()->PostPresentHandoff();
-
 	return error;
 }
 
