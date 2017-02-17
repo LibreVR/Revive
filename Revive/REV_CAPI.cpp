@@ -319,10 +319,14 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 	// Get the device poses
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	if (session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
-		vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
-	else
-		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+	{
+		std::lock_guard<std::mutex> lk(session->SubmitMutex);
+
+		if (session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
+			vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+		else
+			vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+	}
 
 	// Convert the head pose
 	state.HeadPose = rev_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
@@ -777,25 +781,30 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	if (layerCount == 0 || !layerPtrList)
 		return ovrError_InvalidParameter;
 
-	// Use our own intermediate compositor to convert the frame to OpenVR.
-	vr::EVRCompositorError err = session->Compositor->SubmitFrame(layerPtrList, layerCount);
+	vr::EVRCompositorError err = vr::VRCompositorError_None;
+	{
+		std::lock_guard<std::mutex> lk(session->SubmitMutex);
 
-	// Flip the profiler.
-	MicroProfileFlip();
+		// Use our own intermediate compositor to convert the frame to OpenVR.
+		err = session->Compositor->SubmitFrame(layerPtrList, layerCount);
 
-	// The frame has been submitted, so we can now safely refresh some settings from the settings interface.
-	rev_LoadTouchSettings(session);
-	InputManager::LoadSettings();
+		// Flip the profiler.
+		MicroProfileFlip();
 
-	// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
-	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
-		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+		// The frame has been submitted, so we can now safely refresh some settings from the settings interface.
+		rev_LoadTouchSettings(session);
+		InputManager::LoadSettings();
 
-	// Increment the frame index.
-	if (frameIndex == 0)
-		session->FrameIndex++;
-	else
-		session->FrameIndex = frameIndex;
+		// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
+		if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
+			vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+
+		// Increment the frame index.
+		if (frameIndex == 0)
+			session->FrameIndex++;
+		else
+			session->FrameIndex = frameIndex;
+	}
 
 	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
 
