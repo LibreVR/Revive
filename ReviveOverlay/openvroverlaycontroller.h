@@ -29,7 +29,7 @@ class COpenVROverlayController : public QObject
 	typedef QObject BaseClass;
 
 	Q_PROPERTY(bool gamepadFocus READ GetGamepadFocus)
-	Q_PROPERTY(bool loading READ GetLoading NOTIFY LoadingChanged)
+	Q_PROPERTY(bool loading READ GetLoading WRITE SetLoading NOTIFY LoadingChanged)
 	Q_PROPERTY(QString URL READ GetRuntimeURL NOTIFY RuntimeChanged)
 
 public:
@@ -52,6 +52,7 @@ public:
 	QString GetName() { return m_strName; }
 	bool GetGamepadFocus() { return m_bGamepadFocus && vr::VROverlay()->IsDashboardVisible(); }
 	bool GetLoading() { return m_bLoading; }
+	void SetLoading(bool loading) { m_bLoading = loading; emit LoadingChanged(); }
 	QString GetRuntimeURL() { return m_strRuntimeURL; }
 
 	void SetQuickItem( QQuickItem *pItem );

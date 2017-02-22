@@ -381,15 +381,12 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 		case vr::VREvent_SceneApplicationChanged:
 			// Ignore changed-to-compositor event
 			if (vrEvent.data.process.pid != 0)
-			{
-				m_bLoading = false;
-				emit LoadingChanged();
-			}
+				SetLoading(false);
 			break;
 
+		case vr::VREvent_ApplicationTransitionStarted:
 		case vr::VREvent_ApplicationTransitionNewAppStarted:
-			m_bLoading = true;
-			emit LoadingChanged();
+			SetLoading(true);
 			break;
 		}
 	}

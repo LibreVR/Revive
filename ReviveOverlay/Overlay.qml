@@ -92,10 +92,12 @@ Rectangle {
                     anchors.fill: parent
                     onHoveredChanged: coverGrid.currentIndex = index
                     onPressed: {
-                        if (Revive.launchApplication(appKey))
+                        if (Revive.launchApplication(appKey)) {
+                            OpenVR.loading = true;
                             activateSound.play();
-                        else
+                        } else {
                             failSound.play();
+                        }
                     }
                 }
             }
