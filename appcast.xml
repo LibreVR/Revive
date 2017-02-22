@@ -22,7 +22,7 @@
 			<pubDate>22 Feb 2017</pubDate>
 			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.0.5/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.0.5.0"
+					   sparkle:version="1.0.5.1"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>

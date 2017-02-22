@@ -233,6 +233,7 @@ bool CReviveManifestController::SetDefaults()
 	revive[REV_KEY_TOUCH_X] = REV_ROUND(REV_DEFAULT_TOUCH_X);
 	revive[REV_KEY_TOUCH_Y] = REV_ROUND(REV_DEFAULT_TOUCH_Y);
 	revive[REV_KEY_TOUCH_Z] = REV_ROUND(REV_DEFAULT_TOUCH_Z);
+	revive[REV_KEY_IGNORE_ACTIVITYLEVEL] = REV_DEFAULT_IGNORE_ACTIVITYLEVEL;
 
 	defaults[REV_SETTINGS_SECTION] = revive;
 	doc.setObject(defaults);

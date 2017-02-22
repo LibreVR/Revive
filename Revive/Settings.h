@@ -45,3 +45,6 @@ typedef enum revGripType_
 
 #define REV_KEY_TOUCH_Z						"TouchZ"
 #define REV_DEFAULT_TOUCH_Z					0.016f
+
+#define REV_KEY_IGNORE_ACTIVITYLEVEL		"IgnoreActivityLevel"
+#define REV_DEFAULT_IGNORE_ACTIVITYLEVEL	false
