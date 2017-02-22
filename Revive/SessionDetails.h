@@ -12,6 +12,11 @@ public:
 		// Calling WaitGetPoses() in ovr_GetTrackingState() allows Dirt Rally to do that work before
 		// we block waiting for running state.
 		HACK_WAIT_IN_TRACKING_STATE,
+
+		// Hack: Use a fake product name.
+		// Games like Ultrawings will actually check whether the product name contains the string
+		// "Oculus", so we use a fake name for the HMD to work around this issue.
+		HACK_FAKE_PRODUCT_NAME,
 	};
 
 	SessionDetails();

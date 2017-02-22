@@ -91,6 +91,10 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_ModelNumber_String, desc.ProductName, 64);
 	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_ManufacturerName_String, desc.Manufacturer, 64);
 
+	// Some games require a fake product name
+	if (session && session->Details->UseHack(SessionDetails::HACK_FAKE_PRODUCT_NAME))
+		strncpy(desc.ProductName, "Oculus Rift", 64);
+
 	// TODO: Get HID information
 	desc.VendorId = 0;
 	desc.ProductId = 0;

@@ -4,7 +4,8 @@
 #include <Shlwapi.h>
 
 SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
-	{"drt.exe", HACK_WAIT_IN_TRACKING_STATE, true},
+	{ "drt.exe", HACK_WAIT_IN_TRACKING_STATE, true },
+	{ "ultrawings.exe", HACK_FAKE_PRODUCT_NAME, true },
 };
 
 SessionDetails::SessionDetails()
@@ -15,7 +16,7 @@ SessionDetails::SessionDetails()
 
 	for (auto& hack : m_known_hacks)
 	{
-		if (strcmp(filename, hack.m_filename) == 0)
+		if (_stricmp(filename, hack.m_filename) == 0)
 			m_hacks.emplace(hack.m_hack, hack);
 	}
 }
