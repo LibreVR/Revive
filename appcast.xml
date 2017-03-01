@@ -5,24 +5,20 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.0.5</title>
+			<title>Version 1.0.6</title>
 			<description>
 			<![CDATA[
 				<h1>Bug fixes</h1>
 
 				<ul>
-				    <li>Reduced tracking latency in The Unspoken (#480)</li>
-				    <li>Fixed Oculus Games not starting correctly from the Revive Dashboard (#402, #478, #499)</li>
-				    <li>Fixed Ultrawings being stuck on "Waiting for controller" (#508)</li>
-				    <li>Fixed patching not working with the Steam version of Robinson: The Journey (#489)</li>
-				    <li>Added an option to ignore the headset proximity sensor (#376)</li>
+				    <li>Fixed dashboard starting the incorrect executable for Robo Recall (#520)</li>
 				</ul>
 			]]>
 			</description>
-			<pubDate>22 Feb 2017</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.0.5/ReviveInstaller.exe"
+			<pubDate>1 Mar 2017</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.0.6/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.0.5.1"
+					   sparkle:version="1.0.6.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
