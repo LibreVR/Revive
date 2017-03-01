@@ -7,21 +7,32 @@ function decodeHtml(str) {
 function generateManifest(manifest) {
     console.log("Generating manifest for " + manifest["canonicalName"]);
 
-    var launch = manifest["launchFile"].replace(/\//g, '\\');
+    var launch = manifest["launchFile"];
 
     // Find the true executable for Unreal Engine games
-    var shipping = /Binaries(\\|\/)Win64(\\|\/)(.*)\.exe/i;
+    var shipping = /-Shipping.exe$/i;
+    var binaries = /Binaries(\\|\/)Win64(\\|\/)(.*)\.exe/i;
     for (var file in manifest["files"]) {
-        if (file.indexOf("CrashReportClient.exe") == -1 && shipping.exec(file) != null) {
-            launch = file.replace(/\//g, '\\');
+        // Check if the executable is in the binaries folder
+        if (binaries.test(file)) {
+            launch = file;
+
+            // If we found the shipping executable we can immediately stop looking
+            if (shipping.test(file))
+                break;
         }
     }
+
+    // Replace the forward slashes with backslashes as used by Windows
+    // TODO: Move this to the injector
+    launch = launch.replace(/\//g, '\\');
 
     var parameters = "";
     if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None")
         parameters = " " + manifest["launchParameters"];
 
     // Some games need special arguments, seems like a great idea to hardcode them here
+    // TODO: Detect these arguments automatically from the file tree
     if (manifest["canonicalName"] == "epic-games-showdown")
         parameters = " ..\\..\\..\\ShowdownVRDemo\\ShowdownVRDemo.uproject";
     if (manifest["canonicalName"] == "hammerhead-vr-abe-vr")
