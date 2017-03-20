@@ -17,7 +17,7 @@ HMODULE GetXInputModule()
 typedef DWORD(__stdcall* _XInputGetState)(DWORD dwUserIndex, XINPUT_STATE* pState);
 DWORD WINAPI XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pState)
 {
-	_XInputGetState func = NULL;
+	static _XInputGetState func = NULL;
 	if (!func)
 		func = (_XInputGetState)GetProcAddress(GetXInputModule(), "XInputGetState");
 	return func(dwUserIndex, pState);
@@ -26,7 +26,7 @@ DWORD WINAPI XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pState)
 typedef DWORD(__stdcall* _XInputSetState)(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
 DWORD WINAPI XInputSetState(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration)
 {
-	_XInputSetState func = NULL;
+	static _XInputSetState func = NULL;
 	if (!func)
 		func = (_XInputSetState)GetProcAddress(GetXInputModule(), "XInputSetState");
 	return func(dwUserIndex, pVibration);
@@ -35,7 +35,7 @@ DWORD WINAPI XInputSetState(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration)
 typedef DWORD(__stdcall* _XInputGetCapabilities)(DWORD dwUserIndex, DWORD dwFlags, XINPUT_CAPABILITIES* pCapabilities);
 DWORD WINAPI XInputGetCapabilities(DWORD dwUserIndex, DWORD dwFlags, XINPUT_CAPABILITIES* pCapabilities)
 {
-	_XInputGetCapabilities func = NULL;
+	static _XInputGetCapabilities func = NULL;
 	if (!func)
 		func = (_XInputGetCapabilities)GetProcAddress(GetXInputModule(), "XInputGetCapabilities");
 	return func(dwUserIndex, dwFlags, pCapabilities);
@@ -44,7 +44,7 @@ DWORD WINAPI XInputGetCapabilities(DWORD dwUserIndex, DWORD dwFlags, XINPUT_CAPA
 typedef void(__stdcall* _XInputEnable)(BOOL enable);
 void WINAPI XInputEnable(BOOL enable)
 {
-	_XInputEnable func = NULL;
+	static _XInputEnable func = NULL;
 	if (!func)
 		func = (_XInputEnable)GetProcAddress(GetXInputModule(), "XInputEnable");
 	return func(enable);
@@ -53,7 +53,7 @@ void WINAPI XInputEnable(BOOL enable)
 typedef DWORD(__stdcall* _XInputGetDSoundAudioDeviceGuids)(DWORD dwUserIndex, GUID* pDSoundRenderGuid, GUID* pDSoundCaptureGuid);
 DWORD WINAPI XInputGetDSoundAudioDeviceGuids(DWORD dwUserIndex, GUID* pDSoundRenderGuid, GUID* pDSoundCaptureGuid)
 {
-	_XInputGetDSoundAudioDeviceGuids func = NULL;
+	static _XInputGetDSoundAudioDeviceGuids func = NULL;
 	if (!func)
 		func = (_XInputGetDSoundAudioDeviceGuids)GetProcAddress(GetXInputModule(), "XInputGetDSoundAudioDeviceGuids");
 	return func(dwUserIndex, pDSoundRenderGuid, pDSoundCaptureGuid);
@@ -62,7 +62,7 @@ DWORD WINAPI XInputGetDSoundAudioDeviceGuids(DWORD dwUserIndex, GUID* pDSoundRen
 typedef DWORD(__stdcall* _XInputGetBatteryInformation)(DWORD dwUserIndex, BYTE devType, XINPUT_BATTERY_INFORMATION* pBatteryInformation);
 DWORD WINAPI XInputGetBatteryInformation(DWORD dwUserIndex, BYTE devType, XINPUT_BATTERY_INFORMATION* pBatteryInformation)
 {
-	_XInputGetBatteryInformation func = NULL;
+	static _XInputGetBatteryInformation func = NULL;
 	if (!func)
 		func = (_XInputGetBatteryInformation)GetProcAddress(GetXInputModule(), "XInputGetBatteryInformation");
 	return func(dwUserIndex, devType, pBatteryInformation);
@@ -71,7 +71,7 @@ DWORD WINAPI XInputGetBatteryInformation(DWORD dwUserIndex, BYTE devType, XINPUT
 typedef DWORD(__stdcall* _XInputGetKeystroke)(DWORD dwUserIndex, DWORD dwReserved, PXINPUT_KEYSTROKE pKeystroke);
 DWORD WINAPI XInputGetKeystroke(DWORD dwUserIndex, DWORD dwReserved, PXINPUT_KEYSTROKE pKeystroke)
 {
-	_XInputGetKeystroke func = NULL;
+	static _XInputGetKeystroke func = NULL;
 	if (!func)
 		func = (_XInputGetKeystroke)GetProcAddress(GetXInputModule(), "XInputGetKeystroke");
 	return func(dwUserIndex, dwReserved, pKeystroke);
