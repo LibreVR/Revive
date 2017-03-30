@@ -10,7 +10,6 @@
 #include "Settings.h"
 
 #include <memory>
-#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -60,9 +59,6 @@ struct ovrHmdStruct
 	std::unique_ptr<CompositorBase> Compositor;
 	std::unique_ptr<InputManager> Input;
 	std::unique_ptr<SessionDetails> Details;
-
-	// Synchronisation
-	std::mutex SubmitMutex;
 
 	// Revive settings
 	float PixelsPerDisplayPixel;
