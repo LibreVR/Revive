@@ -320,11 +320,13 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		return state;
 
 	// Get the device poses
+	vr::ETrackingUniverseOrigin space = vr::VRCompositor()->GetTrackingSpace();
+	float relTime = float(absTime - ovr_GetTimeInSeconds());
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	if (session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
 		vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 	else
-		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(space, relTime, poses, vr::k_unMaxTrackedDeviceCount);
 
 	// Convert the head pose
 	state.HeadPose = rev_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
@@ -876,7 +878,13 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	float fSecondsSinceLastVsync;
 	uint64_t unFrame;
 	vr::VRSystem()->GetTimeSinceLastVsync(&fSecondsSinceLastVsync, &unFrame);
-	unFrame += frameIndex - session->FrameIndex;
+	if (frameIndex == 0)
+		unFrame++;
+	else
+		unFrame += frameIndex - session->FrameIndex;
+
+	// TODO: Where is this extra frame of latency coming from?
+	unFrame++;
 
 	// Predict the display time based on the display frequency and the vsync-to-photon latency
 	return double(unFrame) / fDisplayFrequency + fVsyncToPhotons;
