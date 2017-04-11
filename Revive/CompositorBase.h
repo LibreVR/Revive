@@ -10,7 +10,7 @@ public:
 	CompositorBase();
 	virtual ~CompositorBase();
 
-	virtual vr::EGraphicsAPIConvention GetAPI() = 0;
+	virtual vr::ETextureType GetAPI() = 0;
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain) = 0;

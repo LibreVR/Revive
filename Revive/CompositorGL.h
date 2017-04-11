@@ -13,7 +13,7 @@ public:
 	virtual ~CompositorGL();
 
 	static CompositorGL* Create();
-	virtual vr::EGraphicsAPIConvention GetAPI() { return vr::API_OpenGL; };
+	virtual vr::ETextureType GetAPI() { return vr::TextureType_OpenGL; };
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);

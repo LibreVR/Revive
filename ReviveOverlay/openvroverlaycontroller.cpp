@@ -240,7 +240,7 @@ void COpenVROverlayController::OnSceneChanged()
 	GLuint unTexture = m_pFbo->texture();
 	if( unTexture != 0 )
 	{
-		vr::Texture_t texture = {(void*)unTexture, vr::API_OpenGL, vr::ColorSpace_Auto };
+		vr::Texture_t texture = {(void*)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto };
 		vr::VROverlay()->SetOverlayTexture( m_ulOverlayHandle, &texture );
 	}
 }
@@ -512,7 +512,7 @@ void COpenVROverlayController::UpdateThumbnail()
 	GLuint unThumbnail = m_pThumbnailTexture->textureId();
 	if( unThumbnail != 0 )
 	{
-		vr::Texture_t thumbnail = {(void*)unThumbnail, vr::API_OpenGL, vr::ColorSpace_Auto };
+		vr::Texture_t thumbnail = {(void*)unThumbnail, vr::TextureType_OpenGL, vr::ColorSpace_Auto };
 		vr::VROverlay()->SetOverlayTexture( m_ulOverlayThumbnailHandle, &thumbnail );
 	}
 }

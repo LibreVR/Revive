@@ -5,7 +5,7 @@
 
 // Common structures
 
-ovrTextureSwapChainData::ovrTextureSwapChainData(vr::EGraphicsAPIConvention api, ovrTextureSwapChainDesc desc)
+ovrTextureSwapChainData::ovrTextureSwapChainData(vr::ETextureType api, ovrTextureSwapChainDesc desc)
 	: ApiType(api)
 	, Length(REV_SWAPCHAIN_LENGTH)
 	, CurrentIndex(0)
@@ -15,7 +15,7 @@ ovrTextureSwapChainData::ovrTextureSwapChainData(vr::EGraphicsAPIConvention api,
 	memset(Textures, 0, sizeof(Textures));
 }
 
-ovrMirrorTextureData::ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc)
+ovrMirrorTextureData::ovrMirrorTextureData(vr::ETextureType api, ovrMirrorTextureDesc desc)
 	: ApiType(api)
 	, Desc(desc)
 {

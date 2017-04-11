@@ -20,7 +20,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 			return ovrError_RuntimeException;
 	}
 
-	if (session->Compositor->GetAPI() != vr::API_OpenGL)
+	if (session->Compositor->GetAPI() != vr::TextureType_OpenGL)
 		return ovrError_RuntimeException;
 
 	return session->Compositor->CreateTextureSwapChain(desc, out_TextureSwapChain);
@@ -63,7 +63,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 			return ovrError_RuntimeException;
 	}
 
-	if (session->Compositor->GetAPI() != vr::API_OpenGL)
+	if (session->Compositor->GetAPI() != vr::TextureType_OpenGL)
 		return ovrError_RuntimeException;
 
 	return session->Compositor->CreateMirrorTexture(desc, out_MirrorTexture);

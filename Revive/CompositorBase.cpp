@@ -173,7 +173,7 @@ vr::VRTextureBounds_t CompositorBase::ViewportToTextureBounds(ovrRecti viewport,
 		bounds.vMax = 1.0f - bounds.vMax;
 	}
 
-	if (GetAPI() == vr::API_OpenGL)
+	if (GetAPI() == vr::TextureType_OpenGL)
 	{
 		bounds.vMin = 1.0f - bounds.vMin;
 		bounds.vMax = 1.0f - bounds.vMax;

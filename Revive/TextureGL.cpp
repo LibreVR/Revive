@@ -18,7 +18,7 @@ vr::Texture_t TextureGL::ToVRTexture()
 {
 	vr::Texture_t texture;
 	texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format
-	texture.eType = vr::API_OpenGL;
+	texture.eType = vr::TextureType_OpenGL;
 #pragma warning( disable : 4312 )
 	texture.handle = (void*)Texture;
 #pragma warning( default : 4312 )

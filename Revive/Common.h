@@ -23,23 +23,23 @@
 struct ovrTextureSwapChainData
 {
 	ovrTextureSwapChainDesc Desc;
-	vr::EGraphicsAPIConvention ApiType;
+	vr::ETextureType ApiType;
 	vr::VROverlayHandle_t Overlay;
 
 	int Length, CurrentIndex;
 	std::unique_ptr<TextureBase> Textures[REV_SWAPCHAIN_LENGTH];
 	TextureBase* Submitted;
 
-	ovrTextureSwapChainData(vr::EGraphicsAPIConvention api, ovrTextureSwapChainDesc desc);
+	ovrTextureSwapChainData(vr::ETextureType api, ovrTextureSwapChainDesc desc);
 };
 
 struct ovrMirrorTextureData
 {
 	ovrMirrorTextureDesc Desc;
-	vr::EGraphicsAPIConvention ApiType;
+	vr::ETextureType ApiType;
 	std::unique_ptr<TextureBase> Texture;
 
-	ovrMirrorTextureData(vr::EGraphicsAPIConvention api, ovrMirrorTextureDesc desc);
+	ovrMirrorTextureData(vr::ETextureType api, ovrMirrorTextureDesc desc);
 };
 
 struct ovrHmdStruct

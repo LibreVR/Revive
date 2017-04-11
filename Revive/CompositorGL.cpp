@@ -42,7 +42,7 @@ CompositorGL::~CompositorGL()
 
 ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
 {
-	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::API_OpenGL, *desc);
+	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::TextureType_OpenGL, *desc);
 
 	for (int i = 0; i < swapChain->Length; i++)
 	{
@@ -64,7 +64,7 @@ ovrResult CompositorGL::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ov
 	if (m_MirrorTexture)
 		return ovrError_RuntimeException;
 
-	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(vr::API_OpenGL, *desc);
+	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(vr::TextureType_OpenGL, *desc);
 	TextureGL* texture = new TextureGL();
 	bool success = texture->Create(desc->Width, desc->Height, 1, 1, desc->Format,
 		desc->MiscFlags, 0);

@@ -13,7 +13,7 @@ public:
 	virtual ~CompositorD3D();
 
 	static CompositorD3D* Create(IUnknown* d3dPtr);
-	virtual vr::EGraphicsAPIConvention GetAPI() { return vr::API_DirectX; };
+	virtual vr::ETextureType GetAPI() { return vr::TextureType_DirectX; };
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
