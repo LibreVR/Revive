@@ -308,6 +308,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	return ovrSuccess;
 }
 
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovrPosef originPose)
+{
+	// TODO: Implement through ApplyTransform()
+	return ovrSuccess;
+}
+
 OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session) { /* No such flag, do nothing */ }
 
 OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker)
@@ -438,6 +444,21 @@ typedef struct ovrInputState1_
 	ovrControllerType   ControllerType;
 } ovrInputState1;
 
+// Pre-1.11 input state
+typedef struct ovrInputState2_
+{
+	double              TimeInSeconds;
+	unsigned int        Buttons;
+	unsigned int        Touches;
+	float               IndexTrigger[ovrHand_Count];
+	float               HandTrigger[ovrHand_Count];
+	ovrVector2f         Thumbstick[ovrHand_Count];
+	ovrControllerType   ControllerType;
+	float               IndexTriggerNoDeadzone[ovrHand_Count];
+	float               HandTriggerNoDeadzone[ovrHand_Count];
+	ovrVector2f         ThumbstickNoDeadzone[ovrHand_Count];
+} ovrInputState2;
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
 	REV_TRACE(ovr_GetInputState);
@@ -453,7 +474,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 	// We need to make sure we don't write outside of the bounds of the struct
 	// when the client expects a pre-1.7 version of LibOVR.
-	if (g_MinorVersion < 7)
+	if (g_MinorVersion < 11)
+		memcpy(inputState, &state, sizeof(ovrInputState2));
+	else if (g_MinorVersion < 7)
 		memcpy(inputState, &state, sizeof(ovrInputState1));
 	else
 		memcpy(inputState, &state, sizeof(ovrInputState));
