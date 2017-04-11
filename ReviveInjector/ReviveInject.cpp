@@ -83,9 +83,6 @@ int CreateProcessAndInject(wchar_t *programPath) {
 
 	LOG("Injected dlls successfully\n");
 	ResumeThread(pi.hThread);
-#ifdef _DEBUG
-	WaitForSingleObject(pi.hThread, INFINITE);
-#endif
 	return 0;
 }
 

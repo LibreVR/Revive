@@ -9,4 +9,8 @@
 #define REV_UNIMPLEMENTED_STRUCT(s) REV_UNIMPLEMENTED; ##s stub; memset(&stub, 0, sizeof(stub)); return stub;
 #define REV_UNIMPLEMENTED_NULL REV_UNIMPLEMENTED; return NULL;
 #define REV_UNIMPLEMENTED_RUNTIME REV_UNIMPLEMENTED; return ovrError_RuntimeException;
+#if 0
+#define REV_TRACE(x) OutputDebugStringA("Revive: " #x "\n");
+#else
 #define REV_TRACE(x) MICROPROFILE_SCOPEI("Revive", #x, 0xff0000);
+#endif
