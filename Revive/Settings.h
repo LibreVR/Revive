@@ -23,19 +23,19 @@ typedef enum revGripType_
 #define REV_DEFAULT_THUMB_SENSITIVITY		2.0f
 
 #define REV_KEY_TOGGLE_GRIP					"ToggleGrip"
-#define REV_DEFAULT_TOGGLE_GRIP				revGrip_Normal
+#define REV_DEFAULT_TOGGLE_GRIP				revGrip_Hybrid
 
 #define REV_KEY_TOGGLE_DELAY				"ToggleDelay"
 #define REV_DEFAULT_TOGGLE_DELAY			0.5f
 
 #define REV_KEY_TOUCH_PITCH					"TouchPitch"
-#define REV_DEFAULT_TOUCH_PITCH				-28.0f
+#define REV_DEFAULT_TOUCH_PITCH				-36.0f
 
 #define REV_KEY_TOUCH_YAW					"TouchYaw"
 #define REV_DEFAULT_TOUCH_YAW				0.0f
 
 #define REV_KEY_TOUCH_ROLL					"TouchRoll"
-#define REV_DEFAULT_TOUCH_ROLL				-14.0f
+#define REV_DEFAULT_TOUCH_ROLL				0.0f
 
 #define REV_KEY_TOUCH_X						"TouchX"
 #define REV_DEFAULT_TOUCH_X					0.016f
