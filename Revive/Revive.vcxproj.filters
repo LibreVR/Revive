@@ -117,6 +117,9 @@
     <ClInclude Include="SessionDetails.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
+    <ClInclude Include="HapticsBuffer.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -165,6 +168,9 @@
       <Filter>Source Files\microprofile</Filter>
     </ClCompile>
     <ClCompile Include="SessionDetails.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="HapticsBuffer.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>
