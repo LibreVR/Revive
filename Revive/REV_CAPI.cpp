@@ -378,6 +378,57 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	return state;
 }
 
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
+{
+	// Get the device poses
+	vr::ETrackingUniverseOrigin space = vr::VRCompositor()->GetTrackingSpace();
+	float relTime = float(absTime - ovr_GetTimeInSeconds());
+	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(space, relTime, poses, vr::k_unMaxTrackedDeviceCount);
+
+	// Get the generic tracker indices
+	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount];
+	vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_GenericTracker, trackers, vr::k_unMaxTrackedDeviceCount);
+
+	for (int i = 0; i < deviceCount; i++)
+	{
+		// Get the index for device types we recognize
+		uint32_t index = vr::k_unTrackedDeviceIndexInvalid;
+		switch (deviceTypes[i])
+		{
+			case ovrTrackedDevice_HMD:
+				index = vr::k_unTrackedDeviceIndex_Hmd;
+				break;
+			case ovrTrackedDevice_LTouch:
+				index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+				break;
+			case ovrTrackedDevice_RTouch:
+				index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+				break;
+			case ovrTrackedDevice_Object0:
+				index = trackers[0];
+				break;
+			case ovrTrackedDevice_Object1:
+				index = trackers[1];
+				break;
+			case ovrTrackedDevice_Object2:
+				index = trackers[2];
+				break;
+			case ovrTrackedDevice_Object3:
+				index = trackers[3];
+				break;
+		}
+
+		// If the tracking index is invalid it will fall outside of the range of the array
+		if (index < vr::k_unMaxTrackedDeviceCount)
+			outDevicePoses[i] = rev_TrackedDevicePoseToOVRPose(poses[index], absTime);
+		else
+			return ovrError_DeviceUnavailable;
+	}
+
+	return ovrSuccess;
+}
+
 struct ovrSensorData_;
 typedef struct ovrSensorData_ ovrSensorData;
 
