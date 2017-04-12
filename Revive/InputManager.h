@@ -15,6 +15,8 @@ public:
 	class InputDevice
 	{
 	public:
+		virtual ~InputDevice() { }
+
 		// Input
 		virtual vr::ETrackedControllerRole GetRole() { return vr::TrackedControllerRole_Invalid; }
 		virtual ovrControllerType GetType() = 0;
@@ -31,7 +33,7 @@ public:
 	{
 	public:
 		OculusTouch(vr::ETrackedControllerRole role);
-		~OculusTouch();
+		virtual ~OculusTouch();
 
 		HapticsBuffer m_Haptics;
 
@@ -65,7 +67,7 @@ public:
 	{
 	public:
 		OculusRemote() { }
-		~OculusRemote() { }
+		virtual ~OculusRemote() { }
 
 		virtual ovrControllerType GetType() { return ovrControllerType_Remote; }
 		virtual bool IsConnected();
@@ -76,7 +78,7 @@ public:
 	{
 	public:
 		XboxGamepad() { }
-		~XboxGamepad() { }
+		virtual ~XboxGamepad() { }
 
 		virtual ovrControllerType GetType() { return ovrControllerType_XBox; }
 		virtual bool IsConnected();
