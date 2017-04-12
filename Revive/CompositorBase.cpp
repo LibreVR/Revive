@@ -42,10 +42,6 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 			}
 			activeOverlays.push_back(overlay);
 
-			// TODO: OpenVR only supports one high-quality overlay.
-			if (layer->Header.Flags & ovrLayerFlag_HighQuality)
-				vr::VROverlay()->SetHighQualityOverlay(overlay);
-
 			// Set the layer rendering order.
 			vr::VROverlay()->SetOverlaySortOrder(overlay, i);
 
@@ -64,6 +60,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 
 			// Show the overlay, unfortunately we have no control over the order in which
 			// overlays are drawn.
+			// TODO: Support ovrLayerFlag_HighQuality for overlays with anisotropic sampling.
 			// TODO: Handle overlay errors.
 			vr::VROverlay()->ShowOverlay(overlay);
 		}
