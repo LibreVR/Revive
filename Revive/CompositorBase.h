@@ -22,6 +22,7 @@ public:
 
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
 	vr::EVRCompositorError SubmitFrame(ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
+	static vr::VRTextureBounds_t FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov);
 
 protected:
 	const ovrLayerHeader* m_SceneLayer;

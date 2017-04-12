@@ -78,4 +78,3 @@ struct ovrHmdStruct
 OVR::Matrix4f rev_HmdMatrixToOVRMatrix(vr::HmdMatrix34_t m);
 OVR::Vector3f rev_HmdVectorToOVRVector(vr::HmdVector3_t v);
 vr::HmdMatrix34_t rev_OvrPoseToHmdMatrix(ovrPosef pose);
-vr::VRTextureBounds_t rev_FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov);

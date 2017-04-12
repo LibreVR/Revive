@@ -229,7 +229,7 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
 
 		// Shrink the bounds to account for the overlapping fov
-		vr::VRTextureBounds_t fovBounds = rev_FovPortToTextureBounds((ovrEyeType)i, fov[i]);
+		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds((ovrEyeType)i, fov[i]);
 
 		// Combine the fov bounds with the viewport bounds
 		bounds.uMin += fovBounds.uMin * bounds.uMax;
@@ -248,4 +248,32 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 void CompositorBase::SetMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
 	m_MirrorTexture = mirrorTexture;
+}
+
+vr::VRTextureBounds_t CompositorBase::FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov)
+{
+	vr::VRTextureBounds_t result;
+
+	// Get the headset field-of-view
+	float left, right, top, bottom;
+	vr::VRSystem()->GetProjectionRaw((vr::EVREye)eye, &left, &right, &top, &bottom);
+
+	// Adjust the bounds based on the field-of-view in the game
+	result.uMin = 0.5f + 0.5f * left / fov.LeftTan;
+	result.uMax = 0.5f + 0.5f * right / fov.RightTan;
+	result.vMin = 0.5f - 0.5f * bottom / fov.UpTan;
+	result.vMax = 0.5f - 0.5f * top / fov.DownTan;
+
+	// Sanitize the output
+	if (result.uMin < 0.0)
+		result.uMin = 0.0;
+	if (result.uMax > 1.0)
+		result.uMax = 1.0;
+
+	if (result.vMin < 0.0)
+		result.vMin = 0.0;
+	if (result.vMax > 1.0)
+		result.vMax = 1.0;
+
+	return result;
 }

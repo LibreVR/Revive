@@ -65,34 +65,6 @@ vr::HmdMatrix34_t rev_OvrPoseToHmdMatrix(ovrPosef pose)
 	return result;
 }
 
-vr::VRTextureBounds_t rev_FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov)
-{
-	vr::VRTextureBounds_t result;
-
-	// Get the headset field-of-view
-	float left, right, top, bottom;
-	vr::VRSystem()->GetProjectionRaw((vr::EVREye)eye, &left, &right, &top, &bottom);
-
-	// Adjust the bounds based on the field-of-view in the game
-	result.uMin = 0.5f + 0.5f * left / fov.LeftTan;
-	result.uMax = 0.5f + 0.5f * right / fov.RightTan;
-	result.vMin = 0.5f - 0.5f * bottom / fov.UpTan;
-	result.vMax = 0.5f - 0.5f * top / fov.DownTan;
-
-	// Sanitize the output
-	if (result.uMin < 0.0)
-		result.uMin = 0.0;
-	if (result.uMax > 1.0)
-		result.uMax = 1.0;
-
-	if (result.vMin < 0.0)
-		result.vMin = 0.0;
-	if (result.vMax > 1.0)
-		result.vMax = 1.0;
-
-	return result;
-}
-
 void ovrHmdStruct::LoadSettings()
 {
 	Deadzone = ovr_GetFloat(nullptr, REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE);
