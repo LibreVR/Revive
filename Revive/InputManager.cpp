@@ -7,10 +7,6 @@
 #include <Xinput.h>
 
 bool InputManager::m_bHapticsRunning;
-float InputManager::m_Deadzone;
-float InputManager::m_Sensitivity;
-revGripType InputManager::m_ToggleGrip;
-float InputManager::m_ToggleDelay;
 
 HapticsBuffer::HapticsBuffer()
 	: m_ReadIndex(0)
@@ -79,8 +75,6 @@ ovrHapticsPlaybackState HapticsBuffer::GetState()
 
 InputManager::InputManager()
 {
-	LoadSettings();
-
 	m_bHapticsRunning = true;
 
 	m_InputDevices.push_back(new XboxGamepad());
@@ -95,15 +89,6 @@ InputManager::~InputManager()
 
 	for (InputDevice* device : m_InputDevices)
 		delete device;
-}
-
-void InputManager::LoadSettings()
-{
-	// Get the thumb stick deadzone and range from the settings
-	m_Deadzone = ovr_GetFloat(nullptr, REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE);
-	m_Sensitivity = ovr_GetFloat(nullptr, REV_KEY_THUMB_SENSITIVITY, REV_DEFAULT_THUMB_SENSITIVITY);
-	m_ToggleGrip = (revGripType)ovr_GetInt(nullptr, REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);
-	m_ToggleDelay = ovr_GetFloat(nullptr, REV_KEY_TOGGLE_DELAY, REV_DEFAULT_TOGGLE_DELAY);
 }
 
 unsigned int InputManager::GetConnectedControllerTypes()
@@ -133,7 +118,7 @@ ovrResult InputManager::SetControllerVibration(ovrControllerType controllerType,
 	return ovrSuccess;
 }
 
-ovrResult InputManager::GetInputState(ovrControllerType controllerType, ovrInputState* inputState)
+ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
 	memset(inputState, 0, sizeof(ovrInputState));
 
@@ -144,7 +129,7 @@ ovrResult InputManager::GetInputState(ovrControllerType controllerType, ovrInput
 	{
 		if (controllerType & device->GetType() && device->IsConnected())
 		{
-			if (device->GetInputState(inputState))
+			if (device->GetInputState(session, inputState))
 				types |= device->GetType();
 		}
 	}
@@ -275,7 +260,7 @@ bool InputManager::OculusTouch::IsConnected()
 	return touch != vr::k_unTrackedDeviceIndexInvalid;
 }
 
-bool InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
+bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
 {
 	// Get controller index
 	vr::TrackedDeviceIndex_t touch = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
@@ -296,7 +281,7 @@ bool InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 		buttons |= (hand == ovrHand_Left) ? ovrButton_LShoulder : ovrButton_RShoulder;
 
 	// Allow users to enable a toggled grip.
-	if (m_ToggleGrip == revGrip_Hybrid)
+	if (session->ToggleGrip == revGrip_Hybrid)
 	{
 		if (IsPressed(state, vr::k_EButton_Grip))
 		{
@@ -309,14 +294,14 @@ bool InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 
 		if (IsReleased(state, vr::k_EButton_Grip))
 		{
-			if (ovr_GetTimeInSeconds() - m_GrippedTime > m_ToggleDelay)
+			if (ovr_GetTimeInSeconds() - m_GrippedTime > session->ToggleDelay)
 				m_Gripped = false;
 
 			// Next time we always want to release grip
 			m_GrippedTime = 0.0;
 		}
 	}
-	else if (m_ToggleGrip == revGrip_Toggle)
+	else if (session->ToggleGrip == revGrip_Toggle)
 	{
 		if (IsPressed(state, vr::k_EButton_Grip))
 			m_Gripped = !m_Gripped;
@@ -356,7 +341,7 @@ bool InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 				if (m_StickTouched)
 				{
 					ovrVector2f delta = { lastAxis.x - axis.x, lastAxis.y - axis.y };
-					ovrVector2f stick = { m_ThumbStick.x - delta.x * m_Sensitivity, m_ThumbStick.y - delta.y * m_Sensitivity };
+					ovrVector2f stick = { m_ThumbStick.x - delta.x * session->Sensitivity, m_ThumbStick.y - delta.y * session->Sensitivity };
 
 					//determine how far the controller is pushed
 					float magnitude = sqrt(stick.x*stick.x + stick.y*stick.y);
@@ -373,14 +358,14 @@ bool InputManager::OculusTouch::GetInputState(ovrInputState* inputState)
 
 						inputState->ThumbstickNoDeadzone[hand].x = m_ThumbStick.x;
 						inputState->ThumbstickNoDeadzone[hand].y = m_ThumbStick.y;
-						if (magnitude > m_Deadzone)
+						if (magnitude > session->Deadzone)
 						{
 							//adjust magnitude relative to the end of the dead zone
-							magnitude -= m_Deadzone;
+							magnitude -= session->Deadzone;
 
 							//optionally normalize the magnitude with respect to its expected range
 							//giving a magnitude value of 0.0 to 1.0
-							float normalizedMagnitude = magnitude / (1.0f - m_Deadzone);
+							float normalizedMagnitude = magnitude / (1.0f - session->Deadzone);
 							inputState->Thumbstick[hand].x = normalizedX * normalizedMagnitude;
 							inputState->Thumbstick[hand].y = normalizedY * normalizedMagnitude;
 						}
@@ -431,7 +416,7 @@ bool InputManager::OculusRemote::IsConnected()
 	return controllerCount == 1;
 }
 
-bool InputManager::OculusRemote::GetInputState(ovrInputState* inputState)
+bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState* inputState)
 {
 	// Get controller indices.
 	vr::TrackedDeviceIndex_t remote;
@@ -492,7 +477,7 @@ bool InputManager::XboxGamepad::IsConnected()
 	return XInputGetState(0, &input) == ERROR_SUCCESS;
 }
 
-bool InputManager::XboxGamepad::GetInputState(ovrInputState* inputState)
+bool InputManager::XboxGamepad::GetInputState(ovrSession session, ovrInputState* inputState)
 {
 	// Use XInput for Xbox controllers.
 	XINPUT_STATE state;

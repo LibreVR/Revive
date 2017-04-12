@@ -187,9 +187,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Get the default universe origin from the settings
 	vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)ovr_GetInt(session, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN));
 
-	// Get the touch offsets from the settings
-	rev_LoadTouchSettings(session);
-
 	// Get the render target multiplier
 	session->PixelsPerDisplayPixel = ovr_GetFloat(session, REV_KEY_PIXELS_PER_DISPLAY, REV_DEFAULT_PIXELS_PER_DISPLAY);
 
@@ -530,8 +527,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 	if (!inputState)
 		return ovrError_InvalidParameter;
 
-	ovrInputState state;
-	ovrResult result = session->Input->GetInputState(controllerType, &state);
+	ovrInputState state = { 0 };
+	ovrResult result = session->Input->GetInputState(session, controllerType, &state);
 
 	// We need to make sure we don't write outside of the bounds of the struct
 	// when the client expects a pre-1.7 version of LibOVR.
@@ -872,8 +869,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	MicroProfileFlip();
 
 	// The frame has been submitted, so we can now safely refresh some settings from the settings interface.
-	rev_LoadTouchSettings(session);
-	InputManager::LoadSettings();
+	session->LoadSettings();
 
 	// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))

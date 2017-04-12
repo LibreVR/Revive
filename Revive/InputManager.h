@@ -46,7 +46,7 @@ public:
 		virtual vr::ETrackedControllerRole GetRole() { return vr::TrackedControllerRole_Invalid; }
 		virtual ovrControllerType GetType() = 0;
 		virtual bool IsConnected() = 0;
-		virtual bool GetInputState(ovrInputState* inputState) = 0;
+		virtual bool GetInputState(ovrSession session, ovrInputState* inputState) = 0;
 
 		// Haptics
 		virtual void SetVibration(float frequency, float amplitude) { }
@@ -65,7 +65,7 @@ public:
 		virtual vr::ETrackedControllerRole GetRole() { return m_Role; }
 		virtual ovrControllerType GetType();
 		virtual bool IsConnected();
-		virtual bool GetInputState(ovrInputState* inputState);
+		virtual bool GetInputState(ovrSession session, ovrInputState* inputState);
 		virtual void SetVibration(float frequency, float amplitude) { m_Haptics.SetConstant(frequency, amplitude); }
 		virtual void SubmitVibration(const ovrHapticsBuffer* buffer) { m_Haptics.AddSamples(buffer); }
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { *outState = m_Haptics.GetState(); }
@@ -95,7 +95,7 @@ public:
 
 		virtual ovrControllerType GetType() { return ovrControllerType_Remote; }
 		virtual bool IsConnected();
-		virtual bool GetInputState(ovrInputState* inputState);
+		virtual bool GetInputState(ovrSession session, ovrInputState* inputState);
 	};
 
 	class XboxGamepad : public InputDevice
@@ -106,29 +106,23 @@ public:
 
 		virtual ovrControllerType GetType() { return ovrControllerType_XBox; }
 		virtual bool IsConnected();
-		virtual bool GetInputState(ovrInputState* inputState);
+		virtual bool GetInputState(ovrSession session, ovrInputState* inputState);
 		virtual void SetVibration(float frequency, float amplitude);
 	};
 
 	InputManager();
 	~InputManager();
 
-	static void LoadSettings();
 	unsigned int GetConnectedControllerTypes();
 	ovrTouchHapticsDesc GetTouchHapticsDesc(ovrControllerType controllerType);
 
 	ovrResult SetControllerVibration(ovrControllerType controllerType, float frequency, float amplitude);
-	ovrResult GetInputState(ovrControllerType controllerType, ovrInputState* inputState);
+	ovrResult GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState);
 	ovrResult SubmitControllerVibration(ovrControllerType controllerType, const ovrHapticsBuffer* buffer);
 	ovrResult GetControllerVibrationState(ovrControllerType controllerType, ovrHapticsPlaybackState* outState);
 
 protected:
 	std::vector<InputDevice*> m_InputDevices;
 	static bool m_bHapticsRunning;
-
-	static float m_Deadzone;
-	static float m_Sensitivity;
-	static revGripType m_ToggleGrip;
-	static float m_ToggleDelay;
 };
 

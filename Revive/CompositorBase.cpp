@@ -34,6 +34,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 			// Every overlay is associated with a swapchain.
 			// This is necessary because the position of the layer may change in the array,
 			// which would otherwise cause flickering between overlays.
+			// TODO: Support multiple overlays using the same texture.
 			vr::VROverlayHandle_t overlay = layer->ColorTexture->Overlay;
 			if (overlay == vr::k_ulOverlayHandleInvalid)
 			{
