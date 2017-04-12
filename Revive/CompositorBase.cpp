@@ -27,8 +27,6 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 		if (layerPtrList[i] == nullptr)
 			continue;
 
-		// Overlays are assumed to be monoscopic quads.
-		// TODO: Support stereoscopic layers, or at least display them as monoscopic layers.
 		if (layerPtrList[i]->Type == ovrLayerType_Quad)
 		{
 			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
@@ -44,9 +42,9 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 			}
 			activeOverlays.push_back(overlay);
 
-			// TODO: Set the high quality overlay when this is fixed in OpenVR.
-			//if (layer->Header.Flags & ovrLayerFlag_HighQuality)
-			//	vr::VROverlay()->SetHighQualityOverlay(overlay);
+			// TODO: OpenVR only supports one high-quality overlay.
+			if (layer->Header.Flags & ovrLayerFlag_HighQuality)
+				vr::VROverlay()->SetHighQualityOverlay(overlay);
 
 			// Add a depth bias to the pose based on the layer order.
 			// TODO: Account for the orientation.
