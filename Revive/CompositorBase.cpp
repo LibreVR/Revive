@@ -22,7 +22,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 {
 	// Other layers are interpreted as overlays.
 	std::vector<vr::VROverlayHandle_t> activeOverlays;
-	for (size_t i = 0; i < layerCount; i++)
+	for (uint32_t i = 0; i < layerCount; i++)
 	{
 		if (layerPtrList[i] == nullptr)
 			continue;
@@ -46,13 +46,11 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 			if (layer->Header.Flags & ovrLayerFlag_HighQuality)
 				vr::VROverlay()->SetHighQualityOverlay(overlay);
 
-			// Add a depth bias to the pose based on the layer order.
-			// TODO: Account for the orientation.
-			ovrPosef pose = layer->QuadPoseCenter;
-			pose.Position.z += (float)i * REV_LAYER_BIAS;
+			// Set the layer rendering order.
+			vr::VROverlay()->SetOverlaySortOrder(overlay, i);
 
 			// Transform the overlay.
-			vr::HmdMatrix34_t transform = rev_OvrPoseToHmdMatrix(pose);
+			vr::HmdMatrix34_t transform = rev_OvrPoseToHmdMatrix(layer->QuadPoseCenter);
 			vr::VROverlay()->SetOverlayWidthInMeters(overlay, layer->QuadSize.x);
 			if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
 				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
