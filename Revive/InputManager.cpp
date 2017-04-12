@@ -6,8 +6,6 @@
 #include <Windows.h>
 #include <Xinput.h>
 
-bool InputManager::m_bHapticsRunning;
-
 HapticsBuffer::HapticsBuffer()
 	: m_ReadIndex(0)
 	, m_WriteIndex(0)
@@ -75,8 +73,6 @@ ovrHapticsPlaybackState HapticsBuffer::GetState()
 
 InputManager::InputManager()
 {
-	m_bHapticsRunning = true;
-
 	m_InputDevices.push_back(new XboxGamepad());
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
@@ -85,8 +81,6 @@ InputManager::InputManager()
 
 InputManager::~InputManager()
 {
-	m_bHapticsRunning = false;
-
 	for (InputDevice* device : m_InputDevices)
 		delete device;
 }
@@ -184,7 +178,7 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 	std::chrono::microseconds freq(std::chrono::seconds(1));
 	freq /= REV_HAPTICS_SAMPLE_RATE;
 
-	while (m_bHapticsRunning)
+	while (device->m_bHapticsRunning)
 	{
 		vr::TrackedDeviceIndex_t touch = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(device->GetRole());
 
@@ -241,11 +235,18 @@ InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	, m_StickTouched(false)
 	, m_Gripped(false)
 	, m_GrippedTime(0.0)
+	, m_bHapticsRunning(true)
 {
 	memset(&m_LastState, 0, sizeof(m_LastState));
 	m_ThumbStick.x = m_ThumbStick.y = 0.0f;
 
 	m_HapticsThread = std::thread(HapticsThread, this);
+}
+
+InputManager::OculusTouch::~OculusTouch()
+{
+	m_bHapticsRunning = false;
+	m_HapticsThread.join();
 }
 
 ovrControllerType InputManager::OculusTouch::GetType()

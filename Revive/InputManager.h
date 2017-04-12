@@ -58,7 +58,7 @@ public:
 	{
 	public:
 		OculusTouch(vr::ETrackedControllerRole role);
-		~OculusTouch() { m_HapticsThread.join(); }
+		~OculusTouch();
 
 		HapticsBuffer m_Haptics;
 
@@ -71,6 +71,7 @@ public:
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { *outState = m_Haptics.GetState(); }
 
 	private:
+		bool m_bHapticsRunning;
 		vr::ETrackedControllerRole m_Role;
 		vr::VRControllerState_t m_LastState;
 
@@ -123,6 +124,5 @@ public:
 
 protected:
 	std::vector<InputDevice*> m_InputDevices;
-	static bool m_bHapticsRunning;
 };
 
