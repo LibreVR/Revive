@@ -95,7 +95,14 @@ public:
 	ovrResult SubmitControllerVibration(ovrControllerType controllerType, const ovrHapticsBuffer* buffer);
 	ovrResult GetControllerVibrationState(ovrControllerType controllerType, ovrHapticsPlaybackState* outState);
 
+	void GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime);
+	ovrResult GetDevicePoses(ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses);
+
 protected:
 	std::vector<InputDevice*> m_InputDevices;
+
+private:
+	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
+	ovrPoseStatef TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, double time);
 };
 

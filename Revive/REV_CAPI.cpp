@@ -322,108 +322,18 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	if (!session)
 		return state;
 
-	// Get the device poses
-	vr::ETrackingUniverseOrigin space = vr::VRCompositor()->GetTrackingSpace();
-	float relTime = float(absTime - ovr_GetTimeInSeconds());
-	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	if (session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
-		vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
-	else
-		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(space, relTime, poses, vr::k_unMaxTrackedDeviceCount);
-
-	// Convert the head pose
-	state.HeadPose = rev_TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
-	state.StatusFlags = rev_TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
-
-	// Convert the hand poses
-	vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
-		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
-	for (int i = 0; i < ovrHand_Count; i++)
-	{
-		vr::TrackedDeviceIndex_t deviceIndex = hands[i];
-		if (deviceIndex == vr::k_unTrackedDeviceIndexInvalid)
-		{
-			state.HandPoses[i].ThePose = OVR::Posef::Identity();
-			continue;
-		}
-
-		vr::TrackedDevicePose_t pose;
-		vr::VRSystem()->ApplyTransform(&pose, &poses[deviceIndex], &session->TouchOffset[i]);
-		state.HandPoses[i] = rev_TrackedDevicePoseToOVRPose(pose, absTime);
-		state.HandStatusFlags[i] = rev_TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
-	}
-
-	if (space == vr::TrackingUniverseSeated)
-	{
-		OVR::Matrix4f origin = rev_HmdMatrixToOVRMatrix(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
-
-		// The calibrated origin should be the location of the seated origin relative to the absolute tracking space.
-		// It currently describes the location of the absolute origin relative to the seated origin, so we have to invert it.
-		origin.Invert();
-
-		state.CalibratedOrigin.Orientation = OVR::Quatf(origin);
-		state.CalibratedOrigin.Position = origin.GetTranslation();
-	}
-	else
-	{
-		// In a standing universe we don't calibrate the origin outside of the room setup, thus this should always be the
-		// identity matrix.
-		state.CalibratedOrigin.Orientation = OVR::Quatf::Identity();
-		state.CalibratedOrigin.Position = OVR::Vector3f();
-	}
-
+	session->Input->GetTrackingState(session, &state, absTime);
 	return state;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
 {
-	// Get the device poses
-	vr::ETrackingUniverseOrigin space = vr::VRCompositor()->GetTrackingSpace();
-	float relTime = float(absTime - ovr_GetTimeInSeconds());
-	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(space, relTime, poses, vr::k_unMaxTrackedDeviceCount);
+	REV_TRACE(ovr_GetDevicePoses);
 
-	// Get the generic tracker indices
-	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount];
-	vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_GenericTracker, trackers, vr::k_unMaxTrackedDeviceCount);
+	if (!session)
+		return ovrError_InvalidSession;
 
-	for (int i = 0; i < deviceCount; i++)
-	{
-		// Get the index for device types we recognize
-		uint32_t index = vr::k_unTrackedDeviceIndexInvalid;
-		switch (deviceTypes[i])
-		{
-			case ovrTrackedDevice_HMD:
-				index = vr::k_unTrackedDeviceIndex_Hmd;
-				break;
-			case ovrTrackedDevice_LTouch:
-				index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
-				break;
-			case ovrTrackedDevice_RTouch:
-				index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
-				break;
-			case ovrTrackedDevice_Object0:
-				index = trackers[0];
-				break;
-			case ovrTrackedDevice_Object1:
-				index = trackers[1];
-				break;
-			case ovrTrackedDevice_Object2:
-				index = trackers[2];
-				break;
-			case ovrTrackedDevice_Object3:
-				index = trackers[3];
-				break;
-		}
-
-		// If the tracking index is invalid it will fall outside of the range of the array
-		if (index < vr::k_unMaxTrackedDeviceCount)
-			outDevicePoses[i] = rev_TrackedDevicePoseToOVRPose(poses[index], absTime);
-		else
-			return ovrError_DeviceUnavailable;
-	}
-
-	return ovrSuccess;
+	return session->Input->GetDevicePoses(deviceTypes, deviceCount, absTime, outDevicePoses);
 }
 
 struct ovrSensorData_;

@@ -75,9 +75,7 @@ struct ovrHmdStruct
 
 // Common functions
 
-unsigned int rev_TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 OVR::Matrix4f rev_HmdMatrixToOVRMatrix(vr::HmdMatrix34_t m);
 OVR::Vector3f rev_HmdVectorToOVRVector(vr::HmdVector3_t v);
 vr::HmdMatrix34_t rev_OvrPoseToHmdMatrix(ovrPosef pose);
-ovrPoseStatef rev_TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, double time);
 vr::VRTextureBounds_t rev_FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov);
