@@ -1,7 +1,9 @@
 #pragma once
 
-#include <OVR_CAPI.h>
-#include <openvr.h>
+#include "TextureBase.h"
+#include "OVR_CAPI.h"
+#include "openvr.h"
+
 #include <vector>
 
 class CompositorBase

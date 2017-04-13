@@ -1,43 +1,14 @@
 #pragma once
 
-#include "OVR_CAPI.h"
-#include "openvr.h"
-#include "CompositorBase.h"
-#include "SessionDetails.h"
-#include "InputManager.h"
-#include "TextureBase.h"
-#include "Settings.h"
-
+#include <OVR_CAPI.h>
+#include <openvr.h>
 #include <memory>
 
-// Common definitions
-
-#define REV_SWAPCHAIN_LENGTH 2
-#define REV_DEFAULT_TIMEOUT 10000
-
-// Common structures
-
-struct ovrTextureSwapChainData
-{
-	ovrTextureSwapChainDesc Desc;
-	vr::ETextureType ApiType;
-	vr::VROverlayHandle_t Overlay;
-
-	int Length, CurrentIndex;
-	std::unique_ptr<TextureBase> Textures[REV_SWAPCHAIN_LENGTH];
-	TextureBase* Submitted;
-
-	ovrTextureSwapChainData(vr::ETextureType api, ovrTextureSwapChainDesc desc);
-};
-
-struct ovrMirrorTextureData
-{
-	ovrMirrorTextureDesc Desc;
-	vr::ETextureType ApiType;
-	std::unique_ptr<TextureBase> Texture;
-
-	ovrMirrorTextureData(vr::ETextureType api, ovrMirrorTextureDesc desc);
-};
+// Forward declarations
+enum revGripType;
+class CompositorBase;
+class InputManager;
+class SessionDetails;
 
 struct ovrHmdStruct
 {

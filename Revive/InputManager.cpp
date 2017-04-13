@@ -1,5 +1,8 @@
 #include "InputManager.h"
 #include "Common.h"
+#include "SessionDetails.h"
+#include "Settings.h"
+
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
 

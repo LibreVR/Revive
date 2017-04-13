@@ -176,6 +176,9 @@
     <ClCompile Include="HapticsBuffer.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
+    <ClCompile Include="TextureBase.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CompositorShader.hlsl">

@@ -2,13 +2,19 @@
 #include "OVR_Version.h"
 #include "REV_Math.h"
 
-#include "openvr.h"
-#include "MinHook.h"
-#include <DXGI.h>
-
 #include "Assert.h"
 #include "Common.h"
 #include "Error.h"
+#include "CompositorBase.h"
+#include "SessionDetails.h"
+#include "InputManager.h"
+#include "Settings.h"
+
+#include <openvr.h>
+#include <MinHook.h>
+#include <DXGI.h>
+
+#define REV_DEFAULT_TIMEOUT 10000
 
 vr::EVRInitError g_InitError = vr::VRInitError_None;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;

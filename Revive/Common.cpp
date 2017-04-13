@@ -1,25 +1,9 @@
 #include "Common.h"
 #include "REV_Math.h"
-
-#include <stdio.h>
-
-// Common structures
-
-ovrTextureSwapChainData::ovrTextureSwapChainData(vr::ETextureType api, ovrTextureSwapChainDesc desc)
-	: ApiType(api)
-	, Length(REV_SWAPCHAIN_LENGTH)
-	, CurrentIndex(0)
-	, Desc(desc)
-	, Overlay(vr::k_ulOverlayHandleInvalid)
-{
-	memset(Textures, 0, sizeof(Textures));
-}
-
-ovrMirrorTextureData::ovrMirrorTextureData(vr::ETextureType api, ovrMirrorTextureDesc desc)
-	: ApiType(api)
-	, Desc(desc)
-{
-}
+#include "CompositorBase.h"
+#include "SessionDetails.h"
+#include "InputManager.h"
+#include "Settings.h"
 
 ovrHmdStruct::ovrHmdStruct()
 	: ShouldQuit(false)

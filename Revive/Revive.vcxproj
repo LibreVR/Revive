@@ -248,6 +248,7 @@
     <ClCompile Include="REV_CAPI_GL.cpp" />
     <ClCompile Include="REV_CAPI_Util.cpp" />
     <ClCompile Include="Common.cpp" />
+    <ClCompile Include="TextureBase.cpp" />
     <ClCompile Include="TextureD3D.cpp" />
     <ClCompile Include="TextureGL.cpp" />
     <ClCompile Include="xinput.cpp" />

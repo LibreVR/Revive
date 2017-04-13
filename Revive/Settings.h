@@ -1,11 +1,11 @@
 #pragma once
 
-typedef enum revGripType_
+enum revGripType
 {
 	revGrip_Normal = 0,
 	revGrip_Toggle = 1,
 	revGrip_Hybrid = 2,
-} revGripType;
+};
 
 #define REV_SETTINGS_SECTION				"revive"
 #define REV_ROUND(x)						round((double)x * pow(10.0, 4)) / pow(10.0, 4);
