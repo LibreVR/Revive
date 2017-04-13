@@ -29,7 +29,7 @@ void ovrHmdStruct::LoadSettings()
 	Sensitivity = ovr_GetFloat(this, REV_KEY_THUMB_SENSITIVITY, REV_DEFAULT_THUMB_SENSITIVITY);
 	ToggleGrip = (revGripType)ovr_GetInt(this, REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);
 	ToggleDelay = ovr_GetFloat(this, REV_KEY_TOGGLE_DELAY, REV_DEFAULT_TOGGLE_DELAY);
-	IgnoreActivity = ovr_GetBool(this, REV_KEY_IGNORE_ACTIVITYLEVEL, REV_DEFAULT_IGNORE_ACTIVITYLEVEL);
+	IgnoreActivity = !!ovr_GetBool(this, REV_KEY_IGNORE_ACTIVITYLEVEL, REV_DEFAULT_IGNORE_ACTIVITYLEVEL);
 
 	OVR::Vector3f angles(
 		OVR::DegreeToRad(ovr_GetFloat(this, REV_KEY_TOUCH_PITCH, REV_DEFAULT_TOUCH_PITCH)),
