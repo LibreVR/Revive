@@ -216,9 +216,7 @@
     <ClInclude Include="SessionDetails.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Session.h" />
-    <ClInclude Include="..\LibOVR\Include\Extras\OVR_CAPI_Util.h" />
     <ClInclude Include="..\LibOVR\Include\Extras\OVR_Math.h" />
-    <ClInclude Include="..\LibOVR\Include\Extras\OVR_StereoProjection.h" />
     <ClInclude Include="..\LibOVR\Include\OVR_CAPI.h" />
     <ClInclude Include="..\LibOVR\Include\OVR_CAPI_Audio.h" />
     <ClInclude Include="..\LibOVR\Include\OVR_CAPI_D3D.h" />
@@ -246,7 +244,6 @@
     <ClCompile Include="REV_CAPI_Audio.cpp" />
     <ClCompile Include="REV_CAPI_D3D.cpp" />
     <ClCompile Include="REV_CAPI_GL.cpp" />
-    <ClCompile Include="REV_CAPI_Util.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="TextureBase.cpp" />
     <ClCompile Include="TextureD3D.cpp" />
