@@ -34,6 +34,7 @@ struct ovrHmdStruct
 	float Sensitivity;
 	revGripType ToggleGrip;
 	float ToggleDelay;
+	bool IgnoreActivity;
 	ovrVector3f RotationOffset, PositionOffset;
 	vr::HmdMatrix34_t TouchOffset[ovrHand_Count];
 

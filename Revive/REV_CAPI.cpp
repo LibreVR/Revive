@@ -258,7 +258,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 
 	// Don't use the activity level while debugging, so I don't have to put on the HMD
 	vr::EDeviceActivityLevel activityLevel = vr::k_EDeviceActivityLevel_Unknown;
-	if (!ovr_GetBool(session, REV_KEY_IGNORE_ACTIVITYLEVEL, REV_DEFAULT_IGNORE_ACTIVITYLEVEL))
+	if (!session->IgnoreActivity)
 		activityLevel = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd);
 
 	// Detect if the application has focus, but only return false the first time the status is requested.
