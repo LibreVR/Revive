@@ -1,6 +1,7 @@
 #include "InputManager.h"
-#include "OVR_CAPI.h"
 #include "Common.h"
+#include "OVR_CAPI.h"
+#include "REV_Math.h"
 
 #include <openvr.h>
 #include <Windows.h>
@@ -131,14 +132,14 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 
 	OVR::Matrix4f matrix;
 	if (pose.bPoseIsValid)
-		matrix = rev_HmdMatrixToOVRMatrix(pose.mDeviceToAbsoluteTracking);
+		matrix = REV::Matrix4f(pose.mDeviceToAbsoluteTracking);
 	else
 		return result;
 
 	result.ThePose.Orientation = OVR::Quatf(matrix);
 	result.ThePose.Position = matrix.GetTranslation();
-	result.AngularVelocity = rev_HmdVectorToOVRVector(pose.vAngularVelocity);
-	result.LinearVelocity = rev_HmdVectorToOVRVector(pose.vVelocity);
+	result.AngularVelocity = REV::Vector3f(pose.vAngularVelocity);
+	result.LinearVelocity = REV::Vector3f(pose.vVelocity);
 	// TODO: Calculate acceleration.
 	result.AngularAcceleration = ovrVector3f();
 	result.LinearAcceleration = ovrVector3f();
@@ -182,7 +183,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 
 	if (space == vr::TrackingUniverseSeated)
 	{
-		OVR::Matrix4f origin = rev_HmdMatrixToOVRMatrix(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
+		REV::Matrix4f origin = (REV::Matrix4f)vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose();
 
 		// The calibrated origin should be the location of the seated origin relative to the absolute tracking space.
 		// It currently describes the location of the absolute origin relative to the seated origin, so we have to invert it.

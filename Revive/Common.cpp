@@ -1,5 +1,5 @@
 #include "Common.h"
-#include "Extras/OVR_Math.h"
+#include "REV_Math.h"
 
 #include <stdio.h>
 
@@ -37,32 +37,6 @@ ovrHmdStruct::ovrHmdStruct()
 	memset(TouchOffset, 0, sizeof(TouchOffset));
 
 	LoadSettings();
-}
-
-// Common functions
-
-OVR::Matrix4f rev_HmdMatrixToOVRMatrix(vr::HmdMatrix34_t m)
-{
-	OVR::Matrix4f r;
-	memcpy(r.M, m.m, sizeof(vr::HmdMatrix34_t));
-	return r;
-}
-
-OVR::Vector3f rev_HmdVectorToOVRVector(vr::HmdVector3_t v)
-{
-	OVR::Vector3f r;
-	r.x = v.v[0];
-	r.y = v.v[1];
-	r.z = v.v[2];
-	return r;
-}
-
-vr::HmdMatrix34_t rev_OvrPoseToHmdMatrix(ovrPosef pose)
-{
-	vr::HmdMatrix34_t result;
-	OVR::Matrix4f matrix(pose);
-	memcpy(result.m, matrix.M, sizeof(result.m));
-	return result;
 }
 
 void ovrHmdStruct::LoadSettings()

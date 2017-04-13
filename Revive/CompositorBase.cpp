@@ -1,5 +1,8 @@
 #include "CompositorBase.h"
 #include "Common.h"
+#include "OVR_CAPI.h"
+#include "REV_Math.h"
+#include "openvr.h"
 
 #include <vector>
 #include <algorithm>
@@ -47,7 +50,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 			vr::VROverlay()->SetOverlaySortOrder(overlay, i);
 
 			// Transform the overlay.
-			vr::HmdMatrix34_t transform = rev_OvrPoseToHmdMatrix(layer->QuadPoseCenter);
+			vr::HmdMatrix34_t transform = REV::Matrix4f(layer->QuadPoseCenter);
 			vr::VROverlay()->SetOverlayWidthInMeters(overlay, layer->QuadSize.x);
 			if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
 				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);

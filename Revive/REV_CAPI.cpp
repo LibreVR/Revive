@@ -1,6 +1,6 @@
 #include "OVR_CAPI.h"
 #include "OVR_Version.h"
-#include "Extras/OVR_Math.h"
+#include "REV_Math.h"
 
 #include "openvr.h"
 #include "MinHook.h"
@@ -381,9 +381,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 	}
 
 	// Convert the pose
-	OVR::Matrix4f matrix;
+	REV::Matrix4f matrix;
 	if (index != vr::k_unTrackedDeviceIndexInvalid && pose.bPoseIsValid)
-		matrix = rev_HmdMatrixToOVRMatrix(pose.mDeviceToAbsoluteTracking);
+		matrix = REV::Matrix4f(pose.mDeviceToAbsoluteTracking);
 
 	// We need to mirror the orientation along either the X or Y axis
 	OVR::Quatf quat = OVR::Quatf(matrix);
@@ -512,7 +512,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDe
 	if (deviceBitmask & ovrTrackedDevice_HMD)
 	{
 		ovrBoundaryTestResult result = { 0 };
-		OVR::Matrix4f matrix = rev_HmdMatrixToOVRMatrix(poses[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking);
+		REV::Matrix4f matrix = (REV::Matrix4f)poses[vr::k_unTrackedDeviceIndex_Hmd].mDeviceToAbsoluteTracking;
 		ovrVector3f point = matrix.GetTranslation();
 
 		ovrResult err = ovr_TestBoundaryPoint(session, &point, boundaryType, &result);
@@ -531,7 +531,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDe
 			ovrBoundaryTestResult result = { 0 };
 			if (hands[i] != vr::k_unTrackedDeviceIndexInvalid)
 			{
-				OVR::Matrix4f matrix = rev_HmdMatrixToOVRMatrix(poses[hands[i]].mDeviceToAbsoluteTracking);
+				REV::Matrix4f matrix = (REV::Matrix4f)poses[hands[i]].mDeviceToAbsoluteTracking;
 				ovrVector3f point = matrix.GetTranslation();
 
 				ovrResult err = ovr_TestBoundaryPoint(session, &point, boundaryType, &result);
@@ -746,7 +746,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrE
 	desc.Eye = eyeType;
 	desc.Fov = fov;
 
-	OVR::Matrix4f HmdToEyeMatrix = rev_HmdMatrixToOVRMatrix(vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)eyeType));
+	REV::Matrix4f HmdToEyeMatrix = (REV::Matrix4f)vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)eyeType);
 	float WidthTan = fov.LeftTan + fov.RightTan;
 	float HeightTan = fov.UpTan + fov.DownTan;
 	ovrSizei size;

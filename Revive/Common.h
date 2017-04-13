@@ -1,7 +1,6 @@
 #pragma once
 
 #include "OVR_CAPI.h"
-#include "Extras/OVR_Math.h"
 #include "openvr.h"
 #include "CompositorBase.h"
 #include "SessionDetails.h"
@@ -10,8 +9,6 @@
 #include "Settings.h"
 
 #include <memory>
-#include <thread>
-#include <vector>
 
 // Common definitions
 
@@ -66,15 +63,9 @@ struct ovrHmdStruct
 	float Sensitivity;
 	revGripType ToggleGrip;
 	float ToggleDelay;
-	OVR::Vector3f RotationOffset, PositionOffset;
+	ovrVector3f RotationOffset, PositionOffset;
 	vr::HmdMatrix34_t TouchOffset[ovrHand_Count];
 
 	ovrHmdStruct();
 	void LoadSettings();
 };
-
-// Common functions
-
-OVR::Matrix4f rev_HmdMatrixToOVRMatrix(vr::HmdMatrix34_t m);
-OVR::Vector3f rev_HmdVectorToOVRVector(vr::HmdVector3_t v);
-vr::HmdMatrix34_t rev_OvrPoseToHmdMatrix(ovrPosef pose);
