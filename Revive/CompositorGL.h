@@ -14,6 +14,7 @@ public:
 
 	static CompositorGL* Create();
 	virtual vr::ETextureType GetAPI() { return vr::TextureType_OpenGL; };
+	virtual void Flush() { glFlush(); };
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);

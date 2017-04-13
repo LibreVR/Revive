@@ -14,6 +14,7 @@ public:
 
 	static CompositorD3D* Create(IUnknown* d3dPtr);
 	virtual vr::ETextureType GetAPI() { return vr::TextureType_DirectX; };
+	virtual void Flush() { m_pContext->Flush(); };
 
 	// Texture Swapchain
 	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
