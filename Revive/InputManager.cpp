@@ -1,5 +1,5 @@
 #include "InputManager.h"
-#include "Common.h"
+#include "Session.h"
 #include "SessionDetails.h"
 #include "Settings.h"
 

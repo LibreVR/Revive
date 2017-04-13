@@ -1,6 +1,6 @@
 #include "OVR_CAPI_GL.h"
 #include "Assert.h"
-#include "Common.h"
+#include "Session.h"
 #include "CompositorGL.h"
 #include "TextureGL.h"
 

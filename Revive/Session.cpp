@@ -1,4 +1,4 @@
-#include "Common.h"
+#include "Session.h"
 #include "REV_Math.h"
 #include "CompositorBase.h"
 #include "SessionDetails.h"

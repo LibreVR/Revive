@@ -3,7 +3,7 @@
 #include "REV_Math.h"
 
 #include "Assert.h"
-#include "Common.h"
+#include "Session.h"
 #include "Error.h"
 #include "CompositorBase.h"
 #include "SessionDetails.h"

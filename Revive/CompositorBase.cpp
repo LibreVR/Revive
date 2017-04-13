@@ -1,5 +1,4 @@
 #include "CompositorBase.h"
-#include "Common.h"
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
 #include "openvr.h"

@@ -72,9 +72,6 @@
     <ClInclude Include="Assert.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
-    <ClInclude Include="Common.h">
-      <Filter>Header Files\LibRevive</Filter>
-    </ClInclude>
     <ClInclude Include="Error.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
@@ -123,13 +120,13 @@
     <ClInclude Include="REV_Math.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
+    <ClInclude Include="Session.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Common.cpp">
-      <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="REV_CAPI_Util.cpp">
       <Filter>Source Files\LibOVR</Filter>
@@ -177,6 +174,9 @@
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="TextureBase.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="Session.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>
