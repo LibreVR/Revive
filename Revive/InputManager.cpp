@@ -423,49 +423,48 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 			if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
 			{
-				if (m_StickTouched)
+				if (m_LastState.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
 				{
 					ovrVector2f delta = { lastAxis.x - axis.x, lastAxis.y - axis.y };
 					ovrVector2f stick = { m_ThumbStick.x - delta.x * session->Sensitivity, m_ThumbStick.y - delta.y * session->Sensitivity };
 
-					//determine how far the controller is pushed
+					// Determine how far the controller is pushed
 					float magnitude = sqrt(stick.x*stick.x + stick.y*stick.y);
 					if (magnitude > 0.0f)
 					{
-						//determine the direction the controller is pushed
+						// Determine the direction the controller is pushed
 						float normalizedX = stick.x / magnitude;
 						float normalizedY = stick.y / magnitude;
 
-						//clip the magnitude at its expected maximum value and recenter
+						// Clip the magnitude at its expected maximum value and recenter
 						if (magnitude > 1.0f) magnitude = 1.0f;
 						m_ThumbStick.x = normalizedX * magnitude;
 						m_ThumbStick.y = normalizedY * magnitude;
 
-						inputState->ThumbstickNoDeadzone[hand].x = m_ThumbStick.x;
-						inputState->ThumbstickNoDeadzone[hand].y = m_ThumbStick.y;
 						if (magnitude > session->Deadzone)
 						{
-							//adjust magnitude relative to the end of the dead zone
+							// Adjust magnitude relative to the end of the dead zone
 							magnitude -= session->Deadzone;
 
-							//optionally normalize the magnitude with respect to its expected range
-							//giving a magnitude value of 0.0 to 1.0
+							// Optionally normalize the magnitude with respect to its expected range
+							// giving a magnitude value of 0.0 to 1.0
 							float normalizedMagnitude = magnitude / (1.0f - session->Deadzone);
 							inputState->Thumbstick[hand].x = normalizedX * normalizedMagnitude;
 							inputState->Thumbstick[hand].y = normalizedY * normalizedMagnitude;
+
+							// Since we don't have a physical thumbstick we always want a deadzone
+							// before we activate the stick, but we don't normalize it here
+							inputState->ThumbstickNoDeadzone[hand].x = m_ThumbStick.x;
+							inputState->ThumbstickNoDeadzone[hand].y = m_ThumbStick.y;
 						}
 					}
 				}
-
-				if (quadrant & (ovrButton_LThumb | ovrButton_RThumb))
-					m_StickTouched = true;
 
 				touches |= quadrant;
 			}
 			else
 			{
 				// Touchpad was released, reset the thumbstick
-				m_StickTouched = false;
 				m_ThumbStick.x = m_ThumbStick.y = 0.0f;
 
 				touches |= (hand == ovrHand_Left) ? ovrTouch_LThumbUp : ovrTouch_RThumbUp;
