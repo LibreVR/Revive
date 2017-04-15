@@ -240,6 +240,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 		return ovrError_InvalidParameter;
 
 	// Check for quit event
+	// TODO: The SteamVR beta has a tendency to hang here for some unknown reason
+	// re-enable this code when the bug is fixed.
+#if 0
 	vr::VREvent_t ev;
 	while (vr::VRSystem()->PollNextEvent(&ev, sizeof(vr::VREvent_t)))
 	{
@@ -249,6 +252,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 			vr::VRSystem()->AcknowledgeQuit_Exiting();
 		}
 	}
+#endif
 
 	// Don't use the activity level while debugging, so I don't have to put on the HMD
 	vr::EDeviceActivityLevel activityLevel = vr::k_EDeviceActivityLevel_Unknown;
