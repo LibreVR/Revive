@@ -10,7 +10,6 @@ ovrHmdStruct::ovrHmdStruct()
 	, IsVisible(false)
 	, FrameIndex(0)
 	, StatsIndex(0)
-	, PixelsPerDisplayPixel(0.0f)
 	, NextLoadTime(0.0)
 	, Compositor(nullptr)
 	, Input(new InputManager())
@@ -20,6 +19,9 @@ ovrHmdStruct::ovrHmdStruct()
 	memset(&ResetStats, 0, sizeof(ResetStats));
 	memset(Stats, 0, sizeof(Stats));
 	memset(TouchOffset, 0, sizeof(TouchOffset));
+
+	// Get the render target multiplier
+	PixelsPerDisplayPixel = ovr_GetFloat(this, REV_KEY_PIXELS_PER_DISPLAY, REV_DEFAULT_PIXELS_PER_DISPLAY);
 
 	LoadSettings();
 }

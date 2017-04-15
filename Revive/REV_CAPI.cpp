@@ -190,9 +190,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Get the default universe origin from the settings
 	vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)ovr_GetInt(session, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN));
 
-	// Get the render target multiplier
-	session->PixelsPerDisplayPixel = ovr_GetFloat(session, REV_KEY_PIXELS_PER_DISPLAY, REV_DEFAULT_PIXELS_PER_DISPLAY);
-
 	// Get the LUID for the default adapter
 	int32_t index;
 	vr::VRSystem()->GetDXGIOutputInfo(&index);
