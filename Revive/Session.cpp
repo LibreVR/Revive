@@ -11,6 +11,7 @@ ovrHmdStruct::ovrHmdStruct()
 	, FrameIndex(0)
 	, StatsIndex(0)
 	, PixelsPerDisplayPixel(0.0f)
+	, NextLoadTime(0.0)
 	, Compositor(nullptr)
 	, Input(new InputManager())
 	, Details(new SessionDetails())
@@ -25,6 +26,12 @@ ovrHmdStruct::ovrHmdStruct()
 
 void ovrHmdStruct::LoadSettings()
 {
+	// Only refresh the settings once per second
+	double absTime = ovr_GetTimeInSeconds();
+	if (absTime < NextLoadTime)
+		return;
+	NextLoadTime = absTime + 1.0;
+
 	Deadzone = ovr_GetFloat(this, REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE);
 	Sensitivity = ovr_GetFloat(this, REV_KEY_THUMB_SENSITIVITY, REV_DEFAULT_THUMB_SENSITIVITY);
 	ToggleGrip = (revGripType)ovr_GetInt(this, REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);

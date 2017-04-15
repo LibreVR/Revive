@@ -29,6 +29,7 @@ struct ovrHmdStruct
 	std::unique_ptr<SessionDetails> Details;
 
 	// Revive settings
+	double NextLoadTime;
 	float PixelsPerDisplayPixel;
 	float Deadzone;
 	float Sensitivity;
