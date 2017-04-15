@@ -764,6 +764,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 {
 	REV_TRACE(ovr_SubmitFrame);
 
+	MICROPROFILE_META_CPU("Submit", frameIndex);
+
 	// TODO: Implement scaling through ApplyTransform().
 
 	if (!session || !session->Compositor)
@@ -857,6 +859,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetPerfStats(ovrSession session)
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
 {
 	REV_TRACE(ovr_GetPredictedDisplayTime);
+
+	MICROPROFILE_META_CPU("Predict", frameIndex);
 
 	if (!session)
 		return ovrError_InvalidSession;
