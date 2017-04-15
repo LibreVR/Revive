@@ -13,6 +13,7 @@
 #include <openvr.h>
 #include <MinHook.h>
 #include <DXGI.h>
+#include <wrl/client.h>
 
 #define REV_DEFAULT_TIMEOUT 10000
 
@@ -190,20 +191,20 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Get the default universe origin from the settings
 	vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)ovr_GetInt(session, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN));
 
-	// Get the LUID for the default adapter
+	// Get the LUID for the OpenVR adapter
 	int32_t index;
 	vr::VRSystem()->GetDXGIOutputInfo(&index);
 	if (index == -1)
 		index = 0;
 
-	// Create the DXGI factory
-	IDXGIFactory* pFactory;
-	HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)(&pFactory));
+	// Get the DXGI adapter matching the index
+	Microsoft::WRL::ComPtr<IDXGIFactory> pFactory;
+	HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)pFactory.GetAddressOf());
 	if (FAILED(hr))
 		return ovrError_IncompatibleGPU;
 
-	IDXGIAdapter* pAdapter;
-	hr = pFactory->EnumAdapters(index, &pAdapter);
+	Microsoft::WRL::ComPtr<IDXGIAdapter> pAdapter;
+	hr = pFactory->EnumAdapters(index, pAdapter.GetAddressOf());
 	if (FAILED(hr))
 		return ovrError_MismatchedAdapters;
 
@@ -213,11 +214,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		return ovrError_MismatchedAdapters;
 
 	// Copy the LUID into the structure
-	memcpy(pLuid, &desc.AdapterLuid, sizeof(LUID));
+	static_assert(sizeof(desc.AdapterLuid) == sizeof(ovrGraphicsLuid),
+		"The adapter LUID needs to fit in ovrGraphicsLuid");
+	memcpy(pLuid, &desc.AdapterLuid, sizeof(ovrGraphicsLuid));
 
-	// Cleanup and return
-	pFactory->Release();
-	pAdapter->Release();
 	*pSession = session;
 	return ovrSuccess;
 }
