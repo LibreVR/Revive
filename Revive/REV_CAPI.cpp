@@ -187,9 +187,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new ovrHmdStruct();
 
-	// First call to WaitGetPoses() to update the poses
-	vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-
 	// Get the default universe origin from the settings
 	vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)ovr_GetInt(session, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN));
 
