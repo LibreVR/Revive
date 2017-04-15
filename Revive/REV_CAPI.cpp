@@ -658,6 +658,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session,
 	if (!chain)
 		return ovrError_InvalidParameter;
 
+	MICROPROFILE_META_CPU("Identifier", chain->Identifier);
 	*out_Length = chain->Length;
 	return ovrSuccess;
 }
@@ -669,6 +670,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession se
 	if (!chain)
 		return ovrError_InvalidParameter;
 
+	MICROPROFILE_META_CPU("Identifier", chain->Identifier);
+	MICROPROFILE_META_CPU("Index", chain->CurrentIndex);
 	*out_Index = chain->CurrentIndex;
 	return ovrSuccess;
 }
@@ -680,6 +683,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, o
 	if (!chain)
 		return ovrError_InvalidParameter;
 
+	MICROPROFILE_META_CPU("Identifier", chain->Identifier);
 	*out_Desc = chain->Desc;
 	return ovrSuccess;
 }
@@ -691,6 +695,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	if (!chain)
 		return ovrError_InvalidParameter;
 
+	MICROPROFILE_META_CPU("Identifier", chain->Identifier);
+	MICROPROFILE_META_CPU("Index", chain->CurrentIndex);
 	chain->Submitted = chain->Textures[chain->CurrentIndex].get();
 	chain->CurrentIndex++;
 	chain->CurrentIndex %= chain->Length;
@@ -704,6 +710,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTex
 	if (!chain)
 		return;
 
+	MICROPROFILE_META_CPU("Identifier", chain->Identifier);
 	vr::VROverlay()->DestroyOverlay(chain->Overlay);
 	delete chain;
 }
@@ -764,7 +771,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 {
 	REV_TRACE(ovr_SubmitFrame);
 
-	MICROPROFILE_META_CPU("Submit", frameIndex);
+	MICROPROFILE_META_CPU("Submit Frame", (int)frameIndex);
 
 	// TODO: Implement scaling through ApplyTransform().
 
@@ -860,7 +867,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 {
 	REV_TRACE(ovr_GetPredictedDisplayTime);
 
-	MICROPROFILE_META_CPU("Predict", frameIndex);
+	MICROPROFILE_META_CPU("Predict Frame", (int)frameIndex);
 
 	if (!session)
 		return ovrError_InvalidSession;

@@ -42,6 +42,7 @@ CompositorGL::~CompositorGL()
 ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
 {
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::TextureType_OpenGL, *desc);
+	swapChain->Identifier = m_ChainCount++;
 
 	for (int i = 0; i < swapChain->Length; i++)
 	{

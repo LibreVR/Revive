@@ -28,6 +28,7 @@ public:
 	static vr::VRTextureBounds_t FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov);
 
 protected:
+	unsigned int m_ChainCount;
 	const ovrLayerHeader* m_SceneLayer;
 	ovrMirrorTexture m_MirrorTexture;
 

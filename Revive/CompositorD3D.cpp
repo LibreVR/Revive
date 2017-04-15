@@ -86,6 +86,7 @@ CompositorD3D::~CompositorD3D()
 ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
 {
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::TextureType_DirectX, *desc);
+	swapChain->Identifier = m_ChainCount++;
 
 	for (int i = 0; i < swapChain->Length; i++)
 	{

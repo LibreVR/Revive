@@ -24,6 +24,7 @@ struct ovrTextureSwapChainData
 	vr::ETextureType ApiType;
 	vr::VROverlayHandle_t Overlay;
 
+	unsigned int Identifier;
 	int Length, CurrentIndex;
 	std::unique_ptr<TextureBase> Textures[REV_SWAPCHAIN_LENGTH];
 	TextureBase* Submitted;

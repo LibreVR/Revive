@@ -1,15 +1,21 @@
 #include "CompositorBase.h"
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
-#include "openvr.h"
+#include "microprofile.h"
 
+#include <openvr.h>
 #include <vector>
 #include <algorithm>
 
 #define REV_LAYER_BIAS 0.0001f
 
+MICROPROFILE_DEFINE(SubmitFrame, "Compositor", "SubmitFrame", 0x00ff00);
+MICROPROFILE_DEFINE(SubmitFovLayer, "Compositor", "SubmitFovLayer", 0x00ff00);
+MICROPROFILE_DEFINE(SubmitSceneLayer, "Compositor", "SubmitSceneLayer", 0x00ff00);
+
 CompositorBase::CompositorBase()
 	: m_MirrorTexture(nullptr)
+	, m_ChainCount(0)
 {
 	m_SceneLayer = nullptr;
 }
@@ -22,6 +28,8 @@ CompositorBase::~CompositorBase()
 
 vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
+	MICROPROFILE_SCOPE(SubmitFrame);
+
 	// Other layers are interpreted as overlays.
 	std::vector<vr::VROverlayHandle_t> activeOverlays;
 	for (uint32_t i = 0; i < layerCount; i++)
@@ -188,6 +196,10 @@ ovrFovPort CompositorBase::MatrixToFovPort(ovrMatrix4f matrix)
 
 void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
 {
+	MICROPROFILE_SCOPE(SubmitFovLayer);
+	MICROPROFILE_META_CPU("SwapChain Right", swapChain[ovrEye_Right]->Identifier);
+	MICROPROFILE_META_CPU("SwapChain Left", swapChain[ovrEye_Left]->Identifier);
+
 	// Render the scene layer
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
@@ -224,6 +236,10 @@ void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort 
 
 vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
 {
+	MICROPROFILE_SCOPE(SubmitSceneLayer);
+	MICROPROFILE_META_CPU("SwapChain Right", swapChain[ovrEye_Right]->Identifier);
+	MICROPROFILE_META_CPU("SwapChain Left", swapChain[ovrEye_Left]->Identifier);
+
 	// Submit the scene layer.
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
