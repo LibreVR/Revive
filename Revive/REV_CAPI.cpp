@@ -446,10 +446,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 	// We need to make sure we don't write outside of the bounds of the struct
 	// when the client expects a pre-1.7 version of LibOVR.
-	if (g_MinorVersion < 11)
-		memcpy(inputState, &state, sizeof(ovrInputState2));
-	else if (g_MinorVersion < 7)
+	if (g_MinorVersion < 7)
 		memcpy(inputState, &state, sizeof(ovrInputState1));
+	else if (g_MinorVersion < 11)
+		memcpy(inputState, &state, sizeof(ovrInputState2));
 	else
 		memcpy(inputState, &state, sizeof(ovrInputState));
 
