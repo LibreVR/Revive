@@ -139,7 +139,10 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 	else
 		return result;
 
-	result.ThePose.Orientation = OVR::Quatf(matrix);
+	// Make sure the angle of the rotation stays positive this prevents linear interpolations
+	// from suddenly flipping the long way around in Oculus Medium.
+	OVR::Quatf q(matrix);
+	result.ThePose.Orientation = q.w < 0.0f ? -q : q;
 	result.ThePose.Position = matrix.GetTranslation();
 	result.AngularVelocity = REV::Vector3f(pose.vAngularVelocity);
 	result.LinearVelocity = REV::Vector3f(pose.vVelocity);
