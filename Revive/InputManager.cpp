@@ -155,7 +155,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 {
 	// Get the device poses
 	vr::ETrackingUniverseOrigin space = vr::VRCompositor()->GetTrackingSpace();
-	float relTime = float(absTime - ovr_GetTimeInSeconds());
+	float relTime = absTime > 0.0f ? float(absTime - ovr_GetTimeInSeconds()) : 0.0f;
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	if (session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
 		vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
