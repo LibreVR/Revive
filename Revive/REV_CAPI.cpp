@@ -348,7 +348,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingStateWithSensorData(ovrSess
 	REV_TRACE(ovr_GetTrackingStateWithSensorData);
 
 	// This is a private API, ignore the raw sensor data request and hope for the best.
-	_ASSERT(sensorData == nullptr);
+	REV_ASSERT(sensorData == nullptr);
 
 	return ovr_GetTrackingState(session, absTime, latencyMarker);
 }
