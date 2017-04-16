@@ -111,6 +111,9 @@
     <PostBuildEvent>
       <Command>copy /Y "$(SolutionDir)openvr\bin\win32"  "$(TargetDir)"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\LibOVR\Include</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -139,6 +142,9 @@
     <PostBuildEvent>
       <Command>copy /Y "$(SolutionDir)openvr\bin\win64"  "$(TargetDir)"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\LibOVR\Include</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -170,6 +176,9 @@
     <PostBuildEvent>
       <Command>copy /Y "$(SolutionDir)openvr\bin\win32"  "$(TargetDir)"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\LibOVR\Include</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -201,6 +210,9 @@
     <PostBuildEvent>
       <Command>copy /Y "$(SolutionDir)openvr\bin\win64"  "$(TargetDir)"</Command>
     </PostBuildEvent>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>..\LibOVR\Include</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\microprofile\microprofile.h" />
@@ -277,6 +289,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="xinput.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Revive.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
