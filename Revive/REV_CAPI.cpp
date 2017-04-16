@@ -881,13 +881,15 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	float fSecondsSinceLastVsync;
 	uint64_t unFrame;
 	vr::VRSystem()->GetTimeSinceLastVsync(&fSecondsSinceLastVsync, &unFrame);
+
+	// Round up to the next frame so we predict far enough
+	unFrame++;
+
+	// Advance the frame count based on how many frames we're predicting ahead
 	if (frameIndex == 0)
 		unFrame++;
 	else
 		unFrame += frameIndex - session->FrameIndex;
-
-	// TODO: Where is this extra frame of latency coming from?
-	unFrame++;
 
 	// Predict the display time based on the display frequency and the vsync-to-photon latency
 	return double(unFrame) / fDisplayFrequency + fVsyncToPhotons;
