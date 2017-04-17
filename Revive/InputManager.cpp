@@ -12,6 +12,9 @@
 
 InputManager::InputManager()
 {
+	m_LastHandPoses[ovrHand_Left] = OVR::Posef::Identity();
+	m_LastHandPoses[ovrHand_Right] = OVR::Posef::Identity();
+
 	m_InputDevices.push_back(new XboxGamepad());
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
@@ -139,10 +142,7 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 	else
 		return result;
 
-	// Make sure the angle of the rotation stays positive this prevents linear interpolations
-	// from suddenly flipping the long way around in Oculus Medium.
-	OVR::Quatf q(matrix);
-	result.ThePose.Orientation = q.w < 0.0f ? -q : q;
+	result.ThePose.Orientation = OVR::Quatf(matrix);
 	result.ThePose.Position = matrix.GetTranslation();
 	result.AngularVelocity = REV::Vector3f(pose.vAngularVelocity);
 	result.LinearVelocity = REV::Vector3f(pose.vVelocity);
@@ -185,6 +185,13 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		vr::VRSystem()->ApplyTransform(&pose, &poses[deviceIndex], &session->TouchOffset[i]);
 		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(pose, absTime);
 		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
+
+		// Make sure the dot product of the rotation stays positive with respect to the previous rotation,
+		// this prevents linear interpolations from suddenly flipping the long way around in Oculus Medium.
+		OVR::Quatf q(outState->HandPoses[i].ThePose.Orientation);
+		if (q.Dot(m_LastHandPoses[i].Orientation) < 0.0f)
+			outState->HandPoses[i].ThePose.Orientation = -q;
+		m_LastHandPoses[i] = outState->HandPoses[i].ThePose;
 	}
 
 	if (space == vr::TrackingUniverseSeated)

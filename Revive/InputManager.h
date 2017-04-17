@@ -102,6 +102,7 @@ public:
 
 protected:
 	std::vector<InputDevice*> m_InputDevices;
+	ovrPosef m_LastHandPoses[ovrHand_Count];
 
 private:
 	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
