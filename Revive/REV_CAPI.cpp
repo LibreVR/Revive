@@ -807,48 +807,101 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	return rev_CompositorErrorToOvrError(err);
 }
 
+typedef struct OVR_ALIGNAS(4) ovrPerfStatsPerCompositorFrame1_
+{
+	int     HmdVsyncIndex;
+	int     AppFrameIndex;
+	int     AppDroppedFrameCount;
+	float   AppMotionToPhotonLatency;
+	float   AppQueueAheadTime;
+	float   AppCpuElapsedTime;
+	float   AppGpuElapsedTime;
+	int     CompositorFrameIndex;
+	int     CompositorDroppedFrameCount;
+	float   CompositorLatency;
+	float   CompositorCpuElapsedTime;
+	float   CompositorGpuElapsedTime;
+	float   CompositorCpuStartToGpuEndElapsedTime;
+	float   CompositorGpuEndToVsyncElapsedTime;
+} ovrPerfStatsPerCompositorFrame1;
+
+typedef struct OVR_ALIGNAS(4) ovrPerfStats1_
+{
+	ovrPerfStatsPerCompositorFrame1  FrameStats[ovrMaxProvidedFrameStats];
+	int                             FrameStatsCount;
+	ovrBool                         AnyFrameStatsDropped;
+	float                           AdaptiveGpuPerformanceScale;
+} ovrPerfStats1;
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats* outStats)
 {
 	REV_TRACE(ovr_GetPerfStats);
 
-	memset(outStats, 0, sizeof(ovrPerfStats));
+	ovrPerfStatsPerCompositorFrame FrameStats[ovrMaxProvidedFrameStats];
 
 	// TODO: Implement performance scale heuristics
-	outStats->AdaptiveGpuPerformanceScale = 1.0f;
-	outStats->AnyFrameStatsDropped = (session->FrameIndex - session->StatsIndex) > ovrMaxProvidedFrameStats;
-	outStats->FrameStatsCount = outStats->AnyFrameStatsDropped ? ovrMaxProvidedFrameStats : int(session->FrameIndex - session->StatsIndex);
+	float AdaptiveGpuPerformanceScale = 1.0f;
+	bool AnyFrameStatsDropped = (session->FrameIndex - session->StatsIndex) > ovrMaxProvidedFrameStats;
+	int FrameStatsCount = AnyFrameStatsDropped ? ovrMaxProvidedFrameStats : int(session->FrameIndex - session->StatsIndex);
 	session->StatsIndex = session->FrameIndex;
 
 	float fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
 	float fDisplayFrequency = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
 	float fFrameDuration = 1.0f / fDisplayFrequency;
-	for (int i = 0; i < outStats->FrameStatsCount; i++)
+	for (int i = 0; i < FrameStatsCount; i++)
 	{
 		vr::Compositor_FrameTiming timing;
 		timing.m_nSize = sizeof(vr::Compositor_FrameTiming);
 		if (!vr::VRCompositor()->GetFrameTiming(&timing, i))
 			return ovrError_RuntimeException;
 
-		ovrPerfStatsPerCompositorFrame* stats = &outStats->FrameStats[i];
-		stats->HmdVsyncIndex = timing.m_nFrameIndex - session->ResetStats.HmdVsyncIndex;
-		stats->AppFrameIndex = (int)session->FrameIndex - session->ResetStats.AppFrameIndex;
-		stats->AppDroppedFrameCount = session->Stats[i].m_nNumDroppedFrames - session->ResetStats.AppDroppedFrameCount;
-		// TODO: Improve latency handling with sensor timestamps and latency markers
-		stats->AppMotionToPhotonLatency = (fFrameDuration * timing.m_nNumFramePresents) + fVsyncToPhotons;
-		stats->AppQueueAheadTime = timing.m_flCompositorIdleCpuMs / 1000.0f;
-		stats->AppCpuElapsedTime = timing.m_flClientFrameIntervalMs / 1000.0f;
-		stats->AppGpuElapsedTime = timing.m_flPreSubmitGpuMs / 1000.0f;
+		ovrPerfStatsPerCompositorFrame& stats = FrameStats[i];
 
-		stats->CompositorFrameIndex = session->Stats[i].m_nNumFramePresents - session->ResetStats.CompositorFrameIndex;
-		stats->CompositorDroppedFrameCount = (session->Stats[i].m_nNumDroppedFramesOnStartup +
+		stats.HmdVsyncIndex = timing.m_nFrameIndex - session->ResetStats.HmdVsyncIndex;
+		stats.AppFrameIndex = (int)session->FrameIndex - session->ResetStats.AppFrameIndex;
+		stats.AppDroppedFrameCount = session->Stats[i].m_nNumDroppedFrames - session->ResetStats.AppDroppedFrameCount;
+		// TODO: Improve latency handling with sensor timestamps and latency markers
+		stats.AppMotionToPhotonLatency = fFrameDuration + fVsyncToPhotons;
+		stats.AppQueueAheadTime = timing.m_flCompositorIdleCpuMs / 1000.0f;
+		stats.AppCpuElapsedTime = timing.m_flClientFrameIntervalMs / 1000.0f;
+		stats.AppGpuElapsedTime = timing.m_flPreSubmitGpuMs / 1000.0f;
+
+		stats.CompositorFrameIndex = session->Stats[i].m_nNumFramePresents - session->ResetStats.CompositorFrameIndex;
+		stats.CompositorDroppedFrameCount = (session->Stats[i].m_nNumDroppedFramesOnStartup +
 			session->Stats[i].m_nNumDroppedFramesLoading + session->Stats[i].m_nNumDroppedFramesTimedOut) -
 			session->ResetStats.CompositorDroppedFrameCount;
-		stats->CompositorLatency = fVsyncToPhotons; // OpenVR doesn't have timewarp
-		stats->CompositorCpuElapsedTime = timing.m_flCompositorRenderCpuMs / 1000.0f;
-		stats->CompositorGpuElapsedTime = timing.m_flCompositorRenderGpuMs / 1000.0f;
-		stats->CompositorCpuStartToGpuEndElapsedTime = ((timing.m_flCompositorRenderStartMs + timing.m_flCompositorRenderGpuMs) -
+		stats.CompositorLatency = fVsyncToPhotons; // OpenVR doesn't have timewarp
+		stats.CompositorCpuElapsedTime = timing.m_flCompositorRenderCpuMs / 1000.0f;
+		stats.CompositorGpuElapsedTime = timing.m_flCompositorRenderGpuMs / 1000.0f;
+		stats.CompositorCpuStartToGpuEndElapsedTime = ((timing.m_flCompositorRenderStartMs + timing.m_flCompositorRenderGpuMs) -
 			timing.m_flNewFrameReadyMs) / 1000.0f;
-		stats->CompositorGpuEndToVsyncElapsedTime = fFrameDuration - timing.m_flTotalRenderGpuMs / 1000.0f;
+		stats.CompositorGpuEndToVsyncElapsedTime = fFrameDuration - timing.m_flTotalRenderGpuMs / 1000.0f;
+
+		// TODO: Asynchronous Spacewap is not supported in OpenVR
+		stats.AswIsActive = ovrFalse;
+		stats.AswActivatedToggleCount = 0;
+		stats.AswPresentedFrameCount = 0;
+		stats.AswFailedFrameCount = 0;
+	}
+
+	// We need to make sure we don't write outside of the bounds of the struct in older version of the runtime
+	if (g_MinorVersion < 11)
+	{
+		ovrPerfStats1* out = (ovrPerfStats1*)outStats;
+		for (int i = 0; i < FrameStatsCount; i++)
+			memcpy(out->FrameStats + i, FrameStats + i, sizeof(ovrPerfStatsPerCompositorFrame1));
+		out->AdaptiveGpuPerformanceScale = AdaptiveGpuPerformanceScale;
+		out->AnyFrameStatsDropped = AnyFrameStatsDropped;
+		out->FrameStatsCount = FrameStatsCount;
+	}
+	else
+	{
+		ovrPerfStats* out = outStats;
+		memcpy(out->FrameStats, FrameStats, sizeof(FrameStats));
+		out->AdaptiveGpuPerformanceScale = AdaptiveGpuPerformanceScale;
+		out->AnyFrameStatsDropped = AnyFrameStatsDropped;
+		out->FrameStatsCount = FrameStatsCount;
+		out->AswIsAvailable = ovrFalse;
 	}
 
 	return ovrSuccess;
