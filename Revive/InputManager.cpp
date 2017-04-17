@@ -11,9 +11,11 @@
 #include <Xinput.h>
 
 InputManager::InputManager()
+	: m_InputDevices()
+	, m_LastPoses()
 {
-	m_LastHandPoses[ovrHand_Left] = OVR::Posef::Identity();
-	m_LastHandPoses[ovrHand_Right] = OVR::Posef::Identity();
+	for (ovrPoseStatef& pose : m_LastPoses)
+		pose.ThePose = OVR::Posef::Identity();
 
 	m_InputDevices.push_back(new XboxGamepad());
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
@@ -131,25 +133,29 @@ unsigned int InputManager::TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePo
 	return result;
 }
 
-ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, double time)
+ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, ovrPoseStatef& lastPose, double time)
 {
-	ovrPoseStatef result = { 0 };
-	result.ThePose = OVR::Posef::Identity();
-
-	OVR::Matrix4f matrix;
-	if (pose.bPoseIsValid)
-		matrix = REV::Matrix4f(pose.mDeviceToAbsoluteTracking);
-	else
+	ovrPoseStatef result = { OVR::Posef::Identity() };
+	if (!pose.bPoseIsValid)
 		return result;
 
-	result.ThePose.Orientation = OVR::Quatf(matrix);
+	OVR::Matrix4f matrix = REV::Matrix4f(pose.mDeviceToAbsoluteTracking);
+
+	// Make sure the orientation stays in the same hemisphere as the previous orientation, this prevents
+	// linear interpolations from suddenly flipping the long way around in Oculus Medium.
+	OVR::Quatf q(matrix);
+	q.EnsureSameHemisphere(lastPose.ThePose.Orientation);
+
+	result.ThePose.Orientation = q;
 	result.ThePose.Position = matrix.GetTranslation();
-	result.AngularVelocity = REV::Vector3f(pose.vAngularVelocity);
-	result.LinearVelocity = REV::Vector3f(pose.vVelocity);
-	// TODO: Calculate acceleration.
-	result.AngularAcceleration = ovrVector3f();
-	result.LinearAcceleration = ovrVector3f();
+	result.AngularVelocity = (REV::Vector3f)pose.vAngularVelocity;
+	result.LinearVelocity = (REV::Vector3f)pose.vVelocity;
+	result.AngularAcceleration = ((REV::Vector3f)pose.vAngularVelocity - lastPose.AngularVelocity) / float(time - lastPose.TimeInSeconds);
+	result.LinearAcceleration = ((REV::Vector3f)pose.vVelocity - lastPose.LinearVelocity) / float(time - lastPose.TimeInSeconds);
 	result.TimeInSeconds = time;
+
+	// Store the last pose
+	lastPose = result;
 
 	return result;
 }
@@ -166,7 +172,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(space, relTime, poses, vr::k_unMaxTrackedDeviceCount);
 
 	// Convert the head pose
-	outState->HeadPose = TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
+	outState->HeadPose = TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], m_LastPoses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
 	outState->StatusFlags = TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
 
 	// Convert the hand poses
@@ -183,15 +189,8 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 
 		vr::TrackedDevicePose_t pose;
 		vr::VRSystem()->ApplyTransform(&pose, &poses[deviceIndex], &session->TouchOffset[i]);
-		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(pose, absTime);
+		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(pose, m_LastPoses[deviceIndex], absTime);
 		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
-
-		// Make sure the dot product of the rotation stays positive with respect to the previous rotation,
-		// this prevents linear interpolations from suddenly flipping the long way around in Oculus Medium.
-		OVR::Quatf q(outState->HandPoses[i].ThePose.Orientation);
-		if (q.Dot(m_LastHandPoses[i].Orientation) < 0.0f)
-			outState->HandPoses[i].ThePose.Orientation = -q;
-		m_LastHandPoses[i] = outState->HandPoses[i].ThePose;
 	}
 
 	if (space == vr::TrackingUniverseSeated)
@@ -256,10 +255,9 @@ ovrResult InputManager::GetDevicePoses(ovrTrackedDeviceType* deviceTypes, int de
 		}
 
 		// If the tracking index is invalid it will fall outside of the range of the array
-		if (index < vr::k_unMaxTrackedDeviceCount)
-			outDevicePoses[i] = TrackedDevicePoseToOVRPose(poses[index], absTime);
-		else
+		if (index >= vr::k_unMaxTrackedDeviceCount)
 			return ovrError_DeviceUnavailable;
+		outDevicePoses[i] = TrackedDevicePoseToOVRPose(poses[index], m_LastPoses[index], absTime);
 	}
 
 	return ovrSuccess;
