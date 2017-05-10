@@ -902,6 +902,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 		out->AnyFrameStatsDropped = AnyFrameStatsDropped;
 		out->FrameStatsCount = FrameStatsCount;
 		out->AswIsAvailable = ovrFalse;
+
+		if (g_MinorVersion >= 14)
+			out->VisibleProcessId = vr::VRCompositor()->GetCurrentSceneFocusProcess();
 	}
 
 	return ovrSuccess;
