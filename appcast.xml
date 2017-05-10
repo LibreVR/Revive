@@ -8,15 +8,23 @@
 			<title>Version 1.1.2</title>
 			<description>
 			<![CDATA[
+				<h1>New features</h1>
+
+				<ul>
+				    <li>Updated to Oculus Runtime 1.14.0</li>
+				    <li>Updated to OpenVR 1.0.7</li>
+				    <li>Third-party motion controllers with physical buttons/thumbsticks are now supported (i.e. Razer Hydra)</li>
+				</ul>
+
+
 				<h1>Bug fixes</h1>
 
 				<ul>
-				    <li>Fixed certain games crashing after the Oculus Runtime upgrade in Revive (#569)</li>
-				    <li>Fixed models in Oculus Medium suddenly flipping 360 degrees when rotating (#431)</li>
+				    <li>Reduce jitter in games with tracking prediction issues (#584)</li>
 				</ul>
 			]]>
 			</description>
-			<pubDate>17 Apr 2017</pubDate>
+			<pubDate>10 May 2017</pubDate>
 			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.1.2/ReviveInstaller.exe"
 					   type="application/exe"
 					   sparkle:version="1.1.2.0"
