@@ -2,6 +2,7 @@
 
 #include "HapticsBuffer.h"
 #include "OVR_CAPI.h"
+#include "Extras/OVR_Math.h"
 
 #include <openvr.h>
 #include <thread>
@@ -35,6 +36,7 @@ public:
 		OculusTouch(vr::ETrackedControllerRole role);
 		virtual ~OculusTouch();
 
+		static const vr::EVRButtonId k_EButton_B = (vr::EVRButtonId)8;
 		HapticsBuffer m_Haptics;
 
 		virtual vr::ETrackedControllerRole GetRole() { return m_Role; }
@@ -51,7 +53,7 @@ public:
 		vr::VRControllerState_t m_LastState;
 
 		bool m_StickTouched;
-		ovrVector2f m_ThumbStick;
+		OVR::Vector2f m_ThumbStick;
 		ovrTouch AxisToTouch(vr::VRControllerAxis_t axis);
 
 		bool m_Gripped;
