@@ -79,13 +79,21 @@ public:
 	class XboxGamepad : public InputDevice
 	{
 	public:
-		XboxGamepad() { }
-		virtual ~XboxGamepad() { }
+		XboxGamepad();
+		virtual ~XboxGamepad();
 
 		virtual ovrControllerType GetType() { return ovrControllerType_XBox; }
 		virtual bool IsConnected();
 		virtual bool GetInputState(ovrSession session, ovrInputState* inputState);
 		virtual void SetVibration(float frequency, float amplitude);
+
+	private:
+		typedef DWORD(__stdcall* _XInputSetState)(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
+		typedef DWORD(__stdcall* _XInputGetState)(DWORD dwUserIndex, XINPUT_STATE* pState);
+
+		HMODULE m_XInput;
+		_XInputSetState SetState;
+		_XInputGetState GetState;
 	};
 
 	InputManager();

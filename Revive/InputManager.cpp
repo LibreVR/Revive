@@ -602,18 +602,30 @@ bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState
 	return state.ulButtonPressed != 0;
 }
 
+InputManager::XboxGamepad::XboxGamepad()
+{
+	m_XInput = LoadLibrary(L"xinput1_3.dll");
+	GetState = (_XInputGetState)GetProcAddress(m_XInput, "XInputGetState");
+	SetState = (_XInputSetState)GetProcAddress(m_XInput, "XInputSetState");
+}
+
+InputManager::XboxGamepad::~XboxGamepad()
+{
+	FreeLibrary(m_XInput);
+}
+
 bool InputManager::XboxGamepad::IsConnected()
 {
 	// Check for Xbox controller
 	XINPUT_STATE input;
-	return XInputGetState(0, &input) == ERROR_SUCCESS;
+	return GetState(0, &input) == ERROR_SUCCESS;
 }
 
 bool InputManager::XboxGamepad::GetInputState(ovrSession session, ovrInputState* inputState)
 {
 	// Use XInput for Xbox controllers.
 	XINPUT_STATE state;
-	if (XInputGetState(0, &state) == ERROR_SUCCESS)
+	if (GetState(0, &state) == ERROR_SUCCESS)
 	{
 		// Convert the buttons
 		bool active = false;
@@ -728,5 +740,5 @@ void InputManager::XboxGamepad::SetVibration(float frequency, float amplitude)
 		else
 			vibration.wLeftMotorSpeed = WORD(65535.0f * amplitude);
 	}
-	XInputSetState(0, &vibration);
+	SetState(0, &vibration);
 }
