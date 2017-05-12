@@ -605,8 +605,11 @@ bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState
 InputManager::XboxGamepad::XboxGamepad()
 {
 	m_XInput = LoadLibrary(L"xinput1_3.dll");
-	GetState = (_XInputGetState)GetProcAddress(m_XInput, "XInputGetState");
-	SetState = (_XInputSetState)GetProcAddress(m_XInput, "XInputSetState");
+	if (m_XInput)
+	{
+		GetState = (_XInputGetState)GetProcAddress(m_XInput, "XInputGetState");
+		SetState = (_XInputSetState)GetProcAddress(m_XInput, "XInputSetState");
+	}
 }
 
 InputManager::XboxGamepad::~XboxGamepad()
@@ -616,6 +619,9 @@ InputManager::XboxGamepad::~XboxGamepad()
 
 bool InputManager::XboxGamepad::IsConnected()
 {
+	if (!m_XInput)
+		return false;
+
 	// Check for Xbox controller
 	XINPUT_STATE input;
 	return GetState(0, &input) == ERROR_SUCCESS;
@@ -623,6 +629,9 @@ bool InputManager::XboxGamepad::IsConnected()
 
 bool InputManager::XboxGamepad::GetInputState(ovrSession session, ovrInputState* inputState)
 {
+	if (!m_XInput)
+		return false;
+
 	// Use XInput for Xbox controllers.
 	XINPUT_STATE state;
 	if (GetState(0, &state) == ERROR_SUCCESS)
@@ -729,6 +738,9 @@ bool InputManager::XboxGamepad::GetInputState(ovrSession session, ovrInputState*
 
 void InputManager::XboxGamepad::SetVibration(float frequency, float amplitude)
 {
+	if (!m_XInput)
+		return;
+
 	// TODO: Disable the rumbler after a nominal amount of time
 	XINPUT_VIBRATION vibration;
 	ZeroMemory(&vibration, sizeof(XINPUT_VIBRATION));
