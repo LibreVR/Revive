@@ -1,6 +1,22 @@
 #include <Windows.h>
 #include <Xinput.h>
 
+bool GetOculusBasePath(PWCHAR path, DWORD length)
+{
+	LONG error = ERROR_SUCCESS;
+
+	HKEY oculusKey;
+	error = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Oculus VR, LLC\\Oculus", 0, KEY_READ | KEY_WOW64_32KEY, &oculusKey);
+	if (error != ERROR_SUCCESS)
+		return false;
+	error = RegQueryValueEx(oculusKey, L"Base", NULL, NULL, (PBYTE)path, &length);
+	if (error != ERROR_SUCCESS)
+		return false;
+	RegCloseKey(oculusKey);
+
+	return true;
+}
+
 HMODULE GetXInputModule()
 {
 	static HMODULE module = NULL;
@@ -8,8 +24,9 @@ HMODULE GetXInputModule()
 		return module;
 
 	wchar_t XInputPath[MAX_PATH];
-	GetWindowsDirectory(XInputPath, MAX_PATH);
-	wcsncat(XInputPath, L"\\System32\\xinput1_3.dll", MAX_PATH);
+	if (!GetOculusBasePath(XInputPath, MAX_PATH))
+		return NULL;
+	wcsncat(XInputPath, L"Support\\oculus-runtime\\xinput1_3.dll", MAX_PATH);
 	module = LoadLibrary(XInputPath);
 	return module;
 }
