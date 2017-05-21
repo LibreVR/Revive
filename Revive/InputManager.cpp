@@ -375,8 +375,14 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A))
 		buttons |= (hand == ovrHand_Left) ? ovrButton_X : ovrButton_A;
 
+	if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_A))
+		touches |= (hand == ovrHand_Left) ? ovrTouch_X : ovrTouch_A;
+
 	if (state.ulButtonPressed & vr::ButtonMaskFromId(k_EButton_B))
 		buttons |= (hand == ovrHand_Left) ? ovrButton_Y : ovrButton_B;
+
+	if (state.ulButtonTouched & vr::ButtonMaskFromId(k_EButton_B))
+		touches |= (hand == ovrHand_Left) ? ovrTouch_Y : ovrTouch_B;
 
 	// Allow users to enable a toggled grip.
 	if (session->ToggleGrip == revGrip_Hybrid)
