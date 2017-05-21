@@ -366,6 +366,9 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 	unsigned int buttons = 0, touches = 0;
 
+	uint64_t buttonSupport = vr::VRSystem()->GetUint64TrackedDeviceProperty(touch, vr::Prop_SupportedButtons_Uint64);
+	const bool allButtonsSupported = (buttonSupport & vr::ButtonMaskFromId(vr::k_EButton_A) && buttonSupport & vr::ButtonMaskFromId(k_EButton_B));
+
 	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 		buttons |= (hand == ovrHand_Left) ? ovrButton_Enter : ovrButton_Home;
 
@@ -497,7 +500,10 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 					}
 				}
 
-				touches |= quadrant;
+				if (allButtonsSupported)
+					touches |= (hand == ovrHand_Left) ? ovrTouch_LThumb : ovrTouch_RThumb;
+				else
+					touches |= quadrant;
 			}
 			else
 			{
@@ -508,7 +514,12 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 			}
 
 			if (state.ulButtonPressed & vr::ButtonMaskFromId(button))
-				buttons |= quadrant;
+			{
+				if (allButtonsSupported)
+					buttons |= (hand == ovrHand_Left) ? ovrButton_LThumb : ovrButton_RThumb;
+				else
+					buttons |= quadrant;
+			}
 		}
 		else if (type == vr::k_eControllerAxis_Trigger)
 		{
