@@ -24,10 +24,15 @@ HMODULE GetXInputModule()
 		return module;
 
 	wchar_t XInputPath[MAX_PATH];
-	if (!GetOculusBasePath(XInputPath, MAX_PATH))
-		return NULL;
-	wcsncat(XInputPath, L"Support\\oculus-runtime\\xinput1_3.dll", MAX_PATH);
-	module = LoadLibrary(XInputPath);
+	if (GetOculusBasePath(XInputPath, MAX_PATH))
+	{
+		wcsncat(XInputPath, L"Support\\oculus-runtime\\xinput1_3.dll", MAX_PATH);
+		module = LoadLibraryW(XInputPath);
+		if (module)
+			return module;
+	}
+
+	module = LoadLibraryW(L"xinput1_3.dll");
 	return module;
 }
 
