@@ -97,6 +97,7 @@ ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* d
 			return ovrError_RuntimeException;
 		swapChain->Textures[i].reset(texture);
 	}
+	swapChain->Submitted = swapChain->Textures[0].get();
 
 	*out_TextureSwapChain = swapChain;
 	return ovrSuccess;

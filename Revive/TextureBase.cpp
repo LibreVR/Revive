@@ -7,8 +7,9 @@ ovrTextureSwapChainData::ovrTextureSwapChainData(vr::ETextureType api, ovrTextur
 	, CurrentIndex(0)
 	, Desc(desc)
 	, Overlay(vr::k_ulOverlayHandleInvalid)
+	, Submitted(nullptr)
+	, Textures()
 {
-	memset(Textures, 0, sizeof(Textures));
 }
 
 ovrMirrorTextureData::ovrMirrorTextureData(vr::ETextureType api, ovrMirrorTextureDesc desc)
