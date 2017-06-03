@@ -456,6 +456,8 @@ bool COpenVROverlayController::ConnectToVRRuntime()
 	m_strVRDriver = GetTrackedDeviceString(pVRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
 	m_strVRDisplay = GetTrackedDeviceString(pVRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
 	m_strRuntimeURL = QUrl::fromLocalFile(vr::VR_RuntimePath()).url();
+	if (!m_strRuntimeURL.endsWith('/'))
+		m_strRuntimeURL.append('/');
 	emit RuntimeChanged();
 
 	return true;
