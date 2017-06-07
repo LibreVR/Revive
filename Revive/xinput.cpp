@@ -32,7 +32,11 @@ HMODULE GetXInputModule()
 			return module;
 	}
 
-	module = LoadLibraryW(L"xinput1_3.dll");
+    if (GetWindowsDirectory(XInputPath, MAX_PATH))
+    {
+        wcsncat(XInputPath, L"\\System32\\xinput1_3.dll", MAX_PATH);
+        module = LoadLibraryW(XInputPath);
+    }
 	return module;
 }
 
