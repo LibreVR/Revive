@@ -471,7 +471,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 			if (state.ulButtonTouched & vr::ButtonMaskFromId(button))
 			{
-				if (m_LastState.ulButtonTouched & vr::ButtonMaskFromId(button))
+				if (m_StickTouched && m_LastState.ulButtonTouched & vr::ButtonMaskFromId(button))
 				{
 					OVR::Vector2f delta(lastAxis.x - axis.x, lastAxis.y - axis.y);
 					m_ThumbStick -= delta * session->Sensitivity;
@@ -506,6 +506,9 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 					}
 				}
 
+				if (quadrant & (ovrButton_LThumb | ovrButton_RThumb))
+					m_StickTouched = true;
+
 				if (allButtonsSupported)
 					touches |= (hand == ovrHand_Left) ? ovrTouch_LThumb : ovrTouch_RThumb;
 				else
@@ -514,6 +517,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 			else
 			{
 				// Touchpad was released, reset the thumbstick
+				m_StickTouched = false;
 				m_ThumbStick.x = m_ThumbStick.y = 0.0f;
 
 				touches |= (hand == ovrHand_Left) ? ovrTouch_LThumbUp : ovrTouch_RThumbUp;
