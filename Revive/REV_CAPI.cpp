@@ -783,12 +783,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	if (layerCount == 0 || !layerPtrList)
 		return ovrError_InvalidParameter;
 
-	// Increment the frame index.
-	if (frameIndex == 0)
-		session->FrameIndex++;
-	else
-		session->FrameIndex = frameIndex;
-
 	// Use our own intermediate compositor to convert the frame to OpenVR.
 	vr::EVRCompositorError err = session->Compositor->SubmitFrame(layerPtrList, layerCount);
 
@@ -801,6 +795,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+
+	// Increment the frame index.
+	if (frameIndex == 0)
+		session->FrameIndex++;
+	else
+		session->FrameIndex = frameIndex;
 
 	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
 
