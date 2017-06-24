@@ -3,6 +3,7 @@
 #include <OVR_CAPI.h>
 #include <openvr.h>
 #include <memory>
+#include <atomic>
 
 // Forward declarations
 enum revGripType;
@@ -18,7 +19,7 @@ struct ovrHmdStruct
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
 
 	// Compositor statistics
-	long long FrameIndex;
+	std::atomic_llong FrameIndex;
 	long long StatsIndex;
 	ovrPerfStatsPerCompositorFrame ResetStats;
 	vr::Compositor_CumulativeStats Stats[ovrMaxProvidedFrameStats];
