@@ -981,7 +981,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propert
 
 	vr::EVRSettingsError error;
 	vr::VRSettings()->SetBool(REV_SETTINGS_SECTION, propertyName, !!value, &error);
-	vr::VRSettings()->Sync();
 	return error == vr::VRSettingsError_None;
 }
 
@@ -1003,7 +1002,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* property
 
 	vr::EVRSettingsError error;
 	vr::VRSettings()->SetInt32(REV_SETTINGS_SECTION, propertyName, value, &error);
-	vr::VRSettings()->Sync();
 	return error == vr::VRSettingsError_None;
 }
 
@@ -1031,7 +1029,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* proper
 
 	vr::EVRSettingsError error;
 	vr::VRSettings()->SetFloat(REV_SETTINGS_SECTION, propertyName, value, &error);
-	vr::VRSettings()->Sync();
 	return error == vr::VRSettingsError_None;
 }
 
@@ -1081,7 +1078,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* p
 			return false;
 	}
 
-	vr::VRSettings()->Sync();
 	return true;
 }
 
@@ -1107,7 +1103,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* prope
 
 	vr::EVRSettingsError error;
 	vr::VRSettings()->SetString(REV_SETTINGS_SECTION, propertyName, value, &error);
-	vr::VRSettings()->Sync();
 	return error == vr::VRSettingsError_None;
 }
 
