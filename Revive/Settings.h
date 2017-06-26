@@ -23,7 +23,7 @@ enum revGripType
 #define REV_DEFAULT_THUMB_SENSITIVITY		2.0f
 
 #define REV_KEY_TOGGLE_GRIP					"ToggleGrip"
-#define REV_DEFAULT_TOGGLE_GRIP				revGrip_Hybrid
+#define REV_DEFAULT_TOGGLE_GRIP				revGrip_Normal
 
 #define REV_KEY_TOGGLE_DELAY				"ToggleDelay"
 #define REV_DEFAULT_TOGGLE_DELAY			0.5f
