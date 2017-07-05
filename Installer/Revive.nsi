@@ -78,7 +78,7 @@ install:
   File "${BASE_DIR}\app.vrmanifest"
   File "${BASE_DIR}\support.vrmanifest"
   File /r "${BASE_DIR}\*.exe"
-  File /r "${BASE_DIR}\*.dll"
+  File /r /x "${BASE_DIR}\bearer" "${BASE_DIR}\*.dll"
   File /r "${BASE_DIR}\*.pdb"
   File /r "${BASE_DIR}\*.jpg"
   File /r "${BASE_DIR}\Qt*"
@@ -89,6 +89,10 @@ install:
   FileWrite $0 ""
   FileClose $0
   
+  ; Delete any bearer files already in the install directory
+  ; This is a workaround for QTBUG-40332
+  RMDir /r "$INSTDIR\bearer"
+
   ; Ensure all users have access to the manifest file
   AccessControl::GrantOnFile \
     "$INSTDIR\revive.vrmanifest" "(S-1-5-32-545)" "GenericRead + GenericWrite"
