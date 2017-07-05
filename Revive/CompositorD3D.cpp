@@ -97,7 +97,6 @@ ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* d
 			return ovrError_RuntimeException;
 		swapChain->Textures[i].reset(texture);
 	}
-	swapChain->Submitted = swapChain->Textures[0].get();
 
 	*out_TextureSwapChain = swapChain;
 	return ovrSuccess;
@@ -186,6 +185,7 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 {
 	uint32_t width, height;
 	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
+	TextureD3D* texture = (TextureD3D*)swapChain->Textures[swapChain->SubmitIndex].get();
 
 	// Get the current state objects
 	Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
@@ -202,7 +202,7 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 	// Set the compositor shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
 	m_pContext->PSSetShader(m_CompositorShader.Get(), NULL, 0);
-	ID3D11ShaderResourceView* resource = ((TextureD3D*)swapChain->Submitted)->Resource();
+	ID3D11ShaderResourceView* resource = texture->Resource();
 	m_pContext->PSSetShaderResources(0, 1, &resource);
 
 	// Update the vertex buffer
@@ -220,7 +220,7 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 	// Prepare the render target
 	D3D11_VIEWPORT vp = { (float)viewport.Pos.x, (float)viewport.Pos.y, (float)viewport.Size.w, (float)viewport.Size.h, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	m_pContext->RSSetViewports(1, &vp);
-	ID3D11RenderTargetView* target = ((TextureD3D*)sceneChain->Submitted)->Target();
+	ID3D11RenderTargetView* target = texture->Target();
 	m_pContext->OMSetRenderTargets(1, &target, nullptr);
 	m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);
 	m_pContext->RSSetState(nullptr);

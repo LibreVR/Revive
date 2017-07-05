@@ -53,7 +53,6 @@ ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* de
 			return ovrError_RuntimeException;
 		swapChain->Textures[i].reset(texture);
 	}
-	swapChain->Submitted = swapChain->Textures[0].get();
 
 	*out_TextureSwapChain = swapChain;
 	return ovrSuccess;
@@ -88,8 +87,11 @@ void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextur
 
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
+		ovrTextureSwapChain chain = swapChain[i];
+		TextureGL* source = (TextureGL*)chain->Textures[chain->SubmitIndex].get();
+
 		// Bind the buffer to copy from the compositor to the mirror texture
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, ((TextureGL*)swapChain[i]->Submitted)->Framebuffer);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, source->Framebuffer);
 		GLint offset = (mirrorTexture->Desc.Width / 2) * i;
 		glBlitFramebuffer(0, 0, width, height, offset, mirrorTexture->Desc.Height, offset + mirrorTexture->Desc.Width / 2, 0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	}

@@ -40,6 +40,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 		if (layerPtrList[i]->Type == ovrLayerType_Quad)
 		{
 			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
+			ovrTextureSwapChain chain = layer->ColorTexture;
 
 			// Every overlay is associated with a swapchain.
 			// This is necessary because the position of the layer may change in the array,
@@ -66,14 +67,18 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 
 			// Set the texture and show the overlay.
 			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
+			vr::Texture_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
 			vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
-			vr::VROverlay()->SetOverlayTexture(overlay, &layer->ColorTexture->Submitted->ToVRTexture());
+			vr::VROverlay()->SetOverlayTexture(overlay, &texture);
+			chain->Submit();
 
 			// Show the overlay, unfortunately we have no control over the order in which
 			// overlays are drawn.
 			// TODO: Support ovrLayerFlag_HighQuality for overlays with anisotropic sampling.
 			// TODO: Handle overlay errors.
 			vr::VROverlay()->ShowOverlay(overlay);
+
+
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov)
 		{
@@ -237,6 +242,10 @@ void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort 
 			RenderTextureSwapChain((vr::EVREye)i, swapChain[i], layer->ColorTexture[i], layer->Viewport[i], bounds, quad);
 		}
 	}
+
+	swapChain[ovrEye_Left]->Submit();
+	if (swapChain[ovrEye_Left] != swapChain[ovrEye_Right])
+		swapChain[ovrEye_Right]->Submit();
 }
 
 vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
@@ -253,6 +262,7 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 	// Submit the scene layer.
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
+		ovrTextureSwapChain chain = swapChain[i];
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
 
 		// Shrink the bounds to account for the overlapping fov
@@ -264,10 +274,15 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 		bounds.vMin += fovBounds.vMin * bounds.vMax;
 		bounds.vMax *= fovBounds.vMax;
 
-		vr::VRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, &swapChain[i]->Submitted->ToVRTexture(), &bounds);
+		vr::Texture_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
+		vr::VRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, &texture, &bounds);
 		if (err != vr::VRCompositorError_None)
 			return err;
 	}
+
+	swapChain[ovrEye_Left]->Submit();
+	if (swapChain[ovrEye_Left] != swapChain[ovrEye_Right])
+		swapChain[ovrEye_Right]->Submit();
 
 	return vr::VRCompositorError_None;
 }

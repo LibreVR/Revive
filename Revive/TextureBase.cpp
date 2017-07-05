@@ -5,9 +5,9 @@ ovrTextureSwapChainData::ovrTextureSwapChainData(vr::ETextureType api, ovrTextur
 	, Length(REV_SWAPCHAIN_LENGTH)
 	, Identifier(0)
 	, CurrentIndex(0)
+	, SubmitIndex(0)
 	, Desc(desc)
 	, Overlay(vr::k_ulOverlayHandleInvalid)
-	, Submitted(nullptr)
 	, Textures()
 {
 }

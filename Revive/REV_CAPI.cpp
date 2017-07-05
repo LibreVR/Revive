@@ -698,10 +698,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 		return ovrError_InvalidParameter;
 
 	MICROPROFILE_META_CPU("Identifier", chain->Identifier);
-	MICROPROFILE_META_CPU("Index", chain->CurrentIndex);
-	chain->Submitted = chain->Textures[chain->CurrentIndex].get();
-	chain->CurrentIndex++;
-	chain->CurrentIndex %= chain->Length;
+	MICROPROFILE_META_CPU("CurrentIndex", chain->CurrentIndex);
+	MICROPROFILE_META_CPU("SubmitIndex", chain->SubmitIndex);
+
+	if (chain->Full())
+		return ovrError_TextureSwapChainFull;
+
+	chain->Commit();
 	return ovrSuccess;
 }
 
