@@ -197,6 +197,11 @@ ovrFovPort CompositorBase::MatrixToFovPort(ovrMatrix4f matrix)
 void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
 {
 	MICROPROFILE_SCOPE(SubmitFovLayer);
+
+	// If the right eye isn't set used the left eye for both
+	if (!swapChain[ovrEye_Right])
+		swapChain[ovrEye_Right] = swapChain[ovrEye_Left];
+
 	MICROPROFILE_META_CPU("SwapChain Right", swapChain[ovrEye_Right]->Identifier);
 	MICROPROFILE_META_CPU("SwapChain Left", swapChain[ovrEye_Left]->Identifier);
 
@@ -237,13 +242,17 @@ void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort 
 vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
 {
 	MICROPROFILE_SCOPE(SubmitSceneLayer);
+
+	// If the right eye isn't set used the left eye for both
+	if (!swapChain[ovrEye_Right])
+		swapChain[ovrEye_Right] = swapChain[ovrEye_Left];
+
 	MICROPROFILE_META_CPU("SwapChain Right", swapChain[ovrEye_Right]->Identifier);
 	MICROPROFILE_META_CPU("SwapChain Left", swapChain[ovrEye_Left]->Identifier);
 
 	// Submit the scene layer.
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		ovrTextureSwapChain chain = swapChain[i];
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
 
 		// Shrink the bounds to account for the overlapping fov
@@ -255,7 +264,7 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 		bounds.vMin += fovBounds.vMin * bounds.vMax;
 		bounds.vMax *= fovBounds.vMax;
 
-		vr::VRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, &chain->Submitted->ToVRTexture(), &bounds);
+		vr::VRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, &swapChain[i]->Submitted->ToVRTexture(), &bounds);
 		if (err != vr::VRCompositorError_None)
 			return err;
 	}
