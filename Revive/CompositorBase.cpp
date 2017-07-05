@@ -77,8 +77,6 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 			// TODO: Support ovrLayerFlag_HighQuality for overlays with anisotropic sampling.
 			// TODO: Handle overlay errors.
 			vr::VROverlay()->ShowOverlay(overlay);
-
-
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov)
 		{
