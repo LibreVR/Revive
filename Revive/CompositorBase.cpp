@@ -258,6 +258,7 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 	MICROPROFILE_META_CPU("SwapChain Left", swapChain[ovrEye_Left]->Identifier);
 
 	// Submit the scene layer.
+	vr::VRCompositorError err;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		ovrTextureSwapChain chain = swapChain[i];
@@ -273,16 +274,16 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 		bounds.vMax *= fovBounds.vMax;
 
 		vr::Texture_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
-		vr::VRCompositorError err = vr::VRCompositor()->Submit((vr::EVREye)i, &texture, &bounds);
+		err = vr::VRCompositor()->Submit((vr::EVREye)i, &texture, &bounds);
 		if (err != vr::VRCompositorError_None)
-			return err;
+			break;
 	}
 
 	swapChain[ovrEye_Left]->Submit();
 	if (swapChain[ovrEye_Left] != swapChain[ovrEye_Right])
 		swapChain[ovrEye_Right]->Submit();
 
-	return vr::VRCompositorError_None;
+	return err;
 }
 
 void CompositorBase::SetMirrorTexture(ovrMirrorTexture mirrorTexture)
