@@ -13,10 +13,14 @@ This is a compatibility layer between the Oculus SDK and OpenVR. It allows you t
 3. Install Revive in your preferred directory.
 4. Start SteamVR if it's not already running.
 5. Put on the headset, open the dashboard and click the new Revive tab.
-6. Newly installed applications may give an error when you try to launch them for the first time, [simply follow these instructions to fix it.](https://github.com/LibreVR/Revive/wiki/Troubleshooting#im-getting-an-entitlement-error-or-oculus-rift-not-found)
-
-*If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard.*
+6. If you run into any problems, read the known issues below or refer to the [wiki](https://github.com/LibreVR/Revive/wiki).
 
 If you want to adjust the advanced settings in Revive you should download [OpenVR-AdvancedSettings](https://github.com/matzman666/OpenVR-AdvancedSettings) which includes a settings menu for Revive.
+
+# Known Issues
+
+- Newly installed applications may refuse to start when you try to launch them for the first time, [simply follow these instructions to fix it.](https://github.com/LibreVR/Revive/wiki/Troubleshooting#im-getting-an-entitlement-error-or-oculus-rift-not-found)
+- If you experience jumps in the head tracking (judder), turn off Asynchronous Reprojection in the SteamVR Performance settings
+- If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard
 
 ![logo](revive_black.png)
