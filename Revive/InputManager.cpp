@@ -418,10 +418,20 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 	// When we release the grip we need to keep it just a little bit pressed, because games like Toybox
 	// can't handle a sudden jump to absolute zero.
-	if (m_Gripped)
-		inputState->HandTrigger[hand] = 1.0f;
+	if (session->ToggleGrip == revGrip_Normal)
+	{
+		if (m_Gripped)
+			inputState->IndexTrigger[hand] = 1.0f;
+		else
+			inputState->IndexTrigger[hand] = 0.1f;
+	}
 	else
-		inputState->HandTrigger[hand] = 0.1f;
+	{
+		if (m_Gripped)
+			inputState->HandTrigger[hand] = 1.0f;
+		else
+			inputState->HandTrigger[hand] = 0.1f;
+	}
 
 	// Convert the axes
 	for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
@@ -537,10 +547,18 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 				touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
 			else if (m_Gripped)
 				touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexPointing : ovrTouch_RIndexPointing;
-
-			inputState->IndexTrigger[hand] = axis.x;
+			if (session->ToggleGrip == revGrip_Normal)
+			{
+				inputState->HandTrigger[hand] = axis.x;
+			}
+			else
+			{
+				inputState->IndexTrigger[hand] = axis.x;
+			}
 		}
 	}
+
+
 
 	// We don't apply deadzones yet on triggers and grips
 	inputState->IndexTriggerNoDeadzone[hand] = inputState->IndexTrigger[hand];
