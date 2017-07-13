@@ -366,180 +366,65 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 	unsigned int buttons = 0, touches = 0;
 
-	uint64_t buttonSupport = vr::VRSystem()->GetUint64TrackedDeviceProperty(touch, vr::Prop_SupportedButtons_Uint64);
-	const bool allButtonsSupported = (buttonSupport & vr::ButtonMaskFromId(vr::k_EButton_A) && buttonSupport & vr::ButtonMaskFromId(k_EButton_B));
 
-	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
-		buttons |= (hand == ovrHand_Left) ? ovrButton_Enter : ovrButton_Home;
-
-	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A))
-		buttons |= (hand == ovrHand_Left) ? ovrButton_X : ovrButton_A;
-
-	if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_A))
-		touches |= (hand == ovrHand_Left) ? ovrTouch_X : ovrTouch_A;
-
-	if (state.ulButtonPressed & vr::ButtonMaskFromId(k_EButton_B))
-		buttons |= (hand == ovrHand_Left) ? ovrButton_Y : ovrButton_B;
-
-	if (state.ulButtonTouched & vr::ButtonMaskFromId(k_EButton_B))
-		touches |= (hand == ovrHand_Left) ? ovrTouch_Y : ovrTouch_B;
-
-	// Allow users to enable a toggled grip.
-	if (session->ToggleGrip == revGrip_Hybrid)
+	if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu) &&
+		state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_Grip))
 	{
-		if (IsPressed(state, vr::k_EButton_Grip))
-		{
-			// Only set the timestamp on the first grip toggle, we don't want to toggle twice
-			if (!m_Gripped)
-				m_GrippedTime = ovr_GetTimeInSeconds();
-
-			m_Gripped = true;
-		}
-
-		if (IsReleased(state, vr::k_EButton_Grip))
-		{
-			if (ovr_GetTimeInSeconds() - m_GrippedTime > session->ToggleDelay)
-				m_Gripped = false;
-
-			// Next time we always want to release grip
-			m_GrippedTime = 0.0;
-		}
-	}
-	else if (session->ToggleGrip == revGrip_Toggle)
-	{
-		if (IsPressed(state, vr::k_EButton_Grip))
-			m_Gripped = !m_Gripped;
+		buttons |= ovrButton_Enter;
 	}
 	else
 	{
-		m_Gripped = !!(state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip));
+		if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip))
+			buttons |= (hand == ovrHand_Left) ? ovrButton_X : ovrButton_A;
+
+		if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_Grip))
+			touches |= (hand == ovrHand_Left) ? ovrTouch_X : ovrTouch_A;
+
+		if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
+			buttons |= (hand == ovrHand_Left) ? ovrButton_Y : ovrButton_B;
+
+		if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
+			touches |= (hand == ovrHand_Left) ? ovrTouch_Y : ovrTouch_B;
 	}
 
-
-	// When we release the grip we need to keep it just a little bit pressed, because games like Toybox
-	// can't handle a sudden jump to absolute zero.
-	if (m_Gripped)
-		inputState->HandTrigger[hand] = 1.0f;
+	if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+		touches |= (hand == ovrHand_Left) ? ovrTouch_LThumb : ovrTouch_RThumb;
 	else
-		inputState->HandTrigger[hand] = 0.1f;
+		touches |= (hand == ovrHand_Left) ? ovrTouch_LThumbUp : ovrTouch_RThumbUp;
 
-	// Convert the axes
-	for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
+	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
+		buttons |= (hand == ovrHand_Left) ? ovrButton_LThumb : ovrButton_RThumb;
+
+	if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
+		touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
+
+	if (state.rAxis[3].x < 0.8f)
+		touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexPointing : ovrTouch_RIndexPointing;
+
+	inputState->IndexTrigger[hand] = state.rAxis[1].x;
+	inputState->HandTrigger[hand] = state.rAxis[3].y;
+
+	vr::VRControllerAxis_t axis = state.rAxis[0];
+
+	//determine how far the controller is pushed
+	float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
+	inputState->ThumbstickNoDeadzone[hand].x = axis.x;
+	inputState->ThumbstickNoDeadzone[hand].y = axis.y;
+
+	//check if the controller is outside a circular dead zone
+	if (magnitude > session->Deadzone)
 	{
-		vr::ETrackedPropertyError err;
-		vr::EVRButtonId button = (vr::EVRButtonId)(vr::k_EButton_Axis0 + j);
-		vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + j);
-		vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(touch, prop, &err);
-		vr::VRControllerAxis_t axis = state.rAxis[j];
+		//clip the magnitude at its expected maximum value
+		if (magnitude > 1.0f) magnitude = 1.0f;
 
-		if (err != vr::TrackedProp_Success)
-			break;
+		//adjust magnitude relative to the end of the dead zone
+		magnitude -= session->Deadzone;
 
-		if (type == vr::k_eControllerAxis_Joystick)
-		{
-			//determine how far the controller is pushed
-			float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
-			inputState->ThumbstickNoDeadzone[hand].x = axis.x;
-			inputState->ThumbstickNoDeadzone[hand].y = axis.y;
-
-			//check if the controller is outside a circular dead zone
-			if (magnitude > session->Deadzone)
-			{
-				//clip the magnitude at its expected maximum value
-				if (magnitude > 1.0f) magnitude = 1.0f;
-
-				//adjust magnitude relative to the end of the dead zone
-				magnitude -= session->Deadzone;
-
-				//optionally normalize the magnitude with respect to its expected range
-				//giving a magnitude value of 0.0 to 1.0
-				float normalizedMagnitude = magnitude / (1.0f - session->Deadzone);
-				inputState->Thumbstick[hand].x = normalizedMagnitude * axis.x;
-				inputState->Thumbstick[hand].y = normalizedMagnitude * axis.y;
-			}
-
-			if (state.ulButtonTouched & vr::ButtonMaskFromId(button))
-				touches |= (hand == ovrHand_Left) ? ovrTouch_LThumb : ovrTouch_RThumb;
-
-			if (state.ulButtonPressed & vr::ButtonMaskFromId(button))
-				buttons |= (hand == ovrHand_Left) ? ovrButton_LThumb : ovrButton_RThumb;
-		}
-		else if (type == vr::k_eControllerAxis_TrackPad)
-		{
-			ovrTouch quadrant = AxisToTouch(axis);
-			vr::VRControllerAxis_t lastAxis = m_LastState.rAxis[j];
-
-			if (state.ulButtonTouched & vr::ButtonMaskFromId(button))
-			{
-				if (m_StickTouched && m_LastState.ulButtonTouched & vr::ButtonMaskFromId(button))
-				{
-					OVR::Vector2f delta(lastAxis.x - axis.x, lastAxis.y - axis.y);
-					m_ThumbStick -= delta * session->Sensitivity;
-
-					// Determine how far the controller is pushed
-					float magnitude = sqrt(m_ThumbStick.x*m_ThumbStick.x + m_ThumbStick.y*m_ThumbStick.y);
-					if (magnitude > 0.0f)
-					{
-						// Determine the direction the controller is pushed
-						OVR::Vector2f normalized = m_ThumbStick / magnitude;
-
-						// Clip the magnitude at its expected maximum value and recenter
-						if (magnitude > 1.0f) magnitude = 1.0f;
-						m_ThumbStick = normalized * magnitude;
-
-						if (magnitude > session->Deadzone)
-						{
-							// Adjust magnitude relative to the end of the dead zone
-							magnitude -= session->Deadzone;
-
-							// Optionally normalize the magnitude with respect to its expected range
-							// giving a magnitude value of 0.0 to 1.0
-							float normalizedMagnitude = magnitude / (1.0f - session->Deadzone);
-							inputState->Thumbstick[hand].x = m_ThumbStick.x * normalizedMagnitude;
-							inputState->Thumbstick[hand].y = m_ThumbStick.y * normalizedMagnitude;
-
-							// Since we don't have a physical thumbstick we always want a deadzone
-							// before we activate the stick, but we don't normalize it here
-							inputState->ThumbstickNoDeadzone[hand].x = m_ThumbStick.x;
-							inputState->ThumbstickNoDeadzone[hand].y = m_ThumbStick.y;
-						}
-					}
-				}
-
-				if (quadrant & (ovrButton_LThumb | ovrButton_RThumb))
-					m_StickTouched = true;
-
-				if (allButtonsSupported)
-					touches |= (hand == ovrHand_Left) ? ovrTouch_LThumb : ovrTouch_RThumb;
-				else
-					touches |= quadrant;
-			}
-			else
-			{
-				// Touchpad was released, reset the thumbstick
-				m_StickTouched = false;
-				m_ThumbStick.x = m_ThumbStick.y = 0.0f;
-
-				touches |= (hand == ovrHand_Left) ? ovrTouch_LThumbUp : ovrTouch_RThumbUp;
-			}
-
-			if (state.ulButtonPressed & vr::ButtonMaskFromId(button))
-			{
-				if (allButtonsSupported)
-					buttons |= (hand == ovrHand_Left) ? ovrButton_LThumb : ovrButton_RThumb;
-				else
-					buttons |= quadrant;
-			}
-		}
-		else if (type == vr::k_eControllerAxis_Trigger)
-		{
-			if (state.ulButtonTouched & vr::ButtonMaskFromId(button))
-				touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
-			else if (m_Gripped)
-				touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexPointing : ovrTouch_RIndexPointing;
-
-			inputState->IndexTrigger[hand] = axis.x;
-		}
+		//optionally normalize the magnitude with respect to its expected range
+		//giving a magnitude value of 0.0 to 1.0
+		float normalizedMagnitude = magnitude / (1.0f - session->Deadzone);
+		inputState->Thumbstick[hand].x = normalizedMagnitude * axis.x;
+		inputState->Thumbstick[hand].y = normalizedMagnitude * axis.y;
 	}
 
 	// We don't apply deadzones yet on triggers and grips
