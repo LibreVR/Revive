@@ -90,7 +90,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -121,7 +121,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -154,7 +154,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -188,7 +188,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;$(VULKAN_SDK)\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -215,6 +215,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI_Vk.h" />
     <ClInclude Include="..\microprofile\microprofile.h" />
     <ClInclude Include="..\microprofile\microprofiledraw.h" />
     <ClInclude Include="..\microprofile\microprofilehtml.h" />
@@ -248,6 +249,7 @@
     <ClCompile Include="CompositorD3D.cpp" />
     <ClCompile Include="CompositorGL.cpp" />
     <ClCompile Include="HapticsBuffer.cpp" />
+    <ClCompile Include="REV_CAPI_Vk.cpp" />
     <ClCompile Include="SessionDetails.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />

@@ -1094,6 +1094,17 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* prope
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Lookup(const char* name, void** data)
 {
-	// We don't communicate with the Oculus service.
+	// We don't communicate with the ovrServer.
 	return ovrError_ServiceError;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetExternalCameras(ovrSession session, ovrExternalCamera* cameras, unsigned int* inoutCameraCount)
+{
+	// TODO: Support externalcamera.cfg used by the SteamVR Unity plugin
+	return ovrError_NoExternalCameraInfo;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetExternalCameraProperties(ovrSession session, const char* name, const ovrCameraIntrinsics* const intrinsics, const ovrCameraExtrinsics* const extrinsics)
+{
+	return ovrError_NoExternalCameraInfo;
 }

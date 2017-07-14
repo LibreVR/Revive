@@ -114,6 +114,9 @@
     <ClInclude Include="REV_Math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\LibOVR\Include\OVR_CAPI_Vk.h">
+      <Filter>Header Files\LibOVR</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -166,6 +169,9 @@
     </ClCompile>
     <ClCompile Include="Session.cpp">
       <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="REV_CAPI_Vk.cpp">
+      <Filter>Source Files\LibOVR</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

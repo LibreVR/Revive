@@ -69,6 +69,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureGL(ovrSession session,
 	return session->Compositor->CreateMirrorTexture(desc, out_MirrorTexture);
 }
 
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureWithOptionsGL(ovrSession session,
+                                                                    const ovrMirrorTextureDesc* desc,
+                                                                    ovrMirrorTexture* out_MirrorTexture)
+{
+	return ovr_CreateMirrorTextureGL(session, desc, out_MirrorTexture);
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,
                                                             ovrMirrorTexture mirrorTexture,
                                                             unsigned int* out_TexId)

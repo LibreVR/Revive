@@ -83,6 +83,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	return session->Compositor->CreateMirrorTexture(desc, out_MirrorTexture);
 }
 
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureWithOptionsDX(ovrSession session,
+                                                                    IUnknown* d3dPtr,
+                                                                    const ovrMirrorTextureDesc* desc,
+                                                                    ovrMirrorTexture* out_MirrorTexture)
+{
+	return ovr_CreateMirrorTextureDX(session, d3dPtr, desc, out_MirrorTexture);
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
                                                             ovrMirrorTexture mirrorTexture,
                                                             IID iid,
