@@ -418,7 +418,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 	// When we release the grip we need to keep it just a little bit pressed, because games like Toybox
 	// can't handle a sudden jump to absolute zero.
-	if (session->ToggleGrip == revGrip_Normal)
+	if (session->ToggleGrip == revGrip_Trigger)
 	{
 		if (m_Gripped)
 			inputState->IndexTrigger[hand] = 1.0f;
@@ -543,7 +543,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		}
 		else if (type == vr::k_eControllerAxis_Trigger)
 		{
-			if (session->ToggleGrip == revGrip_Normal)
+			if (session->ToggleGrip == revGrip_Trigger)
 			{
 				if (m_Gripped)
 					touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
