@@ -543,17 +543,21 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		}
 		else if (type == vr::k_eControllerAxis_Trigger)
 		{
-			if (state.ulButtonTouched & vr::ButtonMaskFromId(button))
-				touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
-			else if (m_Gripped)
-				touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexPointing : ovrTouch_RIndexPointing;
 			if (session->ToggleGrip == revGrip_Normal)
 			{
+				if (m_Gripped)
+					touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
+				else if (state.ulButtonTouched & vr::ButtonMaskFromId(button))
+					touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexPointing : ovrTouch_RIndexPointing;
 				inputState->HandTrigger[hand] = axis.x;
 			}
 			else
 			{
 				inputState->IndexTrigger[hand] = axis.x;
+				if (state.ulButtonTouched & vr::ButtonMaskFromId(button))
+					touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
+				else if (m_Gripped)
+					touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexPointing : ovrTouch_RIndexPointing;
 			}
 		}
 	}
