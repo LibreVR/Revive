@@ -16,7 +16,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutWaveId(UINT* deviceOutId)
 
 #pragma warning( disable : 4312 )
 	if (waveOutMessage((HWAVEOUT)WAVE_MAPPER, DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)deviceOutId, NULL) != 0)
-		return ovrError_RuntimeException;
+		return ovrError_AudioDeviceNotFound;
 #pragma warning( default : 4312 )
 
 	return ovrSuccess;
@@ -31,7 +31,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInWaveId(UINT* deviceInId)
 
 #pragma warning( disable : 4312 )
 	if (waveInMessage((HWAVEIN)WAVE_MAPPER, DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)deviceInId, NULL) != 0)
-		return ovrError_RuntimeException;
+		return ovrError_AudioDeviceNotFound;
 #pragma warning( default : 4312 )
 
 	return ovrSuccess;
@@ -54,17 +54,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuidStr(WCHAR deviceOutStrBu
 		CLSCTX_ALL, IID_IMMDeviceEnumerator,
 		(void**)&pEnumerator);
 	if (FAILED(hr))
-		return ovrError_RuntimeException;
+		return ovrError_AudioComError;
 
 	IMMDevice* pDevice;
 	hr = pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDevice);
 	if (FAILED(hr))
-		return ovrError_RuntimeException;
+		return ovrError_AudioDeviceNotFound;
 
 	LPWSTR pGuid;
 	hr = pDevice->GetId(&pGuid);
 	if (FAILED(hr))
-		return ovrError_RuntimeException;
+		return ovrError_AudioComError;
 
 	wcsncpy(deviceOutStrBuffer, pGuid, OVR_AUDIO_MAX_DEVICE_STR_SIZE);
 
@@ -85,7 +85,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuid(GUID* deviceOutGuid)
 
 	HRESULT hr = GetDeviceID(&DSDEVID_DefaultPlayback, deviceOutGuid);
 	if (FAILED(hr))
-		return ovrError_RuntimeException;
+		return ovrError_AudioDeviceNotFound;
 
 	return ovrSuccess;
 }
@@ -107,17 +107,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuidStr(WCHAR deviceInStrBuff
 		CLSCTX_ALL, IID_IMMDeviceEnumerator,
 		(void**)&pEnumerator);
 	if (FAILED(hr))
-		return ovrError_RuntimeException;
+		return ovrError_AudioComError;
 
 	IMMDevice* pDevice;
 	hr = pEnumerator->GetDefaultAudioEndpoint(eCapture, eConsole, &pDevice);
 	if (FAILED(hr))
-		return ovrError_RuntimeException;
+		return ovrError_AudioDeviceNotFound;
 
 	LPWSTR pGuid;
 	hr = pDevice->GetId(&pGuid);
 	if (FAILED(hr))
-		return ovrError_RuntimeException;
+		return ovrError_AudioComError;
 
 	wcsncpy(deviceInStrBuffer, pGuid, OVR_AUDIO_MAX_DEVICE_STR_SIZE);
 
@@ -138,7 +138,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuid(GUID* deviceInGuid)
 
 	HRESULT hr = GetDeviceID(&DSDEVID_DefaultCapture, deviceInGuid);
 	if (FAILED(hr))
-		return ovrError_RuntimeException;
+		return ovrError_AudioDeviceNotFound;
 
 	return ovrSuccess;
 }
