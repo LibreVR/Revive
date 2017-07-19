@@ -1,0 +1,6 @@
+How to add the profiler to the API Shim:
+
+Pattern: \r\n  return API.([A-Z|_|a-z]*).
+Replace with: \r\n  MICROPROFILE_SCOPEI\("OVR", "$1", 0xff0000\);\r\n  return API.$1.
+
+Add MicroProfileFlip() to ovr_SubmitFrame().
