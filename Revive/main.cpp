@@ -1,12 +1,10 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <dxgi.h>
-#include "MinHook.h"
-#include "Shlwapi.h"
-
-#include <openvr.h>
+#include <Shlwapi.h>
 #include <string>
 
+#include "MinHook.h"
 #include "Extras\OVR_CAPI_Util.h"
 #include "OVR_Version.h"
 
