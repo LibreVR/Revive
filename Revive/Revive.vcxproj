@@ -70,19 +70,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>LibRevive32_1</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\x86\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>LibRevive32_1</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\x86\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>LibRevive64_1</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\x64\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>LibRevive64_1</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\x64\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
