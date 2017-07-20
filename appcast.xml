@@ -5,20 +5,29 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.1.8</title>
+			<title>Version 1.1.9</title>
 			<description>
 			<![CDATA[
+			<p><b>Protip: Turn off Asynchronous Reprojection in Lone Echo and Echo Arena to get rid of jitter/judder issues.</b></p>
+
+			<h1>Changes</h1>
+
+			<ul>
+			    <li>Preliminary support for Oculus Runtime 1.16, doesn't include Vulkan support yet</li>
+			    <li>Updated to OpenVR 1.0.8</li>
+			</ul>
+
 			<h1>Bug fixes</h1>
 
 			<ul>
-			    <li>Fixed Superhot VR not showing up in the headset (#666)</li>
+			    <li>Fixed Lone Echo not launching from the dashboard (Restart SteamVR after updating) (#689)</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>7 July 2017</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.1.8/ReviveInstaller.exe"
+			<pubDate>20 July 2017</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.1.9/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.1.8.0"
+					   sparkle:version="1.1.9.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
