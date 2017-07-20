@@ -28,7 +28,7 @@ function generateManifest(manifest) {
     launch = launch.replace(/\//g, '\\');
 
     var parameters = "";
-    if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None")
+    if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None" && manifest["launchParameters"] != "null")
         parameters = " " + manifest["launchParameters"];
 
     // Some games need special arguments, seems like a great idea to hardcode them here
