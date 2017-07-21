@@ -5,6 +5,7 @@ enum revGripType
 	revGrip_Normal = 0,
 	revGrip_Toggle = 1,
 	revGrip_Hybrid = 2,
+	revGrip_Trigger = 3,
 };
 
 #define REV_SETTINGS_SECTION				"revive"
