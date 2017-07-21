@@ -520,7 +520,8 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 				m_StickTouched = false;
 				m_ThumbStick.x = m_ThumbStick.y = 0.0f;
 
-				touches |= (hand == ovrHand_Left) ? ovrTouch_LThumbUp : ovrTouch_RThumbUp;
+				if (m_Gripped)
+					touches |= (hand == ovrHand_Left) ? ovrTouch_LThumbUp : ovrTouch_RThumbUp;
 			}
 
 			if (state.ulButtonPressed & vr::ButtonMaskFromId(button))
