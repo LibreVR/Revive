@@ -542,6 +542,9 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		}
 	}
 
+	if (session->TriggerAsGrip)
+		std::swap(inputState->IndexTrigger[hand], inputState->HandTrigger[hand]);
+
 	// We don't apply deadzones yet on triggers and grips
 	inputState->IndexTriggerNoDeadzone[hand] = inputState->IndexTrigger[hand];
 	inputState->HandTriggerNoDeadzone[hand] = inputState->HandTrigger[hand];
