@@ -370,7 +370,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	const bool allButtonsSupported = (buttonSupport & vr::ButtonMaskFromId(vr::k_EButton_A) && buttonSupport & vr::ButtonMaskFromId(k_EButton_B));
 
 	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
-		buttons |= (hand == ovrHand_Left) ? ovrButton_Enter : ovrButton_Home;
+		buttons |= ovrButton_Enter;
 
 	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A))
 		buttons |= (hand == ovrHand_Left) ? ovrButton_X : ovrButton_A;
