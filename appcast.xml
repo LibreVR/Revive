@@ -10,10 +10,10 @@
 			<![CDATA[
 			<p><b>Protip: Turn off Asynchronous Reprojection in Lone Echo and Echo Arena to get rid of jitter/judder issues.</b></p>
 
-			<h3>Changes</h3>
+			<h2>Changes</h2>
 
 			<ul>
-			    <li>Added a new and improved "Trigger as Grip" mode enabled by default with help from @GiantSox</li>
+			    <li>Added a new and improved "Trigger as Grip" mode with help from @GiantSox</li>
 			    <li>Releasing the trackpad now only gives a "thumbs-up" if the grip button is pressed</li>
 			    <li>Improved touch controller offsets to make the helmet buttons easier to reach in Lone Echo (#694)</li>
 			</ul>
@@ -22,7 +22,7 @@
 			<pubDate>23 July 2017</pubDate>
 			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.1.11/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.1.11.0"
+					   sparkle:version="1.1.11.1"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
