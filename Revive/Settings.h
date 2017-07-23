@@ -41,7 +41,7 @@ enum revGripType
 #define REV_DEFAULT_TOUCH_X					0.016f
 
 #define REV_KEY_TOUCH_Y						"TouchY"
-#define REV_DEFAULT_TOUCH_Y					0.0f
+#define REV_DEFAULT_TOUCH_Y					-0.036f
 
 #define REV_KEY_TOUCH_Z						"TouchZ"
 #define REV_DEFAULT_TOUCH_Z					0.016f
