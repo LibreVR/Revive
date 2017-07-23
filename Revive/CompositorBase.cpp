@@ -30,6 +30,9 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 {
 	MICROPROFILE_SCOPE(SubmitFrame);
 
+	// Flush all pending draw calls.
+	Flush();
+
 	// Other layers are interpreted as overlays.
 	std::vector<vr::VROverlayHandle_t> activeOverlays;
 	for (uint32_t i = 0; i < layerCount; i++)
