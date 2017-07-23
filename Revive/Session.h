@@ -35,6 +35,7 @@ struct ovrHmdStruct
 	float Deadzone;
 	float Sensitivity;
 	revGripType ToggleGrip;
+	bool TriggerAsGrip;
 	float ToggleDelay;
 	bool IgnoreActivity;
 	ovrVector3f RotationOffset, PositionOffset;
