@@ -26,7 +26,7 @@ enum revGripType
 #define REV_DEFAULT_TOGGLE_GRIP				revGrip_Normal
 
 #define REV_KEY_TRIGGER_GRIP				"TriggerAsGrip"
-#define REV_DEFAULT_TRIGGER_GRIP			true
+#define REV_DEFAULT_TRIGGER_GRIP			false
 
 #define REV_KEY_TOGGLE_DELAY				"ToggleDelay"
 #define REV_DEFAULT_TOGGLE_DELAY			0.5f
