@@ -17,6 +17,11 @@ ovr_GetSessionPhysicalDeviceVk(
 	if (!out_physicalDevice)
 		return ovrError_InvalidParameter;
 
+	VkPhysicalDevice physicalDevice = 0;
+#if 1
+	// TODO: We could request this directly from OpenVR, but it seems to always return 0.
+	vr::VRSystem()->GetOutputDevice((uint64_t*)&physicalDevice, vr::TextureType_Vulkan);
+#else
 	uint32_t gpu_count;
 	std::vector<VkPhysicalDevice> devices;
 
@@ -29,11 +34,6 @@ ovr_GetSessionPhysicalDeviceVk(
 	devices.resize(gpu_count);
 	res = vkEnumeratePhysicalDevices(instance, &gpu_count, devices.data());
 
-	VkPhysicalDevice physicalDevice = 0;
-#if 0
-	// TODO: We could request this directly from OpenVR, but it seems to always return 0.
-	vr::VRSystem()->GetOutputDevice((uint64_t*)&physicalDevice, vr::TextureType_Vulkan);
-#else
 	for (VkPhysicalDevice device : devices)
 	{
 		VkPhysicalDeviceIDPropertiesKHR uid = {};
