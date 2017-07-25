@@ -14,9 +14,9 @@ TextureGL::~TextureGL()
 	glDeleteTextures(1, &Texture);
 }
 
-vr::Texture_t TextureGL::ToVRTexture()
+vr::VRTextureWithPose_t TextureGL::ToVRTexture()
 {
-	vr::Texture_t texture;
+	vr::VRTextureWithPose_t texture;
 	texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format
 	texture.eType = vr::TextureType_OpenGL;
 #pragma warning( disable : 4312 )

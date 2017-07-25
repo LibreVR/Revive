@@ -120,7 +120,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 	if (m_SceneLayer && m_SceneLayer->Type == ovrLayerType_EyeFov)
 	{
 		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)m_SceneLayer;
-		error = SubmitSceneLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+		error = SubmitSceneLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->RenderPose, sceneLayer->Header.Flags);
 
 		if (m_MirrorTexture && error == vr::VRCompositorError_None)
 			RenderMirrorTexture(m_MirrorTexture, sceneLayer->ColorTexture);
@@ -134,7 +134,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 			MatrixToFovPort(sceneLayer->Matrix[ovrEye_Right])
 		};
 
-		error = SubmitSceneLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+		error = SubmitSceneLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->RenderPose, sceneLayer->Header.Flags);
 
 		if (m_MirrorTexture && error == vr::VRCompositorError_None)
 			RenderMirrorTexture(m_MirrorTexture, sceneLayer->ColorTexture);
@@ -249,7 +249,7 @@ void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort 
 		swapChain[ovrEye_Right]->Submit();
 }
 
-vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
+vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], ovrPosef renderPose[ovrEye_Count], unsigned int flags)
 {
 	MICROPROFILE_SCOPE(SubmitSceneLayer);
 
@@ -276,8 +276,11 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 		bounds.vMin += fovBounds.vMin * bounds.vMax;
 		bounds.vMax *= fovBounds.vMax;
 
-		vr::Texture_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
-		err = vr::VRCompositor()->Submit((vr::EVREye)i, &texture, &bounds);
+		// Add the pose data to the eye texture
+		vr::VRTextureWithPose_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
+		texture.mDeviceToAbsoluteTracking = REV::Matrix4f(renderPose[i]);
+
+		err = vr::VRCompositor()->Submit((vr::EVREye)i, (vr::Texture_t*)&texture, &bounds, vr::Submit_TextureWithPose);
 		if (err != vr::VRCompositorError_None)
 			break;
 	}

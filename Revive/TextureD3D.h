@@ -11,7 +11,7 @@ public:
 	TextureD3D(ID3D11Device* pDevice);
 	virtual ~TextureD3D();
 
-	virtual vr::Texture_t ToVRTexture();
+	virtual vr::VRTextureWithPose_t ToVRTexture();
 	virtual bool Create(int Width, int Height, int MipLevels, int ArraySize,
 		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
 

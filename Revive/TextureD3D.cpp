@@ -13,9 +13,9 @@ TextureD3D::~TextureD3D()
 {
 }
 
-vr::Texture_t TextureD3D::ToVRTexture()
+vr::VRTextureWithPose_t TextureD3D::ToVRTexture()
 {
-	vr::Texture_t texture;
+	vr::VRTextureWithPose_t texture;
 	texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format
 	texture.eType = vr::TextureType_DirectX;
 	texture.handle = m_pTexture.Get();
