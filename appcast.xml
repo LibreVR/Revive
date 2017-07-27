@@ -5,24 +5,29 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.1.11</title>
+			<title>Version 1.1.12</title>
 			<description>
 			<![CDATA[
-			<p><b>Protip: Turn off Asynchronous Reprojection in Lone Echo and Echo Arena to get rid of jitter/judder issues.</b></p>
+			<p><b>This release supports Asynchronous Reprojection with Revive if you use the SteamVR Beta, so you can turn it back on.</b></p>
 
 			<h2>Changes</h2>
 
 			<ul>
-			    <li>Added a new and improved "Trigger as Grip" mode with help from @GiantSox</li>
-			    <li>Releasing the trackpad now only gives a "thumbs-up" if the grip button is pressed</li>
-			    <li>Improved touch controller offsets to make the helmet buttons easier to reach in Lone Echo (#694)</li>
+			    <li>Fixed stuttering when using Asynchronous Reprojection (requires SteamVR Beta)</li>
+			</ul>
+
+			<h2>Bug fixes</h2>
+
+			<ul>
+			    <li>Fixed Showdown not starting correctly from the dashboard (#707)</li>
+			    <li>Fixed Revive not loading correctly due to a hard dependency on Vulkan (#702)</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>23 July 2017</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.1.11/ReviveInstaller.exe"
+			<pubDate>27 July 2017</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.1.12/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.1.11.1"
+					   sparkle:version="1.1.12.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
