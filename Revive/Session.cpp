@@ -37,7 +37,7 @@ void ovrHmdStruct::LoadSettings()
 	Deadzone = ovr_GetFloat(this, REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE);
 	Sensitivity = ovr_GetFloat(this, REV_KEY_THUMB_SENSITIVITY, REV_DEFAULT_THUMB_SENSITIVITY);
 	ToggleGrip = (revGripType)ovr_GetInt(this, REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);
-	TriggerAsGrip = ovr_GetBool(this, REV_KEY_TRIGGER_GRIP, REV_DEFAULT_TRIGGER_GRIP);
+	TriggerAsGrip = !!ovr_GetBool(this, REV_KEY_TRIGGER_GRIP, REV_DEFAULT_TRIGGER_GRIP);
 	ToggleDelay = ovr_GetFloat(this, REV_KEY_TOGGLE_DELAY, REV_DEFAULT_TOGGLE_DELAY);
 	IgnoreActivity = !!ovr_GetBool(this, REV_KEY_IGNORE_ACTIVITYLEVEL, REV_DEFAULT_IGNORE_ACTIVITYLEVEL);
 
