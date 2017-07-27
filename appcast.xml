@@ -8,12 +8,12 @@
 			<title>Version 1.1.12</title>
 			<description>
 			<![CDATA[
-			<p><b>This release supports Asynchronous Reprojection with Revive if you use the SteamVR Beta, so you can turn it back on.</b></p>
+			<p><b>This release supports Asynchronous Reprojection with all Oculus games if you use the SteamVR Beta, so you can turn it back on.</b></p>
 
 			<h2>Changes</h2>
 
 			<ul>
-			    <li>Fixed stuttering when using Asynchronous Reprojection (requires SteamVR Beta)</li>
+			    <li>Fixed cases of stuttering when using Asynchronous Reprojection (requires SteamVR Beta)</li>
 			</ul>
 
 			<h2>Bug fixes</h2>
