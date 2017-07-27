@@ -2,6 +2,7 @@
 
 #include "OVR_CAPI.h"
 #include "openvr.h"
+#include "openvr_beta.h"
 
 #include <memory>
 

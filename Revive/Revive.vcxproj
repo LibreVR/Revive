@@ -225,6 +225,7 @@
     <ClInclude Include="CompositorD3D.h" />
     <ClInclude Include="CompositorGL.h" />
     <ClInclude Include="HapticsBuffer.h" />
+    <ClInclude Include="openvr_beta.h" />
     <ClInclude Include="REV_Math.h" />
     <ClInclude Include="SessionDetails.h" />
     <ClInclude Include="InputManager.h" />
