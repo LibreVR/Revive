@@ -187,7 +187,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	ovrSession session = new ovrHmdStruct();
 
 	// Get the default universe origin from the settings
-	vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)ovr_GetInt(session, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN));
+	if (!session->Details->UseHack(SessionDetails::HACK_DEFAULT_STANDING_UNIVERSE))
+		vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)ovr_GetInt(session, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN));
 
 	// Get the LUID for the OpenVR adapter
 	uint64_t adapter;

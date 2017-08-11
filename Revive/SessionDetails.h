@@ -17,6 +17,12 @@ public:
 		// Games like Ultrawings will actually check whether the product name contains the string
 		// "Oculus", so we use a fake name for the HMD to work around this issue.
 		HACK_FAKE_PRODUCT_NAME,
+
+		// Hack: Force a standing universe.
+		// Games like Lone Echo and Echo Arena are use in roomscale, but don't identify as a
+		// standing universe. This causes reduced chaperone visibility, thus we force a standing
+		// universe to work around the issue.
+		HACK_DEFAULT_STANDING_UNIVERSE,
 	};
 
 	SessionDetails();

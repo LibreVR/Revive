@@ -6,6 +6,8 @@
 SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
 	{ "drt.exe", HACK_WAIT_IN_TRACKING_STATE, true },
 	{ "ultrawings.exe", HACK_FAKE_PRODUCT_NAME, true },
+	{ "LoneEcho.exe", HACK_DEFAULT_STANDING_UNIVERSE, true },
+	{ "EchoArena.exe", HACK_DEFAULT_STANDING_UNIVERSE, true },
 };
 
 SessionDetails::SessionDetails()
