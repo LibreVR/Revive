@@ -23,16 +23,7 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 
 	// Load our own library again so the ref count is incremented.
 	if (wcsncmp(name, ovrModuleName, length) == 0)
-	{
-		MH_DisableHook(MH_ALL_HOOKS);
-
-		MicroProfileSetForceEnable(true);
-		MicroProfileSetEnableAllGroups(true);
-		MicroProfileSetForceMetaCounters(true);
-		MicroProfileWebServerStart();
-
 		return TrueLoadLibrary(revModuleName);
-	}
 
 	return TrueLoadLibrary(lpFileName);
 }

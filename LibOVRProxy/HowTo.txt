@@ -4,3 +4,12 @@ Pattern: \r\n  return API.([A-Z|_|a-z]*).
 Replace with: \r\n  MICROPROFILE_SCOPEI\("OVR", "$1", 0xff0000\);\r\n  return API.$1.
 
 Add MicroProfileFlip() to ovr_SubmitFrame().
+
+Add the following to ovr_Initialize():
+
+  MH_DisableHook(MH_ALL_HOOKS);
+
+	MicroProfileSetForceEnable(true);
+	MicroProfileSetEnableAllGroups(true);
+	MicroProfileSetForceMetaCounters(true);
+	MicroProfileWebServerStart();
