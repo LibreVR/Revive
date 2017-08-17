@@ -186,9 +186,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	ovrSession session = new ovrHmdStruct();
 
-	// Get the default universe origin from the settings
-	vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)ovr_GetInt(session, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN));
-
 	// Get the LUID for the OpenVR adapter
 	uint64_t adapter;
 	vr::VRSystem()->GetOutputDevice(&adapter, vr::TextureType_DirectX);
@@ -266,7 +263,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 		return ovrError_InvalidSession;
 
 	// Both enums match exactly, so we can just cast them
-	vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)origin);
+	session->TrackingOrigin = (vr::ETrackingUniverseOrigin)origin;
 	return ovrSuccess;
 }
 
@@ -278,7 +275,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 		return ovrTrackingOrigin_EyeLevel;
 
 	// Both enums match exactly, so we can just cast them
-	return (ovrTrackingOrigin)vr::VRCompositor()->GetTrackingSpace();
+	return (ovrTrackingOrigin)session->TrackingOrigin;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)

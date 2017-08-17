@@ -40,6 +40,7 @@ struct ovrHmdStruct
 	bool IgnoreActivity;
 	ovrVector3f RotationOffset, PositionOffset;
 	vr::HmdMatrix34_t TouchOffset[ovrHand_Count];
+	vr::ETrackingUniverseOrigin TrackingOrigin;
 
 	ovrHmdStruct();
 	void LoadSettings();
