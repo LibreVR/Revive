@@ -162,13 +162,13 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
 {
+	if (session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
+		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+
 	// Get the device poses
 	float relTime = absTime > 0.0f ? float(absTime - ovr_GetTimeInSeconds()) : 0.0f;
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	if (session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
-		vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
-	else
-		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(session->TrackingOrigin, relTime, poses, vr::k_unMaxTrackedDeviceCount);
+	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(session->TrackingOrigin, relTime, poses, vr::k_unMaxTrackedDeviceCount);
 
 	// Convert the head pose
 	outState->HeadPose = TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], m_LastPoses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
