@@ -5,22 +5,22 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.1.13</title>
+			<title>Version 1.1.14</title>
 			<description>
 			<![CDATA[
-			<p><b>This release supports Asynchronous Reprojection with all Oculus games if you use the SteamVR Beta, so you can turn it back on.</b></p>
+			<p><b>This release supports Asynchronous Reprojection with all Oculus games if you use the SteamVR Beta.</b></p>
 
 			<h2>Bug fixes</h2>
 
 			<ul>
-			    <li>Added a temporary workaround for the chaperone issues in Lone Echo and Echo Arena, will be fixed properly in version 1.2 (#667)</li>
+			    <li>Implemented a different fix for the invisible chaperone that doesn't cause re-centering issues (#738)</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>27 July 2017</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.1.13/ReviveInstaller.exe"
+			<pubDate>18 August 2017</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.1.14/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.1.13.0"
+					   sparkle:version="1.1.14.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
