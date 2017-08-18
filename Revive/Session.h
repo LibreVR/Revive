@@ -6,10 +6,10 @@
 #include <atomic>
 
 // Forward declarations
-enum revGripType;
 class CompositorBase;
 class InputManager;
 class SessionDetails;
+class SettingsManager;
 
 struct ovrHmdStruct
 {
@@ -17,6 +17,7 @@ struct ovrHmdStruct
 	bool ShouldQuit;
 	bool IsVisible;
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
+	vr::ETrackingUniverseOrigin TrackingOrigin;
 
 	// Compositor statistics
 	std::atomic_llong FrameIndex;
@@ -28,20 +29,8 @@ struct ovrHmdStruct
 	std::unique_ptr<CompositorBase> Compositor;
 	std::unique_ptr<InputManager> Input;
 	std::unique_ptr<SessionDetails> Details;
-
-	// Revive settings
-	double NextLoadTime;
-	float PixelsPerDisplayPixel;
-	float Deadzone;
-	float Sensitivity;
-	revGripType ToggleGrip;
-	bool TriggerAsGrip;
-	float ToggleDelay;
-	bool IgnoreActivity;
-	ovrVector3f RotationOffset, PositionOffset;
-	vr::HmdMatrix34_t TouchOffset[ovrHand_Count];
-	vr::ETrackingUniverseOrigin TrackingOrigin;
+	std::unique_ptr<SettingsManager> Settings;
 
 	ovrHmdStruct();
-	void LoadSettings();
+	~ovrHmdStruct();
 };

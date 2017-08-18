@@ -9,6 +9,7 @@
 #include "SessionDetails.h"
 #include "InputManager.h"
 #include "Settings.h"
+#include "SettingsManager.h"
 
 #include <openvr.h>
 #include <MinHook.h>
@@ -236,7 +237,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 
 	// Don't use the activity level while debugging, so I don't have to put on the HMD
 	vr::EDeviceActivityLevel activityLevel = vr::k_EDeviceActivityLevel_Unknown;
-	if (!session->IgnoreActivity)
+	if (!session->Settings->IgnoreActivity)
 		activityLevel = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd);
 
 	// Detect if the application has focus, but only return false the first time the status is requested.
@@ -718,9 +719,7 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	ovrSizei size;
 	vr::VRSystem()->GetRecommendedRenderTargetSize((uint32_t*)&size.w, (uint32_t*)&size.h);
 
-	// Check if an override for pixelsPerDisplayPixel is present
-	if (session && session->PixelsPerDisplayPixel > 0.0f)
-		pixelsPerDisplayPixel = session->PixelsPerDisplayPixel;
+	// TODO: Add an setting to ignore pixelsPerDisplayPixel
 
 	// Grow the recommended size to account for the overlapping fov
 	vr::VRTextureBounds_t bounds = CompositorBase::FovPortToTextureBounds(eye, fov);
@@ -771,9 +770,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 
 	// Flip the profiler.
 	MicroProfileFlip();
-
-	// The frame has been submitted, so we can now safely refresh some settings from the settings interface.
-	session->LoadSettings();
 
 	// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))

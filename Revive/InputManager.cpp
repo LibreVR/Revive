@@ -2,6 +2,7 @@
 #include "Session.h"
 #include "SessionDetails.h"
 #include "Settings.h"
+#include "SettingsManager.h"
 
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
@@ -187,7 +188,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		}
 
 		vr::TrackedDevicePose_t pose;
-		vr::VRSystem()->ApplyTransform(&pose, &poses[deviceIndex], &session->TouchOffset[i]);
+		vr::VRSystem()->ApplyTransform(&pose, &poses[deviceIndex], &session->Settings->TouchOffset[i]);
 		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(pose, m_LastPoses[deviceIndex], absTime);
 		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
@@ -357,6 +358,8 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	vr::TrackedDeviceIndex_t touch = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
 	ovrHandType hand = (m_Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
 
+	SettingsManager* settings = session->Settings.get();
+
 	if (touch == vr::k_unTrackedDeviceIndexInvalid)
 		return false;
 
@@ -384,7 +387,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		touches |= (hand == ovrHand_Left) ? ovrTouch_Y : ovrTouch_B;
 
 	// Allow users to enable a toggled grip.
-	if (session->ToggleGrip == revGrip_Hybrid)
+	if (settings->ToggleGrip == revGrip_Hybrid)
 	{
 		if (IsPressed(state, vr::k_EButton_Grip))
 		{
@@ -397,14 +400,14 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 		if (IsReleased(state, vr::k_EButton_Grip))
 		{
-			if (ovr_GetTimeInSeconds() - m_GrippedTime > session->ToggleDelay)
+			if (ovr_GetTimeInSeconds() - m_GrippedTime > settings->ToggleDelay)
 				m_Gripped = false;
 
 			// Next time we always want to release grip
 			m_GrippedTime = 0.0;
 		}
 	}
-	else if (session->ToggleGrip == revGrip_Toggle)
+	else if (settings->ToggleGrip == revGrip_Toggle)
 	{
 		if (IsPressed(state, vr::k_EButton_Grip))
 			m_Gripped = !m_Gripped;
@@ -442,17 +445,17 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 			inputState->ThumbstickNoDeadzone[hand].y = axis.y;
 
 			//check if the controller is outside a circular dead zone
-			if (magnitude > session->Deadzone)
+			if (magnitude > session->Settings->Deadzone)
 			{
 				//clip the magnitude at its expected maximum value
 				if (magnitude > 1.0f) magnitude = 1.0f;
 
 				//adjust magnitude relative to the end of the dead zone
-				magnitude -= session->Deadzone;
+				magnitude -= settings->Deadzone;
 
 				//optionally normalize the magnitude with respect to its expected range
 				//giving a magnitude value of 0.0 to 1.0
-				float normalizedMagnitude = magnitude / (1.0f - session->Deadzone);
+				float normalizedMagnitude = magnitude / (1.0f - settings->Deadzone);
 				inputState->Thumbstick[hand].x = normalizedMagnitude * axis.x;
 				inputState->Thumbstick[hand].y = normalizedMagnitude * axis.y;
 			}
@@ -473,7 +476,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 				if (m_StickTouched && m_LastState.ulButtonTouched & vr::ButtonMaskFromId(button))
 				{
 					OVR::Vector2f delta(lastAxis.x - axis.x, lastAxis.y - axis.y);
-					m_ThumbStick -= delta * session->Sensitivity;
+					m_ThumbStick -= delta * settings->Sensitivity;
 
 					// Determine how far the controller is pushed
 					float magnitude = sqrt(m_ThumbStick.x*m_ThumbStick.x + m_ThumbStick.y*m_ThumbStick.y);
@@ -486,14 +489,14 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 						if (magnitude > 1.0f) magnitude = 1.0f;
 						m_ThumbStick = normalized * magnitude;
 
-						if (magnitude > session->Deadzone)
+						if (magnitude > settings->Deadzone)
 						{
 							// Adjust magnitude relative to the end of the dead zone
-							magnitude -= session->Deadzone;
+							magnitude -= settings->Deadzone;
 
 							// Optionally normalize the magnitude with respect to its expected range
 							// giving a magnitude value of 0.0 to 1.0
-							float normalizedMagnitude = magnitude / (1.0f - session->Deadzone);
+							float normalizedMagnitude = magnitude / (1.0f - settings->Deadzone);
 							inputState->Thumbstick[hand].x = m_ThumbStick.x * normalizedMagnitude;
 							inputState->Thumbstick[hand].y = m_ThumbStick.y * normalizedMagnitude;
 
@@ -542,7 +545,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		}
 	}
 
-	if (session->TriggerAsGrip && !m_Gripped)
+	if (settings->TriggerAsGrip && !m_Gripped)
 		std::swap(inputState->HandTrigger[hand], inputState->IndexTrigger[hand]);
 
 	// We don't apply deadzones yet on triggers and grips
