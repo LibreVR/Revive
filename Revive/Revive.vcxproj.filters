@@ -123,6 +123,12 @@
     <ClInclude Include="SettingsManager.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
+    <ClInclude Include="CompositorVk.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureVk.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -181,6 +187,12 @@
     </ClCompile>
     <ClCompile Include="SettingsManager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CompositorVk.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureVk.cpp">
+      <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -15,7 +15,7 @@ TextureD3D::~TextureD3D()
 
 vr::VRTextureWithPose_t TextureD3D::ToVRTexture()
 {
-	vr::VRTextureWithPose_t texture;
+	vr::VRTextureWithPose_t texture = {};
 	texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format
 	texture.eType = vr::TextureType_DirectX;
 	texture.handle = m_pTexture.Get();
@@ -40,6 +40,8 @@ DXGI_FORMAT TextureD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, unsig
 			case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8X8_TYPELESS;
 			case OVR_FORMAT_R16G16B16A16_FLOAT:   return DXGI_FORMAT_R16G16B16A16_TYPELESS;
 			case OVR_FORMAT_R11G11B10_FLOAT:      return DXGI_FORMAT_R10G10B10A2_TYPELESS; // TODO: OpenVR doesn't support R11G11B10
+
+			// Depth formats
 			case OVR_FORMAT_D16_UNORM:            return DXGI_FORMAT_R16_TYPELESS;
 			case OVR_FORMAT_D24_UNORM_S8_UINT:    return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 			case OVR_FORMAT_D32_FLOAT:            return DXGI_FORMAT_R32_TYPELESS;
@@ -75,7 +77,9 @@ DXGI_FORMAT TextureD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, unsig
 			case OVR_FORMAT_B8G8R8X8_UNORM:       return DXGI_FORMAT_B8G8R8X8_UNORM;
 			case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
 			case OVR_FORMAT_R16G16B16A16_FLOAT:   return DXGI_FORMAT_R16G16B16A16_FLOAT;
-			case OVR_FORMAT_R11G11B10_FLOAT:      return DXGI_FORMAT_R10G10B10A2_UNORM; // TODO: This is a naughty little hack
+			case OVR_FORMAT_R11G11B10_FLOAT:      return DXGI_FORMAT_R10G10B10A2_UNORM; // TODO: OpenVR doesn't support R11G11B10
+
+			// Depth formats
 			case OVR_FORMAT_D16_UNORM:            return DXGI_FORMAT_R16_TYPELESS;
 			case OVR_FORMAT_D24_UNORM_S8_UINT:    return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 			case OVR_FORMAT_D32_FLOAT:            return DXGI_FORMAT_R32_TYPELESS;

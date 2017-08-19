@@ -1,11 +1,12 @@
-#include <vulkan/vulkan.h>
-#include <openvr.h>
-#include <vector>
-
 #include "OVR_CAPI_Vk.h"
 #include "Assert.h"
 #include "Session.h"
+#include "CompositorVk.h"
+#include "TextureVk.h"
 
+#include <vulkan/vulkan.h>
+#include <openvr.h>
+#include <vector>
 
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetSessionPhysicalDeviceVk(
@@ -18,7 +19,7 @@ ovr_GetSessionPhysicalDeviceVk(
 		return ovrError_InvalidParameter;
 
 	VkPhysicalDevice physicalDevice = 0;
-#if 1
+#if 0
 	// TODO: We could request this directly from OpenVR, but it seems to always return 0.
 	vr::VRSystem()->GetOutputDevice((uint64_t*)&physicalDevice, vr::TextureType_Vulkan);
 #else
@@ -55,6 +56,13 @@ ovr_GetSessionPhysicalDeviceVk(
 	}
 #endif
 
+	if (!session->Compositor)
+	{
+		session->Compositor.reset(new CompositorVk(physicalDevice, instance));
+		if (!session->Compositor)
+			return ovrError_RuntimeException;
+	}
+
 	if (out_physicalDevice)
 		*out_physicalDevice = physicalDevice;
 
@@ -63,7 +71,13 @@ ovr_GetSessionPhysicalDeviceVk(
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetSynchonizationQueueVk(ovrSession session, VkQueue queue)
 {
-	return ovrError_Unsupported;
+	CompositorVk* compositor = dynamic_cast<CompositorVk*>(session->Compositor.get());
+
+	if (!compositor)
+		return ovrError_RuntimeException;
+
+	compositor->SetQueue(queue);
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
@@ -73,7 +87,25 @@ ovr_CreateTextureSwapChainVk(
 	const ovrTextureSwapChainDesc* desc,
 	ovrTextureSwapChain* out_TextureSwapChain)
 {
-	return ovrError_Unsupported;
+	REV_TRACE(ovr_CreateTextureSwapChainVk);
+
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!device || !desc || !out_TextureSwapChain || desc->Type != ovrTexture_2D)
+		return ovrError_InvalidParameter;
+
+	CompositorVk* compositor = dynamic_cast<CompositorVk*>(session->Compositor.get());
+
+	if (!compositor)
+		return ovrError_RuntimeException;
+
+	compositor->SetDevice(device);
+
+	if (session->Compositor->GetAPI() != vr::TextureType_Vulkan)
+		return ovrError_RuntimeException;
+
+	return session->Compositor->CreateTextureSwapChain(desc, out_TextureSwapChain);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
@@ -83,7 +115,24 @@ ovr_GetTextureSwapChainBufferVk(
 	int index,
 	VkImage* out_Image)
 {
-	return ovrError_Unsupported;
+	REV_TRACE(ovr_GetTextureSwapChainBufferDX);
+
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!chain || !out_Image)
+		return ovrError_InvalidParameter;
+
+	if (index < 0)
+		index = chain->CurrentIndex;
+
+	TextureVk* texture = dynamic_cast<TextureVk*>(chain->Textures[index].get());
+	if (!texture)
+		return ovrError_RuntimeException;
+
+	*out_Image = texture->Image();
+
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
@@ -93,7 +142,24 @@ ovr_CreateMirrorTextureWithOptionsVk(
 	const ovrMirrorTextureDesc* desc,
 	ovrMirrorTexture* out_MirrorTexture)
 {
-	return ovrError_Unsupported;
+	REV_TRACE(ovr_CreateMirrorTextureWithOptionsVk);
+
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!device || !desc || !out_MirrorTexture)
+		return ovrError_InvalidParameter;
+
+	CompositorVk* compositor = dynamic_cast<CompositorVk*>(session->Compositor.get());
+	if (!compositor)
+		return ovrError_RuntimeException;
+
+	compositor->SetDevice(device);
+
+	if (session->Compositor->GetAPI() != vr::TextureType_Vulkan)
+		return ovrError_RuntimeException;
+
+	return session->Compositor->CreateMirrorTexture(desc, out_MirrorTexture);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
@@ -102,6 +168,20 @@ ovr_GetMirrorTextureBufferVk(
 	ovrMirrorTexture mirrorTexture,
 	VkImage* out_Image)
 {
-	return ovrError_Unsupported;
+	REV_TRACE(ovr_GetMirrorTextureBufferVk);
+
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (!mirrorTexture || !out_Image)
+		return ovrError_InvalidParameter;
+
+	TextureVk* texture = dynamic_cast<TextureVk*>(mirrorTexture->Texture.get());
+	if (!texture)
+		return ovrError_RuntimeException;
+
+	*out_Image = texture->Image();
+
+	return ovrSuccess;
 }
 

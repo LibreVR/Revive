@@ -1,0 +1,152 @@
+#include "TextureVk.h"
+
+#include <vulkan/vulkan.h>
+
+TextureVk::TextureVk(VkDevice device, VkPhysicalDevice physicalDevice,
+	VkInstance instance, VkQueue* pQueue)
+	: m_data()
+	, m_image()
+	, m_memory()
+	, m_memoryProperties()
+	, m_device(device)
+	, m_pQueue(pQueue)
+{
+	// Update the texture data
+	m_data.m_pDevice = device;
+	m_data.m_pPhysicalDevice = physicalDevice;
+	m_data.m_pInstance = instance;
+
+	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &m_memoryProperties);
+}
+
+TextureVk::~TextureVk()
+{
+	vkFreeMemory(m_device, m_memory, nullptr);
+	vkDestroyImage(m_device, m_image, nullptr);
+}
+
+vr::VRTextureWithPose_t TextureVk::ToVRTexture()
+{
+	// Update the texture data
+	m_data.m_pQueue = *m_pQueue;
+	// FIXME: We don't know what family the queue is from
+
+	vr::VRTextureWithPose_t texture = {};
+	texture.eColorSpace = vr::ColorSpace_Auto;
+	texture.eType = vr::TextureType_Vulkan;
+	texture.handle = &m_data;
+	return texture;
+}
+
+VkFormat TextureVk::TextureFormatToVkFormat(ovrTextureFormat format)
+{
+	switch (format)
+	{
+		case OVR_FORMAT_UNKNOWN:              return VK_FORMAT_UNDEFINED;
+		case OVR_FORMAT_B5G6R5_UNORM:         return VK_FORMAT_B5G6R5_UNORM_PACK16;
+		case OVR_FORMAT_B5G5R5A1_UNORM:       return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
+		case OVR_FORMAT_B4G4R4A4_UNORM:       return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+		case OVR_FORMAT_R8G8B8A8_UNORM:       return VK_FORMAT_R8G8B8A8_UNORM;
+		case OVR_FORMAT_R8G8B8A8_UNORM_SRGB:  return VK_FORMAT_R8G8B8A8_SRGB;
+		case OVR_FORMAT_B8G8R8A8_UNORM:       return VK_FORMAT_B8G8R8A8_UNORM;
+		case OVR_FORMAT_B8G8R8A8_UNORM_SRGB:  return VK_FORMAT_B8G8R8A8_SRGB;
+		case OVR_FORMAT_B8G8R8X8_UNORM:       return VK_FORMAT_B8G8R8_UNORM;
+		case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return VK_FORMAT_B8G8R8_SRGB;
+		case OVR_FORMAT_R16G16B16A16_FLOAT:   return VK_FORMAT_R16G16B16A16_SFLOAT;
+		case OVR_FORMAT_R11G11B10_FLOAT:      return VK_FORMAT_A2R10G10B10_UINT_PACK32; // TODO: OpenVR doesn't support R11G11B10
+
+		// Depth formats
+		case OVR_FORMAT_D16_UNORM:            return VK_FORMAT_D16_UNORM;
+		case OVR_FORMAT_D24_UNORM_S8_UINT:    return VK_FORMAT_D24_UNORM_S8_UINT;
+		case OVR_FORMAT_D32_FLOAT:            return VK_FORMAT_D32_SFLOAT;
+		case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return VK_FORMAT_D32_SFLOAT_S8_UINT;
+
+		// Added in 1.5 compressed formats can be used for static layers
+		case OVR_FORMAT_BC1_UNORM:            return VK_FORMAT_BC1_RGBA_UNORM_BLOCK;
+		case OVR_FORMAT_BC1_UNORM_SRGB:       return VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
+		case OVR_FORMAT_BC2_UNORM:            return VK_FORMAT_BC2_UNORM_BLOCK;
+		case OVR_FORMAT_BC2_UNORM_SRGB:       return VK_FORMAT_BC2_SRGB_BLOCK;
+		case OVR_FORMAT_BC3_UNORM:            return VK_FORMAT_BC3_UNORM_BLOCK;
+		case OVR_FORMAT_BC3_UNORM_SRGB:       return VK_FORMAT_BC3_SRGB_BLOCK;
+		case OVR_FORMAT_BC6H_UF16:            return VK_FORMAT_BC6H_UFLOAT_BLOCK;
+		case OVR_FORMAT_BC6H_SF16:            return VK_FORMAT_BC6H_SFLOAT_BLOCK;
+		case OVR_FORMAT_BC7_UNORM:            return VK_FORMAT_BC7_UNORM_BLOCK;
+		case OVR_FORMAT_BC7_UNORM_SRGB:       return VK_FORMAT_BC7_SRGB_BLOCK;
+
+		default:                              return VK_FORMAT_UNDEFINED;
+	}
+}
+
+VkImageUsageFlags TextureVk::BindFlagsToVkImageUsageFlags(unsigned int flags)
+{
+	VkImageUsageFlags result = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	if (flags & ovrTextureBind_DX_RenderTarget)
+		result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	if (flags & ovrTextureBind_DX_UnorderedAccess)
+		result |= VK_IMAGE_USAGE_STORAGE_BIT;
+	if (flags & ovrTextureBind_DX_DepthStencil)
+		result |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	return result;
+}
+
+bool TextureVk::GetMemoryType(uint32_t typeBits, VkFlags requirements_mask, uint32_t* typeIndex)
+{
+	// Search memtypes to find first index with those properties
+	for (uint32_t i = 0; i < m_memoryProperties.memoryTypeCount; i++) {
+		if ((typeBits & 1) == 1) {
+			// Type is available, does it match user properties?
+			if ((m_memoryProperties.memoryTypes[i].propertyFlags & requirements_mask) == requirements_mask) {
+				*typeIndex = i;
+				return true;
+			}
+		}
+		typeBits >>= 1;
+	}
+	// No memory types matched, return failure
+	return false;
+}
+
+bool TextureVk::Create(int Width, int Height, int MipLevels, int ArraySize,
+	ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
+{
+	VkImageCreateInfo create_info = {};
+	create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	create_info.imageType = VK_IMAGE_TYPE_2D;
+	create_info.format = TextureFormatToVkFormat(Format);
+	create_info.extent.width = Width;
+	create_info.extent.height = Height;
+	create_info.extent.depth = 1;
+	create_info.mipLevels = MipLevels;
+	create_info.arrayLayers = ArraySize;
+	create_info.samples = VK_SAMPLE_COUNT_1_BIT;
+	create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+	create_info.usage = BindFlagsToVkImageUsageFlags(BindFlags);
+	create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateImage(m_device, &create_info, nullptr, &m_image) != VK_SUCCESS)
+		return false;
+
+	VkMemoryRequirements memReqs = {};
+	vkGetImageMemoryRequirements(m_device, m_image, &memReqs);
+
+	VkMemoryAllocateInfo memAlloc = {};
+	memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memAlloc.allocationSize = memReqs.size;
+	if (!GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memAlloc.memoryTypeIndex))
+		return false;
+
+	if (vkAllocateMemory(m_device, &memAlloc, nullptr, &m_memory) != VK_SUCCESS)
+		return false;
+
+	if (vkBindImageMemory(m_device, m_image, m_memory, 0) != VK_SUCCESS)
+		return false;
+
+	// Update texture data
+	m_data.m_nImage = (uint64_t)m_image;
+	m_data.m_nWidth = create_info.extent.width;
+	m_data.m_nHeight = create_info.extent.height;
+	m_data.m_nFormat = create_info.format;
+	m_data.m_nSampleCount = create_info.samples;
+
+	return true;
+}
