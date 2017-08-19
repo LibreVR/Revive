@@ -1,6 +1,5 @@
 #include "TextureVk.h"
-
-#include <vulkan/vulkan.h>
+#include "vulkan.h" 
 
 TextureVk::TextureVk(VkDevice device, VkPhysicalDevice physicalDevice,
 	VkInstance instance, VkQueue* pQueue)
@@ -109,6 +108,13 @@ bool TextureVk::GetMemoryType(uint32_t typeBits, VkFlags requirements_mask, uint
 bool TextureVk::Create(int Width, int Height, int MipLevels, int ArraySize,
 	ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
 {
+	VK_DEVICE_FUNCTION(m_device, vkCreateImage)
+	VK_DEVICE_FUNCTION(m_device, vkGetImageMemoryRequirements)
+	VK_DEVICE_FUNCTION(m_device, vkAllocateMemory)
+	VK_DEVICE_FUNCTION(m_device, vkBindImageMemory)
+	VK_DEVICE_FUNCTION(m_device, vkFreeMemory)
+	VK_DEVICE_FUNCTION(m_device, vkDestroyImage)
+
 	VkImageCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	create_info.imageType = VK_IMAGE_TYPE_2D;

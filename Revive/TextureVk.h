@@ -2,8 +2,8 @@
 
 #include "TextureBase.h"
 #include "CompositorVk.h"
+#include "vulkan.h"
 
-#include <vulkan/vulkan.h>
 #include <openvr.h>
 
 class TextureVk :
@@ -32,5 +32,12 @@ private:
 	VkFormat TextureFormatToVkFormat(ovrTextureFormat format);
 	VkImageUsageFlags BindFlagsToVkImageUsageFlags(unsigned int flags);
 	bool GetMemoryType(uint32_t typeBits, VkFlags requirements_mask, uint32_t* typeIndex);
+
+	VK_DEFINE_FUNCTION(vkCreateImage)
+	VK_DEFINE_FUNCTION(vkGetImageMemoryRequirements)
+	VK_DEFINE_FUNCTION(vkAllocateMemory)
+	VK_DEFINE_FUNCTION(vkBindImageMemory)
+	VK_DEFINE_FUNCTION(vkFreeMemory)
+	VK_DEFINE_FUNCTION(vkDestroyImage)
 };
 

@@ -3,10 +3,20 @@
 #include "Session.h"
 #include "CompositorVk.h"
 #include "TextureVk.h"
+#include "vulkan.h"
 
-#include <vulkan/vulkan.h>
+#include <Windows.h>
 #include <openvr.h>
 #include <vector>
+
+HMODULE VulkanLibrary;
+
+// Global functions
+VK_DEFINE_FUNCTION(vkGetInstanceProcAddr)
+VK_DEFINE_FUNCTION(vkGetDeviceProcAddr)
+VK_DEFINE_FUNCTION(vkEnumeratePhysicalDevices)
+VK_DEFINE_FUNCTION(vkGetPhysicalDeviceMemoryProperties)
+VK_DEFINE_FUNCTION(vkGetPhysicalDeviceProperties2KHR)
 
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetSessionPhysicalDeviceVk(
@@ -15,8 +25,15 @@ ovr_GetSessionPhysicalDeviceVk(
 	VkInstance instance,
 	VkPhysicalDevice* out_physicalDevice)
 {
-	if (!out_physicalDevice)
-		return ovrError_InvalidParameter;
+	VulkanLibrary = LoadLibraryW(L"vulkan-1.dll");
+	if (!VulkanLibrary)
+		return ovrError_InitializeVulkan;
+
+	VK_LIBRARY_FUNCTION(VulkanLibrary, vkGetInstanceProcAddr)
+	VK_INSTANCE_FUNCTION(instance, vkGetDeviceProcAddr)
+	VK_INSTANCE_FUNCTION(instance, vkEnumeratePhysicalDevices)
+	VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceMemoryProperties)
+	VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceProperties2KHR)
 
 	VkPhysicalDevice physicalDevice = 0;
 #if 0

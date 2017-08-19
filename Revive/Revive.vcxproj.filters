@@ -129,6 +129,9 @@
     <ClInclude Include="TextureVk.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
+    <ClInclude Include="vulkan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -185,13 +188,13 @@
     <ClCompile Include="REV_CAPI_Vk.cpp">
       <Filter>Source Files\LibOVR</Filter>
     </ClCompile>
-    <ClCompile Include="SettingsManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CompositorVk.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="TextureVk.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="SettingsManager.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>
