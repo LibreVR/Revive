@@ -2,6 +2,7 @@
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
 #include "Settings.h"
+#include "Session.h"
 #include "microprofile.h"
 
 #include <openvr.h>
@@ -19,9 +20,6 @@ CompositorBase::CompositorBase()
 	, m_ChainCount(0)
 {
 	m_SceneLayer = nullptr;
-
-	// Get the default universe origin from the settings
-	m_trackingOrigin = (vr::ETrackingUniverseOrigin)ovr_GetInt(nullptr, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN);
 }
 
 CompositorBase::~CompositorBase()
@@ -30,7 +28,7 @@ CompositorBase::~CompositorBase()
 		delete m_MirrorTexture;
 }
 
-vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+vr::EVRCompositorError CompositorBase::SubmitFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	MICROPROFILE_SCOPE(SubmitFrame);
 
@@ -124,7 +122,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 	if (m_SceneLayer && m_SceneLayer->Type == ovrLayerType_EyeFov)
 	{
 		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)m_SceneLayer;
-		error = SubmitSceneLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->RenderPose, sceneLayer->Header.Flags);
+		error = SubmitSceneLayer(session, sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->RenderPose, sceneLayer->Header.Flags);
 
 		if (m_MirrorTexture && error == vr::VRCompositorError_None)
 			RenderMirrorTexture(m_MirrorTexture, sceneLayer->ColorTexture);
@@ -138,7 +136,7 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrLayerHeader const * const 
 			MatrixToFovPort(sceneLayer->Matrix[ovrEye_Right])
 		};
 
-		error = SubmitSceneLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->RenderPose, sceneLayer->Header.Flags);
+		error = SubmitSceneLayer(session, sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->RenderPose, sceneLayer->Header.Flags);
 
 		if (m_MirrorTexture && error == vr::VRCompositorError_None)
 			RenderMirrorTexture(m_MirrorTexture, sceneLayer->ColorTexture);
@@ -253,7 +251,7 @@ void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort 
 		swapChain[ovrEye_Right]->Submit();
 }
 
-vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], ovrPosef renderPose[ovrEye_Count], unsigned int flags)
+vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrSession session, ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], ovrPosef renderPose[ovrEye_Count], unsigned int flags)
 {
 	MICROPROFILE_SCOPE(SubmitSceneLayer);
 
@@ -284,7 +282,7 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 
 		// Add the pose data to the eye texture
 		REV::Matrix4f pose(renderPose[i]);
-		if (m_trackingOrigin == vr::TrackingUniverseSeated)
+		if (session->TrackingOrigin == vr::TrackingUniverseSeated)
 		{
 			REV::Matrix4f offset(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
 			texture.mDeviceToAbsoluteTracking = REV::Matrix4f(offset * pose);

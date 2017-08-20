@@ -264,7 +264,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 		return ovrError_InvalidSession;
 
 	// Both enums match exactly, so we can just cast them
-	session->Compositor->SetTrackingOrigin((vr::ETrackingUniverseOrigin)origin);
+	session->TrackingOrigin = (vr::ETrackingUniverseOrigin)origin;
 	return ovrSuccess;
 }
 
@@ -276,7 +276,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 		return ovrTrackingOrigin_EyeLevel;
 
 	// Both enums match exactly, so we can just cast them
-	return (ovrTrackingOrigin)session->Compositor->GetTrackingOrigin();
+	return (ovrTrackingOrigin)session->TrackingOrigin;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
@@ -766,7 +766,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 		return ovrError_InvalidParameter;
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	vr::EVRCompositorError err = session->Compositor->SubmitFrame(layerPtrList, layerCount);
+	vr::EVRCompositorError err = session->Compositor->SubmitFrame(session, layerPtrList, layerCount);
 
 	// Flip the profiler.
 	MicroProfileFlip();

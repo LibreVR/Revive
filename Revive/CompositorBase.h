@@ -24,10 +24,8 @@ public:
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture) = 0;
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count]) = 0;
 
-	vr::ETrackingUniverseOrigin GetTrackingOrigin() { return m_trackingOrigin; }
-	void SetTrackingOrigin(vr::ETrackingUniverseOrigin origin) { m_trackingOrigin = origin; }
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
-	vr::EVRCompositorError SubmitFrame(ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
+	vr::EVRCompositorError SubmitFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 	static vr::VRTextureBounds_t FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov);
 
 protected:
@@ -40,11 +38,10 @@ protected:
 	ovrFovPort MatrixToFovPort(ovrMatrix4f matrix);
 
 	void SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags);
-	vr::VRCompositorError SubmitSceneLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], ovrPosef renderPose[ovrEye_Count], unsigned int flags);
+	vr::VRCompositorError SubmitSceneLayer(ovrSession session, ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], ovrPosef renderPose[ovrEye_Count], unsigned int flags);
 
 private:
 	// Overlays
 	unsigned int m_OverlayCount;
 	std::vector<vr::VROverlayHandle_t> m_ActiveOverlays;
-	vr::ETrackingUniverseOrigin m_trackingOrigin;
 };
