@@ -167,7 +167,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 
 	// Get the device poses
-	vr::ETrackingUniverseOrigin origin = session->Compositor->GetTrackingOrigin();
+	vr::ETrackingUniverseOrigin origin = session->TrackingOrigin;
 	float relTime = absTime > 0.0f ? float(absTime - ovr_GetTimeInSeconds()) : 0.0f;
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(origin, relTime, poses, vr::k_unMaxTrackedDeviceCount);

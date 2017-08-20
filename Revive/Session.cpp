@@ -23,6 +23,9 @@ ovrHmdStruct::ovrHmdStruct()
 	// Get the render target multiplier
 	PixelsPerDisplayPixel = ovr_GetFloat(this, REV_KEY_PIXELS_PER_DISPLAY, REV_DEFAULT_PIXELS_PER_DISPLAY);
 
+	// Get the default universe origin from the settings
+	TrackingOrigin = (vr::ETrackingUniverseOrigin)ovr_GetInt(nullptr, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN);
+
 	LoadSettings();
 }
 
