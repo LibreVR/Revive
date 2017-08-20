@@ -24,6 +24,8 @@ public:
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture) = 0;
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count]) = 0;
 
+	vr::ETrackingUniverseOrigin GetTrackingOrigin() { return m_trackingOrigin; }
+	void SetTrackingOrigin(vr::ETrackingUniverseOrigin origin) { m_trackingOrigin = origin; }
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
 	vr::EVRCompositorError SubmitFrame(ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 	static vr::VRTextureBounds_t FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov);
@@ -44,4 +46,5 @@ private:
 	// Overlays
 	unsigned int m_OverlayCount;
 	std::vector<vr::VROverlayHandle_t> m_ActiveOverlays;
+	vr::ETrackingUniverseOrigin m_trackingOrigin;
 };

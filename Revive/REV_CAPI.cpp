@@ -263,7 +263,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 		return ovrError_InvalidSession;
 
 	// Both enums match exactly, so we can just cast them
-	session->TrackingOrigin = (vr::ETrackingUniverseOrigin)origin;
+	session->Compositor->SetTrackingOrigin((vr::ETrackingUniverseOrigin)origin);
 	return ovrSuccess;
 }
 
@@ -275,7 +275,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 		return ovrTrackingOrigin_EyeLevel;
 
 	// Both enums match exactly, so we can just cast them
-	return (ovrTrackingOrigin)session->TrackingOrigin;
+	return (ovrTrackingOrigin)session->Compositor->GetTrackingOrigin();
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
