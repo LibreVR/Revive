@@ -17,7 +17,6 @@ struct ovrHmdStruct
 	bool ShouldQuit;
 	bool IsVisible;
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
-	vr::ETrackingUniverseOrigin TrackingOrigin;
 
 	// Compositor statistics
 	std::atomic_llong FrameIndex;

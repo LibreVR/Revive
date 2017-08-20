@@ -3,6 +3,7 @@
 #include "SessionDetails.h"
 #include "Settings.h"
 #include "SettingsManager.h"
+#include "CompositorBase.h"
 
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
@@ -167,9 +168,10 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 
 	// Get the device poses
+	vr::ETrackingUniverseOrigin origin = session->Compositor->GetTrackingOrigin();
 	float relTime = absTime > 0.0f ? float(absTime - ovr_GetTimeInSeconds()) : 0.0f;
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(session->TrackingOrigin, relTime, poses, vr::k_unMaxTrackedDeviceCount);
+	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(origin, relTime, poses, vr::k_unMaxTrackedDeviceCount);
 
 	// Convert the head pose
 	outState->HeadPose = TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], m_LastPoses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
@@ -193,7 +195,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
 
-	if (session->TrackingOrigin == vr::TrackingUniverseSeated)
+	if (origin == vr::TrackingUniverseSeated)
 	{
 		REV::Matrix4f origin = (REV::Matrix4f)vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose();
 

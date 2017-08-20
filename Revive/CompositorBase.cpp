@@ -1,6 +1,7 @@
 #include "CompositorBase.h"
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
+#include "Settings.h"
 #include "microprofile.h"
 
 #include <openvr.h>
@@ -18,6 +19,9 @@ CompositorBase::CompositorBase()
 	, m_ChainCount(0)
 {
 	m_SceneLayer = nullptr;
+
+	// Get the default universe origin from the settings
+	m_trackingOrigin = (vr::ETrackingUniverseOrigin)ovr_GetInt(nullptr, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN);
 }
 
 CompositorBase::~CompositorBase()
@@ -276,9 +280,19 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrRecti viewport[ovrEye_
 		bounds.vMin += fovBounds.vMin * bounds.vMax;
 		bounds.vMax *= fovBounds.vMax;
 
-		// Add the pose data to the eye texture
 		vr::VRTextureWithPose_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
-		texture.mDeviceToAbsoluteTracking = REV::Matrix4f(renderPose[i]);
+
+		// Add the pose data to the eye texture
+		REV::Matrix4f pose(renderPose[i]);
+		if (m_trackingOrigin == vr::TrackingUniverseSeated)
+		{
+			REV::Matrix4f offset(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
+			texture.mDeviceToAbsoluteTracking = REV::Matrix4f(offset * pose);
+		}
+		else
+		{
+			texture.mDeviceToAbsoluteTracking = pose;
+		}
 
 		err = vr::VRCompositor()->Submit((vr::EVREye)i, (vr::Texture_t*)&texture, &bounds, vr::Submit_TextureWithPose);
 		if (err != vr::VRCompositorError_None)
