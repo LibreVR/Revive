@@ -67,6 +67,8 @@ DWORD WINAPI XInputGetCapabilities(DWORD dwUserIndex, DWORD dwFlags, XINPUT_CAPA
 	return func(dwUserIndex, dwFlags, pCapabilities);
 }
 
+#pragma warning(push)
+#pragma warning(disable:4995)
 typedef void(__stdcall* _XInputEnable)(BOOL enable);
 void WINAPI XInputEnable(BOOL enable)
 {
@@ -75,6 +77,7 @@ void WINAPI XInputEnable(BOOL enable)
 		func = (_XInputEnable)GetProcAddress(GetXInputModule(), "XInputEnable");
 	return func(enable);
 }
+#pragma warning(pop)
 
 typedef DWORD(__stdcall* _XInputGetDSoundAudioDeviceGuids)(DWORD dwUserIndex, GUID* pDSoundRenderGuid, GUID* pDSoundCaptureGuid);
 DWORD WINAPI XInputGetDSoundAudioDeviceGuids(DWORD dwUserIndex, GUID* pDSoundRenderGuid, GUID* pDSoundCaptureGuid)

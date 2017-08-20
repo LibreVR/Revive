@@ -3,6 +3,7 @@
 
 #include <openvr.h>
 #include <d3d11.h>
+#include <d3d12.h>
 #include <wrl/client.h>
 
 #include "VertexShader.hlsl.h"
@@ -19,13 +20,17 @@ CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 {
 	// Get the device for this context
 	// TODO: DX12 support
-	ID3D11Device* pDevice;
+	ID3D11Device* pDevice = nullptr;
 	HRESULT hr = d3dPtr->QueryInterface(&pDevice);
-	if (FAILED(hr))
-		return nullptr;
+	if (SUCCEEDED(hr))
+		return new CompositorD3D(pDevice);
 
-	// Attach compositor to the device
-	return new CompositorD3D(pDevice);
+	ID3D12CommandQueue* pQueue = nullptr;
+	hr = d3dPtr->QueryInterface(&pQueue);
+	if (SUCCEEDED(hr))
+		return new CompositorD3D(pQueue);
+
+	return nullptr;
 }
 
 CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
@@ -79,6 +84,11 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 	m_pMirror[ovrEye_Right] = right;
 }
 
+CompositorD3D::CompositorD3D(ID3D12CommandQueue* pQueue)
+	: m_pQueue(pQueue)
+{
+}
+
 CompositorD3D::~CompositorD3D()
 {
 }
@@ -90,7 +100,11 @@ ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* d
 
 	for (int i = 0; i < swapChain->Length; i++)
 	{
-		TextureD3D* texture = new TextureD3D(m_pDevice.Get());
+		TextureD3D* texture = nullptr;
+		if (m_pDevice)
+			texture = new TextureD3D(m_pDevice.Get());
+		else
+			texture = new TextureD3D(m_pQueue.Get());
 		bool success = texture->Create(desc->Width, desc->Height, desc->MipLevels, desc->ArraySize, desc->Format,
 			desc->MiscFlags, desc->BindFlags);
 		if (!success)
@@ -109,7 +123,11 @@ ovrResult CompositorD3D::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, o
 		return ovrError_RuntimeException;
 
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(vr::TextureType_DirectX, *desc);
-	TextureD3D* texture = new TextureD3D(m_pDevice.Get());
+	TextureD3D* texture = nullptr;
+	if (m_pDevice)
+		texture = new TextureD3D(m_pDevice.Get());
+	else
+		texture = new TextureD3D(m_pQueue.Get());
 	bool success = texture->Create(desc->Width, desc->Height, 1, 1, desc->Format,
 		desc->MiscFlags | ovrTextureMisc_AllowGenerateMips, ovrTextureBind_DX_RenderTarget);
 	if (!success)
@@ -123,6 +141,10 @@ ovrResult CompositorD3D::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, o
 
 void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count])
 {
+	// TODO: Support mirror textures in DX12
+	if (!m_pDevice)
+		return;
+
 	// Get the current state objects
 	Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
 	float blend_factor[4];
@@ -183,6 +205,10 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextu
 
 void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
 {
+	// TODO: Support compositing layers in DX12
+	if (!m_pDevice)
+		return;
+
 	uint32_t width, height;
 	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
 	TextureD3D* texture = (TextureD3D*)swapChain->Textures[swapChain->SubmitIndex].get();
