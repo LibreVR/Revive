@@ -719,7 +719,7 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	ovrSizei size;
 	vr::VRSystem()->GetRecommendedRenderTargetSize((uint32_t*)&size.w, (uint32_t*)&size.h);
 
-	// TODO: Add an setting to ignore pixelsPerDisplayPixel
+	// TODO: Add a setting to ignore pixelsPerDisplayPixel
 
 	// Grow the recommended size to account for the overlapping fov
 	vr::VRTextureBounds_t bounds = CompositorBase::FovPortToTextureBounds(eye, fov);
@@ -729,11 +729,11 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	return size;
 }
 
-OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrEyeType eyeType, ovrFovPort fov)
+OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovrEyeType eyeType, ovrFovPort fov)
 {
 	REV_TRACE(ovr_GetRenderDesc);
 
-	ovrEyeRenderDesc desc;
+	ovrEyeRenderDesc desc = {};
 	desc.Eye = eyeType;
 	desc.Fov = fov;
 
@@ -745,19 +745,85 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc(ovrSession session, ovrE
 
 	desc.DistortedViewport = OVR::Recti(eyeType == ovrEye_Right ? size.w : 0, 0, size.w, size.h);
 	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w / WidthTan, size.h / HeightTan);
-	desc.HmdToEyeOffset = HmdToEyeMatrix.GetTranslation();
+	desc.HmdToEyePose = OVR::Posef(OVR::Quatf(HmdToEyeMatrix), HmdToEyeMatrix.GetTranslation());
 
 	return desc;
 }
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
+typedef struct OVR_ALIGNAS(4) ovrEyeRenderDesc1_ {
+	ovrEyeType Eye;
+	ovrFovPort Fov;
+	ovrRecti DistortedViewport;
+	ovrVector2f PixelsPerTanAngleAtCenter;
+	ovrVector3f HmdToEyeOffset;
+} ovrEyeRenderDesc1;
+
+OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc1) ovr_GetRenderDesc(ovrSession session, ovrEyeType eyeType, ovrFovPort fov)
+{
+	REV_TRACE(ovr_GetRenderDesc);
+
+	ovrEyeRenderDesc1 legacy = {};
+	ovrEyeRenderDesc desc = ovr_GetRenderDesc2(session, eyeType, fov);
+	memcpy(&legacy, &desc, sizeof(ovrEyeRenderDesc1));
+	legacy.HmdToEyeOffset = desc.HmdToEyePose.Position;
+	return legacy;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long long frameIndex)
+{
+	vr::EVRCompositorError err = vr::VRCompositorError_None;
+	while (frameIndex < session->FrameIndex)
+	{
+		// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
+		err = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+		session->FrameIndex++;
+	}
+	return rev_CompositorErrorToOvrError(err);
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long frameIndex)
+{
+	// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
+	vr::EVRCompositorError err = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	return rev_CompositorErrorToOvrError(err);
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	REV_TRACE(ovr_SubmitFrame);
 
 	MICROPROFILE_META_CPU("Submit Frame", (int)frameIndex);
 
-	// TODO: Implement scaling through ApplyTransform().
+	if (!session || !session->Compositor)
+		return ovrError_InvalidSession;
+
+	if (layerCount == 0 || !layerPtrList)
+		return ovrError_InvalidParameter;
+
+	// Use our own intermediate compositor to convert the frame to OpenVR.
+	vr::EVRCompositorError err = session->Compositor->SubmitFrame(session, layerPtrList, layerCount);
+
+	// Flip the profiler.
+	MicroProfileFlip();
+
+	// Increment the frame index.
+	if (frameIndex == 0)
+		session->FrameIndex++;
+	else
+		session->FrameIndex = frameIndex;
+
+	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
+
+	return rev_CompositorErrorToOvrError(err);
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
+	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+{
+	REV_TRACE(ovr_SubmitFrame);
+
+	MICROPROFILE_META_CPU("Submit Frame", (int)frameIndex);
 
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
@@ -784,6 +850,21 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
 
 	return rev_CompositorErrorToOvrError(err);
+}
+
+typedef struct OVR_ALIGNAS(4) ovrViewScaleDesc1_ {
+	ovrVector3f HmdToEyeOffset[ovrEye_Count]; ///< Translation of each eye.
+	float HmdSpaceToWorldScaleInMeters; ///< Ratio of viewer units to meter units.
+} ovrViewScaleDesc1;
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc1* viewScaleDesc,
+	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+{
+	ovrViewScaleDesc desc = {};
+	for (int i = 0; i < ovrEye_Count; i++)
+		desc.HmdToEyePose[i] = OVR::Posef(OVR::Quatf(), viewScaleDesc->HmdToEyeOffset[i]);
+	desc.HmdSpaceToWorldScaleInMeters = viewScaleDesc->HmdSpaceToWorldScaleInMeters;
+	return ovr_SubmitFrame2(session, frameIndex, &desc, layerPtrList, layerCount);
 }
 
 typedef struct OVR_ALIGNAS(4) ovrPerfStatsPerCompositorFrame1_
