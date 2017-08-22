@@ -24,7 +24,7 @@ public:
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);
-	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count]);
+	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture);
 
 protected:
 	// DirectX 11
@@ -47,5 +47,5 @@ protected:
 	Microsoft::WRL::ComPtr<ID3D11BlendState> m_BlendState;
 
 	// Mirror
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pMirror[ovrEye_Count];
+	ID3D11ShaderResourceView* m_pMirror[ovrEye_Count];
 };

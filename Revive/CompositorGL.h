@@ -4,6 +4,7 @@
 
 #include <GL/glew.h>
 #include <openvr.h>
+#include <utility>
 
 class CompositorGL :
 	public CompositorBase
@@ -22,14 +23,13 @@ public:
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);
-	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count]);
+	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture);
 
 protected:
 	static GLboolean glewInitialized;
 
-	GLuint m_CompositorTargets[ovrEye_Count];
-	vr::glUInt_t m_MirrorTextures[ovrEye_Count];
-	vr::glSharedTextureHandle_t m_MirrorHandles[ovrEye_Count];
+	std::pair<vr::glUInt_t, vr::glSharedTextureHandle_t> m_mirror[ovrEye_Count];
+	GLuint m_mirrorFB[ovrEye_Count];
 
 private:
 	static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);

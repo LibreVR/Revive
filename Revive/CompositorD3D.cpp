@@ -73,24 +73,22 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 	m_pDevice->CreateBlendState(&bm, m_BlendState.GetAddressOf());
 
 	// Get the mirror textures
-	ID3D11ShaderResourceView *left, *right;
-	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, m_pDevice.Get(), (void**)&left);
-	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, m_pDevice.Get(), (void**)&right);
-
-	// OpenVR doesn't increment the reference counter as it should, so we have to do it ourselves
-	left->AddRef();
-	right->AddRef();
-	m_pMirror[ovrEye_Left] = left;
-	m_pMirror[ovrEye_Right] = right;
+	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, m_pDevice.Get(), (void**)&m_pMirror[ovrEye_Left]);
+	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, m_pDevice.Get(), (void**)&m_pMirror[ovrEye_Right]);
 }
 
 CompositorD3D::CompositorD3D(ID3D12CommandQueue* pQueue)
 	: m_pQueue(pQueue)
+	, m_pMirror()
 {
 }
 
 CompositorD3D::~CompositorD3D()
 {
+	if (m_pMirror[ovrEye_Left])
+		vr::VRCompositor()->ReleaseMirrorTextureD3D11(m_pMirror[ovrEye_Left]);
+	if (m_pMirror[ovrEye_Right])
+		vr::VRCompositor()->ReleaseMirrorTextureD3D11(m_pMirror[ovrEye_Right]);
 }
 
 ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
@@ -139,7 +137,7 @@ ovrResult CompositorD3D::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, o
 	return ovrSuccess;
 }
 
-void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count])
+void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
 	// TODO: Support mirror textures in DX12
 	if (!m_pDevice)
@@ -163,8 +161,7 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextu
 	// Set the mirror shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
 	m_pContext->PSSetShader(m_MirrorShader.Get(), NULL, 0);
-	ID3D11ShaderResourceView* resources[] = { m_pMirror[ovrEye_Left].Get(), m_pMirror[ovrEye_Right].Get() };
-	m_pContext->PSSetShaderResources(0, 2, resources);
+	m_pContext->PSSetShaderResources(0, ovrEye_Count, m_pMirror);
 
 	// Update the vertex buffer
 	Vertex vertices[4] = {

@@ -22,7 +22,7 @@ public:
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture) = 0;
-	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count]) = 0;
+	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture) = 0;
 
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
 	vr::EVRCompositorError SubmitFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);

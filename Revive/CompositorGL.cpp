@@ -32,11 +32,23 @@ CompositorGL* CompositorGL::Create()
 
 CompositorGL::CompositorGL()
 {
-	// TODO: Get the mirror views from OpenVR once they fix the OpenGL implementation.
+	// Get the mirror textures
+	glGenFramebuffers(ovrEye_Count, m_mirrorFB);
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		vr::VRCompositor()->GetMirrorTextureGL((vr::EVREye)i, &m_mirror[i].first, &m_mirror[i].second);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, m_mirrorFB[i]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_mirror[i].first, 0);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	}
 }
 
 CompositorGL::~CompositorGL()
 {
+	for (int i = 0; i < ovrEye_Count; i++)
+		vr::VRCompositor()->ReleaseSharedGLTexture(m_mirror[i].first, m_mirror[i].second);
 }
 
 ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
@@ -77,7 +89,7 @@ ovrResult CompositorGL::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ov
 	return ovrSuccess;
 }
 
-void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count])
+void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
 	uint32_t width, height;
 	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
@@ -87,13 +99,14 @@ void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextur
 
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		ovrTextureSwapChain chain = swapChain[i];
-		TextureGL* source = (TextureGL*)chain->Textures[chain->SubmitIndex].get();
+		vr::VRCompositor()->LockGLSharedTextureForAccess(m_mirror[i].second);
 
 		// Bind the buffer to copy from the compositor to the mirror texture
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, source->Framebuffer);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_mirrorFB[i]);
 		GLint offset = (mirrorTexture->Desc.Width / 2) * i;
-		glBlitFramebuffer(0, 0, width, height, offset, mirrorTexture->Desc.Height, offset + mirrorTexture->Desc.Width / 2, 0, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		glBlitFramebuffer(0, 0, width, height, offset, 0, offset + mirrorTexture->Desc.Width / 2, mirrorTexture->Desc.Height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+		vr::VRCompositor()->UnlockGLSharedTextureForAccess(m_mirror[i].second);
 	}
 }
 

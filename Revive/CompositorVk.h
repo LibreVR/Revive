@@ -18,7 +18,7 @@ public:
 
 	// Mirror Texture
 	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);
-	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count]);
+	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture);
 
 	void SetDevice(VkDevice device) { m_device = device; }
 	void SetQueue(VkQueue queue) { m_queue = queue; }

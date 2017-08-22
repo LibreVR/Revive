@@ -50,7 +50,7 @@ ovrResult CompositorVk::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ov
 	return ovrSuccess;
 }
 
-void CompositorVk::RenderMirrorTexture(ovrMirrorTexture mirrorTexture, ovrTextureSwapChain swapChain[ovrEye_Count])
+void CompositorVk::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
 	// TODO: Support mirror textures
 }

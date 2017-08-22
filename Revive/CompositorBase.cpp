@@ -123,9 +123,6 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrSession session, ovrLayerH
 	{
 		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)m_SceneLayer;
 		error = SubmitSceneLayer(session, sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->RenderPose, sceneLayer->Header.Flags);
-
-		if (m_MirrorTexture && error == vr::VRCompositorError_None)
-			RenderMirrorTexture(m_MirrorTexture, sceneLayer->ColorTexture);
 	}
 	else if (m_SceneLayer && m_SceneLayer->Type == ovrLayerType_EyeMatrix)
 	{
@@ -137,10 +134,10 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrSession session, ovrLayerH
 		};
 
 		error = SubmitSceneLayer(session, sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->RenderPose, sceneLayer->Header.Flags);
-
-		if (m_MirrorTexture && error == vr::VRCompositorError_None)
-			RenderMirrorTexture(m_MirrorTexture, sceneLayer->ColorTexture);
 	}
+
+	if (m_MirrorTexture && error == vr::VRCompositorError_None)
+		RenderMirrorTexture(m_MirrorTexture);
 
 	m_SceneLayer = nullptr;
 
