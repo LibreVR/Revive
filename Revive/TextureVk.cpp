@@ -105,7 +105,7 @@ bool TextureVk::GetMemoryType(uint32_t typeBits, VkFlags requirements_mask, uint
 	return false;
 }
 
-bool TextureVk::Create(int Width, int Height, int MipLevels, int ArraySize,
+bool TextureVk::Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 	ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
 {
 	VK_DEVICE_FUNCTION(m_device, vkCreateImage)

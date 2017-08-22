@@ -28,6 +28,44 @@ CompositorBase::~CompositorBase()
 		delete m_MirrorTexture;
 }
 
+ovrResult CompositorBase::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
+{
+	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(*desc);
+	swapChain->Identifier = m_ChainCount++;
+
+	for (int i = 0; i < swapChain->Length; i++)
+	{
+		TextureBase* texture = CreateTexture();
+		bool success = texture->Init(desc->Type, desc->Width, desc->Height, desc->MipLevels,
+			desc->ArraySize, desc->Format, desc->MiscFlags, desc->BindFlags);
+		if (!success)
+			return ovrError_RuntimeException;
+		swapChain->Textures[i].reset(texture);
+	}
+
+	*out_TextureSwapChain = swapChain;
+	return ovrSuccess;
+}
+
+ovrResult CompositorBase::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture)
+{
+	// There can only be one mirror texture at a time
+	if (m_MirrorTexture)
+		return ovrError_RuntimeException;
+
+	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(*desc);
+	TextureBase* texture = CreateTexture();
+	bool success = texture->Init(ovrTexture_2D, desc->Width, desc->Height, 1, 1, desc->Format,
+		desc->MiscFlags | ovrTextureMisc_AllowGenerateMips, ovrTextureBind_DX_RenderTarget);
+	if (!success)
+		return ovrError_RuntimeException;
+	mirrorTexture->Texture.reset(texture);
+
+	m_MirrorTexture = mirrorTexture;
+	*out_MirrorTexture = mirrorTexture;
+	return ovrSuccess;
+}
+
 vr::EVRCompositorError CompositorBase::SubmitFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	MICROPROFILE_SCOPE(SubmitFrame);

@@ -12,7 +12,7 @@ public:
 	virtual ~TextureGL();
 
 	virtual vr::VRTextureWithPose_t ToVRTexture();
-	virtual bool Create(int Width, int Height, int MipLevels, int ArraySize,
+	virtual bool Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
 
 	GLuint Texture;

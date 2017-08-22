@@ -51,42 +51,9 @@ CompositorGL::~CompositorGL()
 		vr::VRCompositor()->ReleaseSharedGLTexture(m_mirror[i].first, m_mirror[i].second);
 }
 
-ovrResult CompositorGL::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
+TextureBase* CompositorGL::CreateTexture()
 {
-	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::TextureType_OpenGL, *desc);
-	swapChain->Identifier = m_ChainCount++;
-
-	for (int i = 0; i < swapChain->Length; i++)
-	{
-		TextureGL* texture = new TextureGL();
-		bool success = texture->Create(desc->Width, desc->Height, desc->MipLevels, desc->ArraySize, desc->Format,
-			desc->MiscFlags, desc->BindFlags);
-		if (!success)
-			return ovrError_RuntimeException;
-		swapChain->Textures[i].reset(texture);
-	}
-
-	*out_TextureSwapChain = swapChain;
-	return ovrSuccess;
-}
-
-ovrResult CompositorGL::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture)
-{
-	// There can only be one mirror texture at a time
-	if (m_MirrorTexture)
-		return ovrError_RuntimeException;
-
-	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(vr::TextureType_OpenGL, *desc);
-	TextureGL* texture = new TextureGL();
-	bool success = texture->Create(desc->Width, desc->Height, 1, 1, desc->Format,
-		desc->MiscFlags, 0);
-	if (!success)
-		return ovrError_RuntimeException;
-	mirrorTexture->Texture.reset(texture);
-
-	m_MirrorTexture = mirrorTexture;
-	*out_MirrorTexture = mirrorTexture;
-	return ovrSuccess;
+	return new TextureGL();
 }
 
 void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)

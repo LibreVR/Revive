@@ -91,50 +91,12 @@ CompositorD3D::~CompositorD3D()
 		vr::VRCompositor()->ReleaseMirrorTextureD3D11(m_pMirror[ovrEye_Right]);
 }
 
-ovrResult CompositorD3D::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
+TextureBase* CompositorD3D::CreateTexture()
 {
-	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(vr::TextureType_DirectX, *desc);
-	swapChain->Identifier = m_ChainCount++;
-
-	for (int i = 0; i < swapChain->Length; i++)
-	{
-		TextureD3D* texture = nullptr;
-		if (m_pDevice)
-			texture = new TextureD3D(m_pDevice.Get());
-		else
-			texture = new TextureD3D(m_pQueue.Get());
-		bool success = texture->Create(desc->Width, desc->Height, desc->MipLevels, desc->ArraySize, desc->Format,
-			desc->MiscFlags, desc->BindFlags);
-		if (!success)
-			return ovrError_RuntimeException;
-		swapChain->Textures[i].reset(texture);
-	}
-
-	*out_TextureSwapChain = swapChain;
-	return ovrSuccess;
-}
-
-ovrResult CompositorD3D::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture)
-{
-	// There can only be one mirror texture at a time
-	if (m_MirrorTexture)
-		return ovrError_RuntimeException;
-
-	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(vr::TextureType_DirectX, *desc);
-	TextureD3D* texture = nullptr;
 	if (m_pDevice)
-		texture = new TextureD3D(m_pDevice.Get());
+		return new TextureD3D(m_pDevice.Get());
 	else
-		texture = new TextureD3D(m_pQueue.Get());
-	bool success = texture->Create(desc->Width, desc->Height, 1, 1, desc->Format,
-		desc->MiscFlags | ovrTextureMisc_AllowGenerateMips, ovrTextureBind_DX_RenderTarget);
-	if (!success)
-		return ovrError_RuntimeException;
-	mirrorTexture->Texture.reset(texture);
-
-	m_MirrorTexture = mirrorTexture;
-	*out_MirrorTexture = mirrorTexture;
-	return ovrSuccess;
+		return new TextureD3D(m_pQueue.Get());
 }
 
 void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)

@@ -17,13 +17,9 @@ public:
 	static CompositorD3D* Create(IUnknown* d3dPtr);
 	virtual vr::ETextureType GetAPI() { return vr::TextureType_DirectX; };
 	virtual void Flush() { if (m_pContext) m_pContext->Flush(); };
+	virtual TextureBase* CreateTexture();
 
-	// Texture Swapchain
-	virtual ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
 	virtual void RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad);
-
-	// Mirror Texture
-	virtual ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture);
 
 protected:

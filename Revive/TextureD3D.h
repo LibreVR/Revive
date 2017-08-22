@@ -14,7 +14,7 @@ public:
 	virtual ~TextureD3D();
 
 	virtual vr::VRTextureWithPose_t ToVRTexture();
-	virtual bool Create(int Width, int Height, int MipLevels, int ArraySize,
+	virtual bool Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
 
 	IUnknown* Texture() { if (m_pDevice) return m_pTexture.Get(); else return m_pResource12.Get(); };

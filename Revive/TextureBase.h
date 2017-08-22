@@ -15,12 +15,13 @@ public:
 	virtual ~TextureBase() { };
 
 	virtual vr::VRTextureWithPose_t ToVRTexture() = 0;
+	virtual bool Init(ovrTextureType type, int width, int height, int mipLevels, int arraySize,
+		ovrTextureFormat format, unsigned int miscFlags, unsigned int bindFlags) = 0;
 };
 
 struct ovrTextureSwapChainData
 {
 	ovrTextureSwapChainDesc Desc;
-	vr::ETextureType ApiType;
 	vr::VROverlayHandle_t Overlay;
 
 	unsigned int Identifier;
@@ -31,14 +32,15 @@ struct ovrTextureSwapChainData
 	void Commit() { CurrentIndex++; CurrentIndex %= Length; };
 	void Submit() { SubmitIndex++; SubmitIndex %= Length; };
 
-	ovrTextureSwapChainData(vr::ETextureType api, ovrTextureSwapChainDesc desc);
+	ovrTextureSwapChainData(ovrTextureSwapChainDesc desc);
+	~ovrTextureSwapChainData();
 };
 
 struct ovrMirrorTextureData
 {
 	ovrMirrorTextureDesc Desc;
-	vr::ETextureType ApiType;
 	std::unique_ptr<TextureBase> Texture;
 
-	ovrMirrorTextureData(vr::ETextureType api, ovrMirrorTextureDesc desc);
+	ovrMirrorTextureData(ovrMirrorTextureDesc desc);
+	~ovrMirrorTextureData();
 };

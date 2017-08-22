@@ -71,7 +71,7 @@ GLenum TextureGL::TextureFormatToGLFormat(ovrTextureFormat format)
 	}
 }
 
-bool TextureGL::Create(int Width, int Height, int MipLevels, int ArraySize,
+bool TextureGL::Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 	ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
 {
 	GLenum internalFormat = TextureFormatToInternalFormat(Format);

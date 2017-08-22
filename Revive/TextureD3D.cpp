@@ -174,7 +174,7 @@ D3D12_RESOURCE_FLAGS TextureD3D::BindFlagsToD3DResourceFlags(unsigned int flags)
 	return result;
 }
 
-bool TextureD3D::Create(int Width, int Height, int MipLevels, int ArraySize,
+bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 	ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
 {
 	if (m_pDevice12)
