@@ -720,7 +720,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc1) ovr_GetRenderDesc(ovrSession session, ovr
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long long frameIndex)
 {
 	vr::EVRCompositorError err = vr::VRCompositorError_None;
-	while (frameIndex < session->FrameIndex)
+	while (session->FrameIndex < frameIndex)
 	{
 		// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
 		err = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
