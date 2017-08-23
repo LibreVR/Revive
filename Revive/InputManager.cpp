@@ -19,7 +19,10 @@ InputManager::InputManager()
 	for (ovrPoseStatef& pose : m_LastPoses)
 		pose.ThePose = OVR::Posef::Identity();
 
+	// TODO: XInput is slow, move it to another thread
+#if 0
 	m_InputDevices.push_back(new XboxGamepad());
+#endif
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
 	m_InputDevices.push_back(new OculusRemote());
