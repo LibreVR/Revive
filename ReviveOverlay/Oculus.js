@@ -5,8 +5,10 @@ function decodeHtml(str) {
 };
 
 function generateManifest(manifest) {
-    console.log("Generating manifest for " + manifest["canonicalName"]);
+    if (manifest["thirdParty"])
+        console.log("Skipping third-party manifest " + manifest["canonicalName"]);
 
+    console.log("Generating manifest for " + manifest["canonicalName"]);
     var launch = manifest["launchFile"];
 
     // Find the true executable for Unreal Engine games
