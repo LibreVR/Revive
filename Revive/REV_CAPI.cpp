@@ -958,9 +958,8 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propert
 {
 	REV_TRACE(ovr_GetBool);
 
-	vr::EVRSettingsError error;
-	ovrBool result = vr::VRSettings()->GetBool(REV_SETTINGS_SECTION, propertyName, &error);
-	return (error == vr::VRSettingsError_None) ? result : defaultVal;
+	// TODO: Implement a cached settings interface
+	return defaultVal;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propertyName, ovrBool value)
