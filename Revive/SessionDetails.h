@@ -1,6 +1,11 @@
 #pragma once
 
 #include <map>
+#include <list>
+#include <atomic>
+#include <openvr.h>
+
+#include "OVR_CAPI.h"
 
 class SessionDetails
 {
@@ -24,6 +29,13 @@ public:
 
 	bool UseHack(Hack hack);
 
+	std::atomic<ovrHmdDesc*> HmdDesc;
+	void UpdateHmdDesc();
+
+	std::atomic_uint32_t TrackerCount;
+	std::atomic<ovrTrackerDesc*> TrackerDesc[vr::k_unMaxTrackedDeviceCount];
+	void UpdateTrackerDesc();
+
 private:
 	struct HackInfo
 	{
@@ -35,5 +47,7 @@ private:
 	static HackInfo m_known_hacks[];
 	
 	std::map<Hack, HackInfo> m_hacks;
+	std::list<ovrHmdDesc> HmdDescList;
+	std::list<ovrTrackerDesc> TrackerDescList;
 };
 

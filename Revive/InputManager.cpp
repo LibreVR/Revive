@@ -23,6 +23,8 @@ InputManager::InputManager()
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
 	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
 	m_InputDevices.push_back(new OculusRemote());
+
+	UpdateConnectedControllers();
 }
 
 InputManager::~InputManager()
@@ -31,7 +33,7 @@ InputManager::~InputManager()
 		delete device;
 }
 
-unsigned int InputManager::GetConnectedControllerTypes()
+void InputManager::UpdateConnectedControllers()
 {
 	uint32_t types = 0;
 	for (InputDevice* device : m_InputDevices)
@@ -39,11 +41,10 @@ unsigned int InputManager::GetConnectedControllerTypes()
 		if (device->IsConnected())
 			types |= device->GetType();
 	}
-
-	return types;
+	ConnectedControllers = types;
 }
 
-ovrResult InputManager::SetControllerVibration(ovrControllerType controllerType, float frequency, float amplitude)
+ovrResult InputManager::SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
 {
 	// Clamp the input
 	frequency = min(max(frequency, 0.0f), 1.0f);
@@ -51,7 +52,7 @@ ovrResult InputManager::SetControllerVibration(ovrControllerType controllerType,
 
 	for (InputDevice* device : m_InputDevices)
 	{
-		if (controllerType & device->GetType() && device->IsConnected())
+		if (controllerType & device->GetType() && ConnectedControllers & device->GetType())
 			device->SetVibration(frequency, amplitude);
 	}
 
@@ -67,7 +68,7 @@ ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType cont
 	uint32_t types = 0;
 	for (InputDevice* device : m_InputDevices)
 	{
-		if (controllerType & device->GetType() && device->IsConnected())
+		if (controllerType & device->GetType() && ConnectedControllers & device->GetType())
 		{
 			if (device->GetInputState(session, inputState))
 				types |= device->GetType();
@@ -78,24 +79,24 @@ ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType cont
 	return ovrSuccess;
 }
 
-ovrResult InputManager::SubmitControllerVibration(ovrControllerType controllerType, const ovrHapticsBuffer* buffer)
+ovrResult InputManager::SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer)
 {
 	for (InputDevice* device : m_InputDevices)
 	{
-		if (controllerType & device->GetType() && device->IsConnected())
+		if (controllerType & device->GetType() && ConnectedControllers & device->GetType())
 			device->SubmitVibration(buffer);
 	}
 
 	return ovrSuccess;
 }
 
-ovrResult InputManager::GetControllerVibrationState(ovrControllerType controllerType, ovrHapticsPlaybackState* outState)
+ovrResult InputManager::GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState)
 {
 	memset(outState, 0, sizeof(ovrHapticsPlaybackState));
 
 	for (InputDevice* device : m_InputDevices)
 	{
-		if (controllerType & device->GetType() && device->IsConnected())
+		if (controllerType & device->GetType() && ConnectedControllers & device->GetType())
 			device->GetVibrationState(outState);
 	}
 
@@ -347,7 +348,7 @@ ovrControllerType InputManager::OculusTouch::GetType()
 	return m_Role == vr::TrackedControllerRole_LeftHand ? ovrControllerType_LTouch : ovrControllerType_RTouch;
 }
 
-bool InputManager::OculusTouch::IsConnected()
+bool InputManager::OculusTouch::IsConnected() const
 {
 	// Check if the Vive controller is assigned
 	vr::TrackedDeviceIndex_t touch = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
@@ -568,7 +569,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	return true;
 }
 
-bool InputManager::OculusRemote::IsConnected()
+bool InputManager::OculusRemote::IsConnected() const
 {
 	// Check if a Vive controller is available
 	uint32_t controllerCount = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, nullptr, 0);
@@ -646,7 +647,7 @@ InputManager::XboxGamepad::~XboxGamepad()
 	FreeLibrary(m_XInput);
 }
 
-bool InputManager::XboxGamepad::IsConnected()
+bool InputManager::XboxGamepad::IsConnected() const
 {
 	if (!m_XInput)
 		return false;

@@ -4,6 +4,8 @@
 #include <openvr.h>
 #include <memory>
 #include <atomic>
+#include <list>
+#include <thread>
 
 // Forward declarations
 class CompositorBase;
@@ -13,6 +15,9 @@ class SettingsManager;
 
 struct ovrHmdStruct
 {
+	std::thread SessionThread;
+	std::atomic_bool Running;
+
 	// Session status
 	bool ShouldQuit;
 	bool IsVisible;

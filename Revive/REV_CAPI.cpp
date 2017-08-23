@@ -16,7 +16,7 @@
 
 #define REV_DEFAULT_TIMEOUT 10000
 
-vr::EVRInitError g_InitError = vr::VRInitError_None;
+vr::EVRInitError g_InitError = vr::VRInitError_Init_NotInitialized;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
@@ -90,89 +90,39 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 {
 	REV_TRACE(ovr_GetHmdDesc);
 
-	ovrHmdDesc desc;
-	desc.Type = ovrHmd_CV1;
-
-	// Get HMD name
-	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_ModelNumber_String, desc.ProductName, 64);
-	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_ManufacturerName_String, desc.Manufacturer, 64);
-
-	// Some games require a fake product name
-	if (session && session->Details->UseHack(SessionDetails::HACK_FAKE_PRODUCT_NAME))
-		strncpy(desc.ProductName, "Oculus Rift", 64);
-
-	// TODO: Get HID information
-	desc.VendorId = 0;
-	desc.ProductId = 0;
-
-	// Get serial number
-	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String, desc.SerialNumber, 24);
-
-	// TODO: Get firmware version
-	desc.FirmwareMajor = 0;
-	desc.FirmwareMinor = 0;
-
-	// Get capabilities
-	desc.AvailableHmdCaps = 0;
-	desc.DefaultHmdCaps = 0;
-	desc.AvailableTrackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_Position;
-	if (!vr::VRSystem()->GetBoolTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_WillDriftInYaw_Bool))
-		desc.AvailableTrackingCaps |= ovrTrackingCap_MagYawCorrection;
-	desc.DefaultTrackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position;
-
-	// Get field-of-view
-	for (int i = 0; i < ovrEye_Count; i++)
+	if (!session)
 	{
-		ovrFovPort eye;
-		vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &eye.LeftTan, &eye.RightTan, &eye.DownTan, &eye.UpTan);
-		eye.LeftTan *= -1.0f;
-		eye.DownTan *= -1.0f;
-		desc.DefaultEyeFov[i] = eye;
-		desc.MaxEyeFov[i] = eye;
+		ovrHmdDesc desc = {};
+		desc.Type = vr::VR_IsHmdPresent() ? ovrHmd_CV1 : ovrHmd_None;
+		return desc;
 	}
 
-	// Get display properties
-	vr::VRSystem()->GetRecommendedRenderTargetSize((uint32_t*)&desc.Resolution.w, (uint32_t*)&desc.Resolution.h);
-	desc.Resolution.w *= 2; // Both eye ports
-	desc.DisplayRefreshRate = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
-
-	return desc;
+	return *session->Details->HmdDesc;
 }
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 {
 	REV_TRACE(ovr_GetTrackerCount);
 
-	uint32_t count = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, nullptr, 0);
+	if (!session)
+		return ovrError_InvalidSession;
 
-	return count;
+	return (unsigned int)session->Details->TrackerCount;
 }
 
 OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsigned int trackerDescIndex)
 {
 	REV_TRACE(ovr_GetTrackerDesc);
 
-	// Get the index for this tracker.
-	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount];
-	vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
-	vr::TrackedDeviceIndex_t index = trackers[trackerDescIndex];
+	if (!session)
+		return ovrTrackerDesc();
 
-	// Fill the descriptor.
-	ovrTrackerDesc desc;
+	ovrTrackerDesc* pDesc = session->Details->TrackerDesc[trackerDescIndex];
 
-	// Calculate field-of-view.
-	float left = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewLeftDegrees_Float);
-	float right = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewRightDegrees_Float);
-	float top = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewTopDegrees_Float);
-	float bottom = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewBottomDegrees_Float);
-	desc.FrustumHFovInRadians = OVR::DegreeToRad(left + right);
-	desc.FrustumVFovInRadians = OVR::DegreeToRad(top + bottom);
+	if (!pDesc)
+		return ovrTrackerDesc();
 
-	// Get the tracking frustum.
-	desc.FrustumNearZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
-	desc.FrustumFarZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
-
-	return desc;
+	return *pDesc;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid* pLuid)
@@ -441,7 +391,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 {
 	REV_TRACE(ovr_GetConnectedControllerTypes);
 
-	return session->Input->GetConnectedControllerTypes();
+	return session->Input->ConnectedControllers;
 }
 
 OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession session, ovrControllerType controllerType)
@@ -458,7 +408,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ov
 	if (!session)
 		return ovrError_InvalidSession;
 
-	return session->Input->SetControllerVibration(controllerType, frequency, amplitude);
+	return session->Input->SetControllerVibration(session, controllerType, frequency, amplitude);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer)
@@ -468,7 +418,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitControllerVibration(ovrSession session,
 	if (!session)
 		return ovrError_InvalidSession;
 
-	return session->Input->SubmitControllerVibration(controllerType, buffer);
+	return session->Input->SubmitControllerVibration(session, controllerType, buffer);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState)
@@ -478,7 +428,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetControllerVibrationState(ovrSession sessio
 	if (!session)
 		return ovrError_InvalidSession;
 
-	return session->Input->GetControllerVibrationState(controllerType, outState);
+	return session->Input->GetControllerVibrationState(session, controllerType, outState);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDeviceType deviceBitmask,
@@ -760,8 +710,6 @@ typedef struct OVR_ALIGNAS(4) ovrEyeRenderDesc1_ {
 
 OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc1) ovr_GetRenderDesc(ovrSession session, ovrEyeType eyeType, ovrFovPort fov)
 {
-	REV_TRACE(ovr_GetRenderDesc);
-
 	ovrEyeRenderDesc1 legacy = {};
 	ovrEyeRenderDesc desc = ovr_GetRenderDesc2(session, eyeType, fov);
 	memcpy(&legacy, &desc, sizeof(ovrEyeRenderDesc1));
