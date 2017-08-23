@@ -1039,9 +1039,8 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propert
 {
 	REV_TRACE(ovr_SetBool);
 
-	vr::EVRSettingsError error;
-	vr::VRSettings()->SetBool(REV_SETTINGS_SECTION, propertyName, !!value, &error);
-	return error == vr::VRSettingsError_None;
+	// TODO: Implement a cached settings interface
+	return false;
 }
 
 OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName, int defaultVal)
@@ -1051,18 +1050,16 @@ OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName
 	if (strcmp("TextureSwapChainDepth", propertyName) == 0)
 		return REV_SWAPCHAIN_LENGTH;
 
-	vr::EVRSettingsError error;
-	int result = vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, propertyName, &error);
-	return (error == vr::VRSettingsError_None) ? result : defaultVal;
+	// TODO: Implement a cached settings interface
+	return defaultVal;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* propertyName, int value)
 {
 	REV_TRACE(ovr_SetInt);
 
-	vr::EVRSettingsError error;
-	vr::VRSettings()->SetInt32(REV_SETTINGS_SECTION, propertyName, value, &error);
-	return error == vr::VRSettingsError_None;
+	// TODO: Implement a cached settings interface
+	return false;
 }
 
 OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* propertyName, float defaultVal)
@@ -1078,18 +1075,16 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 	else if (strcmp(propertyName, OVR_KEY_EYE_HEIGHT) == 0)
 		defaultVal = OVR_DEFAULT_EYE_HEIGHT;
 
-	vr::EVRSettingsError error;
-	float result = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, propertyName, &error);
-	return (error == vr::VRSettingsError_None) ? result : defaultVal;
+	// TODO: Implement a cached settings interface
+	return defaultVal;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* propertyName, float value)
 {
 	REV_TRACE(ovr_SetFloat);
 
-	vr::EVRSettingsError error;
-	vr::VRSettings()->SetFloat(REV_SETTINGS_SECTION, propertyName, value, &error);
-	return error == vr::VRSettingsError_None;
+	// TODO: Implement a cached settings interface
+	return false;
 }
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const char* propertyName, float values[], unsigned int valuesCapacity)
@@ -1107,38 +1102,16 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const ch
 		return 2;
 	}
 
-	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
-
-	for (unsigned int i = 0; i < valuesCapacity; i++)
-	{
-		vr::EVRSettingsError error;
-		snprintf(key, vr::k_unMaxSettingsKeyLength, "%s[%d]", propertyName, i);
-		values[i] = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, key, &error);
-
-		if (error != vr::VRSettingsError_None)
-			return i;
-	}
-
-	return valuesCapacity;
+	// TODO: Implement a cached settings interface
+	return 0;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* propertyName, const float values[], unsigned int valuesSize)
 {
 	REV_TRACE(ovr_SetFloatArray);
 
-	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
-
-	for (unsigned int i = 0; i < valuesSize; i++)
-	{
-		vr::EVRSettingsError error;
-		snprintf(key, vr::k_unMaxSettingsKeyLength, "%s[%d]", propertyName, i);
-		vr::VRSettings()->SetFloat(REV_SETTINGS_SECTION, key, values[i], &error);
-
-		if (error != vr::VRSettingsError_None)
-			return false;
-	}
-
-	return true;
+	// TODO: Implement a cached settings interface
+	return false;
 }
 
 OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* propertyName, const char* defaultVal)
@@ -1152,18 +1125,16 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 	if (strcmp(propertyName, OVR_KEY_GENDER) == 0)
 		defaultVal = OVR_DEFAULT_GENDER;
 
-	vr::EVRSettingsError error;
-	vr::VRSettings()->GetString(REV_SETTINGS_SECTION, propertyName, session->StringBuffer, vr::k_unMaxPropertyStringSize, &error);
-	return (error == vr::VRSettingsError_None) ? session->StringBuffer : defaultVal;
+	// TODO: Implement a cached settings interface
+	return defaultVal;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* propertyName, const char* value)
 {
 	REV_TRACE(ovr_SetString);
 
-	vr::EVRSettingsError error;
-	vr::VRSettings()->SetString(REV_SETTINGS_SECTION, propertyName, value, &error);
-	return error == vr::VRSettingsError_None;
+	// TODO: Implement a cached settings interface
+	return false;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Lookup(const char* name, void** data)
