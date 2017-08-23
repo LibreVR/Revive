@@ -170,13 +170,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	if (!sessionStatus)
 		return ovrError_InvalidParameter;
 
+	// Detect if the application has focus, but only return false the first time the status is requested.
+	// If this is true from the first call then some games will assume the Health-and-Safety warning
+	// is still being displayed.
+	static bool firstCall = true;
+	sessionStatus->IsVisible = vr::VRCompositor()->CanRenderScene() && !firstCall;
+	firstCall = false;
+
 	SessionStatusBits status = session->SessionStatus;
-	sessionStatus->IsVisible = status.IsVisible;
-	sessionStatus->HmdPresent = status.HmdPresent;
 
 	// Don't use the activity level while debugging, so I don't have to put on the HMD
-	if (!session->Settings->IgnoreActivity)
-		sessionStatus->HmdMounted = status.HmdMounted;
+	sessionStatus->HmdPresent = status.HmdPresent;
+	sessionStatus->HmdMounted = status.HmdMounted;
 
 	// TODO: Detect if the display is lost, can this ever happen with OpenVR?
 	sessionStatus->DisplayLost = status.DisplayLost;
