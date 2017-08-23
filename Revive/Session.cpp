@@ -50,7 +50,7 @@ void SessionThreadFunc(ovrSession session)
 			if (vrEvent.trackedDeviceIndex == vr::k_unTrackedDeviceIndex_Hmd)
 			{
 				SessionStatusBits status = session->SessionStatus;
-				status.HmdMounted = vrEvent.eventType == vr::VREvent_TrackedDeviceUserInteractionStarted;
+				status.HmdMounted = vrEvent.eventType == vr::VREvent_TrackedDeviceUserInteractionStarted || session->Settings->IgnoreActivity;
 				session->SessionStatus = status;
 			}
 			break;
