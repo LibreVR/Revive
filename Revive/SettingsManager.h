@@ -22,12 +22,5 @@ public:
 	bool TriggerAsGrip;
 	float ToggleDelay;
 	bool IgnoreActivity;
-	ovrVector3f RotationOffset, PositionOffset;
 	vr::HmdMatrix34_t TouchOffset[ovrHand_Count];
-
-private:
-	bool m_bRunning;
-	std::thread m_thread;
-
-	static void SettingsThread(SettingsManager* manager);
 };

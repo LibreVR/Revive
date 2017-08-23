@@ -6,18 +6,13 @@
 #include <thread>
 
 SettingsManager::SettingsManager()
-	: m_bRunning(true)
 {
+	// TODO: Automatically re-load the settings during gameplay.
 	LoadSettings();
-
-	m_thread = std::thread(SettingsThread, this);
 }
 
 SettingsManager::~SettingsManager()
 {
-	m_bRunning = false;
-	if (m_thread.joinable())
-		m_thread.join();
 }
 
 void SettingsManager::LoadSettings()
@@ -40,41 +35,22 @@ void SettingsManager::LoadSettings()
 		ovr_GetFloat(nullptr, REV_KEY_TOUCH_Z, REV_DEFAULT_TOUCH_Z)
 	);
 
-	// Check if the offset matrix needs to be updated
-	if (angles != RotationOffset || offset != PositionOffset)
+	for (int i = 0; i < ovrHand_Count; i++)
 	{
-		RotationOffset = angles;
-		PositionOffset = offset;
+		OVR::Matrix4f yaw = OVR::Matrix4f::RotationY(angles.y);
+		OVR::Matrix4f pitch = OVR::Matrix4f::RotationX(angles.x);
+		OVR::Matrix4f roll = OVR::Matrix4f::RotationZ(angles.z);
 
-		for (int i = 0; i < ovrHand_Count; i++)
+		// Mirror the right touch controller offsets
+		if (i == ovrHand_Right)
 		{
-			OVR::Matrix4f yaw = OVR::Matrix4f::RotationY(angles.y);
-			OVR::Matrix4f pitch = OVR::Matrix4f::RotationX(angles.x);
-			OVR::Matrix4f roll = OVR::Matrix4f::RotationZ(angles.z);
-
-			// Mirror the right touch controller offsets
-			if (i == ovrHand_Right)
-			{
-				yaw.Invert();
-				roll.Invert();
-				offset.x *= -1.0f;
-			}
-
-			OVR::Matrix4f matrix(yaw * pitch * roll);
-			matrix.SetTranslation(offset);
-			memcpy(TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
+			yaw.Invert();
+			roll.Invert();
+			offset.x *= -1.0f;
 		}
-	}
-}
 
-void SettingsManager::SettingsThread(SettingsManager* manager)
-{
-	// Only refresh the settings once per second
-	std::chrono::microseconds freq(std::chrono::seconds(1));
-
-	while (manager->m_bRunning)
-	{
-		manager->LoadSettings();
-		std::this_thread::sleep_for(freq);
+		OVR::Matrix4f matrix(yaw * pitch * roll);
+		matrix.SetTranslation(offset);
+		memcpy(TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
 	}
 }
