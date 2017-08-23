@@ -3,8 +3,8 @@
 HapticsBuffer::HapticsBuffer()
 	: m_ReadIndex(0)
 	, m_WriteIndex(0)
+	, m_Buffer()
 {
-	memset(m_Buffer, 0, sizeof(m_Buffer));
 }
 
 void HapticsBuffer::AddSamples(const ovrHapticsBuffer* buffer)
@@ -20,15 +20,20 @@ void HapticsBuffer::AddSamples(const ovrHapticsBuffer* buffer)
 			return;
 
 		// Index will overflow correctly, so no need for a modulo operator
-		m_Buffer[m_WriteIndex++] = samples[i];
+		m_Buffer[m_WriteIndex] = samples[i];
+
+		// We increment the atomic here as a memory barrier
+		m_WriteIndex++;
 	}
 }
 
 void HapticsBuffer::SetConstant(float frequency, float amplitude)
 {
 	// The documentation specifies a constant vibration should time out after 2.5 seconds
+	m_ConstantMutex.lock();
 	m_Amplitude = amplitude;
 	m_Frequency = frequency;
+	m_ConstantMutex.unlock();
 	m_ConstantTimeout = (uint16_t)(REV_HAPTICS_SAMPLE_RATE * 2.5);
 }
 
@@ -36,9 +41,11 @@ float HapticsBuffer::GetSample()
 {
 	if (m_ConstantTimeout > 0)
 	{
+		m_ConstantMutex.lock();
 		float sample = m_Amplitude;
 		if (m_Frequency <= 0.5f && m_ConstantTimeout % 2 == 0)
 			sample = 0.0f;
+		m_ConstantMutex.unlock();
 
 		m_ConstantTimeout--;
 		return sample;
@@ -49,7 +56,10 @@ float HapticsBuffer::GetSample()
 		return 0.0f;
 
 	// Index will overflow correctly, so no need for a modulo operator
-	return m_Buffer[m_ReadIndex++] / 255.0f;
+	return m_Buffer[m_ReadIndex] / 255.0f;
+
+	// We increment the atomic here as a memory barrier
+	m_ReadIndex++;
 }
 
 ovrHapticsPlaybackState HapticsBuffer::GetState()

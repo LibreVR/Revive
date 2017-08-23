@@ -4,9 +4,10 @@
 #include "OVR_CAPI.h"
 #include "Extras/OVR_Math.h"
 
-#include <openvr.h>
 #include <thread>
 #include <vector>
+#include <atomic>
+#include <openvr.h>
 #include <Windows.h>
 #include <Xinput.h>
 
@@ -48,7 +49,7 @@ public:
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { *outState = m_Haptics.GetState(); }
 
 	private:
-		bool m_bHapticsRunning;
+		std::atomic_bool m_bHapticsRunning;
 		vr::ETrackedControllerRole m_Role;
 		vr::VRControllerState_t m_LastState;
 

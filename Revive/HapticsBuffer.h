@@ -3,6 +3,7 @@
 #include "OVR_CAPI.h"
 
 #include <atomic>
+#include <mutex>
 
 #define REV_HAPTICS_SAMPLE_RATE 320
 
@@ -18,12 +19,13 @@ public:
 	ovrHapticsPlaybackState GetState();
 
 private:
-	// Lock-less circular buffer
+	// Lock-less circular buffer, single producer/consumer
 	std::atomic_uint8_t m_ReadIndex;
 	std::atomic_uint8_t m_WriteIndex;
 	uint8_t m_Buffer[OVR_HAPTICS_BUFFER_SAMPLES_MAX];
 
-	// Constant feedback
+	// Constant feedback, uses locks
+	std::mutex m_ConstantMutex;
 	std::atomic_uint16_t m_ConstantTimeout;
 	float m_Frequency;
 	float m_Amplitude;
