@@ -13,3 +13,6 @@
 [submodule "microprofile"]
 	path = microprofile
 	url = https://github.com/zeux/microprofile.git
+[submodule "Vulkan"]
+	path = Vulkan
+	url = https://github.com/KhronosGroup/Vulkan-Docs.git
