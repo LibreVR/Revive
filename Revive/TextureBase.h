@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#define REV_SWAPCHAIN_LENGTH 2
+#define REV_SWAPCHAIN_LENGTH 3
 
 class TextureBase
 {
