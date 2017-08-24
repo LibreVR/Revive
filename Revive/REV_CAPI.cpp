@@ -170,38 +170,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	if (!sessionStatus)
 		return ovrError_InvalidParameter;
 
-	// Check for quit event
-	// TODO: The SteamVR beta has a tendency to hang here for some unknown reason
-	// re-enable this code when the bug is fixed.
-#if 0
-	vr::VREvent_t ev;
-	while (vr::VRSystem()->PollNextEvent(&ev, sizeof(vr::VREvent_t)))
-	{
-		if (ev.eventType == vr::VREvent_Quit)
-		{
-			session->ShouldQuit = true;
-			vr::VRSystem()->AcknowledgeQuit_Exiting();
-		}
-	}
-#endif
+	SessionStatusBits status = session->SessionStatus;
+	sessionStatus->IsVisible = status.IsVisible;
+	sessionStatus->HmdPresent = status.HmdPresent;
 
 	// Don't use the activity level while debugging, so I don't have to put on the HMD
-	vr::EDeviceActivityLevel activityLevel = vr::k_EDeviceActivityLevel_Unknown;
 	if (!session->Settings->IgnoreActivity)
-		activityLevel = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd);
-
-	// Detect if the application has focus, but only return false the first time the status is requested.
-	// If this is true from the beginning then some games will assume the Health-and-Safety warning
-	// is still being displayed.
-	sessionStatus->IsVisible = vr::VRCompositor()->CanRenderScene() && session->IsVisible;
-	session->IsVisible = true;
+		sessionStatus->HmdMounted = status.HmdMounted;
 
 	// TODO: Detect if the display is lost, can this ever happen with OpenVR?
-	sessionStatus->HmdPresent = vr::VRSystem()->IsTrackedDeviceConnected(vr::k_unTrackedDeviceIndex_Hmd);
-	sessionStatus->HmdMounted = (activityLevel == vr::k_EDeviceActivityLevel_UserInteraction || activityLevel == vr::k_EDeviceActivityLevel_Unknown);
-	sessionStatus->DisplayLost = false;
-	sessionStatus->ShouldQuit = session->ShouldQuit;
-	sessionStatus->ShouldRecenter = false;
+	sessionStatus->DisplayLost = status.DisplayLost;
+	sessionStatus->ShouldQuit = status.ShouldQuit;
+	sessionStatus->ShouldRecenter = status.ShouldRecenter;
 
 	return ovrSuccess;
 }

@@ -8,6 +8,7 @@
 void SessionThreadFunc(ovrSession session)
 {
 	std::chrono::microseconds freq(std::chrono::milliseconds(10));
+	DWORD procId = GetCurrentProcessId();
 
 	while (session->Running)
 	{
@@ -29,7 +30,36 @@ void SessionThreadFunc(ovrSession session)
 					session->Details->UpdateTrackerDesc();
 			}
 			break;
+			case vr::VREvent_SceneApplicationChanged:
+			{
+				SessionStatusBits status = session->SessionStatus;
+				status.IsVisible = vrEvent.data.process.pid == procId;
+				session->SessionStatus = status;
 			}
+			break;
+			case vr::VREvent_Quit:
+			{
+				SessionStatusBits status = session->SessionStatus;
+				status.ShouldQuit = true;
+				session->SessionStatus = status;
+				vr::VRSystem()->AcknowledgeQuit_Exiting();
+			}
+			break;
+			case vr::VREvent_TrackedDeviceUserInteractionStarted:
+			case vr::VREvent_TrackedDeviceUserInteractionEnded:
+			if (vrEvent.trackedDeviceIndex == vr::k_unTrackedDeviceIndex_Hmd)
+			{
+				SessionStatusBits status = session->SessionStatus;
+				status.HmdMounted = vrEvent.eventType == vr::VREvent_TrackedDeviceUserInteractionStarted;
+				session->SessionStatus = status;
+			}
+			break;
+			}
+
+#ifdef DEBUG
+			OutputDebugStringA(vr::VRSystem()->GetEventTypeNameFromEnum((vr::EVREventType)vrEvent.eventType));
+			OutputDebugStringA("\n");
+#endif
 		}
 
 		std::this_thread::sleep_for(freq);
@@ -38,8 +68,7 @@ void SessionThreadFunc(ovrSession session)
 
 ovrHmdStruct::ovrHmdStruct()
 	: Running(true)
-	, ShouldQuit(false)
-	, IsVisible(false)
+	, SessionStatus()
 	, FrameIndex(0)
 	, StatsIndex(0)
 	, Compositor(nullptr)
@@ -53,6 +82,11 @@ ovrHmdStruct::ovrHmdStruct()
 
 	// Get the default universe origin from the settings
 	TrackingOrigin = (vr::ETrackingUniverseOrigin)ovr_GetInt(this, REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN);
+
+	SessionStatusBits status = {};
+	status.HmdPresent = vr::VR_IsHmdPresent();
+	status.HmdMounted = status.HmdPresent;
+	SessionStatus = status;
 
 	SessionThread = std::thread(SessionThreadFunc, this);
 }

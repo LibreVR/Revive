@@ -13,14 +13,24 @@ class InputManager;
 class SessionDetails;
 class SettingsManager;
 
+struct SessionStatusBits {
+	bool IsVisible : 1;
+	bool HmdPresent : 1;
+	bool HmdMounted : 1;
+	bool DisplayLost : 1;
+	bool ShouldQuit : 1;
+	bool ShouldRecenter : 1;
+	bool Internal1 : 1;
+	bool Internal2 : 1;
+};
+
 struct ovrHmdStruct
 {
 	std::thread SessionThread;
 	std::atomic_bool Running;
 
 	// Session status
-	bool ShouldQuit;
-	bool IsVisible;
+	std::atomic<SessionStatusBits> SessionStatus;
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
 	vr::ETrackingUniverseOrigin TrackingOrigin;
 
