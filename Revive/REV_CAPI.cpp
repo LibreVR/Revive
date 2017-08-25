@@ -704,27 +704,28 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc1) ovr_GetRenderDesc(ovrSession session, ovr
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long long frameIndex)
 {
+	REV_TRACE(ovr_WaitToBeginFrame);
+
 	vr::EVRCompositorError err = vr::VRCompositorError_None;
-	while (session->FrameIndex < frameIndex)
+	for (long long index = session->FrameIndex; index < frameIndex; index++)
 	{
 		// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
 		err = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-		session->FrameIndex++;
 	}
 	return rev_CompositorErrorToOvrError(err);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long frameIndex)
 {
-	// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
-	vr::EVRCompositorError err = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-	return rev_CompositorErrorToOvrError(err);
+	REV_TRACE(ovr_BeginFrame);
+	session->FrameIndex = frameIndex;
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
-	REV_TRACE(ovr_SubmitFrame);
+	REV_TRACE(ovr_EndFrame);
 
 	MICROPROFILE_META_CPU("Submit Frame", (int)frameIndex);
 
@@ -739,12 +740,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 
 	// Flip the profiler.
 	MicroProfileFlip();
-
-	// Increment the frame index.
-	if (frameIndex == 0)
-		session->FrameIndex++;
-	else
-		session->FrameIndex = frameIndex;
 
 	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
 
@@ -756,33 +751,20 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 {
 	REV_TRACE(ovr_SubmitFrame);
 
+	if (frameIndex == 0)
+		frameIndex = session->FrameIndex;
+
 	MICROPROFILE_META_CPU("Submit Frame", (int)frameIndex);
 
-	if (!session || !session->Compositor)
-		return ovrError_InvalidSession;
+	ovrResult result = ovr_EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
 
-	if (layerCount == 0 || !layerPtrList)
-		return ovrError_InvalidParameter;
-
-	// Use our own intermediate compositor to convert the frame to OpenVR.
-	vr::EVRCompositorError err = session->Compositor->SubmitFrame(session, layerPtrList, layerCount);
-
-	// Flip the profiler.
-	MicroProfileFlip();
-
-	// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
+	// Begin the next frame
+	long long nextFrame = frameIndex + 1;
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
-		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+		ovr_WaitToBeginFrame(session, nextFrame);
+	ovr_BeginFrame(session, nextFrame);
 
-	// Increment the frame index.
-	if (frameIndex == 0)
-		session->FrameIndex++;
-	else
-		session->FrameIndex = frameIndex;
-
-	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
-
-	return rev_CompositorErrorToOvrError(err);
+	return result;
 }
 
 typedef struct OVR_ALIGNAS(4) ovrViewScaleDesc1_ {
@@ -930,10 +912,13 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	if (session->FrameIndex == 0)
 		return ovr_GetTimeInSeconds();
 
-	ovrHmdDesc* pHmd = session->Details->HmdDesc;
-
-	// We already predict for the next frame, so subtract one frame
-	double predictAhead = double(frameIndex - session->FrameIndex - 1) / pHmd->DisplayRefreshRate;
+	double predictAhead = 0.0;
+	if (frameIndex > 0)
+	{
+		// Some applications ask for frames ahead of the current frame
+		ovrHmdDesc* pHmd = session->Details->HmdDesc;
+		predictAhead = double(frameIndex - session->FrameIndex) / pHmd->DisplayRefreshRate;
+	}
 	return ovr_GetTimeInSeconds() + vr::VRCompositor()->GetFrameTimeRemaining() + predictAhead;
 }
 
