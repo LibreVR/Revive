@@ -793,11 +793,15 @@ typedef struct OVR_ALIGNAS(4) ovrViewScaleDesc1_ {
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc1* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
-	ovrViewScaleDesc desc = {};
-	for (int i = 0; i < ovrEye_Count; i++)
-		desc.HmdToEyePose[i] = OVR::Posef(OVR::Quatf(), viewScaleDesc->HmdToEyeOffset[i]);
-	desc.HmdSpaceToWorldScaleInMeters = viewScaleDesc->HmdSpaceToWorldScaleInMeters;
-	return ovr_SubmitFrame2(session, frameIndex, &desc, layerPtrList, layerCount);
+	if (viewScaleDesc)
+	{
+		ovrViewScaleDesc desc = {};
+		for (int i = 0; i < ovrEye_Count; i++)
+			desc.HmdToEyePose[i] = OVR::Posef(OVR::Quatf(), viewScaleDesc->HmdToEyeOffset[i]);
+		desc.HmdSpaceToWorldScaleInMeters = viewScaleDesc->HmdSpaceToWorldScaleInMeters;
+		return ovr_SubmitFrame2(session, frameIndex, &desc, layerPtrList, layerCount);
+	}
+	return ovr_SubmitFrame2(session, frameIndex, nullptr, layerPtrList, layerCount);
 }
 
 typedef struct OVR_ALIGNAS(4) ovrPerfStatsPerCompositorFrame1_
