@@ -927,40 +927,31 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	if (!session)
 		return ovrError_InvalidSession;
 
-	float fDisplayFrequency = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
-	float fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
+	if (session->FrameIndex == 0)
+		return ovr_GetTimeInSeconds();
 
-	// Get the frame count and advance it based on which frame we're predicting
-	float fSecondsSinceLastVsync;
-	uint64_t unFrame;
-	vr::VRSystem()->GetTimeSinceLastVsync(&fSecondsSinceLastVsync, &unFrame);
+	ovrHmdDesc* pHmd = session->Details->HmdDesc;
 
-	// Round up to the next frame so we predict far enough
-	unFrame++;
-
-	// Advance the frame count based on how many frames we're predicting ahead
-	if (frameIndex == 0)
-		unFrame++;
-	else
-		unFrame += frameIndex - session->FrameIndex;
-
-	// Predict the display time based on the display frequency and the vsync-to-photon latency
-	return double(unFrame) / fDisplayFrequency + fVsyncToPhotons;
+	// We already predict for the next frame, so subtract one frame
+	double predictAhead = double(frameIndex - session->FrameIndex - 1) / pHmd->DisplayRefreshRate;
+	return ovr_GetTimeInSeconds() + vr::VRCompositor()->GetFrameTimeRemaining() + predictAhead;
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 {
 	REV_TRACE(ovr_GetTimeInSeconds);
 
-	float fDisplayFrequency = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
+	static double PerfFrequencyInverse = 0.0;
+	if (PerfFrequencyInverse == 0.0)
+	{
+		LARGE_INTEGER freq;
+		QueryPerformanceFrequency(&freq);
+		PerfFrequencyInverse = 1.0 / (double)freq.QuadPart;
+	}
 
-	// Get the frame count and the time since the last VSync
-	float fSecondsSinceLastVsync;
-	uint64_t unFrame;
-	vr::VRSystem()->GetTimeSinceLastVsync(&fSecondsSinceLastVsync, &unFrame);
-
-	// Calculate the time since the first frame based on the display frequency
-	return double(unFrame) / fDisplayFrequency + fSecondsSinceLastVsync;
+	LARGE_INTEGER li;
+	QueryPerformanceCounter(&li);
+	return li.QuadPart * PerfFrequencyInverse;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal)
