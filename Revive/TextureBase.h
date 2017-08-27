@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#define REV_SWAPCHAIN_LENGTH 3
+#define REV_SWAPCHAIN_MAX_LENGTH 3
 
 class TextureBase
 {
@@ -26,7 +26,7 @@ struct ovrTextureSwapChainData
 
 	unsigned int Identifier;
 	int Length, CurrentIndex, SubmitIndex;
-	std::unique_ptr<TextureBase> Textures[REV_SWAPCHAIN_LENGTH];
+	std::unique_ptr<TextureBase> Textures[REV_SWAPCHAIN_MAX_LENGTH];
 
 	bool Full() { return (CurrentIndex + 1) % Length == SubmitIndex; }
 	void Commit() { CurrentIndex++; CurrentIndex %= Length; };

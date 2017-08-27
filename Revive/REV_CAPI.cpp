@@ -960,7 +960,7 @@ OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName
 	REV_TRACE(ovr_GetInt);
 
 	if (strcmp("TextureSwapChainDepth", propertyName) == 0)
-		return REV_SWAPCHAIN_LENGTH;
+		return REV_SWAPCHAIN_MAX_LENGTH;
 
 	// TODO: Implement a cached settings interface
 	return defaultVal;
