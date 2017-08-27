@@ -299,7 +299,9 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrSession session, ovrRe
 		swapChain[ovrEye_Right] = swapChain[ovrEye_Left];
 
 	MICROPROFILE_META_CPU("SwapChain Right", swapChain[ovrEye_Right]->Identifier);
+	MICROPROFILE_META_CPU("Right Submit", swapChain[ovrEye_Right]->SubmitIndex);
 	MICROPROFILE_META_CPU("SwapChain Left", swapChain[ovrEye_Left]->Identifier);
+	MICROPROFILE_META_CPU("Left Submit", swapChain[ovrEye_Left]->SubmitIndex);
 
 	// Submit the scene layer.
 	vr::VRCompositorError err;

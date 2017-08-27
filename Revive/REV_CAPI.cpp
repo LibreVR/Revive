@@ -705,6 +705,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc1) ovr_GetRenderDesc(ovrSession session, ovr
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long long frameIndex)
 {
 	REV_TRACE(ovr_WaitToBeginFrame);
+	MICROPROFILE_META_CPU("Wait Frame", (int)frameIndex);
 
 	vr::EVRCompositorError err = vr::VRCompositorError_None;
 	for (long long index = session->FrameIndex; index < frameIndex; index++)
@@ -718,6 +719,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long frameIndex)
 {
 	REV_TRACE(ovr_BeginFrame);
+	MICROPROFILE_META_CPU("Begin Frame", (int)frameIndex);
+
 	session->FrameIndex = frameIndex;
 	return ovrSuccess;
 }
@@ -726,8 +729,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	REV_TRACE(ovr_EndFrame);
-
-	MICROPROFILE_META_CPU("Submit Frame", (int)frameIndex);
+	MICROPROFILE_META_CPU("End Frame", (int)frameIndex);
 
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
@@ -753,8 +755,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 
 	if (frameIndex == 0)
 		frameIndex = session->FrameIndex;
-
-	MICROPROFILE_META_CPU("Submit Frame", (int)frameIndex);
 
 	ovrResult result = ovr_EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
 
