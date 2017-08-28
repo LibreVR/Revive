@@ -18,7 +18,6 @@ void SessionThreadFunc(ovrSession session)
 			switch (vrEvent.eventType)
 			{
 			case vr::VREvent_TrackedDeviceActivated:
-			case vr::VREvent_TrackedDeviceRoleChanged:
 			case vr::VREvent_TrackedDeviceDeactivated:
 			{
 				vr::ETrackedDeviceClass deviceClass = vr::VRSystem()->GetTrackedDeviceClass(vrEvent.trackedDeviceIndex);
@@ -29,6 +28,9 @@ void SessionThreadFunc(ovrSession session)
 				else if (deviceClass == vr::TrackedDeviceClass_TrackingReference)
 					session->Details->UpdateTrackerDesc();
 			}
+			break;
+			case vr::VREvent_TrackedDeviceRoleChanged:
+				session->Input->UpdateConnectedControllers();
 			break;
 			case vr::VREvent_SceneApplicationChanged:
 			{
