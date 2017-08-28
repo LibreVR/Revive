@@ -30,6 +30,7 @@ public:
 	bool UseHack(Hack hack);
 
 	std::atomic<ovrHmdDesc*> HmdDesc;
+	std::atomic<ovrEyeRenderDesc*> RenderDesc[ovrEye_Count];
 	void UpdateHmdDesc();
 
 	std::atomic_uint32_t TrackerCount;
@@ -48,6 +49,7 @@ private:
 	
 	std::map<Hack, HackInfo> m_hacks;
 	std::list<ovrHmdDesc> HmdDescList;
+	std::list<ovrEyeRenderDesc> RenderDescList;
 	std::list<ovrTrackerDesc> TrackerDescList;
 };
 

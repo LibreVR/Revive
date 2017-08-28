@@ -3,6 +3,7 @@
 #include "REV_Math.h"
 #include "Settings.h"
 #include "Session.h"
+#include "SessionDetails.h"
 #include "microprofile.h"
 
 #include <openvr.h>
@@ -310,8 +311,11 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrSession session, ovrRe
 		ovrTextureSwapChain chain = swapChain[i];
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
 
+		// Get the descriptor for this eye
+		ovrEyeRenderDesc* desc = session->Details->RenderDesc[i];
+
 		// Shrink the bounds to account for the overlapping fov
-		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds((ovrEyeType)i, fov[i]);
+		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fov[i]);
 
 		// Combine the fov bounds with the viewport bounds
 		bounds.uMin += fovBounds.uMin * bounds.uMax;
@@ -350,19 +354,15 @@ void CompositorBase::SetMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_MirrorTexture = mirrorTexture;
 }
 
-vr::VRTextureBounds_t CompositorBase::FovPortToTextureBounds(ovrEyeType eye, ovrFovPort fov)
+vr::VRTextureBounds_t CompositorBase::FovPortToTextureBounds(ovrFovPort eyeFov, ovrFovPort fov)
 {
 	vr::VRTextureBounds_t result;
 
-	// Get the headset field-of-view
-	float left, right, top, bottom;
-	vr::VRSystem()->GetProjectionRaw((vr::EVREye)eye, &left, &right, &top, &bottom);
-
 	// Adjust the bounds based on the field-of-view in the game
-	result.uMin = 0.5f + 0.5f * left / fov.LeftTan;
-	result.uMax = 0.5f + 0.5f * right / fov.RightTan;
-	result.vMin = 0.5f - 0.5f * bottom / fov.UpTan;
-	result.vMax = 0.5f - 0.5f * top / fov.DownTan;
+	result.uMin = 0.5f - 0.5f * eyeFov.LeftTan / fov.LeftTan;
+	result.uMax = 0.5f + 0.5f * eyeFov.RightTan / fov.RightTan;
+	result.vMin = 0.5f - 0.5f * eyeFov.UpTan / fov.UpTan;
+	result.vMax = 0.5f + 0.5f * eyeFov.DownTan / fov.DownTan;
 
 	// Sanitize the output
 	if (result.uMin < 0.0)

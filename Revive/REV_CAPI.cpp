@@ -651,13 +651,13 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 {
 	REV_TRACE(ovr_GetFovTextureSize);
 
-	ovrSizei size;
-	vr::VRSystem()->GetRecommendedRenderTargetSize((uint32_t*)&size.w, (uint32_t*)&size.h);
-
-	// TODO: Add a setting to ignore pixelsPerDisplayPixel
+	// Get the descriptor for this eye
+	ovrEyeRenderDesc* desc = session->Details->RenderDesc[eye];
+	ovrSizei size = desc->DistortedViewport.Size;
 
 	// Grow the recommended size to account for the overlapping fov
-	vr::VRTextureBounds_t bounds = CompositorBase::FovPortToTextureBounds(eye, fov);
+	// TODO: Add a setting to ignore pixelsPerDisplayPixel
+	vr::VRTextureBounds_t bounds = CompositorBase::FovPortToTextureBounds(desc->Fov, fov);
 	size.w = int((size.w * pixelsPerDisplayPixel) / (bounds.uMax - bounds.uMin));
 	size.h = int((size.h * pixelsPerDisplayPixel) / (bounds.vMax - bounds.vMin));
 
@@ -668,19 +668,14 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 {
 	REV_TRACE(ovr_GetRenderDesc);
 
-	ovrEyeRenderDesc desc = {};
-	desc.Eye = eyeType;
-	desc.Fov = fov;
+	// Make a copy so we can adjust a few parameters
+	ovrEyeRenderDesc desc = *session->Details->RenderDesc[eyeType];
 
-	REV::Matrix4f HmdToEyeMatrix = (REV::Matrix4f)vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)eyeType);
+	// Adjust the descriptor for the supplied field-of-view
+	desc.Fov = fov;
 	float WidthTan = fov.LeftTan + fov.RightTan;
 	float HeightTan = fov.UpTan + fov.DownTan;
-	ovrSizei size;
-	vr::VRSystem()->GetRecommendedRenderTargetSize((uint32_t*)&size.w, (uint32_t*)&size.h);
-
-	desc.DistortedViewport = OVR::Recti(eyeType == ovrEye_Right ? size.w : 0, 0, size.w, size.h);
-	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w / WidthTan, size.h / HeightTan);
-	desc.HmdToEyePose = OVR::Posef(OVR::Quatf(HmdToEyeMatrix), HmdToEyeMatrix.GetTranslation());
+	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(desc.DistortedViewport.Size.w / WidthTan, desc.DistortedViewport.Size.h / HeightTan);
 
 	return desc;
 }

@@ -72,19 +72,43 @@ void SessionDetails::UpdateHmdDesc()
 		desc.AvailableTrackingCaps |= ovrTrackingCap_MagYawCorrection;
 	desc.DefaultTrackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position;
 
-	// Get field-of-view
+	// Get the render target size
+	ovrSizei size;
+	vr::VRSystem()->GetRecommendedRenderTargetSize((uint32_t*)&size.w, (uint32_t*)&size.h);
+
+	// Update the render descriptors
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		ovrFovPort eye;
-		vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &eye.LeftTan, &eye.RightTan, &eye.DownTan, &eye.UpTan);
-		eye.LeftTan *= -1.0f;
-		eye.DownTan *= -1.0f;
-		desc.DefaultEyeFov[i] = eye;
-		desc.MaxEyeFov[i] = eye;
+		ovrEyeRenderDesc eyeDesc = {};
+		ovrFovPort eyeFov = {};
+
+		vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &eyeFov.LeftTan, &eyeFov.RightTan, &eyeFov.DownTan, &eyeFov.UpTan);
+		eyeFov.LeftTan *= -1.0f;
+		eyeFov.DownTan *= -1.0f;
+		desc.DefaultEyeFov[i] = eyeFov;
+		desc.MaxEyeFov[i] = eyeFov;
+
+		eyeDesc.Eye = (ovrEyeType)i;
+		eyeDesc.Fov = desc.DefaultEyeFov[i];
+
+		REV::Matrix4f HmdToEyeMatrix = (REV::Matrix4f)vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)i);
+		float WidthTan = eyeFov.LeftTan + eyeFov.RightTan;
+		float HeightTan = eyeFov.UpTan + eyeFov.DownTan;
+		eyeDesc.DistortedViewport = OVR::Recti(i == ovrEye_Right ? size.w : 0, 0, size.w, size.h);
+		eyeDesc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w / WidthTan, size.h / HeightTan);
+		eyeDesc.HmdToEyePose = OVR::Posef(OVR::Quatf(HmdToEyeMatrix), HmdToEyeMatrix.GetTranslation());
+
+		// Add the state to the list and update the pointer
+		RenderDescList.push_back(eyeDesc);
+		RenderDesc[i] = &RenderDescList.back();
+
+		// Update the HMD descriptor
+		desc.DefaultEyeFov[i] = eyeFov;
+		desc.MaxEyeFov[i] = eyeFov;
 	}
 
-	// Get display properties
-	vr::VRSystem()->GetRecommendedRenderTargetSize((uint32_t*)&desc.Resolution.w, (uint32_t*)&desc.Resolution.h);
+	// Get the display properties
+	desc.Resolution = size;
 	desc.Resolution.w *= 2; // Both eye ports
 	desc.DisplayRefreshRate = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
 
