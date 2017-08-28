@@ -901,14 +901,11 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 
 	MICROPROFILE_META_CPU("Predict Frame", (int)frameIndex);
 
-	if (!session)
-		return ovrError_InvalidSession;
-
 	if (session->FrameIndex == 0)
 		return ovr_GetTimeInSeconds();
 
 	double predictAhead = vr::VRCompositor()->GetFrameTimeRemaining();
-	if (frameIndex > 0)
+	if (session && frameIndex > 0)
 	{
 		// Some applications ask for frames ahead of the current frame
 		ovrHmdDesc* pHmd = session->Details->HmdDesc;
