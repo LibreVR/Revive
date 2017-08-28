@@ -19,6 +19,9 @@ InputManager::InputManager()
 	for (ovrPoseStatef& pose : m_LastPoses)
 		pose.ThePose = OVR::Posef::Identity();
 
+	// TODO: This might change if a new HMD is connected (unlikely)
+	m_fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
+
 	// TODO: XInput is slow, move it to another thread
 #if 0
 	m_InputDevices.push_back(new XboxGamepad());
@@ -172,12 +175,11 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 
 	// Calculate the relative prediction time
-	float fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
 	float relTime = 0.0f;
 	if (absTime > 0.0f)
 		relTime = float(absTime - ovr_GetTimeInSeconds());
 	if (relTime > 0.0f)
-		relTime += fVsyncToPhotons;
+		relTime += m_fVsyncToPhotons;
 
 	// Get the device poses
 	vr::ETrackingUniverseOrigin origin = session->TrackingOrigin;

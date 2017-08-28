@@ -116,6 +116,7 @@ protected:
 	std::vector<InputDevice*> m_InputDevices;
 
 private:
+	float m_fVsyncToPhotons;
 	ovrPoseStatef m_LastPoses[vr::k_unMaxTrackedDeviceCount];
 
 	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
