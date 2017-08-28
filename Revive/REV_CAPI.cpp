@@ -907,14 +907,14 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	if (session->FrameIndex == 0)
 		return ovr_GetTimeInSeconds();
 
-	double predictAhead = 0.0;
+	double predictAhead = vr::VRCompositor()->GetFrameTimeRemaining();
 	if (frameIndex > 0)
 	{
 		// Some applications ask for frames ahead of the current frame
 		ovrHmdDesc* pHmd = session->Details->HmdDesc;
-		predictAhead = double(frameIndex - session->FrameIndex) / pHmd->DisplayRefreshRate;
+		predictAhead += double(frameIndex - session->FrameIndex) / pHmd->DisplayRefreshRate;
 	}
-	return ovr_GetTimeInSeconds() + vr::VRCompositor()->GetFrameTimeRemaining() + predictAhead;
+	return ovr_GetTimeInSeconds() + predictAhead;
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
