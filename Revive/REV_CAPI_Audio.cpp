@@ -124,7 +124,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuidStr(WCHAR deviceInStrBuff
 
 	// Query and cache the result
 	static WCHAR cachedBuffer[OVR_AUDIO_MAX_DEVICE_STR_SIZE] = {};
-	if (wcslen(deviceInStrBuffer) == 0)
+	if (wcslen(cachedBuffer) == 0)
 	{
 		HRESULT com = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
