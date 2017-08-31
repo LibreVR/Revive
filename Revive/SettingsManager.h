@@ -23,4 +23,7 @@ public:
 	float ToggleDelay;
 	bool IgnoreActivity;
 	vr::HmdMatrix34_t TouchOffset[ovrHand_Count];
+
+private:
+	template<typename T> T Get(const char* key, T defaultVal);
 };
