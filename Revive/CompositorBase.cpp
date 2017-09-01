@@ -12,9 +12,29 @@
 
 #define REV_LAYER_BIAS 0.0001f
 
-MICROPROFILE_DEFINE(SubmitFrame, "Compositor", "SubmitFrame", 0x00ff00);
+MICROPROFILE_DEFINE(WaitToBeginFrame, "Compositor", "WaitFrame", 0x00ff00);
+MICROPROFILE_DEFINE(BeginFrame, "Compositor", "BeginFrame", 0x00ff00);
+MICROPROFILE_DEFINE(EndFrame, "Compositor", "EndFrame", 0x00ff00);
 MICROPROFILE_DEFINE(SubmitFovLayer, "Compositor", "SubmitFovLayer", 0x00ff00);
 MICROPROFILE_DEFINE(SubmitSceneLayer, "Compositor", "SubmitSceneLayer", 0x00ff00);
+
+ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
+{
+	switch (error)
+	{
+	case vr::VRCompositorError_None: return ovrSuccess;
+	case vr::VRCompositorError_IncompatibleVersion: return ovrError_ServiceError;
+	case vr::VRCompositorError_DoNotHaveFocus: return ovrSuccess_NotVisible;
+	case vr::VRCompositorError_InvalidTexture: return ovrError_TextureSwapChainInvalid;
+	case vr::VRCompositorError_IsNotSceneApplication: return ovrError_InvalidSession;
+	case vr::VRCompositorError_TextureIsOnWrongDevice: return ovrError_TextureSwapChainInvalid;
+	case vr::VRCompositorError_TextureUsesUnsupportedFormat: return ovrError_TextureSwapChainInvalid;
+	case vr::VRCompositorError_SharedTexturesNotSupported: return ovrError_TextureSwapChainInvalid;
+	case vr::VRCompositorError_IndexOutOfRange: return ovrError_InvalidParameter;
+	default: return ovrError_RuntimeException;
+	}
+}
+
 
 CompositorBase::CompositorBase()
 	: m_MirrorTexture(nullptr)
@@ -71,9 +91,33 @@ ovrResult CompositorBase::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, 
 	return ovrSuccess;
 }
 
-vr::EVRCompositorError CompositorBase::SubmitFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIndex)
 {
-	MICROPROFILE_SCOPE(SubmitFrame);
+	MICROPROFILE_SCOPE(WaitToBeginFrame);
+
+	vr::EVRCompositorError err = vr::VRCompositorError_None;
+	for (long long index = session->FrameIndex; index < frameIndex; index++)
+	{
+		// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
+		err = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	}
+	return rev_CompositorErrorToOvrError(err);
+}
+
+ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
+{
+	MICROPROFILE_SCOPE(BeginFrame);
+
+	session->FrameIndex = frameIndex;
+	return ovrSuccess;
+}
+
+ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+{
+	MICROPROFILE_SCOPE(EndFrame);
+
+	if (layerCount == 0 || !layerPtrList)
+		return ovrError_InvalidParameter;
 
 	// Flush all pending draw calls.
 	Flush();
@@ -184,7 +228,12 @@ vr::EVRCompositorError CompositorBase::SubmitFrame(ovrSession session, ovrLayerH
 
 	m_SceneLayer = nullptr;
 
-	return error;
+	// Flip the profiler.
+	MicroProfileFlip();
+
+	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
+
+	return rev_CompositorErrorToOvrError(error);
 }
 
 vr::VROverlayHandle_t CompositorBase::CreateOverlay()

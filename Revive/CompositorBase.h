@@ -25,8 +25,11 @@ public:
 	ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture) = 0;
 
+	ovrResult WaitToBeginFrame(ovrSession session, long long frameIndex);
+	ovrResult BeginFrame(ovrSession session, long long frameIndex);
+	ovrResult EndFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
+
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
-	vr::EVRCompositorError SubmitFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 	static vr::VRTextureBounds_t FovPortToTextureBounds(ovrFovPort eyeFov, ovrFovPort fov);
 
 protected:

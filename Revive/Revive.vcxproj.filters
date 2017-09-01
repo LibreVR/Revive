@@ -60,9 +60,6 @@
     <ClInclude Include="Assert.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
-    <ClInclude Include="Error.h">
-      <Filter>Header Files\LibRevive</Filter>
-    </ClInclude>
     <ClInclude Include="CompositorBase.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>

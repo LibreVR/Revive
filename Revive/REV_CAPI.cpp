@@ -4,7 +4,6 @@
 
 #include "Assert.h"
 #include "Session.h"
-#include "Error.h"
 #include "CompositorBase.h"
 #include "SessionDetails.h"
 #include "InputManager.h"
@@ -18,6 +17,40 @@
 
 vr::EVRInitError g_InitError = vr::VRInitError_Init_NotInitialized;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
+
+ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
+{
+	switch (error)
+	{
+	case vr::VRInitError_None: return ovrSuccess;
+	case vr::VRInitError_Unknown: return ovrError_Initialize;
+	case vr::VRInitError_Init_InstallationNotFound: return ovrError_LibLoad;
+	case vr::VRInitError_Init_InstallationCorrupt: return ovrError_LibLoad;
+	case vr::VRInitError_Init_VRClientDLLNotFound: return ovrError_LibLoad;
+	case vr::VRInitError_Init_FileNotFound: return ovrError_LibLoad;
+	case vr::VRInitError_Init_FactoryNotFound: return ovrError_ServiceConnection;
+	case vr::VRInitError_Init_InterfaceNotFound: return ovrError_ServiceConnection;
+	case vr::VRInitError_Init_InvalidInterface: return ovrError_MismatchedAdapters;
+	case vr::VRInitError_Init_UserConfigDirectoryInvalid: return ovrError_Initialize;
+	case vr::VRInitError_Init_HmdNotFound: return ovrError_NoHmd;
+	case vr::VRInitError_Init_NotInitialized: return ovrError_Initialize;
+	case vr::VRInitError_Init_PathRegistryNotFound: return ovrError_Initialize;
+	case vr::VRInitError_Init_NoConfigPath: return ovrError_Initialize;
+	case vr::VRInitError_Init_NoLogPath: return ovrError_Initialize;
+	case vr::VRInitError_Init_PathRegistryNotWritable: return ovrError_Initialize;
+	case vr::VRInitError_Init_AppInfoInitFailed: return ovrError_ServerStart;
+		//case vr::VRInitError_Init_Retry: return ovrError_Reinitialization; // Internal
+	case vr::VRInitError_Init_InitCanceledByUser: return ovrError_Initialize;
+	case vr::VRInitError_Init_AnotherAppLaunching: return ovrError_ServerStart;
+	case vr::VRInitError_Init_SettingsInitFailed: return ovrError_Initialize;
+	case vr::VRInitError_Init_ShuttingDown: return ovrError_ServerStart;
+	case vr::VRInitError_Init_TooManyObjects: return ovrError_Initialize;
+	case vr::VRInitError_Init_NoServerForBackgroundApp: return ovrError_ServerStart;
+	case vr::VRInitError_Init_NotSupportedWithCompositor: return ovrError_Initialize;
+	case vr::VRInitError_Init_NotAvailableToUtilityApps: return ovrError_Initialize;
+	default: return ovrError_RuntimeException;
+	}
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
@@ -699,33 +732,37 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc1) ovr_GetRenderDesc(ovrSession session, ovr
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long long frameIndex)
 {
-	vr::EVRCompositorError err = vr::VRCompositorError_None;
-	for (long long index = session->FrameIndex; index < frameIndex; index++)
-	{
-		// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
-		err = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-	}
-	return rev_CompositorErrorToOvrError(err);
+	REV_TRACE(ovr_WaitToBeginFrame);
+	MICROPROFILE_META_CPU("Wait Frame", (int)frameIndex);
+
+	if (!session || !session->Compositor)
+		return ovrError_InvalidSession;
+
+	return session->Compositor->WaitToBeginFrame(session, frameIndex);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long frameIndex)
 {
-	session->FrameIndex = frameIndex;
-	return ovrSuccess;
+	REV_TRACE(ovr_BeginFrame);
+	MICROPROFILE_META_CPU("Begin Frame", (int)frameIndex);
+
+	if (!session || !session->Compositor)
+		return ovrError_InvalidSession;
+
+	return session->Compositor->BeginFrame(session, frameIndex);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
+	REV_TRACE(ovr_EndFrame);
+	MICROPROFILE_META_CPU("End Frame", (int)frameIndex);
+
+	if (!session || !session->Compositor)
+		return ovrError_InvalidSession;
+
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	vr::EVRCompositorError err = session->Compositor->SubmitFrame(session, layerPtrList, layerCount);
-
-	// Flip the profiler.
-	MicroProfileFlip();
-
-	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
-
-	return rev_CompositorErrorToOvrError(err);
+	return session->Compositor->EndFrame(session, layerPtrList, layerCount);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
@@ -737,19 +774,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
 
-	if (layerCount == 0 || !layerPtrList)
-		return ovrError_InvalidParameter;
-
 	if (frameIndex == 0)
 		frameIndex = session->FrameIndex;
 
-	ovrResult result = ovr_EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
+	// Use our own intermediate compositor to convert the frame to OpenVR.
+	ovrResult result = session->Compositor->EndFrame(session, layerPtrList, layerCount);
 
 	// Begin the next frame
-	long long nextFrame = frameIndex + 1;
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
-		ovr_WaitToBeginFrame(session, nextFrame);
-	ovr_BeginFrame(session, nextFrame);
+		session->Compositor->WaitToBeginFrame(session, frameIndex + 1);
+	session->Compositor->BeginFrame(session, frameIndex + 1);
 
 	return result;
 }
@@ -762,14 +796,7 @@ typedef struct OVR_ALIGNAS(4) ovrViewScaleDesc1_ {
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc1* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
-	if (viewScaleDesc)
-	{
-		ovrViewScaleDesc desc = {};
-		for (int i = 0; i < ovrEye_Count; i++)
-			desc.HmdToEyePose[i] = OVR::Posef(OVR::Quatf(), viewScaleDesc->HmdToEyeOffset[i]);
-		desc.HmdSpaceToWorldScaleInMeters = viewScaleDesc->HmdSpaceToWorldScaleInMeters;
-		return ovr_SubmitFrame2(session, frameIndex, &desc, layerPtrList, layerCount);
-	}
+	// TODO: We don't ever use viewScaleDesc so no need to do any conversion.
 	return ovr_SubmitFrame2(session, frameIndex, nullptr, layerPtrList, layerCount);
 }
 

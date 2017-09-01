@@ -241,7 +241,6 @@
     <ClInclude Include="..\LibOVR\Include\OVR_ErrorCode.h" />
     <ClInclude Include="..\LibOVR\Include\OVR_Version.h" />
     <ClInclude Include="Assert.h" />
-    <ClInclude Include="Error.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SettingsManager.h" />
     <ClInclude Include="TextureBase.h" />
