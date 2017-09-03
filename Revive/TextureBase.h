@@ -30,7 +30,7 @@ struct ovrTextureSwapChainData
 
 	bool Full() { return (CurrentIndex + 1) % Length == SubmitIndex; }
 	void Commit() { CurrentIndex++; CurrentIndex %= Length; };
-	void Submit() { SubmitIndex++; SubmitIndex %= Length; };
+	void Submit() { SubmitIndex = CurrentIndex; };
 
 	ovrTextureSwapChainData(ovrTextureSwapChainDesc desc);
 	~ovrTextureSwapChainData();
