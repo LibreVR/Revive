@@ -654,6 +654,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 		return ovrError_TextureSwapChainFull;
 
 	chain->Commit();
+
+	if (chain->Overlay != vr::k_ulOverlayHandleInvalid)
+	{
+		vr::VRTextureWithPose_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
+		vr::VROverlay()->SetOverlayTexture(chain->Overlay, &texture);
+	}
+
 	return ovrSuccess;
 }
 

@@ -143,6 +143,9 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			{
 				overlay = CreateOverlay();
 				layer->ColorTexture->Overlay = overlay;
+
+				vr::VRTextureWithPose_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
+				vr::VROverlay()->SetOverlayTexture(chain->Overlay, &texture);
 			}
 			activeOverlays.push_back(overlay);
 
@@ -161,14 +164,13 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
 			vr::Texture_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
 			vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
-			vr::VROverlay()->SetOverlayTexture(overlay, &texture);
-			chain->Submit();
 
 			// Show the overlay, unfortunately we have no control over the order in which
 			// overlays are drawn.
 			// TODO: Support ovrLayerFlag_HighQuality for overlays with anisotropic sampling.
 			// TODO: Handle overlay errors.
 			vr::VROverlay()->ShowOverlay(overlay);
+			chain->Submit();
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov)
 		{
