@@ -10,6 +10,7 @@
 #include "Settings.h"
 #include "SettingsManager.h"
 
+#include <dxgi1_2.h>
 #include <openvr.h>
 #include <MinHook.h>
 
@@ -173,14 +174,35 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Get the LUID for the OpenVR adapter
 	uint64_t adapter;
 	vr::VRSystem()->GetOutputDevice(&adapter, vr::TextureType_DirectX);
-	if (adapter == 0)
-		return ovrError_MismatchedAdapters;
+	if (adapter)
+	{
+		// Copy the LUID into the structure
+		static_assert(sizeof(adapter) == sizeof(ovrGraphicsLuid),
+			"The adapter LUID needs to fit in ovrGraphicsLuid");
+		if (pLuid)
+			memcpy(pLuid, &adapter, sizeof(ovrGraphicsLuid));
+	}
+	else
+	{
+		// Fall-back to the default adapter
+		IDXGIFactory1* pFactory = nullptr;
+		if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory)))
+			return ovrError_RuntimeException;
 
-	// Copy the LUID into the structure
-	static_assert(sizeof(adapter) == sizeof(ovrGraphicsLuid),
-		"The adapter LUID needs to fit in ovrGraphicsLuid");
-	if (pLuid)
-		memcpy(pLuid, &adapter, sizeof(ovrGraphicsLuid));
+		IDXGIAdapter1* pAdapter = nullptr;
+		if (FAILED(pFactory->EnumAdapters1(0, &pAdapter)))
+			return ovrError_RuntimeException;
+
+		DXGI_ADAPTER_DESC1 desc;
+		if (FAILED(pAdapter->GetDesc1(&desc)))
+			return ovrError_RuntimeException;
+
+		// Copy the LUID into the structure
+		static_assert(sizeof(desc.AdapterLuid) == sizeof(ovrGraphicsLuid),
+			"The adapter LUID needs to fit in ovrGraphicsLuid");
+		if (pLuid)
+			memcpy(pLuid, &desc.AdapterLuid, sizeof(ovrGraphicsLuid));
+	}
 
 	*pSession = session;
 	return ovrSuccess;
