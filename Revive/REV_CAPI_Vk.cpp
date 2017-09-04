@@ -36,42 +36,40 @@ ovr_GetSessionPhysicalDeviceVk(
 	VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceProperties2KHR)
 
 	VkPhysicalDevice physicalDevice = 0;
-#if 0
-	// TODO: We could request this directly from OpenVR, but it seems to always return 0.
-	vr::VRSystem()->GetOutputDevice((uint64_t*)&physicalDevice, vr::TextureType_Vulkan);
-#else
-	uint32_t gpu_count;
-	std::vector<VkPhysicalDevice> devices;
+	vr::VRSystem()->GetOutputDevice((uint64_t*)&physicalDevice, vr::TextureType_Vulkan, instance);
 
-	PFN_vkGetPhysicalDeviceProperties2KHR GetPhysicalDeviceProperties2KHR =
-		(PFN_vkGetPhysicalDeviceProperties2KHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties2KHR");
-
-	// Get the number of devices (GPUs) available.
-	VkResult res = vkEnumeratePhysicalDevices(instance, &gpu_count, NULL);
-	// Allocate space and get the list of devices.
-	devices.resize(gpu_count);
-	res = vkEnumeratePhysicalDevices(instance, &gpu_count, devices.data());
-
-	for (VkPhysicalDevice device : devices)
+	// Fall-back in case GetOutputDevice fails.
+	if (physicalDevice == 0)
 	{
-		VkPhysicalDeviceIDPropertiesKHR uid = {};
-		uid.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR;
-		VkPhysicalDeviceProperties2KHR properties = {};
-		properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
-		properties.pNext = &uid;
+		uint32_t gpu_count;
+		std::vector<VkPhysicalDevice> devices;
 
-		GetPhysicalDeviceProperties2KHR(device, &properties);
+		// Get the number of devices (GPUs) available.
+		VkResult res = vkEnumeratePhysicalDevices(instance, &gpu_count, NULL);
+		// Allocate space and get the list of devices.
+		devices.resize(gpu_count);
+		res = vkEnumeratePhysicalDevices(instance, &gpu_count, devices.data());
 
-		if (!uid.deviceLUIDValid)
-			continue;
-
-		if (memcmp(uid.deviceLUID, luid.Reserved, VK_LUID_SIZE_KHR) == 0)
+		for (VkPhysicalDevice device : devices)
 		{
-			physicalDevice = device;
-			break;
+			VkPhysicalDeviceIDPropertiesKHR uid = {};
+			uid.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR;
+			VkPhysicalDeviceProperties2KHR properties = {};
+			properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
+			properties.pNext = &uid;
+
+			vkGetPhysicalDeviceProperties2KHR(device, &properties);
+
+			if (!uid.deviceLUIDValid)
+				continue;
+
+			if (memcmp(uid.deviceLUID, luid.Reserved, VK_LUID_SIZE_KHR) == 0)
+			{
+				physicalDevice = device;
+				break;
+			}
 		}
 	}
-#endif
 
 	if (!session->Compositor)
 	{

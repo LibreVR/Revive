@@ -114,9 +114,6 @@
     <ClInclude Include="..\LibOVR\Include\OVR_CAPI_Vk.h">
       <Filter>Header Files\LibOVR</Filter>
     </ClInclude>
-    <ClInclude Include="openvr_beta.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SettingsManager.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
