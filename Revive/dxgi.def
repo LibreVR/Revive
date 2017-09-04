@@ -1,0 +1,6 @@
+LIBRARY
+EXPORTS
+	DllMain @1
+	CreateDXGIFactory @12
+	CreateDXGIFactory1 @10
+	CreateDXGIFactory2 @11
