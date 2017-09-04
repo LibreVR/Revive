@@ -61,17 +61,17 @@ Rectangle {
 
     SoundEffect {
         id: activateSound
-        source: OpenVR.URL + "tools/content/panorama/sounds/activation.wav"
+        source: OpenVR.URL + "content/panorama/sounds/activation.wav"
     }
 
     SoundEffect {
         id: failSound
-        source: OpenVR.URL + "tools/content/panorama/sounds/activation_change_fail.wav"
+        source: OpenVR.URL + "content/panorama/sounds/activation_change_fail.wav"
     }
 
     SoundEffect {
         id: moveSound
-        source: OpenVR.URL + "tools/content/panorama/sounds/focus_change.wav"
+        source: OpenVR.URL + "content/panorama/sounds/focus_change.wav"
         volume: 0.6
     }
 
