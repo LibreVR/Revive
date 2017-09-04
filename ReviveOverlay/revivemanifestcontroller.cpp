@@ -286,36 +286,36 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
 
-	// FIXME: The VRApplications interface is unreliable, so we'll manually start the injector instead.
-#if 0
 	vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(qPrintable(appKey));
 	if (error != vr::VRApplicationError_None)
-		qWarning("Failed to launch application: %s (%s)", qUtf8Printable(appKey), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
-	return error == vr::VRApplicationError_None;
-#else
-	if (!vr::VRApplications()->IsApplicationInstalled(qPrintable(appKey)))
-		return false;
+	{
+		qWarning("Failed to launch application, falling back to injector: %s (%s)", qUtf8Printable(appKey), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 
-	// Allocate a buffer large enough to store the string
-	uint32_t size = vr::VRApplications()->GetApplicationPropertyString(qPrintable(appKey), vr::VRApplicationProperty_Arguments_String, nullptr, 0);
-	QByteArray args(size, '\0');
+		if (!vr::VRApplications()->IsApplicationInstalled(qPrintable(appKey)))
+			return false;
 
-	// Get the arguments string for the injector
-	vr::EVRApplicationError error;
-	vr::VRApplications()->GetApplicationPropertyString(qPrintable(appKey), vr::VRApplicationProperty_Arguments_String, args.data(), size, &error);
-	if (error != vr::VRApplicationError_None)
-		return false;
+		// Allocate a buffer large enough to store the string
+		uint32_t size = vr::VRApplications()->GetApplicationPropertyString(qPrintable(appKey), vr::VRApplicationProperty_Arguments_String, nullptr, 0);
+		QByteArray args(size, '\0');
 
-	// Launch the injector with the arguments
-	QProcess injector;
-	injector.setProgram(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe");
-	injector.setNativeArguments(args);
-	injector.start();
+		// Get the arguments string for the injector
+		vr::EVRApplicationError error;
+		vr::VRApplications()->GetApplicationPropertyString(qPrintable(appKey), vr::VRApplicationProperty_Arguments_String, args.data(), size, &error);
+		if (error != vr::VRApplicationError_None)
+			return false;
 
-	if (!injector.waitForFinished())
-		return false;
-	return injector.exitCode() == 0;
-#endif
+		// Launch the injector with the arguments
+		QProcess injector;
+		injector.setProgram(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe");
+		injector.setNativeArguments(args);
+		injector.start();
+
+		if (!injector.waitForFinished())
+			return false;
+		return injector.exitCode() == 0;
+	}
+
+	return true;
 }
 
 bool CReviveManifestController::isApplicationInstalled(const QString &canonicalName)
