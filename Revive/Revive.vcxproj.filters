@@ -164,9 +164,6 @@
     <ClCompile Include="TextureD3D.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
-    <ClCompile Include="xinput.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="microprofile.cpp">
       <Filter>Source Files\microprofile</Filter>
     </ClCompile>
@@ -194,6 +191,9 @@
     <ClCompile Include="SettingsManager.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
+    <ClCompile Include="dxgi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CompositorShader.hlsl">
@@ -207,13 +207,13 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="xinput.def">
-      <Filter>Source Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="Revive.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="dxgi.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

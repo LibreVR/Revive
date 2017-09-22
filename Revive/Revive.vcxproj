@@ -98,7 +98,7 @@
       <AdditionalDependencies>Ws2_32.lib;openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
-      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>dxgi.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -129,7 +129,7 @@
       <AdditionalDependencies>Ws2_32.lib;openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
-      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>dxgi.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -163,7 +163,7 @@
       <AdditionalLibraryDirectories>..\openvr\lib\win32;..\glew\lib\Release\Win32</AdditionalLibraryDirectories>
       <AdditionalDependencies>Ws2_32.lib;openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
-      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>dxgi.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -197,7 +197,7 @@
       <AdditionalLibraryDirectories>..\openvr\lib\win64;..\glew\lib\Release\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>Ws2_32.lib;openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
-      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>dxgi.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -253,6 +253,7 @@
     <ClCompile Include="CompositorD3D.cpp" />
     <ClCompile Include="CompositorGL.cpp" />
     <ClCompile Include="CompositorVk.cpp" />
+    <ClCompile Include="dxgi.cpp" />
     <ClCompile Include="HapticsBuffer.cpp" />
     <ClCompile Include="REV_CAPI_Vk.cpp" />
     <ClCompile Include="SessionDetails.cpp" />
@@ -269,7 +270,6 @@
     <ClCompile Include="TextureD3D.cpp" />
     <ClCompile Include="TextureGL.cpp" />
     <ClCompile Include="TextureVk.cpp" />
-    <ClCompile Include="xinput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\minhook\build\VC15\libMinHook.vcxproj">
@@ -297,10 +297,10 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="xinput.def" />
+    <ResourceCompile Include="Revive.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Revive.rc" />
+    <None Include="dxgi.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
