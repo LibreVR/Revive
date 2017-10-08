@@ -20,7 +20,6 @@ If you want to adjust the advanced settings in Revive you should download [OpenV
 # Known Issues
 
 - Newly installed applications may refuse to start when you try to launch them for the first time, [simply follow these instructions to fix it](https://github.com/LibreVR/Revive/wiki/Troubleshooting#im-getting-an-entitlement-error-or-oculus-rift-not-found) or reboot your PC.
-- If you experience jumps in the head tracking (judder), turn off Asynchronous Reprojection in the SteamVR Performance settings
-- If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard
+- If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard. Or check the Applications tab in the SteamVR settings to see if the tab is enabled.
 
 ![logo](revive_black.png)
