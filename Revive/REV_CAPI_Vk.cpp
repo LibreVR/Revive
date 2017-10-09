@@ -10,6 +10,7 @@
 #include <vector>
 
 HMODULE VulkanLibrary;
+VkPhysicalDevice g_physicalDevice;
 
 // Global functions
 VK_DEFINE_FUNCTION(vkGetInstanceProcAddr)
@@ -17,6 +18,38 @@ VK_DEFINE_FUNCTION(vkGetDeviceProcAddr)
 VK_DEFINE_FUNCTION(vkEnumeratePhysicalDevices)
 VK_DEFINE_FUNCTION(vkGetPhysicalDeviceMemoryProperties)
 VK_DEFINE_FUNCTION(vkGetPhysicalDeviceProperties2KHR)
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetInstanceExtensionsVk(
+	ovrGraphicsLuid luid,
+	char* extensionNames,
+	uint32_t* inoutExtensionNamesSize)
+{
+	if (!inoutExtensionNamesSize)
+		ovrError_InvalidParameter;
+
+	uint32_t size = *inoutExtensionNamesSize;
+	uint32_t required = vr::VRCompositor()->GetVulkanInstanceExtensionsRequired(extensionNames, *inoutExtensionNamesSize);
+	*inoutExtensionNamesSize = required;
+
+	return (size < required) ? ovrError_InsufficientArraySize : ovrSuccess;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetDeviceExtensionsVk(
+	ovrGraphicsLuid luid,
+	char* extensionNames,
+	uint32_t* inoutExtensionNamesSize)
+{
+	if (!inoutExtensionNamesSize)
+		ovrError_InvalidParameter;
+
+	uint32_t size = *inoutExtensionNamesSize;
+	uint32_t required = vr::VRCompositor()->GetVulkanDeviceExtensionsRequired(g_physicalDevice, extensionNames, *inoutExtensionNamesSize);
+	*inoutExtensionNamesSize = required;
+
+	return (size < required) ? ovrError_InsufficientArraySize : ovrSuccess;
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetSessionPhysicalDeviceVk(
@@ -70,6 +103,8 @@ ovr_GetSessionPhysicalDeviceVk(
 			}
 		}
 	}
+
+	g_physicalDevice = physicalDevice;
 
 	if (!session->Compositor)
 	{
