@@ -42,7 +42,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferGL(ovrSession sessio
 	if (index < 0)
 		index = chain->CurrentIndex;
 
-	TextureGL* texture = (TextureGL*)chain->Textures[index].get();
+	TextureGL* texture = dynamic_cast<TextureGL*>(chain->Textures[index].get());
+	if (!texture)
+		return ovrError_InvalidParameter;
+
 	*out_TexId = texture->Texture;
 	return ovrSuccess;
 }
@@ -89,7 +92,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferGL(ovrSession session,
 	if (!mirrorTexture || !out_TexId)
 		return ovrError_InvalidParameter;
 
-	TextureGL* texture = (TextureGL*)mirrorTexture->Texture.get();
+	TextureGL* texture = dynamic_cast<TextureGL*>(mirrorTexture->Texture.get());
+	if (!texture)
+		return ovrError_InvalidParameter;
+
 	*out_TexId = texture->Texture;
 	return ovrSuccess;
 }

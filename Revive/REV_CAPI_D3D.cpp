@@ -49,7 +49,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
 	if (index < 0)
 		index = chain->CurrentIndex;
 
-	TextureD3D* texture = (TextureD3D*)chain->Textures[index].get();
+	TextureD3D* texture = dynamic_cast<TextureD3D*>(chain->Textures[index].get());
+	if (!texture)
+		return ovrError_InvalidParameter;
+
 	HRESULT hr = texture->Texture()->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_InvalidParameter;
@@ -104,7 +107,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	if (!mirrorTexture || !out_Buffer)
 		return ovrError_InvalidParameter;
 
-	TextureD3D* texture = (TextureD3D*)mirrorTexture->Texture.get();
+	TextureD3D* texture = dynamic_cast<TextureD3D*>(mirrorTexture->Texture.get());
+	if (!texture)
+		return ovrError_InvalidParameter;
+
 	HRESULT hr = texture->Texture()->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_InvalidParameter;
