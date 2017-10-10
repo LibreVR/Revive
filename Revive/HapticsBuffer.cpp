@@ -19,10 +19,10 @@ void HapticsBuffer::AddSamples(const ovrHapticsBuffer* buffer)
 		if (m_WriteIndex == m_ReadIndex - 1)
 			return;
 
-		// Index will overflow correctly, so no need for a modulo operator
 		m_Buffer[m_WriteIndex] = samples[i];
 
 		// We increment the atomic here as a memory barrier
+		// Index will overflow correctly, so no need for a modulo operator
 		m_WriteIndex++;
 	}
 }
@@ -55,11 +55,13 @@ float HapticsBuffer::GetSample()
 	if (m_ReadIndex == m_WriteIndex)
 		return 0.0f;
 
-	// Index will overflow correctly, so no need for a modulo operator
-	return m_Buffer[m_ReadIndex] / 255.0f;
+	uint8_t sample = m_Buffer[m_ReadIndex];
 
 	// We increment the atomic here as a memory barrier
+	// Index will overflow correctly, so no need for a modulo operator
 	m_ReadIndex++;
+
+	return sample / 255.0f;
 }
 
 ovrHapticsPlaybackState HapticsBuffer::GetState()
