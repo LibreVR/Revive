@@ -19,21 +19,21 @@ template<> float SettingsManager::Get<float>(const char* key, float defaultVal)
 {
 	vr::EVRSettingsError err;
 	float result = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, key, &err);
-	return err != vr::VRSettingsError_None ? result : defaultVal;
+	return err == vr::VRSettingsError_None ? result : defaultVal;
 }
 
 template<> int SettingsManager::Get<int>(const char* key, int defaultVal)
 {
 	vr::EVRSettingsError err;
 	int result = vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, key, &err);
-	return err != vr::VRSettingsError_None ? result : defaultVal;
+	return err == vr::VRSettingsError_None ? result : defaultVal;
 }
 
 template<> bool SettingsManager::Get<bool>(const char* key, bool defaultVal)
 {
 	vr::EVRSettingsError err;
 	bool result = vr::VRSettings()->GetBool(REV_SETTINGS_SECTION, key, &err);
-	return err != vr::VRSettingsError_None ? result : defaultVal;
+	return err == vr::VRSettingsError_None ? result : defaultVal;
 }
 
 void SettingsManager::LoadSettings()
