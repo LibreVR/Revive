@@ -171,6 +171,7 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 	uint32_t width, height;
 	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
 	TextureD3D* texture = (TextureD3D*)swapChain->Textures[swapChain->SubmitIndex].get();
+	TextureD3D* scene = (TextureD3D*)sceneChain->Textures[sceneChain->SubmitIndex].get();
 
 	// Get the current state objects
 	Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
@@ -205,7 +206,7 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 	// Prepare the render target
 	D3D11_VIEWPORT vp = { (float)viewport.Pos.x, (float)viewport.Pos.y, (float)viewport.Size.w, (float)viewport.Size.h, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	m_pContext->RSSetViewports(1, &vp);
-	ID3D11RenderTargetView* target = texture->Target();
+	ID3D11RenderTargetView* target = scene->Target();
 	m_pContext->OMSetRenderTargets(1, &target, nullptr);
 	m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);
 	m_pContext->RSSetState(nullptr);
