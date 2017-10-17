@@ -30,6 +30,20 @@ ovr_GetInstanceExtensionsVk(
 
 	uint32_t size = *inoutExtensionNamesSize;
 	uint32_t required = vr::VRCompositor()->GetVulkanInstanceExtensionsRequired(extensionNames, *inoutExtensionNamesSize);
+
+	if (required <= size)
+	{
+		strncpy(extensionNames + required, VK_KHR_SURFACE_EXTENSION_NAME, size);
+		extensionNames[required - 1] = ' ';
+	}
+	required += strlen(VK_KHR_SURFACE_EXTENSION_NAME) + 1;
+	if (required <= size)
+	{
+		strncpy(extensionNames + required, VK_KHR_WIN32_SURFACE_EXTENSION_NAME, size);
+		extensionNames[required - 1] = ' ';
+	}
+	required += strlen(VK_KHR_WIN32_SURFACE_EXTENSION_NAME) + 1;
+
 	*inoutExtensionNamesSize = required;
 
 	return (size < required) ? ovrError_InsufficientArraySize : ovrSuccess;
@@ -46,6 +60,14 @@ ovr_GetDeviceExtensionsVk(
 
 	uint32_t size = *inoutExtensionNamesSize;
 	uint32_t required = vr::VRCompositor()->GetVulkanDeviceExtensionsRequired(g_physicalDevice, extensionNames, *inoutExtensionNamesSize);
+
+	if (required <= size)
+	{
+		strncpy(extensionNames + required, VK_KHR_SWAPCHAIN_EXTENSION_NAME, size);
+		extensionNames[required - 1] = ' ';
+	}
+	required += strlen(VK_KHR_SWAPCHAIN_EXTENSION_NAME) + 1;
+
 	*inoutExtensionNamesSize = required;
 
 	return (size < required) ? ovrError_InsufficientArraySize : ovrSuccess;
