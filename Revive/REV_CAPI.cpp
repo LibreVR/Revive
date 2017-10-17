@@ -13,11 +13,14 @@
 #include <dxgi1_2.h>
 #include <openvr.h>
 #include <MinHook.h>
+#include <list>
+#include <algorithm>
 
 #define REV_DEFAULT_TIMEOUT 10000
 
 vr::EVRInitError g_InitError = vr::VRInitError_Init_NotInitialized;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
+std::list<ovrHmdStruct> g_Sessions;
 
 ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
 {
@@ -93,6 +96,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
+	g_Sessions.clear();
 	vr::VR_Shutdown();
 	MicroProfileShutdown();
 }
@@ -169,7 +173,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	*pSession = nullptr;
 
 	// Initialize the opaque pointer with our own OpenVR-specific struct
-	ovrSession session = new ovrHmdStruct();
+	g_Sessions.emplace_back();
 
 	// Get the LUID for the OpenVR adapter
 	uint64_t adapter;
@@ -204,7 +208,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 			memcpy(pLuid, &desc.AdapterLuid, sizeof(ovrGraphicsLuid));
 	}
 
-	*pSession = session;
+	*pSession = &g_Sessions.back();
 	return ovrSuccess;
 }
 
@@ -212,7 +216,8 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 {
 	REV_TRACE(ovr_Destroy);
 
-	delete session;
+	// Delete the session from the list of sessions
+	g_Sessions.erase(std::find_if(g_Sessions.begin(), g_Sessions.end(), [session](ovrHmdStruct const& o) { return &o == session; }));
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessionStatus* sessionStatus)
