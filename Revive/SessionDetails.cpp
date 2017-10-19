@@ -87,11 +87,9 @@ void SessionDetails::UpdateHmdDesc()
 		vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &eyeFov.LeftTan, &eyeFov.RightTan, &eyeFov.DownTan, &eyeFov.UpTan);
 		eyeFov.LeftTan *= -1.0f;
 		eyeFov.DownTan *= -1.0f;
-		desc.DefaultEyeFov[i] = eyeFov;
-		desc.MaxEyeFov[i] = eyeFov;
 
 		eyeDesc.Eye = (ovrEyeType)i;
-		eyeDesc.Fov = desc.DefaultEyeFov[i];
+		eyeDesc.Fov = eyeFov;
 
 		REV::Matrix4f HmdToEyeMatrix = (REV::Matrix4f)vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)i);
 		float WidthTan = eyeFov.LeftTan + eyeFov.RightTan;
