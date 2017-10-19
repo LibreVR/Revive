@@ -415,16 +415,5 @@ vr::VRTextureBounds_t CompositorBase::FovPortToTextureBounds(ovrFovPort eyeFov, 
 	result.vMin = 0.5f - 0.5f * eyeFov.UpTan / fov.UpTan;
 	result.vMax = 0.5f + 0.5f * eyeFov.DownTan / fov.DownTan;
 
-	// Sanitize the output
-	if (result.uMin < 0.0)
-		result.uMin = 0.0;
-	if (result.uMax > 1.0)
-		result.uMax = 1.0;
-
-	if (result.vMin < 0.0)
-		result.vMin = 0.0;
-	if (result.vMax > 1.0)
-		result.vMax = 1.0;
-
 	return result;
 }
