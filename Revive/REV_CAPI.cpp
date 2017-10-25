@@ -988,7 +988,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propert
 {
 	REV_TRACE(ovr_GetBool);
 
-	// TODO: Implement a cached settings interface
 	return defaultVal;
 }
 
@@ -996,7 +995,7 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propert
 {
 	REV_TRACE(ovr_SetBool);
 
-	// TODO: Implement a cached settings interface
+	// TODO: Should we handle QueueAheadEnabled with always-on reprojection?
 	return false;
 }
 
@@ -1007,7 +1006,6 @@ OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName
 	if (strcmp("TextureSwapChainDepth", propertyName) == 0)
 		return REV_SWAPCHAIN_MAX_LENGTH;
 
-	// TODO: Implement a cached settings interface
 	return defaultVal;
 }
 
@@ -1015,7 +1013,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* property
 {
 	REV_TRACE(ovr_SetInt);
 
-	// TODO: Implement a cached settings interface
 	return false;
 }
 
@@ -1032,7 +1029,6 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 	else if (strcmp(propertyName, OVR_KEY_EYE_HEIGHT) == 0)
 		defaultVal = OVR_DEFAULT_EYE_HEIGHT;
 
-	// TODO: Implement a cached settings interface
 	return defaultVal;
 }
 
@@ -1040,7 +1036,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* proper
 {
 	REV_TRACE(ovr_SetFloat);
 
-	// TODO: Implement a cached settings interface
 	return false;
 }
 
@@ -1059,7 +1054,6 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const ch
 		return 2;
 	}
 
-	// TODO: Implement a cached settings interface
 	return 0;
 }
 
@@ -1067,7 +1061,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* p
 {
 	REV_TRACE(ovr_SetFloatArray);
 
-	// TODO: Implement a cached settings interface
 	return false;
 }
 
@@ -1082,7 +1075,6 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 	if (strcmp(propertyName, OVR_KEY_GENDER) == 0)
 		defaultVal = OVR_DEFAULT_GENDER;
 
-	// TODO: Implement a cached settings interface
 	return defaultVal;
 }
 
@@ -1090,7 +1082,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* prope
 {
 	REV_TRACE(ovr_SetString);
 
-	// TODO: Implement a cached settings interface
 	return false;
 }
 
