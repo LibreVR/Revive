@@ -216,8 +216,6 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	// Flip the profiler.
 	MicroProfileFlip();
 
-	vr::VRCompositor()->GetCumulativeStats(&session->Stats[session->FrameIndex % ovrMaxProvidedFrameStats], sizeof(vr::Compositor_CumulativeStats));
-
 	return rev_CompositorErrorToOvrError(error);
 }
 

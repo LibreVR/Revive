@@ -37,8 +37,7 @@ struct ovrHmdStruct
 	// Compositor statistics
 	std::atomic_llong FrameIndex;
 	long long StatsIndex;
-	ovrPerfStatsPerCompositorFrame ResetStats;
-	vr::Compositor_CumulativeStats Stats[ovrMaxProvidedFrameStats];
+	vr::Compositor_CumulativeStats BaseStats;
 
 	// Revive interfaces
 	std::unique_ptr<CompositorBase> Compositor;

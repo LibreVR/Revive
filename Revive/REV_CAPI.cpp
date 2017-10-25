@@ -872,37 +872,52 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 	int FrameStatsCount = AnyFrameStatsDropped ? ovrMaxProvidedFrameStats : int(session->FrameIndex - session->StatsIndex);
 	session->StatsIndex = session->FrameIndex;
 
+	vr::Compositor_FrameTiming TimingStats[ovrMaxProvidedFrameStats];
+	TimingStats[0].m_nSize = sizeof(vr::Compositor_FrameTiming);
+	vr::VRCompositor()->GetFrameTimings(TimingStats, FrameStatsCount);
+
+	vr::Compositor_CumulativeStats TotalStats;
+	vr::VRCompositor()->GetCumulativeStats(&TotalStats, sizeof(vr::Compositor_CumulativeStats));
+
+	// Subtract the base stats so we get the cumulative stats since the last call to ovr_ResetPerfStats
+	TotalStats.m_nNumFramePresents -= session->BaseStats.m_nNumFramePresents;
+	TotalStats.m_nNumDroppedFrames -= session->BaseStats.m_nNumDroppedFrames;
+	TotalStats.m_nNumReprojectedFrames -= session->BaseStats.m_nNumReprojectedFrames;
+	TotalStats.m_nNumFramePresentsOnStartup -= session->BaseStats.m_nNumFramePresentsOnStartup;
+	TotalStats.m_nNumDroppedFramesOnStartup -= session->BaseStats.m_nNumDroppedFramesOnStartup;
+	TotalStats.m_nNumReprojectedFramesOnStartup -= session->BaseStats.m_nNumReprojectedFramesOnStartup;
+	TotalStats.m_nNumLoading -= session->BaseStats.m_nNumLoading;
+	TotalStats.m_nNumFramePresentsLoading -= session->BaseStats.m_nNumFramePresentsLoading;
+	TotalStats.m_nNumDroppedFramesLoading -= session->BaseStats.m_nNumDroppedFramesLoading;
+	TotalStats.m_nNumReprojectedFramesLoading -= session->BaseStats.m_nNumReprojectedFramesLoading;
+	TotalStats.m_nNumTimedOut -= session->BaseStats.m_nNumTimedOut;
+	TotalStats.m_nNumFramePresentsTimedOut -= session->BaseStats.m_nNumFramePresentsTimedOut;
+	TotalStats.m_nNumDroppedFramesTimedOut -= session->BaseStats.m_nNumDroppedFramesTimedOut;
+	TotalStats.m_nNumReprojectedFramesTimedOut -= session->BaseStats.m_nNumReprojectedFramesTimedOut;
+
 	float fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
 	float fDisplayFrequency = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
 	float fFrameDuration = 1.0f / fDisplayFrequency;
 	for (int i = 0; i < FrameStatsCount; i++)
 	{
-		vr::Compositor_FrameTiming timing;
-		timing.m_nSize = sizeof(vr::Compositor_FrameTiming);
-		if (!vr::VRCompositor()->GetFrameTiming(&timing, i))
-			return ovrError_RuntimeException;
-
 		ovrPerfStatsPerCompositorFrame& stats = FrameStats[i];
 
-		stats.HmdVsyncIndex = timing.m_nFrameIndex - session->ResetStats.HmdVsyncIndex;
-		stats.AppFrameIndex = (int)session->FrameIndex - session->ResetStats.AppFrameIndex;
-		stats.AppDroppedFrameCount = session->Stats[i].m_nNumDroppedFrames - session->ResetStats.AppDroppedFrameCount;
+		stats.HmdVsyncIndex = TotalStats.m_nNumFramePresents;
+		stats.AppFrameIndex = (int)session->FrameIndex;
+		stats.AppDroppedFrameCount = TotalStats.m_nNumDroppedFrames;
 		// TODO: Improve latency handling with sensor timestamps and latency markers
 		stats.AppMotionToPhotonLatency = fFrameDuration + fVsyncToPhotons;
-		stats.AppQueueAheadTime = timing.m_flCompositorIdleCpuMs / 1000.0f;
-		stats.AppCpuElapsedTime = timing.m_flClientFrameIntervalMs / 1000.0f;
-		stats.AppGpuElapsedTime = timing.m_flPreSubmitGpuMs / 1000.0f;
+		stats.AppQueueAheadTime = -TimingStats[i].m_flNewPosesReadyMs / 1000.0f;
+		stats.AppCpuElapsedTime = TimingStats[i].m_flClientFrameIntervalMs / 1000.0f;
+		stats.AppGpuElapsedTime = TimingStats[i].m_flPreSubmitGpuMs / 1000.0f;
 
-		stats.CompositorFrameIndex = session->Stats[i].m_nNumFramePresents - session->ResetStats.CompositorFrameIndex;
-		stats.CompositorDroppedFrameCount = (session->Stats[i].m_nNumDroppedFramesOnStartup +
-			session->Stats[i].m_nNumDroppedFramesLoading + session->Stats[i].m_nNumDroppedFramesTimedOut) -
-			session->ResetStats.CompositorDroppedFrameCount;
+		stats.CompositorFrameIndex = TimingStats[i].m_nFrameIndex;
+		stats.CompositorDroppedFrameCount = (TotalStats.m_nNumDroppedFrames + TotalStats.m_nNumDroppedFramesLoading);
 		stats.CompositorLatency = fVsyncToPhotons; // OpenVR doesn't have timewarp
-		stats.CompositorCpuElapsedTime = timing.m_flCompositorRenderCpuMs / 1000.0f;
-		stats.CompositorGpuElapsedTime = timing.m_flCompositorRenderGpuMs / 1000.0f;
-		stats.CompositorCpuStartToGpuEndElapsedTime = ((timing.m_flCompositorRenderStartMs + timing.m_flCompositorRenderGpuMs) -
-			timing.m_flNewFrameReadyMs) / 1000.0f;
-		stats.CompositorGpuEndToVsyncElapsedTime = fFrameDuration - timing.m_flTotalRenderGpuMs / 1000.0f;
+		stats.CompositorCpuElapsedTime = TimingStats[i].m_flCompositorRenderCpuMs / 1000.0f;
+		stats.CompositorGpuElapsedTime = TimingStats[i].m_flCompositorRenderGpuMs / 1000.0f;
+		stats.CompositorCpuStartToGpuEndElapsedTime = (TimingStats[i].m_flCompositorUpdateEndMs - TimingStats[i].m_flCompositorRenderStartMs) / 1000.0f;
+		stats.CompositorGpuEndToVsyncElapsedTime = TimingStats[i].m_flCompositorIdleCpuMs / 1000.0f;
 
 		// TODO: Asynchronous Spacewap is not supported in OpenVR
 		stats.AswIsActive = ovrFalse;
@@ -941,11 +956,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetPerfStats(ovrSession session)
 {
 	REV_TRACE(ovr_ResetPerfStats);
 
-	ovrPerfStats perfStats = { 0 };
-	ovrResult result = ovr_GetPerfStats(session, &perfStats);
-	if (OVR_SUCCESS(result))
-		session->ResetStats = perfStats.FrameStats[0];
-	return result;
+	vr::VRCompositor()->GetCumulativeStats(&session->BaseStats, sizeof(vr::Compositor_CumulativeStats));
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
