@@ -40,7 +40,6 @@ CompositorBase::CompositorBase()
 	: m_MirrorTexture(nullptr)
 	, m_ChainCount(0)
 {
-	m_SceneLayer = nullptr;
 }
 
 CompositorBase::~CompositorBase()
@@ -122,7 +121,8 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	// Flush all pending draw calls.
 	Flush();
 
-	// Other layers are interpreted as overlays.
+	ovrLayerEyeFov baseLayer;
+	bool baseLayerFound = false;
 	std::vector<vr::VROverlayHandle_t> activeOverlays;
 	for (uint32_t i = 0; i < layerCount; i++)
 	{
@@ -174,26 +174,25 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov)
 		{
-			ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)layerPtrList[i];
+			ovrLayerEyeFov* layer = (ovrLayerEyeFov*)layerPtrList[i];
 
-			if (!m_SceneLayer)
-				m_SceneLayer = layerPtrList[i];
+			// We can only submit one eye layer, so once we have a base layer we blit the others.
+			if (!baseLayerFound)
+				baseLayer = *layer;
 			else
-				SubmitFovLayer(sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+				BlitFovLayers(&baseLayer, layer);
+			baseLayerFound = true;
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeMatrix)
 		{
-			ovrLayerEyeMatrix* sceneLayer = (ovrLayerEyeMatrix*)layerPtrList[i];
+			ovrLayerEyeFov layer = ToFovLayer((ovrLayerEyeMatrix*)layerPtrList[i]);
 
-			ovrFovPort fov[ovrEye_Count] = {
-				MatrixToFovPort(sceneLayer->Matrix[ovrEye_Left]),
-				MatrixToFovPort(sceneLayer->Matrix[ovrEye_Right])
-			};
-
-			if (!m_SceneLayer)
-				m_SceneLayer = layerPtrList[i];
+			// We can only submit one eye layer, so once we have a base layer we blit the others.
+			if (!baseLayerFound)
+				baseLayer = layer;
 			else
-				SubmitFovLayer(sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->Header.Flags);
+				BlitFovLayers(&baseLayer, &layer);
+			baseLayerFound = true;
 		}
 	}
 
@@ -208,27 +207,11 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	m_ActiveOverlays = activeOverlays;
 
 	vr::EVRCompositorError error = vr::VRCompositorError_None;
-	if (m_SceneLayer && m_SceneLayer->Type == ovrLayerType_EyeFov)
-	{
-		ovrLayerEyeFov* sceneLayer = (ovrLayerEyeFov*)m_SceneLayer;
-		error = SubmitSceneLayer(session, sceneLayer->Viewport, sceneLayer->Fov, sceneLayer->ColorTexture, sceneLayer->RenderPose, sceneLayer->Header.Flags);
-	}
-	else if (m_SceneLayer && m_SceneLayer->Type == ovrLayerType_EyeMatrix)
-	{
-		ovrLayerEyeMatrix* sceneLayer = (ovrLayerEyeMatrix*)m_SceneLayer;
-
-		ovrFovPort fov[ovrEye_Count] = {
-			MatrixToFovPort(sceneLayer->Matrix[ovrEye_Left]),
-			MatrixToFovPort(sceneLayer->Matrix[ovrEye_Right])
-		};
-
-		error = SubmitSceneLayer(session, sceneLayer->Viewport, fov, sceneLayer->ColorTexture, sceneLayer->RenderPose, sceneLayer->Header.Flags);
-	}
+	if (baseLayerFound)
+		error = SubmitFovLayer(session, &baseLayer);
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
-
-	m_SceneLayer = nullptr;
 
 	// Flip the profiler.
 	MicroProfileFlip();
@@ -258,7 +241,7 @@ vr::VRTextureBounds_t CompositorBase::ViewportToTextureBounds(ovrRecti viewport,
 	bounds.vMin = viewport.Pos.y / h;
 
 	// Sanity check for the viewport size.
-	// Workaround for Defense Grid 2, which leaves these variables unintialized.
+	// Workaround for Defense Grid 2, which leaves these variables uninitialized.
 	if (viewport.Size.w > 0 && viewport.Size.h > 0)
 	{
 		bounds.uMax = (viewport.Pos.x + viewport.Size.w) / w;
@@ -285,19 +268,34 @@ vr::VRTextureBounds_t CompositorBase::ViewportToTextureBounds(ovrRecti viewport,
 	return bounds;
 }
 
-ovrFovPort CompositorBase::MatrixToFovPort(ovrMatrix4f matrix)
+ovrLayerEyeFov CompositorBase::ToFovLayer(ovrLayerEyeMatrix* matrix)
 {
-	ovrFovPort fov;
-	fov.LeftTan = fov.RightTan = .5f / matrix.M[0][0];
-	fov.UpTan   = fov.DownTan  = -.5f / matrix.M[1][1];
-	return fov;
+	ovrLayerEyeFov layer = { ovrLayerType_EyeFov };
+	layer.Header.Flags = matrix->Header.Flags;
+	layer.SensorSampleTime = matrix->SensorSampleTime;
+
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		layer.Fov[i].LeftTan = layer.Fov[i].RightTan = .5f / matrix->Matrix[i].M[0][0];
+		layer.Fov[i].UpTan = layer.Fov[i].DownTan = -.5f / matrix->Matrix[i].M[1][1];
+		layer.ColorTexture[i] = matrix->ColorTexture[i];
+		layer.Viewport[i] = matrix->Viewport[i];
+		layer.RenderPose[i] = matrix->RenderPose[i];
+	}
+
+	return layer;
 }
 
-void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags)
+void CompositorBase::BlitFovLayers(ovrLayerEyeFov* dstLayer, ovrLayerEyeFov* srcLayer)
 {
 	MICROPROFILE_SCOPE(SubmitFovLayer);
 
-	// If the right eye isn't set used the left eye for both
+	ovrTextureSwapChain swapChain[ovrEye_Count] = {
+		srcLayer->ColorTexture[ovrEye_Left],
+		srcLayer->ColorTexture[ovrEye_Right]
+	};
+
+	// If the right eye isn't set use the left eye for both
 	if (!swapChain[ovrEye_Right])
 		swapChain[ovrEye_Right] = swapChain[ovrEye_Left];
 
@@ -308,33 +306,20 @@ void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort 
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		// Get the scene fov
-		ovrFovPort sceneFov;
-		if (m_SceneLayer->Type == ovrLayerType_EyeFov)
-			sceneFov = ((ovrLayerEyeFov*)m_SceneLayer)->Fov[i];
-		else if (m_SceneLayer->Type == ovrLayerType_EyeMatrix)
-			sceneFov = MatrixToFovPort(((ovrLayerEyeMatrix*)m_SceneLayer)->Matrix[i]);
+		ovrFovPort sceneFov = dstLayer->Fov[i];
 
 		// Calculate the fov quad
 		vr::HmdVector4_t quad;
-		quad.v[0] = fov[i].LeftTan / -sceneFov.LeftTan;
-		quad.v[1] = fov[i].RightTan / sceneFov.RightTan;
-		quad.v[2] = fov[i].UpTan / sceneFov.UpTan;
-		quad.v[3] = fov[i].DownTan / -sceneFov.DownTan;
+		quad.v[0] = srcLayer->Fov[i].LeftTan / -sceneFov.LeftTan;
+		quad.v[1] = srcLayer->Fov[i].RightTan / sceneFov.RightTan;
+		quad.v[2] = srcLayer->Fov[i].UpTan / sceneFov.UpTan;
+		quad.v[3] = srcLayer->Fov[i].DownTan / -sceneFov.DownTan;
 
 		// Calculate the texture bounds
-		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
+		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(srcLayer->Viewport[i], swapChain[i], srcLayer->Header.Flags);
 
 		// Composit the layer
-		if (m_SceneLayer->Type == ovrLayerType_EyeFov)
-		{
-			ovrLayerEyeFov* layer = (ovrLayerEyeFov*)m_SceneLayer;
-			RenderTextureSwapChain((vr::EVREye)i, swapChain[i], layer->ColorTexture[i], layer->Viewport[i], bounds, quad);
-		}
-		else if (m_SceneLayer->Type == ovrLayerType_EyeMatrix)
-		{
-			ovrLayerEyeMatrix* layer = (ovrLayerEyeMatrix*)m_SceneLayer;
-			RenderTextureSwapChain((vr::EVREye)i, swapChain[i], layer->ColorTexture[i], layer->Viewport[i], bounds, quad);
-		}
+		RenderTextureSwapChain((vr::EVREye)i, swapChain[i], dstLayer->ColorTexture[i], dstLayer->Viewport[i], bounds, quad);
 	}
 
 	swapChain[ovrEye_Left]->Submit();
@@ -342,11 +327,16 @@ void CompositorBase::SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort 
 		swapChain[ovrEye_Right]->Submit();
 }
 
-vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrSession session, ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], ovrPosef renderPose[ovrEye_Count], unsigned int flags)
+vr::VRCompositorError CompositorBase::SubmitFovLayer(ovrSession session, ovrLayerEyeFov* fovLayer)
 {
 	MICROPROFILE_SCOPE(SubmitSceneLayer);
 
-	// If the right eye isn't set used the left eye for both
+	ovrTextureSwapChain swapChain[ovrEye_Count] = {
+		fovLayer->ColorTexture[ovrEye_Left],
+		fovLayer->ColorTexture[ovrEye_Right]
+	};
+
+	// If the right eye isn't set use the left eye for both
 	if (!swapChain[ovrEye_Right])
 		swapChain[ovrEye_Right] = swapChain[ovrEye_Left];
 
@@ -360,13 +350,13 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrSession session, ovrRe
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		ovrTextureSwapChain chain = swapChain[i];
-		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(viewport[i], swapChain[i], flags);
+		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(fovLayer->Viewport[i], swapChain[i], fovLayer->Header.Flags);
 
 		// Get the descriptor for this eye
 		ovrEyeRenderDesc* desc = session->Details->RenderDesc[i];
 
 		// Shrink the bounds to account for the overlapping fov
-		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fov[i]);
+		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fovLayer->Fov[i]);
 
 		// Combine the fov bounds with the viewport bounds
 		bounds.uMin += fovBounds.uMin * bounds.uMax;
@@ -377,7 +367,7 @@ vr::VRCompositorError CompositorBase::SubmitSceneLayer(ovrSession session, ovrRe
 		vr::VRTextureWithPose_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
 
 		// Add the pose data to the eye texture
-		REV::Matrix4f pose(renderPose[i]);
+		REV::Matrix4f pose(fovLayer->RenderPose[i]);
 		if (session->TrackingOrigin == vr::TrackingUniverseSeated)
 		{
 			REV::Matrix4f offset(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());

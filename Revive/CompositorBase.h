@@ -33,15 +33,14 @@ public:
 
 protected:
 	unsigned int m_ChainCount;
-	const ovrLayerHeader* m_SceneLayer;
 	ovrMirrorTexture m_MirrorTexture;
 
 	vr::VROverlayHandle_t CreateOverlay();
 	vr::VRTextureBounds_t ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
-	ovrFovPort MatrixToFovPort(ovrMatrix4f matrix);
+	ovrLayerEyeFov ToFovLayer(ovrLayerEyeMatrix* matrix);
 
-	void SubmitFovLayer(ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], unsigned int flags);
-	vr::VRCompositorError SubmitSceneLayer(ovrSession session, ovrRecti viewport[ovrEye_Count], ovrFovPort fov[ovrEye_Count], ovrTextureSwapChain swapChain[ovrEye_Count], ovrPosef renderPose[ovrEye_Count], unsigned int flags);
+	void BlitFovLayers(ovrLayerEyeFov* dstLayer, ovrLayerEyeFov* srcLayer);
+	vr::VRCompositorError SubmitFovLayer(ovrSession session, ovrLayerEyeFov* fovLayer);
 
 private:
 	// Overlays
