@@ -5,9 +5,6 @@ function decodeHtml(str) {
 };
 
 function generateManifest(manifest) {
-    if (manifest["thirdParty"])
-        console.log("Skipping third-party manifest " + manifest["canonicalName"]);
-
     console.log("Generating manifest for " + manifest["canonicalName"]);
     var launch = manifest["launchFile"];
 
@@ -107,7 +104,7 @@ function loadManifest(manifestURL) {
             }
 
             // Add the application manifest to the Revive manifest and include their cover.
-            if (manifest["packageType"] == "APP" && !manifest["isCore"]) {
+            if (manifest["packageType"] == "APP" && !manifest["isCore"] && !manifest["thirdParty"]) {
                 console.log("Found application " + manifest["canonicalName"]);
                 var cover = Revive.LibraryURL + "Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_square_image.jpg";
                 coverModel.append({coverURL: cover, appKey: manifest["canonicalName"]});
