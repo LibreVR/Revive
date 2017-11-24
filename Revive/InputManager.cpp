@@ -37,15 +37,14 @@ InputManager::InputManager()
 	assert(L);
 	luaL_openlibs(L);
 
+	// Load the header script
+	const char* header = LoadResourceScript("HEADER");
+
 	// Load the default input script
-	HRSRC hRes = FindResourceA(revModule, "INPUT", "LUA");
-	DWORD dwSize = SizeofResource(revModule, hRes);
-	HGLOBAL hGlob = LoadResource(revModule, hRes);
-	const char* pData = reinterpret_cast<const char*>(::LockResource(hGlob));
-	assert(pData);
+	const char* script = LoadResourceScript("INPUT");
 
 	// If the lua script fails, we don't add the controllers
-	if (!luaL_dostring(L, pData))
+	if (!luaL_dostring(L, header) && !luaL_dostring(L, script))
 	{
 		m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
 		m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
@@ -189,6 +188,13 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 	lastPose = result;
 
 	return result;
+}
+
+const char* InputManager::LoadResourceScript(const char* name)
+{
+	HRSRC hRes = FindResourceA(revModule, name, "LUA");
+	HGLOBAL hGlob = LoadResource(revModule, hRes);
+	return reinterpret_cast<const char*>(::LockResource(hGlob));
 }
 
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
