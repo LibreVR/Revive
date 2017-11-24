@@ -74,20 +74,26 @@ end
 local was_released = true
 local center = {x=0, y=0}
 function GetThumbstick(right_hand, deadzone)
-  axis = state[SteamVR_Touchpad];
-
-  --[[
-  todo: find a physical joystick
-
-  magnitude = math.sqrt(axis.x^2 + axis.y^2)
-  if (magnitude < deadzone) then
-    return 0,0
-  else
-    normalize = (magnitude - deadzone) / (1 - deadzone)
-    return axis.x / magnitude * normalize, axis.y / magnitude * normalize
+  -- Find a physical Joystick
+  for i=1,5 do
+    if (state[i].type == "Joystick") then
+      -- If there is a physical joystick use that axis with a simple radial deadzone
+      axis = state[i]
+      magnitude = math.sqrt(axis.x^2 + axis.y^2)
+      if (magnitude < deadzone) then
+        return 0,0
+      else
+        normalize = (magnitude - deadzone) / (1 - deadzone)
+        return axis.x / magnitude * normalize, axis.y / magnitude * normalize
+      end
+    elseif (state[i].type == "None") then
+      -- This is not a valid axis anymore, so exit the loop
+      break
+    end
   end
-  --]]
 
+  -- If we can't find a physical joystick, emulate one with the trackpad
+  axis = state[SteamVR_Touchpad]
   if (not axis.touched) then
     -- we're not touching the touchpad
     return 0, 0
