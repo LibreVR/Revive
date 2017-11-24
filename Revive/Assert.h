@@ -1,9 +1,7 @@
 #pragma once
 
 #include "microprofile.h"
-#include <crtdbg.h>
 
-#define REV_ASSERT _ASSERT
 #if 0
 #include <Windows.h>
 #define REV_TRACE(x) OutputDebugStringA("Revive: " #x "\n");

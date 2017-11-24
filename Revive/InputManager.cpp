@@ -4,13 +4,17 @@
 #include "Settings.h"
 #include "SettingsManager.h"
 #include "CompositorBase.h"
-
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
 
 #include <openvr.h>
 #include <Windows.h>
 #include <Xinput.h>
+#include <lua.hpp>
+#include <assert.h>
+
+extern HMODULE revModule;
+struct lua_State* InputManager::L = nullptr;
 
 InputManager::InputManager()
 	: m_InputDevices()
@@ -26,9 +30,26 @@ InputManager::InputManager()
 #if 0
 	m_InputDevices.push_back(new XboxGamepad());
 #endif
-	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
-	m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
 	m_InputDevices.push_back(new OculusRemote());
+
+	/* Create LUA VM state */
+	L = luaL_newstate();
+	assert(L);
+	luaL_openlibs(L);
+
+	// Load the default input script
+	HRSRC hRes = FindResourceA(revModule, "INPUT", "LUA");
+	DWORD dwSize = SizeofResource(revModule, hRes);
+	HGLOBAL hGlob = LoadResource(revModule, hRes);
+	const char* pData = reinterpret_cast<const char*>(::LockResource(hGlob));
+	assert(pData);
+
+	// If the lua script fails, we don't add the controllers
+	if (!luaL_dostring(L, pData))
+	{
+		m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
+		m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
+	}
 
 	UpdateConnectedControllers();
 }
@@ -37,6 +58,7 @@ InputManager::~InputManager()
 {
 	for (InputDevice* device : m_InputDevices)
 		delete device;
+	lua_close(L);
 }
 
 void InputManager::UpdateConnectedControllers()
@@ -367,6 +389,51 @@ bool InputManager::OculusTouch::IsConnected() const
 	return touch != vr::k_unTrackedDeviceIndexInvalid;
 }
 
+void add_state_field(lua_State *L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state, vr::EVRButtonId button, const char* name = nullptr)
+{
+	bool isAxis = vr::k_EButton_Axis0 <= button && button <= vr::k_EButton_Axis4;
+	if (isAxis)
+	{
+		// We put axes in the array part
+		lua_pushnumber(L, button - vr::k_EButton_Axis0 + 1);
+	}
+	else
+	{
+		// And buttons in the hash table
+		if (!name)
+			name = vr::VRSystem()->GetButtonIdNameFromEnum(button) + 10; // Add 10 to skip enum prefix
+		lua_pushstring(L, name);
+	}
+
+	lua_createtable(L, 0, isAxis ? 5 : 2);
+	lua_pushboolean(L, !!(state.ulButtonPressed & vr::ButtonMaskFromId(button)));
+	lua_setfield(L, -2, "pressed");
+	lua_pushboolean(L, !!(state.ulButtonTouched & vr::ButtonMaskFromId(button)));
+	lua_setfield(L, -2, "touched");
+
+	/*uint64_t buttonSupport = vr::VRSystem()->GetUint64TrackedDeviceProperty(touch, vr::Prop_SupportedButtons_Uint64);
+	lua_pushboolean(L, !!(buttonSupport & vr::ButtonMaskFromId(button)));
+	lua_setfield(L, -2, "supported");*/
+
+	if (isAxis)
+	{
+		int n = button - vr::k_EButton_Axis0;
+		vr::VRControllerAxis_t& axis = state.rAxis[n];
+
+		lua_pushnumber(L, axis.x);
+		lua_setfield(L, -2, "x");
+		lua_pushnumber(L, axis.y);
+		lua_setfield(L, -2, "y");
+
+		/*vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(
+		nControllerDeviceIndex, (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + n));
+		lua_pushstring(L, vr::VRSystem()->GetControllerAxisTypeNameFromEnum(type));
+		lua_setfield(L, -2, "type");*/
+	}
+
+	lua_settable(L, -3);
+}
+
 bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
 {
 	// Get controller index
@@ -381,187 +448,76 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	vr::VRControllerState_t state;
 	vr::VRSystem()->GetControllerState(touch, &state, sizeof(state));
 
-	unsigned int buttons = 0, touches = 0;
+	lua_createtable(L, vr::k_unControllerStateAxisCount, 12);
+	// Known buttons
+	for (int i = vr::k_EButton_System; i <= vr::k_EButton_A; i++)
+		add_state_field(L, touch, state, (vr::EVRButtonId)i);
 
-	uint64_t buttonSupport = vr::VRSystem()->GetUint64TrackedDeviceProperty(touch, vr::Prop_SupportedButtons_Uint64);
-	const bool allButtonsSupported = (buttonSupport & vr::ButtonMaskFromId(vr::k_EButton_A) && buttonSupport & vr::ButtonMaskFromId(k_EButton_B));
+	// Known axes
+	for (int i = vr::k_EButton_Axis0; i <= vr::k_EButton_Axis4; i++)
+		add_state_field(L, touch, state, (vr::EVRButtonId)i);
 
-	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
-		buttons |= ovrButton_Enter;
+	// Some controllers define additional undocumented buttons
+	add_state_field(L, touch, state, (vr::EVRButtonId)8, "B");
+	add_state_field(L, touch, state, (vr::EVRButtonId)9, "X");
+	add_state_field(L, touch, state, (vr::EVRButtonId)10, "Y");
 
-	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_A))
-		buttons |= (hand == ovrHand_Left) ? ovrButton_X : ovrButton_A;
+	// ... are you really going to use the headset sensor for input?
+	add_state_field(L, touch, state, vr::k_EButton_ProximitySensor);
+	lua_setglobal(L, "state");
 
-	if (state.ulButtonTouched & vr::ButtonMaskFromId(vr::k_EButton_A))
-		touches |= (hand == ovrHand_Left) ? ovrTouch_X : ovrTouch_A;
-
-	if (state.ulButtonPressed & vr::ButtonMaskFromId(k_EButton_B))
-		buttons |= (hand == ovrHand_Left) ? ovrButton_Y : ovrButton_B;
-
-	if (state.ulButtonTouched & vr::ButtonMaskFromId(k_EButton_B))
-		touches |= (hand == ovrHand_Left) ? ovrTouch_Y : ovrTouch_B;
-
-	// Allow users to enable a toggled grip.
-	if (settings->ToggleGrip == revGrip_Hybrid)
+	// TODO: Handle and log errors
+	lua_getglobal(L, "GetButtons");
+	lua_pushboolean(L, hand == ovrHand_Right);
+	lua_pcall(L, 1, LUA_MULTRET, 0);
+	while (lua_gettop(L))
 	{
-		if (IsPressed(state, vr::k_EButton_Grip))
-		{
-			// Only set the timestamp on the first grip toggle, we don't want to toggle twice
-			if (!m_Gripped)
-				m_GrippedTime = ovr_GetTimeInSeconds();
-
-			m_Gripped = true;
-		}
-
-		if (IsReleased(state, vr::k_EButton_Grip))
-		{
-			if (ovr_GetTimeInSeconds() - m_GrippedTime > settings->ToggleDelay)
-				m_Gripped = false;
-
-			// Next time we always want to release grip
-			m_GrippedTime = 0.0;
-		}
-	}
-	else if (settings->ToggleGrip == revGrip_Toggle)
-	{
-		if (IsPressed(state, vr::k_EButton_Grip))
-			m_Gripped = !m_Gripped;
-	}
-	else
-	{
-		m_Gripped = !!(state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_Grip));
+		inputState->Buttons |= lua_tointeger(L, -1);
+		lua_pop(L, 1);
 	}
 
-
-	// When we release the grip we need to keep it just a little bit pressed, because games like Toybox
-	// can't handle a sudden jump to absolute zero.
-	if (m_Gripped)
-		inputState->HandTrigger[hand] = 1.0f;
-	else
-		inputState->HandTrigger[hand] = 0.1f;
-
-	// Convert the axes
-	for (int j = 0; j < vr::k_unControllerStateAxisCount; j++)
+	lua_getglobal(L, "GetTouches");
+	lua_pushboolean(L, hand == ovrHand_Right);
+	lua_pcall(L, 1, LUA_MULTRET, 0);
+	while (lua_gettop(L))
 	{
-		vr::ETrackedPropertyError err;
-		vr::EVRButtonId button = (vr::EVRButtonId)(vr::k_EButton_Axis0 + j);
-		vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + j);
-		vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(touch, prop, &err);
-		vr::VRControllerAxis_t axis = state.rAxis[j];
-
-		if (err != vr::TrackedProp_Success)
-			break;
-
-		if (type == vr::k_eControllerAxis_Joystick)
-		{
-			//determine how far the controller is pushed
-			float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
-			inputState->ThumbstickNoDeadzone[hand].x = axis.x;
-			inputState->ThumbstickNoDeadzone[hand].y = axis.y;
-
-			//check if the controller is outside a circular dead zone
-			if (magnitude > session->Settings->Deadzone)
-			{
-				//clip the magnitude at its expected maximum value
-				if (magnitude > 1.0f) magnitude = 1.0f;
-
-				//adjust magnitude relative to the end of the dead zone
-				magnitude -= settings->Deadzone;
-
-				//optionally normalize the magnitude with respect to its expected range
-				//giving a magnitude value of 0.0 to 1.0
-				float normalizedMagnitude = magnitude / (1.0f - settings->Deadzone);
-				inputState->Thumbstick[hand].x = normalizedMagnitude * axis.x;
-				inputState->Thumbstick[hand].y = normalizedMagnitude * axis.y;
-			}
-
-			if (state.ulButtonTouched & vr::ButtonMaskFromId(button))
-				touches |= (hand == ovrHand_Left) ? ovrTouch_LThumb : ovrTouch_RThumb;
-
-			if (state.ulButtonPressed & vr::ButtonMaskFromId(button))
-				buttons |= (hand == ovrHand_Left) ? ovrButton_LThumb : ovrButton_RThumb;
-		}
-		else if (type == vr::k_eControllerAxis_TrackPad)
-		{
-			ovrTouch quadrant = AxisToTouch(axis);
-			vr::VRControllerAxis_t lastAxis = m_LastState.rAxis[j];
-
-			if (state.ulButtonTouched & vr::ButtonMaskFromId(button))
-			{
-				if (m_StickTouched && m_LastState.ulButtonTouched & vr::ButtonMaskFromId(button))
-				{
-					OVR::Vector2f delta(lastAxis.x - axis.x, lastAxis.y - axis.y);
-					m_ThumbStick -= delta * settings->Sensitivity;
-
-					// Determine how far the controller is pushed
-					float magnitude = sqrt(m_ThumbStick.x*m_ThumbStick.x + m_ThumbStick.y*m_ThumbStick.y);
-					if (magnitude > 0.0f)
-					{
-						// Determine the direction the controller is pushed
-						OVR::Vector2f normalized = m_ThumbStick / magnitude;
-
-						// Clip the magnitude at its expected maximum value and recenter
-						if (magnitude > 1.0f) magnitude = 1.0f;
-						m_ThumbStick = normalized * magnitude;
-
-						if (magnitude > settings->Deadzone)
-						{
-							// Adjust magnitude relative to the end of the dead zone
-							magnitude -= settings->Deadzone;
-
-							// Optionally normalize the magnitude with respect to its expected range
-							// giving a magnitude value of 0.0 to 1.0
-							float normalizedMagnitude = magnitude / (1.0f - settings->Deadzone);
-							inputState->Thumbstick[hand].x = m_ThumbStick.x * normalizedMagnitude;
-							inputState->Thumbstick[hand].y = m_ThumbStick.y * normalizedMagnitude;
-
-							// Since we don't have a physical thumbstick we always want a deadzone
-							// before we activate the stick, but we don't normalize it here
-							inputState->ThumbstickNoDeadzone[hand].x = m_ThumbStick.x;
-							inputState->ThumbstickNoDeadzone[hand].y = m_ThumbStick.y;
-						}
-					}
-				}
-
-				if (quadrant & (ovrButton_LThumb | ovrButton_RThumb))
-					m_StickTouched = true;
-
-				if (allButtonsSupported)
-					touches |= (hand == ovrHand_Left) ? ovrTouch_LThumb : ovrTouch_RThumb;
-				else
-					touches |= quadrant;
-			}
-			else
-			{
-				// Touchpad was released, reset the thumbstick
-				m_StickTouched = false;
-				m_ThumbStick.x = m_ThumbStick.y = 0.0f;
-
-				if (m_Gripped)
-					touches |= (hand == ovrHand_Left) ? ovrTouch_LThumbUp : ovrTouch_RThumbUp;
-			}
-
-			if (state.ulButtonPressed & vr::ButtonMaskFromId(button))
-			{
-				if (allButtonsSupported)
-					buttons |= (hand == ovrHand_Left) ? ovrButton_LThumb : ovrButton_RThumb;
-				else
-					buttons |= quadrant;
-			}
-		}
-		else if (type == vr::k_eControllerAxis_Trigger)
-		{
-			if (state.ulButtonTouched & vr::ButtonMaskFromId(button))
-				touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexTrigger : ovrTouch_RIndexTrigger;
-			else if (m_Gripped)
-				touches |= (hand == ovrHand_Left) ? ovrTouch_LIndexPointing : ovrTouch_RIndexPointing;
-
-			inputState->IndexTrigger[hand] = axis.x;
-		}
+		inputState->Touches |= lua_tointeger(L, -1);
+		lua_pop(L, 1);
 	}
 
-	if (settings->TriggerAsGrip && !m_Gripped)
-		std::swap(inputState->HandTrigger[hand], inputState->IndexTrigger[hand]);
+	lua_getglobal(L, "GetTriggers");
+	lua_pushboolean(L, hand == ovrHand_Right);
+	lua_createtable(L, 0, 3);
+	lua_pushboolean(L, settings->ToggleGrip == revGrip_Normal);
+	lua_setfield(L, -2, "normal");
+	lua_pushboolean(L, settings->ToggleGrip == revGrip_Toggle);
+	lua_setfield(L, -2, "toggle");
+	lua_pushboolean(L, settings->ToggleGrip == revGrip_Hybrid);
+	lua_setfield(L, -2, "hybrid");
+	lua_pushnumber(L, settings->ToggleDelay);
+	lua_setfield(L, -2, "delay");
+	lua_pushnumber(L, settings->TriggerAsGrip);
+	lua_setfield(L, -2, "trigger");
+	lua_pcall(L, 2, 2, 0);
+	inputState->IndexTrigger[hand] = lua_tonumber(L, -2);
+	inputState->HandTrigger[hand] = lua_tonumber(L, -1);
+	lua_pop(L, 2);
+
+	lua_getglobal(L, "GetThumbstick");
+	lua_pushboolean(L, hand == ovrHand_Right);
+	lua_pushnumber(L, settings->Deadzone);
+	lua_pcall(L, 2, 2, 0);
+	inputState->Thumbstick[hand].x = lua_tonumber(L, -2);
+	inputState->Thumbstick[hand].y = lua_tonumber(L, -1);
+	lua_pop(L, 2);
+
+	lua_getglobal(L, "GetThumbstick");
+	lua_pushboolean(L, hand == ovrHand_Right);
+	lua_pushnumber(L, 0);
+	lua_pcall(L, 2, 2, 0);
+	inputState->ThumbstickNoDeadzone[hand].x = lua_tonumber(L, -2);
+	inputState->ThumbstickNoDeadzone[hand].y = lua_tonumber(L, -1);
+	lua_pop(L, 2);
 
 	// We don't apply deadzones yet on triggers and grips
 	inputState->IndexTriggerNoDeadzone[hand] = inputState->IndexTrigger[hand];
@@ -571,13 +527,6 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	inputState->ThumbstickRaw[hand] = inputState->ThumbstickNoDeadzone[hand];
 	inputState->IndexTriggerRaw[hand] = inputState->IndexTriggerNoDeadzone[hand];
 	inputState->HandTriggerRaw[hand] = inputState->HandTriggerNoDeadzone[hand];
-
-	// Commit buttons/touches
-	inputState->Buttons |= buttons;
-	inputState->Touches |= touches;
-
-	// Save the state
-	m_LastState = state;
 	return true;
 }
 
@@ -605,38 +554,28 @@ bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState
 	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_ApplicationMenu))
 		inputState->Buttons |= ovrButton_Back;
 
-	// Convert the axes
-	for (int i = 0; i < vr::k_unControllerStateAxisCount; i++)
+	if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
 	{
-		vr::ETrackedDeviceProperty prop = (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + i);
-		vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(remote, prop);
-		vr::VRControllerAxis_t axis = state.rAxis[i];
+		vr::VRControllerAxis_t axis = state.rAxis[0];
+		float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
 
-		if (type == vr::k_eControllerAxis_TrackPad)
+		if (magnitude < 0.5f)
 		{
-			if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Touchpad))
-			{
-				float magnitude = sqrt(axis.x*axis.x + axis.y*axis.y);
-
-				if (magnitude < 0.5f)
-				{
-					inputState->Buttons |= ovrButton_Enter;
-				}
+			inputState->Buttons |= ovrButton_Enter;
+		}
+		else
+		{
+			if (axis.y < axis.x) {
+				if (axis.y < -axis.x)
+					inputState->Buttons |= ovrButton_Down;
 				else
-				{
-					if (axis.y < axis.x) {
-						if (axis.y < -axis.x)
-							inputState->Buttons |= ovrButton_Down;
-						else
-							inputState->Buttons |= ovrButton_Right;
-					}
-					else {
-						if (axis.y < -axis.x)
-							inputState->Buttons |= ovrButton_Left;
-						else
-							inputState->Buttons |= ovrButton_Up;
-					}
-				}
+					inputState->Buttons |= ovrButton_Right;
+			}
+			else {
+				if (axis.y < -axis.x)
+					inputState->Buttons |= ovrButton_Left;
+				else
+					inputState->Buttons |= ovrButton_Up;
 			}
 		}
 	}

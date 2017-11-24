@@ -11,6 +11,8 @@
 #include <Windows.h>
 #include <Xinput.h>
 
+typedef struct lua_State lua_State;
+
 class InputManager
 {
 public:
@@ -116,6 +118,7 @@ protected:
 	std::vector<InputDevice*> m_InputDevices;
 
 private:
+	static lua_State *L;
 	float m_fVsyncToPhotons;
 	ovrPoseStatef m_LastPoses[vr::k_unMaxTrackedDeviceCount];
 

@@ -16,3 +16,6 @@
 [submodule "Vulkan"]
 	path = Vulkan
 	url = https://github.com/KhronosGroup/Vulkan-Docs.git
+[submodule "LuaJIT"]
+	path = LuaJIT
+	url = https://github.com/LibreVR/ext-win-luajit.git

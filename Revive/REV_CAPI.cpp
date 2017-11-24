@@ -15,6 +15,7 @@
 #include <MinHook.h>
 #include <list>
 #include <algorithm>
+#include <assert.h>
 
 #define REV_DEFAULT_TIMEOUT 10000
 
@@ -329,7 +330,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingStateWithSensorData(ovrSess
 	REV_TRACE(ovr_GetTrackingStateWithSensorData);
 
 	// This is a private API, ignore the raw sensor data request and hope for the best.
-	REV_ASSERT(sensorData == nullptr);
+	assert(sensorData == nullptr);
 
 	return ovr_GetTrackingState(session, absTime, latencyMarker);
 }

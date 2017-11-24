@@ -210,6 +210,9 @@
     <None Include="xinput.def">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="default.lua">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc">
