@@ -37,17 +37,16 @@ InputManager::InputManager()
 	assert(L);
 	luaL_openlibs(L);
 
-	// Load the header script
-	const char* header = LoadResourceScript("HEADER");
-
-	// Load the default input script
-	const char* script = LoadResourceScript("INPUT");
-
 	// If the lua script fails, we don't add the controllers
-	if (!luaL_dostring(L, header) && !luaL_dostring(L, script))
+	if (LoadResourceScript("HEADER") && LoadResourceScript("INPUT"))
 	{
 		m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
 		m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
+	}
+	else
+	{
+		OutputDebugStringA(lua_tostring(L, -1));
+		OutputDebugStringA("\n");
 	}
 
 	UpdateConnectedControllers();
@@ -190,11 +189,13 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 	return result;
 }
 
-const char* InputManager::LoadResourceScript(const char* name)
+bool InputManager::LoadResourceScript(const char* name)
 {
 	HRSRC hRes = FindResourceA(revModule, name, "LUA");
+	DWORD dwSize = SizeofResource(revModule, hRes);
 	HGLOBAL hGlob = LoadResource(revModule, hRes);
-	return reinterpret_cast<const char*>(::LockResource(hGlob));
+	const char* pData = reinterpret_cast<const char*>(::LockResource(hGlob));
+	return !luaL_loadbuffer(L, pData, dwSize, name) && !lua_pcall(L, 0, 0, 0);
 }
 
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
@@ -325,54 +326,9 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 	}
 }
 
-ovrTouch InputManager::OculusTouch::AxisToTouch(vr::VRControllerAxis_t axis)
-{
-	if (m_Role == vr::TrackedControllerRole_LeftHand)
-	{
-		if (axis.y < axis.x) {
-			if (axis.y < -axis.x)
-				return ovrTouch_X;
-			else
-				return ovrTouch_Y;
-		}
-		else {
-			return ovrTouch_LThumb;
-		}
-	}
-	else
-	{
-		if (axis.y < -axis.x) {
-			if (axis.y < axis.x)
-				return ovrTouch_A;
-			else
-				return ovrTouch_B;
-		}
-		else {
-			return ovrTouch_RThumb;
-		}
-	}
-}
-
-bool InputManager::OculusTouch::IsPressed(vr::VRControllerState_t newState, vr::EVRButtonId button)
-{
-	return newState.ulButtonPressed & vr::ButtonMaskFromId(button) &&
-		!(m_LastState.ulButtonPressed & vr::ButtonMaskFromId(button));
-}
-
-bool InputManager::OculusTouch::IsReleased(vr::VRControllerState_t newState, vr::EVRButtonId button)
-{
-	return !(newState.ulButtonPressed & vr::ButtonMaskFromId(button)) &&
-		m_LastState.ulButtonPressed & vr::ButtonMaskFromId(button);
-}
-
 InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
 	: m_Role(role)
-	, m_StickTouched(false)
-	, m_Gripped(false)
-	, m_GrippedTime(0.0)
 	, m_bHapticsRunning(true)
-	, m_ThumbStick()
-	, m_LastState()
 {
 	m_HapticsThread = std::thread(HapticsThread, this);
 }
@@ -395,7 +351,8 @@ bool InputManager::OculusTouch::IsConnected() const
 	return touch != vr::k_unTrackedDeviceIndexInvalid;
 }
 
-void add_state_field(lua_State *L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state, vr::EVRButtonId button, const char* name = nullptr)
+void InputManager::OculusTouch::AddStateField(vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state,
+	vr::EVRButtonId button, const char* name)
 {
 	bool isAxis = vr::k_EButton_Axis0 <= button && button <= vr::k_EButton_Axis4;
 	if (isAxis)
@@ -407,7 +364,7 @@ void add_state_field(lua_State *L, vr::TrackedDeviceIndex_t index, vr::VRControl
 	{
 		// And buttons in the hash table
 		if (!name)
-			name = vr::VRSystem()->GetButtonIdNameFromEnum(button) + 10; // Add 10 to skip enum prefix
+			name = vr::VRSystem()->GetButtonIdNameFromEnum(button) + 10; // Skip the 10-char enum prefix
 		lua_pushstring(L, name);
 	}
 
@@ -431,10 +388,11 @@ void add_state_field(lua_State *L, vr::TrackedDeviceIndex_t index, vr::VRControl
 		lua_pushnumber(L, axis.y);
 		lua_setfield(L, -2, "y");
 
-		/*vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(
-		nControllerDeviceIndex, (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + n));
-		lua_pushstring(L, vr::VRSystem()->GetControllerAxisTypeNameFromEnum(type));
-		lua_setfield(L, -2, "type");*/
+		vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(
+			index, (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + n));
+		const char* typeName = vr::VRSystem()->GetControllerAxisTypeNameFromEnum(type);
+		lua_pushstring(L, typeName + 18); // Skip the 18-char enum prefix
+		lua_setfield(L, -2, "type");
 	}
 
 	lua_settable(L, -3);
@@ -443,33 +401,33 @@ void add_state_field(lua_State *L, vr::TrackedDeviceIndex_t index, vr::VRControl
 bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
 {
 	// Get controller index
-	vr::TrackedDeviceIndex_t touch = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
+	vr::TrackedDeviceIndex_t index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
 	ovrHandType hand = (m_Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
 
 	SettingsManager* settings = session->Settings.get();
 
-	if (touch == vr::k_unTrackedDeviceIndexInvalid)
+	if (index == vr::k_unTrackedDeviceIndexInvalid)
 		return false;
 
 	vr::VRControllerState_t state;
-	vr::VRSystem()->GetControllerState(touch, &state, sizeof(state));
+	vr::VRSystem()->GetControllerState(index, &state, sizeof(state));
 
 	lua_createtable(L, vr::k_unControllerStateAxisCount, 12);
 	// Known buttons
 	for (int i = vr::k_EButton_System; i <= vr::k_EButton_A; i++)
-		add_state_field(L, touch, state, (vr::EVRButtonId)i);
+		AddStateField(index, state, (vr::EVRButtonId)i);
 
 	// Known axes
 	for (int i = vr::k_EButton_Axis0; i <= vr::k_EButton_Axis4; i++)
-		add_state_field(L, touch, state, (vr::EVRButtonId)i);
+		AddStateField(index, state, (vr::EVRButtonId)i);
 
 	// Some controllers define additional undocumented buttons
-	add_state_field(L, touch, state, (vr::EVRButtonId)8, "B");
-	add_state_field(L, touch, state, (vr::EVRButtonId)9, "X");
-	add_state_field(L, touch, state, (vr::EVRButtonId)10, "Y");
+	AddStateField(index, state, (vr::EVRButtonId)8, "B");
+	AddStateField(index, state, (vr::EVRButtonId)9, "X");
+	AddStateField(index, state, (vr::EVRButtonId)10, "Y");
 
 	// ... are you really going to use the headset sensor for input?
-	add_state_field(L, touch, state, vr::k_EButton_ProximitySensor);
+	AddStateField(index, state, vr::k_EButton_ProximitySensor);
 	lua_setglobal(L, "state");
 
 	// TODO: Handle and log errors
@@ -505,16 +463,16 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_pushnumber(L, settings->TriggerAsGrip);
 	lua_setfield(L, -2, "trigger");
 	lua_pcall(L, 2, 2, 0);
-	inputState->IndexTrigger[hand] = lua_tonumber(L, -2);
-	inputState->HandTrigger[hand] = lua_tonumber(L, -1);
+	inputState->IndexTrigger[hand] = (float)lua_tonumber(L, -2);
+	inputState->HandTrigger[hand] = (float)lua_tonumber(L, -1);
 	lua_pop(L, 2);
 
 	lua_getglobal(L, "GetThumbstick");
 	lua_pushboolean(L, hand == ovrHand_Right);
 	lua_pushnumber(L, settings->Deadzone);
 	lua_pcall(L, 2, 2, 0);
-	inputState->Thumbstick[hand].x = lua_tonumber(L, -2);
-	inputState->Thumbstick[hand].y = lua_tonumber(L, -1);
+	inputState->Thumbstick[hand].x = (float)lua_tonumber(L, -2);
+	inputState->Thumbstick[hand].y = (float)lua_tonumber(L, -1);
 	lua_pop(L, 2);
 
 	lua_getglobal(L, "GetThumbstick");

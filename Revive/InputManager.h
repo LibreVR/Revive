@@ -53,16 +53,7 @@ public:
 	private:
 		std::atomic_bool m_bHapticsRunning;
 		vr::ETrackedControllerRole m_Role;
-		vr::VRControllerState_t m_LastState;
-
-		bool m_StickTouched;
-		OVR::Vector2f m_ThumbStick;
-		ovrTouch AxisToTouch(vr::VRControllerAxis_t axis);
-
-		bool m_Gripped;
-		double m_GrippedTime;
-		bool IsPressed(vr::VRControllerState_t newState, vr::EVRButtonId button);
-		bool IsReleased(vr::VRControllerState_t newState, vr::EVRButtonId button);
+		void AddStateField(vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state, vr::EVRButtonId button, const char* name = nullptr);
 
 		std::thread m_HapticsThread;
 		static void HapticsThread(OculusTouch* device);
@@ -118,12 +109,13 @@ protected:
 	std::vector<InputDevice*> m_InputDevices;
 
 private:
-	static lua_State *L;
 	float m_fVsyncToPhotons;
 	ovrPoseStatef m_LastPoses[vr::k_unMaxTrackedDeviceCount];
 
 	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 	ovrPoseStatef TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, ovrPoseStatef& lastPose, double time);
-	const char* LoadResourceScript(const char* name);
+
+	static lua_State *L;
+	static bool LoadResourceScript(const char* name);
 };
 
