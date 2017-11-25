@@ -56,9 +56,7 @@ Global
 		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Debug|x86.ActiveCfg = Debug|Win32
 		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Debug|x86.Build.0 = Debug|Win32
 		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Release|x64.ActiveCfg = Release|x64
-		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Release|x64.Build.0 = Release|x64
 		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Release|x86.ActiveCfg = Release|Win32
-		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

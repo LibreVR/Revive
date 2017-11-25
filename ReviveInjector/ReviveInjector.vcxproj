@@ -172,9 +172,11 @@
   <ItemGroup>
     <ProjectReference Include="..\LibOVRProxy\LibOVRProxy.vcxproj">
       <Project>{520a780b-aef3-436a-93af-9cbe65b7fd41}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
     <ProjectReference Include="..\Revive\Revive.vcxproj">
       <Project>{bc34622b-5bfc-42d0-858a-331becc048ae}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
