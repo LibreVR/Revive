@@ -77,6 +77,7 @@ ovrResult CompositorBase::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, 
 	if (m_MirrorTexture)
 		return ovrError_RuntimeException;
 
+	// TODO: Support ovrMirrorOptions
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(*desc);
 	TextureBase* texture = CreateTexture();
 	bool success = texture->Init(ovrTexture_2D, desc->Width, desc->Height, 1, 1, desc->Format,
@@ -129,6 +130,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 		if (layerPtrList[i] == nullptr)
 			continue;
 
+		// TODO: Support ovrLayerType_Cylinder and ovrLayerType_Cube
 		if (layerPtrList[i]->Type == ovrLayerType_Quad)
 		{
 			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
@@ -172,7 +174,9 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			vr::VROverlay()->ShowOverlay(overlay);
 			chain->Submit();
 		}
-		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov)
+		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov ||
+			layerPtrList[i]->Type == ovrLayerType_EyeFovDepth ||
+			layerPtrList[i]->Type == ovrLayerType_EyeFovMultires)
 		{
 			ovrLayerEyeFov* layer = (ovrLayerEyeFov*)layerPtrList[i];
 

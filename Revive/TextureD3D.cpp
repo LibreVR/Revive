@@ -156,6 +156,7 @@ UINT TextureD3D::BindFlagsToD3DBindFlags(unsigned int flags)
 
 UINT TextureD3D::MiscFlagsToD3DMiscFlags(unsigned int flags)
 {
+	// TODO: Support ovrTextureMisc_AutoGenerateMips
 	UINT result = 0;
 	if (flags & ovrTextureMisc_AllowGenerateMips)
 		result |= D3D11_RESOURCE_MISC_GENERATE_MIPS;

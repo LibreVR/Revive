@@ -20,8 +20,8 @@ struct SessionStatusBits {
 	bool DisplayLost : 1;
 	bool ShouldQuit : 1;
 	bool ShouldRecenter : 1;
-	bool Internal1 : 1;
-	bool Internal2 : 1;
+	bool HasInputFocus : 1;
+	bool OverlayPresent : 1;
 };
 
 struct ovrHmdStruct

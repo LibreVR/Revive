@@ -56,6 +56,21 @@ void SessionThreadFunc(ovrSession session)
 				session->SessionStatus = status;
 			}
 			break;
+			case vr::VREvent_InputFocusChanged:
+			{
+				SessionStatusBits status = session->SessionStatus;
+				status.HasInputFocus = vrEvent.data.process.pid == procId;
+				session->SessionStatus = status;
+			}
+			break;
+			case vr::VREvent_DashboardActivated:
+			case vr::VREvent_DashboardDeactivated:
+			{
+				SessionStatusBits status = session->SessionStatus;
+				status.OverlayPresent = vrEvent.eventType == vr::VREvent_DashboardActivated;
+				session->SessionStatus = status;
+			}
+			break;
 			}
 
 #ifdef DEBUG

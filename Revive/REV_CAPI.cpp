@@ -231,7 +231,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 		return ovrError_InvalidParameter;
 
 	// Detect if the application has focus, but only return false the first time the status is requested.
-	// If this is true from the first call then some games will assume the Health-and-Safety warning
+	// If this is true from the first call then Airmech will assume the Health-and-Safety warning
 	// is still being displayed.
 	static bool firstCall = true;
 	sessionStatus->IsVisible = vr::VRCompositor()->CanRenderScene() && !firstCall;
@@ -247,6 +247,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	sessionStatus->DisplayLost = status.DisplayLost;
 	sessionStatus->ShouldQuit = status.ShouldQuit;
 	sessionStatus->ShouldRecenter = status.ShouldRecenter;
+	sessionStatus->HasInputFocus = status.HasInputFocus;
+	sessionStatus->OverlayPresent = status.OverlayPresent;
 
 	return ovrSuccess;
 }
@@ -1135,4 +1137,25 @@ ovr_ConfigureTracking(
 	unsigned int requiredTrackingCaps)
 {
 	return ovrSuccess;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_IsExtensionSupported(
+	ovrSession session,
+	ovrExtensions extension,
+	ovrBool* outExtensionSupported)
+{
+	if (!outExtensionSupported)
+		return ovrError_InvalidParameter;
+
+	// TODO: Extensions support
+	*outExtensionSupported = false;
+	return ovrSuccess;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_EnableExtension(ovrSession session, ovrExtensions extension)
+{
+	// TODO: Extensions support
+	return ovrError_InvalidOperation;
 }
