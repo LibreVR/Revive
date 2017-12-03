@@ -4,10 +4,12 @@
 #include <Windows.h>
 #include <Shlwapi.h>
 #include <openvr.h>
+#include <vector>
 
 SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
-	{ "drt.exe", HACK_WAIT_IN_TRACKING_STATE, true },
-	{ "ultrawings.exe", HACK_FAKE_PRODUCT_NAME, true },
+	{ "drt.exe", nullptr, HACK_WAIT_IN_TRACKING_STATE, false }, // TODO: Fix this hack
+	{ "ultrawings.exe", nullptr, HACK_FAKE_PRODUCT_NAME, true },
+	{ nullptr, "holographic", HACK_SPOOF_SENSORS, true }
 };
 
 SessionDetails::SessionDetails()
@@ -19,9 +21,16 @@ SessionDetails::SessionDetails()
 	GetModuleFileNameA(NULL, filepath, MAX_PATH);
 	char* filename = PathFindFileNameA(filepath);
 
+	uint32_t size = vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
+		vr::Prop_TrackingSystemName_String, nullptr, 0);
+	std::vector<char> driver(size);
+	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
+		vr::Prop_TrackingSystemName_String, driver.data(), size);
+
 	for (auto& hack : m_known_hacks)
 	{
-		if (_stricmp(filename, hack.m_filename) == 0)
+		if ((!hack.m_filename || _stricmp(filename, hack.m_filename) == 0) &&
+			(!hack.m_driver || strcmp(driver.data(), hack.m_driver) == 0))
 			m_hacks.emplace(hack.m_hack, hack);
 	}
 

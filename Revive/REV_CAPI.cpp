@@ -145,6 +145,9 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
+	if (session->Details->UseHack(SessionDetails::HACK_SPOOF_SENSORS))
+		return 2;
+
 	return (unsigned int)session->Details->TrackerCount;
 }
 
@@ -339,6 +342,14 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 
 	if (!session)
 		return tracker;
+
+	if (session->Details->UseHack(SessionDetails::HACK_SPOOF_SENSORS))
+	{
+		tracker.LeveledPose = OVR::Posef::Identity();
+		tracker.Pose = OVR::Posef::Identity();
+		tracker.TrackerFlags = ovrTracker_Connected;
+		return tracker;
+	}
 
 	// Get the index for this tracker.
 	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount] = { vr::k_unTrackedDeviceIndexInvalid };

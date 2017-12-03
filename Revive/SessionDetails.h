@@ -22,6 +22,11 @@ public:
 		// Games like Ultrawings will actually check whether the product name contains the string
 		// "Oculus", so we use a fake name for the HMD to work around this issue.
 		HACK_FAKE_PRODUCT_NAME,
+
+		// Hack: Spoof the number of connected sensors.
+		// Some headsets don't have external trackers, so we have to spoof the number of connected
+		// sensors.
+		HACK_SPOOF_SENSORS,
 	};
 
 	SessionDetails();
@@ -41,6 +46,7 @@ private:
 	struct HackInfo
 	{
 		const char* m_filename; // The filename of the main executable
+		const char* m_driver;	// The name of the driver
 		Hack m_hack;            // Which hack is it?
 		bool m_usehack;         // Should it use the hack?
 	};
