@@ -56,10 +56,11 @@ void SessionThreadFunc(ovrSession session)
 				session->SessionStatus = status;
 			}
 			break;
-			case vr::VREvent_InputFocusChanged:
+			case vr::VREvent_InputFocusCaptured:
+			case vr::VREvent_InputFocusReleased:
 			{
 				SessionStatusBits status = session->SessionStatus;
-				status.HasInputFocus = vrEvent.data.process.pid == procId;
+				status.HasInputFocus = vrEvent.eventType == vr::VREvent_InputFocusReleased;
 				session->SessionStatus = status;
 			}
 			break;
