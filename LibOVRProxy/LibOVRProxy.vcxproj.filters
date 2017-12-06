@@ -18,13 +18,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\LibOVR\Src\OVR_CAPIShim.c">
+    <ClCompile Include="..\LibOVR\Shim\OVR_CAPIShim.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\LibOVR\Src\OVR_StereoProjection.cpp">
+    <ClCompile Include="..\LibOVR\Shim\OVR_StereoProjection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\LibOVR\Src\OVR_CAPI_Util.cpp">
+    <ClCompile Include="..\LibOVR\Shim\OVR_CAPI_Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
@@ -71,7 +71,7 @@
     <ClInclude Include="..\LibOVR\Include\Extras\OVR_StereoProjection.h">
       <Filter>Header Files\Extras</Filter>
     </ClInclude>
-    <ClInclude Include="..\LibOVR\Src\OVR_CAPI_Prototypes.h">
+    <ClInclude Include="..\LibOVR\Shim\OVR_CAPI_Prototypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

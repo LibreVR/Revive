@@ -166,9 +166,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\LibOVR\Src\OVR_CAPIShim.c" />
-    <ClCompile Include="..\LibOVR\Src\OVR_CAPI_Util.cpp" />
-    <ClCompile Include="..\LibOVR\Src\OVR_StereoProjection.cpp" />
+    <ClCompile Include="..\LibOVR\Shim\OVR_CAPIShim.c" />
+    <ClCompile Include="..\LibOVR\Shim\OVR_CAPI_Util.cpp" />
+    <ClCompile Include="..\LibOVR\Shim\OVR_StereoProjection.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="microprofile.cpp" />
     <ClCompile Include="OVR_CAPI.cpp" />
@@ -185,7 +185,7 @@
     <ClInclude Include="..\LibOVR\Include\OVR_CAPI_Vk.h" />
     <ClInclude Include="..\LibOVR\Include\OVR_ErrorCode.h" />
     <ClInclude Include="..\LibOVR\Include\OVR_Version.h" />
-    <ClInclude Include="..\LibOVR\Src\OVR_CAPI_Prototypes.h" />
+    <ClInclude Include="..\LibOVR\Shim\OVR_CAPI_Prototypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\minhook\build\VC15\libMinHook.vcxproj">
