@@ -100,7 +100,10 @@ ovrHmdStruct::ovrHmdStruct()
 
 	SessionStatusBits status = {};
 	status.HmdPresent = vr::VR_IsHmdPresent();
-	status.HmdMounted = status.HmdPresent;
+	vr::EDeviceActivityLevel activity = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd);
+	status.HmdMounted = activity != vr::k_EDeviceActivityLevel_Idle || Settings->IgnoreActivity;
+	status.HasInputFocus = !vr::VRSystem()->IsInputFocusCapturedByAnotherProcess();
+	status.OverlayPresent = vr::VROverlay()->IsDashboardVisible();
 	SessionStatus = status;
 
 	SessionThread = std::thread(SessionThreadFunc, this);
