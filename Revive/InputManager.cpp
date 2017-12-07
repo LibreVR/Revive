@@ -13,9 +13,6 @@
 #include <lua.hpp>
 #include <assert.h>
 
-extern HMODULE revModule;
-struct lua_State* InputManager::L = nullptr;
-
 InputManager::InputManager()
 	: m_InputDevices()
 	, m_LastPoses()
@@ -33,15 +30,15 @@ InputManager::InputManager()
 	m_InputDevices.push_back(new OculusRemote());
 
 	/* Create LUA VM state */
-	L = luaL_newstate();
+	lua_State* L = luaL_newstate();
 	assert(L);
 	luaL_openlibs(L);
 
 	// If the lua script fails, we don't add the controllers
-	if (LoadResourceScript("HEADER") && LoadResourceScript("INPUT"))
+	if (LoadResourceScript(L, "HEADER") && LoadResourceScript(L, "INPUT"))
 	{
-		m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_LeftHand));
-		m_InputDevices.push_back(new OculusTouch(vr::TrackedControllerRole_RightHand));
+		m_InputDevices.push_back(new OculusTouch(L, vr::TrackedControllerRole_LeftHand));
+		m_InputDevices.push_back(new OculusTouch(L, vr::TrackedControllerRole_RightHand));
 	}
 	else
 	{
@@ -56,7 +53,6 @@ InputManager::~InputManager()
 {
 	for (InputDevice* device : m_InputDevices)
 		delete device;
-	lua_close(L);
 }
 
 void InputManager::UpdateConnectedControllers()
@@ -189,7 +185,8 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 	return result;
 }
 
-bool InputManager::LoadResourceScript(const char* name)
+extern HMODULE revModule; // TODO: Get rid of this
+bool InputManager::LoadResourceScript(lua_State* L, const char* name)
 {
 	HRSRC hRes = FindResourceA(revModule, name, "LUA");
 	DWORD dwSize = SizeofResource(revModule, hRes);
@@ -327,8 +324,9 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 	}
 }
 
-InputManager::OculusTouch::OculusTouch(vr::ETrackedControllerRole role)
-	: m_Role(role)
+InputManager::OculusTouch::OculusTouch(lua_State* script, vr::ETrackedControllerRole role)
+	: L(script)
+	, m_Role(role)
 	, m_bHapticsRunning(true)
 {
 	m_HapticsThread = std::thread(HapticsThread, this);

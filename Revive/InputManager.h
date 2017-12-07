@@ -36,11 +36,11 @@ public:
 	class OculusTouch : public InputDevice
 	{
 	public:
-		OculusTouch(vr::ETrackedControllerRole role);
+		OculusTouch(lua_State* script, vr::ETrackedControllerRole role);
 		virtual ~OculusTouch();
 
 		static const vr::EVRButtonId k_EButton_B = (vr::EVRButtonId)8;
-		HapticsBuffer m_Haptics;
+		std::atomic<lua_State*> L;
 
 		virtual vr::ETrackedControllerRole GetRole() { return m_Role; }
 		virtual ovrControllerType GetType();
@@ -51,6 +51,7 @@ public:
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { *outState = m_Haptics.GetState(); }
 
 	private:
+		HapticsBuffer m_Haptics;
 		std::atomic_bool m_bHapticsRunning;
 		vr::ETrackedControllerRole m_Role;
 		void AddStateField(vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state, vr::EVRButtonId button, const char* name = nullptr);
@@ -115,7 +116,6 @@ private:
 	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 	ovrPoseStatef TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, ovrPoseStatef& lastPose, double time);
 
-	static lua_State *L;
-	static bool LoadResourceScript(const char* name);
+	bool LoadResourceScript(lua_State* L, const char* name);
 };
 
