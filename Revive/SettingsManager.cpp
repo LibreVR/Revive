@@ -2,17 +2,37 @@
 #include "Settings.h"
 #include "REV_Math.h"
 
+#include <Windows.h>
 #include <OVR_CAPI.h>
 #include <thread>
 
-SettingsManager::SettingsManager()
+void SettingsManager::SettingsThreadFunc(SettingsManager* manager)
 {
-	// TODO: Automatically re-load the settings during gameplay.
-	LoadSettings();
+	std::chrono::microseconds freq(std::chrono::milliseconds(100));
+
+	HANDLE reload = OpenEventW(SYNCHRONIZE, FALSE, SESSION_RELOAD_EVENT_NAME);
+	if (!reload)
+		return;
+
+	while (manager->Running)
+	{
+		if (WaitForSingleObject(reload, freq.count) == WAIT_OBJECT_0)
+			manager->ReloadSettings();
+	}
+}
+
+SettingsManager::SettingsManager()
+	: Running(true)
+{
+	SettingsThread = std::thread(SettingsThreadFunc, this);
+	ReloadSettings();
 }
 
 SettingsManager::~SettingsManager()
 {
+	Running = false;
+	if (SettingsThread.joinable())
+		SettingsThread.join();
 }
 
 template<> float SettingsManager::Get<float>(const char* key, float defaultVal)
@@ -36,14 +56,14 @@ template<> bool SettingsManager::Get<bool>(const char* key, bool defaultVal)
 	return err == vr::VRSettingsError_None ? result : defaultVal;
 }
 
-void SettingsManager::LoadSettings()
+void SettingsManager::ReloadSettings()
 {
-	Deadzone = Get<float>(REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE);
-	Sensitivity = Get<float>(REV_KEY_THUMB_SENSITIVITY, REV_DEFAULT_THUMB_SENSITIVITY);
-	ToggleGrip = (revGripType)Get<int>(REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);
-	TriggerAsGrip = Get<bool>(REV_KEY_TRIGGER_GRIP, REV_DEFAULT_TRIGGER_GRIP);
-	ToggleDelay = Get<float>(REV_KEY_TOGGLE_DELAY, REV_DEFAULT_TOGGLE_DELAY);
-	IgnoreActivity = Get<bool>(REV_KEY_IGNORE_ACTIVITYLEVEL, REV_DEFAULT_IGNORE_ACTIVITYLEVEL);
+	InputSettings s = {
+		Get<float>(REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE),
+		(revGripType)Get<int>(REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP),
+		Get<bool>(REV_KEY_TRIGGER_GRIP, REV_DEFAULT_TRIGGER_GRIP),
+		Get<float>(REV_KEY_TOGGLE_DELAY, REV_DEFAULT_TOGGLE_DELAY)
+	};
 
 	OVR::Vector3f angles(
 		OVR::DegreeToRad(Get<float>(REV_KEY_TOUCH_PITCH, REV_DEFAULT_TOUCH_PITCH)),
@@ -72,6 +92,10 @@ void SettingsManager::LoadSettings()
 
 		OVR::Matrix4f matrix(yaw * pitch * roll);
 		matrix.SetTranslation(offset);
-		memcpy(TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
+		memcpy(s.TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
 	}
+
+	// Add the state to the list and update the pointer
+	InputSettingsList.push_back(s);
+	Input = &InputSettingsList.back();
 }

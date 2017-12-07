@@ -3,9 +3,9 @@
 #include <map>
 #include <list>
 #include <atomic>
-#include <openvr.h>
 
-#include "OVR_CAPI.h"
+#include <openvr.h>
+#include <OVR_CAPI.h>
 
 class SessionDetails
 {
@@ -52,10 +52,11 @@ private:
 	};
 
 	static HackInfo m_known_hacks[];
-	
 	std::map<Hack, HackInfo> m_hacks;
+
+	// We keep a list of all instances, but we don't garbage collect them.
+	// These structures rarely change, the app is short-lived and RCU is hard.
 	std::list<ovrHmdDesc> HmdDescList;
 	std::list<ovrEyeRenderDesc> RenderDescList;
 	std::list<ovrTrackerDesc> TrackerDescList;
 };
-

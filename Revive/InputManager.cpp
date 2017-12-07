@@ -220,6 +220,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	outState->StatusFlags = TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
 
 	// Convert the hand poses
+	InputSettings* settings = session->Settings->Input;
 	vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
 		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 	for (int i = 0; i < ovrHand_Count; i++)
@@ -232,7 +233,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		}
 
 		vr::TrackedDevicePose_t pose;
-		vr::VRSystem()->ApplyTransform(&pose, &poses[deviceIndex], &session->Settings->TouchOffset[i]);
+		vr::VRSystem()->ApplyTransform(&pose, &poses[deviceIndex], &settings->TouchOffset[i]);
 		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(pose, m_LastPoses[deviceIndex], absTime);
 		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
@@ -404,7 +405,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	vr::TrackedDeviceIndex_t index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
 	ovrHandType hand = (m_Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
 
-	SettingsManager* settings = session->Settings.get();
+	InputSettings* settings = session->Settings->Input;
 
 	if (index == vr::k_unTrackedDeviceIndexInvalid)
 		return false;
