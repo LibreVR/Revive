@@ -8,15 +8,14 @@
 
 void SettingsManager::SettingsThreadFunc(SettingsManager* manager)
 {
-	std::chrono::microseconds freq(std::chrono::milliseconds(100));
-
 	HANDLE reload = OpenEventW(SYNCHRONIZE, FALSE, SESSION_RELOAD_EVENT_NAME);
 	if (!reload)
 		return;
 
 	while (manager->Running)
 	{
-		if (WaitForSingleObject(reload, freq.count) == WAIT_OBJECT_0)
+		// Check running state 100ms
+		if (WaitForSingleObject(reload, 100) == WAIT_OBJECT_0)
 			manager->ReloadSettings();
 	}
 }
