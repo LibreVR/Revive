@@ -213,6 +213,9 @@
     <None Include="default.lua">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="header.lua">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc">

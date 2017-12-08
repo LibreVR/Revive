@@ -28,8 +28,8 @@ ovr_GetInstanceExtensionsVk(
 	if (!inoutExtensionNamesSize)
 		ovrError_InvalidParameter;
 
-	uint32_t size = *inoutExtensionNamesSize;
-	uint32_t required = vr::VRCompositor()->GetVulkanInstanceExtensionsRequired(extensionNames, *inoutExtensionNamesSize);
+	size_t size = *inoutExtensionNamesSize;
+	size_t required = vr::VRCompositor()->GetVulkanInstanceExtensionsRequired(extensionNames, *inoutExtensionNamesSize);
 
 	if (required <= size)
 	{
@@ -58,8 +58,8 @@ ovr_GetDeviceExtensionsVk(
 	if (!inoutExtensionNamesSize)
 		ovrError_InvalidParameter;
 
-	uint32_t size = *inoutExtensionNamesSize;
-	uint32_t required = vr::VRCompositor()->GetVulkanDeviceExtensionsRequired(g_physicalDevice, extensionNames, *inoutExtensionNamesSize);
+	size_t size = *inoutExtensionNamesSize;
+	size_t required = vr::VRCompositor()->GetVulkanDeviceExtensionsRequired(g_physicalDevice, extensionNames, *inoutExtensionNamesSize);
 
 	if (required <= size)
 	{

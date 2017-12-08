@@ -51,3 +51,6 @@ enum revGripType
 
 #define REV_KEY_IGNORE_ACTIVITYLEVEL		"IgnoreActivityLevel"
 #define REV_DEFAULT_IGNORE_ACTIVITYLEVEL	false
+
+#define REV_KEY_INPUT_SCRIPT				"InputScript"
+#define REV_DEFAULT_INPUT_SCRIPT			"default.lua"

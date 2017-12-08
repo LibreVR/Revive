@@ -3,35 +3,17 @@
 #include "REV_Math.h"
 
 #include <Windows.h>
+#include <Shlobj.h>
 #include <OVR_CAPI.h>
-#include <thread>
-
-void SettingsManager::SettingsThreadFunc(SettingsManager* manager)
-{
-	HANDLE reload = OpenEventW(SYNCHRONIZE, FALSE, SESSION_RELOAD_EVENT_NAME);
-	if (!reload)
-		return;
-
-	while (manager->Running)
-	{
-		// Check running state 100ms
-		if (WaitForSingleObject(reload, 100) == WAIT_OBJECT_0)
-			manager->ReloadSettings();
-	}
-}
+#include <sstream>
 
 SettingsManager::SettingsManager()
-	: Running(true)
 {
-	SettingsThread = std::thread(SettingsThreadFunc, this);
 	ReloadSettings();
 }
 
 SettingsManager::~SettingsManager()
 {
-	Running = false;
-	if (SettingsThread.joinable())
-		SettingsThread.join();
 }
 
 template<> float SettingsManager::Get<float>(const char* key, float defaultVal)
@@ -52,6 +34,14 @@ template<> bool SettingsManager::Get<bool>(const char* key, bool defaultVal)
 {
 	vr::EVRSettingsError err;
 	bool result = vr::VRSettings()->GetBool(REV_SETTINGS_SECTION, key, &err);
+	return err == vr::VRSettingsError_None ? result : defaultVal;
+}
+
+template<> const char* SettingsManager::Get<const char*>(const char* key, const char* defaultVal)
+{
+	vr::EVRSettingsError err;
+	static char result[MAX_PATH]; // TODO: Support larger string sizes
+	vr::VRSettings()->GetString(REV_SETTINGS_SECTION, key, result, MAX_PATH, &err);
 	return err == vr::VRSettingsError_None ? result : defaultVal;
 }
 
@@ -97,4 +87,20 @@ void SettingsManager::ReloadSettings()
 	// Add the state to the list and update the pointer
 	InputSettingsList.push_back(s);
 	Input = &InputSettingsList.back();
+
+	const char* script = Get<const char*>(REV_KEY_INPUT_SCRIPT, REV_DEFAULT_INPUT_SCRIPT);
+	wchar_t* documents;
+	HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &documents);
+	if (SUCCEEDED(hr))
+	{
+		std::stringstream ss;
+		ss << documents << "\\Revive\\Input\\" << script;
+		InputScript = ss.str();
+		CoTaskMemFree(documents);
+	}
+	else
+	{
+		// Let's try a relative path instead
+		InputScript = script;
+	}
 }

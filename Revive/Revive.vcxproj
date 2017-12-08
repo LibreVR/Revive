@@ -298,6 +298,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="default.lua" />
+    <None Include="header.lua" />
     <None Include="xinput.def" />
   </ItemGroup>
   <ItemGroup>

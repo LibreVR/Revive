@@ -7,6 +7,7 @@
 #include <thread>
 #include <vector>
 #include <atomic>
+#include <list>
 #include <openvr.h>
 #include <Windows.h>
 #include <Xinput.h>
@@ -36,11 +37,10 @@ public:
 	class OculusTouch : public InputDevice
 	{
 	public:
-		OculusTouch(lua_State* script, vr::ETrackedControllerRole role);
+		OculusTouch(vr::ETrackedControllerRole role);
 		virtual ~OculusTouch();
 
-		static const vr::EVRButtonId k_EButton_B = (vr::EVRButtonId)8;
-		std::atomic<lua_State*> L;
+		std::atomic<lua_State*> m_Script;
 
 		virtual vr::ETrackedControllerRole GetRole() { return m_Role; }
 		virtual ovrControllerType GetType();
@@ -54,7 +54,8 @@ public:
 		HapticsBuffer m_Haptics;
 		std::atomic_bool m_bHapticsRunning;
 		vr::ETrackedControllerRole m_Role;
-		void AddStateField(vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state, vr::EVRButtonId button, const char* name = nullptr);
+		void AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state,
+			vr::EVRButtonId button, const char* name = nullptr);
 
 		std::thread m_HapticsThread;
 		static void HapticsThread(OculusTouch* device);
@@ -106,6 +107,8 @@ public:
 	void GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime);
 	ovrResult GetDevicePoses(ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses);
 
+	bool LoadInputScript(const char* fn);
+
 protected:
 	std::vector<InputDevice*> m_InputDevices;
 
@@ -116,6 +119,7 @@ private:
 	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 	ovrPoseStatef TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, ovrPoseStatef& lastPose, double time);
 
+	std::list<lua_State*> m_ScriptStates;
 	bool LoadResourceScript(lua_State* L, const char* name);
 };
 
