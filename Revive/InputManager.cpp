@@ -515,8 +515,8 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_pushboolean(L, hand == ovrHand_Right);
 	lua_pushnumber(L, 0);
 	lua_pcall(L, 2, 2, 0);
-	inputState->ThumbstickNoDeadzone[hand].x = lua_tonumber(L, -2);
-	inputState->ThumbstickNoDeadzone[hand].y = lua_tonumber(L, -1);
+	inputState->ThumbstickNoDeadzone[hand].x = (float)lua_tonumber(L, -2);
+	inputState->ThumbstickNoDeadzone[hand].y = (float)lua_tonumber(L, -1);
 	lua_pop(L, 2);
 
 	// We don't apply deadzones yet on triggers and grips
