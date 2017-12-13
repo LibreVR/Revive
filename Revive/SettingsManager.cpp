@@ -5,7 +5,6 @@
 #include <Windows.h>
 #include <Shlobj.h>
 #include <OVR_CAPI.h>
-#include <sstream>
 
 SettingsManager::SettingsManager()
 	: m_Section()
@@ -106,9 +105,9 @@ void SettingsManager::ReloadSettings()
 	HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &documents);
 	if (SUCCEEDED(hr))
 	{
-		std::stringstream ss;
-		ss << documents << "\\Revive\\Input\\" << script;
-		InputScript = ss.str();
+		char path[MAX_PATH];
+		snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\%s", documents, script);
+		InputScript = path;
 		CoTaskMemFree(documents);
 	}
 	else

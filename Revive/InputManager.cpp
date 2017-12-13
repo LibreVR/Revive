@@ -214,7 +214,7 @@ bool InputManager::LoadInputScript(const char* fn)
 	{
 		for (InputDevice* device : m_InputDevices)
 		{
-			if (device->GetType() | ovrControllerType_Touch)
+			if (device->GetType() & ovrControllerType_Touch)
 			{
 				OculusTouch* touch = dynamic_cast<OculusTouch*>(device);
 				if (touch)
