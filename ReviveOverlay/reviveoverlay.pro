@@ -26,9 +26,10 @@ HEADERS  += \
 
 DISTFILES += \
     Overlay.qml \
-    Oculus.js
+    Oculus.js \
+    Settings.qml
 
-INCLUDEPATH += ../openvr/headers ../WinSparkle/include
+INCLUDEPATH += ../openvr/headers ../WinSparkle/include ../LibOVR/Include ../Revive
 
 LIBS += -L../openvr/lib/win64 -L../WinSparkle/x64/Release -lopenvr_api -lWinSparkle -lAdvapi32
 

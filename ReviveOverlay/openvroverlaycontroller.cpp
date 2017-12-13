@@ -45,7 +45,6 @@ COpenVROverlayController::COpenVROverlayController()
 	, m_pPumpEventsTimer( NULL )
 	, m_lastMouseButtons( 0 )
 	, m_ulOverlayHandle( vr::k_ulOverlayHandleInvalid )
-	, m_bManualMouseHandling( false )
 	, m_bGamepadFocus( false )
 	, m_bLoading( false )
 {
@@ -266,18 +265,6 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 	if( !vr::VRSystem() )
 		return;
 
-	if( m_bManualMouseHandling )
-	{
-		// tell OpenVR to make some events for us
-		for( vr::TrackedDeviceIndex_t unDeviceId = 1; unDeviceId < vr::k_unControllerStateAxisCount; unDeviceId++ )
-		{
-			if( vr::VROverlay()->HandleControllerOverlayInteractionAsMouse( m_ulOverlayHandle, unDeviceId ) )
-			{
-				break;
-			}
-		}
-	}
-
 	vr::VREvent_t vrEvent;
 	while( vr::VROverlay()->PollNextOverlayEvent( m_ulOverlayHandle, &vrEvent, sizeof( vrEvent )  ) )
 	{
@@ -357,6 +344,22 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 		case vr::VREvent_OverlayShown:
 			{
 				m_pWindow->update();
+			}
+			break;
+
+		case vr::VREvent_OverlayHidden:
+			{
+				m_lastMouseButtons = 0;
+
+				QPoint ptGlobal = m_ptLastMouse.toPoint();
+				QMouseEvent mouseEvent( QEvent::MouseButtonRelease,
+										m_ptLastMouse,
+										ptGlobal,
+										Qt::LeftButton,
+										m_lastMouseButtons,
+										0 );
+
+				QCoreApplication::sendEvent( m_pWindow, &mouseEvent );
 			}
 			break;
 

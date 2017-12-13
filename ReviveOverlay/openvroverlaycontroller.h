@@ -102,7 +102,6 @@ private:
 
 	QPointF m_ptLastMouse;
 	Qt::MouseButtons m_lastMouseButtons;
-	bool m_bManualMouseHandling;
 	bool m_bGamepadFocus;
 	bool m_bLoading;
 };
