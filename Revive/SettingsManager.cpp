@@ -8,7 +8,12 @@
 #include <sstream>
 
 SettingsManager::SettingsManager()
+	: m_Section()
 {
+	DWORD procId = GetCurrentProcessId();
+	vr::EVRApplicationError err = vr::VRApplications()->GetApplicationKeyByProcessId(procId, m_Section, vr::k_unMaxApplicationKeyLength);
+	if (err != vr::VRApplicationError_None)
+		strcpy(m_Section, REV_SETTINGS_SECTION);
 	ReloadSettings();
 }
 
@@ -19,21 +24,27 @@ SettingsManager::~SettingsManager()
 template<> float SettingsManager::Get<float>(const char* key, float defaultVal)
 {
 	vr::EVRSettingsError err;
-	float result = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, key, &err);
+	float result = vr::VRSettings()->GetFloat(m_Section, key, &err);
+	if (err != vr::VRSettingsError_None)
+		result = vr::VRSettings()->GetFloat(REV_SETTINGS_SECTION, key, &err);
 	return err == vr::VRSettingsError_None ? result : defaultVal;
 }
 
 template<> int SettingsManager::Get<int>(const char* key, int defaultVal)
 {
 	vr::EVRSettingsError err;
-	int result = vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, key, &err);
+	int result = vr::VRSettings()->GetInt32(m_Section, key, &err);
+	if (err != vr::VRSettingsError_None)
+		result = vr::VRSettings()->GetInt32(REV_SETTINGS_SECTION, key, &err);
 	return err == vr::VRSettingsError_None ? result : defaultVal;
 }
 
 template<> bool SettingsManager::Get<bool>(const char* key, bool defaultVal)
 {
 	vr::EVRSettingsError err;
-	bool result = vr::VRSettings()->GetBool(REV_SETTINGS_SECTION, key, &err);
+	bool result = vr::VRSettings()->GetBool(m_Section, key, &err);
+	if (err != vr::VRSettingsError_None)
+		result = vr::VRSettings()->GetBool(REV_SETTINGS_SECTION, key, &err);
 	return err == vr::VRSettingsError_None ? result : defaultVal;
 }
 
@@ -41,7 +52,9 @@ template<> const char* SettingsManager::Get<const char*>(const char* key, const 
 {
 	vr::EVRSettingsError err;
 	static char result[MAX_PATH]; // TODO: Support larger string sizes
-	vr::VRSettings()->GetString(REV_SETTINGS_SECTION, key, result, MAX_PATH, &err);
+	vr::VRSettings()->GetString(m_Section, key, result, MAX_PATH, &err);
+	if (err != vr::VRSettingsError_None)
+		vr::VRSettings()->GetString(REV_SETTINGS_SECTION, key, result, MAX_PATH, &err);
 	return err == vr::VRSettingsError_None ? result : defaultVal;
 }
 
