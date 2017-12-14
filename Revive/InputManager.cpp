@@ -188,15 +188,15 @@ bool InputManager::LoadInputScript(const char* fn)
 	assert(L);
 	m_ScriptStates.push_back(L);
 
-#define LUA_LOADLIB(lib, name) \
+#define LUA_LOADLIB(lib) \
 	lua_pushcfunction(L, luaopen_##lib); \
-	lua_pushliteral(L, name); \
-	lua_call(L, 1, 0);
+	lua_pcall(L, 0, 0, 0);
 
 	// We only load three basic libraries, we don't want to expose dangerous OS functions
-	LUA_LOADLIB(table, LUA_TABLIBNAME);
-	LUA_LOADLIB(math, LUA_MATHLIBNAME);
-	LUA_LOADLIB(string, LUA_STRLIBNAME);
+	LUA_LOADLIB(base);
+	LUA_LOADLIB(table);
+	LUA_LOADLIB(math);
+	LUA_LOADLIB(string);
 
 	bool success = LoadResourceScript(L, "HEADER");
 	assert(success);
