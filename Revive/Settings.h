@@ -19,9 +19,6 @@ enum revGripType
 #define REV_KEY_THUMB_DEADZONE				"ThumbDeadzone"
 #define REV_DEFAULT_THUMB_DEADZONE			0.3f
 
-#define REV_KEY_THUMB_SENSITIVITY			"ThumbSensitivity"
-#define REV_DEFAULT_THUMB_SENSITIVITY		2.0f
-
 #define REV_KEY_TOGGLE_GRIP					"ToggleGrip"
 #define REV_DEFAULT_TOGGLE_GRIP				revGrip_Normal
 
