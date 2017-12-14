@@ -86,7 +86,9 @@ void SessionThreadFunc(ovrSession session)
 		if (reload && WaitForSingleObject(reload, 0) == WAIT_OBJECT_0)
 		{
 			session->Settings->ReloadSettings();
-			session->Input->LoadInputScript(session->Settings->InputScript.c_str());
+
+			std::string script = session->Settings->GetInputScript();
+			session->Input->LoadInputScript(script.c_str());
 		}
 
 		std::this_thread::sleep_for(freq);
@@ -116,7 +118,9 @@ ovrHmdStruct::ovrHmdStruct()
 	status.OverlayPresent = vr::VROverlay()->IsDashboardVisible();
 	SessionStatus = status;
 
-	Input->LoadInputScript(Settings->InputScript.c_str());
+	std::string script = Settings->GetInputScript();
+	Input->LoadInputScript(script.c_str());
+
 	SessionThread = std::thread(SessionThreadFunc, this);
 }
 

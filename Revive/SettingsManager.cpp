@@ -4,6 +4,7 @@
 
 #include <Windows.h>
 #include <Shlobj.h>
+#include <atlbase.h>
 #include <OVR_CAPI.h>
 
 SettingsManager::SettingsManager()
@@ -99,20 +100,42 @@ void SettingsManager::ReloadSettings()
 	// Add the state to the list and update the pointer
 	InputSettingsList.push_back(s);
 	Input = &InputSettingsList.back();
+}
+
+bool SettingsManager::FileExists(const char* path)
+{
+	DWORD attrib = GetFileAttributesA(path);
+
+	return (attrib != INVALID_FILE_ATTRIBUTES &&
+		!(attrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+std::string SettingsManager::GetInputScript()
+{
+	CComHeapPtr<wchar_t> documents;
+	HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &documents);
 
 	const char* script = Get<const char*>(REV_KEY_INPUT_SCRIPT, REV_DEFAULT_INPUT_SCRIPT);
-	wchar_t* documents;
-	HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &documents);
 	if (SUCCEEDED(hr))
 	{
 		char path[MAX_PATH];
-		snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\%s", documents, script);
-		InputScript = path;
-		CoTaskMemFree(documents);
+
+		// If this is a known application, try to find a app-specific script for it.
+		if (strstr(m_Section, "revive.app."))
+		{
+			// Skip the session prefix
+			snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\%s", (wchar_t*)documents, m_Section + strlen("revive.app."));
+			if (FileExists(path))
+				return std::string(path);
+		}
+
+		// If not follow the settings and use the script by that name
+		snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\%s", (wchar_t*)documents, script);
+		return std::string(path);
 	}
 	else
 	{
-		// Let's try a relative path instead
-		InputScript = script;
+		// Fall-back to a relative path
+		return std::string(script);
 	}
 }
