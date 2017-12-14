@@ -39,15 +39,22 @@ function generateManifest(manifest) {
     if (manifest["canonicalName"] == "epic-games-bullet-train-gdc")
         parameters = " ..\\..\\..\\showup\\showup.uproject";
 
+    // Request the human-readable title by parsing the Oculus Store website
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
             var regEx = /<title id=\"pageTitle\">(.*?) \| Oculus<\/title>/i;
             var title = manifest["canonicalName"];
-            var result = regEx.exec(xhr.responseText);
-            if (result != null)
-                title = decodeHtml(result[1]).replace(/’/g, '\'');
 
+            // If the request was successful we can parse the response
+            if (xhr.status == 200)
+            {
+                var result = regEx.exec(xhr.responseText);
+                if (result != null)
+                    title = decodeHtml(result[1]).replace(/’/g, '\'');
+            }
+
+            // Generate the entry and add it to the manifest
             var revive = {
                 "launch_type" : "binary",
                 "binary_path_windows" : "Revive/ReviveInjector_x64.exe",
