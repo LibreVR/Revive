@@ -170,6 +170,18 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 	return result;
 }
 
+int InputManager::ErrorHandler(lua_State* L)
+{
+	static bool first_error = true;
+	if (first_error)
+		vr::VROverlay()->ShowMessageOverlay(lua_tostring(L, -1), "Revive Input Error", "Ignore and Continue");
+	OutputDebugStringA(lua_tostring(L, -1));
+	OutputDebugStringA("\n");
+	lua_pop(L, 1);
+	first_error = false;
+	return 0;
+}
+
 extern HMODULE revModule; // TODO: Get rid of this
 bool InputManager::LoadResourceScript(lua_State* L, const char* name)
 {
@@ -177,9 +189,28 @@ bool InputManager::LoadResourceScript(lua_State* L, const char* name)
 	DWORD dwSize = SizeofResource(revModule, hRes);
 	HGLOBAL hGlob = LoadResource(revModule, hRes);
 	const char* pData = reinterpret_cast<const char*>(::LockResource(hGlob));
-	return !luaL_loadbuffer(L, pData, dwSize, name) && !lua_pcall(L, 0, 0, 0);
+
+	if (luaL_loadbuffer(L, pData, dwSize, name))
+	{
+		OutputDebugStringA(lua_tostring(L, -1));
+		OutputDebugStringA("\n");
+		lua_pop(L, 1);
+		return false;
+	}
+	return !lua_pcall(L, 0, LUA_MULTRET, 1);
 }
 
+bool InputManager::LoadFileScript(lua_State* L, const char* fn)
+{
+	if (luaL_loadfile(L, fn))
+	{
+		OutputDebugStringA(lua_tostring(L, -1));
+		OutputDebugStringA("\n");
+		lua_pop(L, 1);
+		return false;
+	}
+	return !lua_pcall(L, 0, LUA_MULTRET, 1);
+}
 
 bool InputManager::LoadInputScript(const char* fn)
 {
@@ -188,9 +219,11 @@ bool InputManager::LoadInputScript(const char* fn)
 	assert(L);
 	m_ScriptStates.push_back(L);
 
+	lua_pushcfunction(L, ErrorHandler);
+
 #define LUA_LOADLIB(lib) \
 	lua_pushcfunction(L, luaopen_##lib); \
-	lua_pcall(L, 0, 0, 0);
+	lua_pcall(L, 0, 0, 1);
 
 	// We only load three basic libraries, we don't want to expose dangerous OS functions
 	LUA_LOADLIB(base);
@@ -204,7 +237,7 @@ bool InputManager::LoadInputScript(const char* fn)
 		return false;
 
 	// Attempt to load the script, if it fails load the internal script instead
-	success = !luaL_dofile(L, fn);
+	success = LoadFileScript(L, fn);
 	if (!success)
 		success = LoadResourceScript(L, "INPUT");
 	assert(success);
@@ -221,11 +254,6 @@ bool InputManager::LoadInputScript(const char* fn)
 					touch->m_Script = L;
 			}
 		}
-	}
-	else
-	{
-		OutputDebugStringA(lua_tostring(L, -1));
-		OutputDebugStringA("\n");
 	}
 	return success;
 }
@@ -442,7 +470,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	InputSettings* settings = session->Settings->Input;
 	lua_State* L = m_Script.load();
 
-	if (index == vr::k_unTrackedDeviceIndexInvalid)
+	if (!L || index == vr::k_unTrackedDeviceIndexInvalid)
 		return false;
 
 	vr::VRControllerState_t state;
@@ -466,10 +494,10 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	AddStateField(L, index, state, vr::k_EButton_ProximitySensor);
 	lua_setglobal(L, "state");
 
-	// TODO: Handle and log errors
 	lua_getglobal(L, "GetButtons");
 	lua_pushboolean(L, hand == ovrHand_Right);
-	lua_pcall(L, 1, LUA_MULTRET, 0);
+	if (lua_pcall(L, 1, LUA_MULTRET, 1))
+		return false;
 	while (lua_gettop(L))
 	{
 		inputState->Buttons |= lua_tointeger(L, -1);
@@ -478,7 +506,8 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 	lua_getglobal(L, "GetTouches");
 	lua_pushboolean(L, hand == ovrHand_Right);
-	lua_pcall(L, 1, LUA_MULTRET, 0);
+	if (lua_pcall(L, 1, LUA_MULTRET, 1))
+		return false;
 	while (lua_gettop(L))
 	{
 		inputState->Touches |= lua_tointeger(L, -1);
@@ -498,7 +527,8 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_setfield(L, -2, "delay");
 	lua_pushnumber(L, settings->TriggerAsGrip);
 	lua_setfield(L, -2, "trigger");
-	lua_pcall(L, 2, 2, 0);
+	if (lua_pcall(L, 2, 2, 1))
+		return false;
 	inputState->IndexTrigger[hand] = (float)lua_tonumber(L, -2);
 	inputState->HandTrigger[hand] = (float)lua_tonumber(L, -1);
 	lua_pop(L, 2);
@@ -506,7 +536,8 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_getglobal(L, "GetThumbstick");
 	lua_pushboolean(L, hand == ovrHand_Right);
 	lua_pushnumber(L, settings->Deadzone);
-	lua_pcall(L, 2, 2, 0);
+	if (lua_pcall(L, 2, 2, 1))
+		return false;
 	inputState->Thumbstick[hand].x = (float)lua_tonumber(L, -2);
 	inputState->Thumbstick[hand].y = (float)lua_tonumber(L, -1);
 	lua_pop(L, 2);
@@ -514,7 +545,8 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_getglobal(L, "GetThumbstick");
 	lua_pushboolean(L, hand == ovrHand_Right);
 	lua_pushnumber(L, 0);
-	lua_pcall(L, 2, 2, 0);
+	if (lua_pcall(L, 2, 2, 1))
+		return false;
 	inputState->ThumbstickNoDeadzone[hand].x = (float)lua_tonumber(L, -2);
 	inputState->ThumbstickNoDeadzone[hand].y = (float)lua_tonumber(L, -1);
 	lua_pop(L, 2);

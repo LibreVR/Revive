@@ -121,5 +121,7 @@ private:
 
 	std::list<lua_State*> m_ScriptStates;
 	bool LoadResourceScript(lua_State* L, const char* name);
+	bool LoadFileScript(lua_State* L, const char* fn);
+	static int ErrorHandler(lua_State* L);
 };
 
