@@ -525,7 +525,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_setfield(L, -2, "hybrid");
 	lua_pushnumber(L, settings->ToggleDelay);
 	lua_setfield(L, -2, "delay");
-	lua_pushnumber(L, settings->TriggerAsGrip);
+	lua_pushboolean(L, settings->TriggerAsGrip);
 	lua_setfield(L, -2, "trigger");
 	if (lua_pcall(L, 2, 2, 1))
 		return false;
