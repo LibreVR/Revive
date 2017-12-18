@@ -214,48 +214,48 @@ bool InputManager::LoadFileScript(lua_State* L, const char* fn)
 
 bool InputManager::LoadInputScript(const char* fn)
 {
-	/* Create LUA VM state */
-	lua_State* L = luaL_newstate();
-	assert(L);
-	m_ScriptStates.push_back(L);
-
-	lua_pushcfunction(L, ErrorHandler);
-
-#define LUA_LOADLIB(lib) \
-	lua_pushcfunction(L, luaopen_##lib); \
-	lua_pcall(L, 0, 0, 1);
-
-	// We only load three basic libraries, we don't want to expose dangerous OS functions
-	LUA_LOADLIB(base);
-	LUA_LOADLIB(table);
-	LUA_LOADLIB(math);
-	LUA_LOADLIB(string);
-
-	bool success = LoadResourceScript(L, "HEADER");
-	assert(success);
-	if (!success)
-		return false;
-
-	// Attempt to load the script, if it fails load the internal script instead
-	success = LoadFileScript(L, fn);
-	if (!success)
-		success = LoadResourceScript(L, "INPUT");
-	assert(success);
-
-	// If the lua script fails, we set it on the controllers
-	if (success)
+	for (InputDevice* device : m_InputDevices)
 	{
-		for (InputDevice* device : m_InputDevices)
+		if (device->GetType() & ovrControllerType_Touch)
 		{
-			if (device->GetType() & ovrControllerType_Touch)
-			{
-				OculusTouch* touch = dynamic_cast<OculusTouch*>(device);
-				if (touch)
-					touch->m_Script = L;
-			}
+			/* Create LUA VM state */
+			lua_State* L = luaL_newstate();
+			assert(L);
+			m_ScriptStates.push_back(L);
+
+			lua_pushcfunction(L, ErrorHandler);
+
+		#define LUA_LOADLIB(lib) \
+			lua_pushcfunction(L, luaopen_##lib); \
+			lua_pcall(L, 0, 0, 1);
+
+			// We only load three basic libraries, we don't want to expose dangerous OS functions
+			LUA_LOADLIB(base);
+			LUA_LOADLIB(table);
+			LUA_LOADLIB(math);
+			LUA_LOADLIB(string);
+
+			bool success = LoadResourceScript(L, "HEADER");
+			assert(success);
+			if (!success)
+				return false;
+
+			// Attempt to load the script, if it fails load the internal script instead
+			success = LoadFileScript(L, fn);
+			if (!success)
+				success = LoadResourceScript(L, "INPUT");
+			assert(success);
+
+			// If the lua script fails, we set it on the controllers
+			if (!success)
+				return false;
+
+			OculusTouch* touch = dynamic_cast<OculusTouch*>(device);
+			if (touch)
+				touch->m_Script = L;
 		}
 	}
-	return success;
+	return true;
 }
 
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
