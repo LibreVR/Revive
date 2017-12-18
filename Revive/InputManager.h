@@ -54,8 +54,6 @@ public:
 		HapticsBuffer m_Haptics;
 		std::atomic_bool m_bHapticsRunning;
 		vr::ETrackedControllerRole m_Role;
-		void AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state,
-			vr::EVRButtonId button, const char* name = nullptr);
 
 		std::thread m_HapticsThread;
 		static void HapticsThread(OculusTouch* device);
@@ -119,9 +117,13 @@ private:
 	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 	ovrPoseStatef TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, ovrPoseStatef& lastPose, double time);
 
+	// LUA Support code
 	std::list<lua_State*> m_ScriptStates;
 	bool LoadResourceScript(lua_State* L, const char* name);
 	bool LoadFileScript(lua_State* L, const char* fn);
+	static void AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state,
+		vr::EVRButtonId button, const char* name = nullptr);
+	static void CreateStateTable(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state);
 	static int ErrorHandler(lua_State* L);
 };
 

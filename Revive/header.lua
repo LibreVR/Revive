@@ -62,4 +62,5 @@ SteamVR_Trigger   = 2
 
 -- The controller state global
 state = {}
+last_state = {}
 time = 0

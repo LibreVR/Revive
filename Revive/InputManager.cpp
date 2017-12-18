@@ -250,6 +250,11 @@ bool InputManager::LoadInputScript(const char* fn)
 			if (!success)
 				return false;
 
+			// Set an placeholder state table as the last state
+			vr::VRControllerState_t state = {};
+			CreateStateTable(L, vr::k_unTrackedDeviceIndexInvalid, state);
+			lua_setglobal(L, "last_state");
+
 			OculusTouch* touch = dynamic_cast<OculusTouch*>(device);
 			if (touch)
 				touch->m_Script = L;
@@ -413,7 +418,7 @@ bool InputManager::OculusTouch::IsConnected() const
 	return touch != vr::k_unTrackedDeviceIndexInvalid;
 }
 
-void InputManager::OculusTouch::AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index,
+void InputManager::AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index,
 	vr::VRControllerState_t& state, vr::EVRButtonId button, const char* name)
 {
 	bool isAxis = vr::k_EButton_Axis0 <= button && button <= vr::k_EButton_Axis4;
@@ -460,22 +465,9 @@ void InputManager::OculusTouch::AddStateField(lua_State* L, vr::TrackedDeviceInd
 	lua_settable(L, -3);
 }
 
-// TODO: Make GetInputState reentrant (thread-safe).
-bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
+
+void InputManager::CreateStateTable(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state)
 {
-	// Get controller index
-	vr::TrackedDeviceIndex_t index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
-	ovrHandType hand = (m_Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
-
-	InputSettings* settings = session->Settings->Input;
-	lua_State* L = m_Script.load();
-
-	if (!L || index == vr::k_unTrackedDeviceIndexInvalid)
-		return false;
-
-	vr::VRControllerState_t state;
-	vr::VRSystem()->GetControllerState(index, &state, sizeof(state));
-
 	lua_createtable(L, vr::k_unControllerStateAxisCount, 12);
 	// Known buttons
 	for (int i = vr::k_EButton_System; i <= vr::k_EButton_A; i++)
@@ -492,6 +484,25 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 	// ... are you really going to use the headset sensor for input?
 	AddStateField(L, index, state, vr::k_EButton_ProximitySensor);
+}
+
+// TODO: Make GetInputState reentrant (thread-safe).
+bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
+{
+	// Get controller index
+	vr::TrackedDeviceIndex_t index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
+	ovrHandType hand = (m_Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
+
+	InputSettings* settings = session->Settings->Input;
+	lua_State* L = m_Script.load();
+
+	if (!L || index == vr::k_unTrackedDeviceIndexInvalid)
+		return false;
+
+	vr::VRControllerState_t state;
+	vr::VRSystem()->GetControllerState(index, &state, sizeof(state));
+
+	CreateStateTable(L, index, state);
 	lua_setglobal(L, "state");
 
 	lua_pushnumber(L, inputState->TimeInSeconds);
@@ -562,6 +573,9 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	inputState->ThumbstickRaw[hand] = inputState->ThumbstickNoDeadzone[hand];
 	inputState->IndexTriggerRaw[hand] = inputState->IndexTriggerNoDeadzone[hand];
 	inputState->HandTriggerRaw[hand] = inputState->HandTriggerNoDeadzone[hand];
+
+	lua_getglobal(L, "state");
+	lua_setglobal(L, "last_state");
 	return true;
 }
 
