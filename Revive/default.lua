@@ -135,28 +135,32 @@ end
 local gripped = false
 local hybrid_time = 0
 function GetTriggers(right_hand, grip_mode)
-  -- Allow users to enable a toggled grip.
-  if (grip_mode.hybrid) then
-    -- In hybrid grip mode the user will toggle the grip if it has been released within the delay time.
-    if (state.Grip.pressed) then
-      -- Only set the timestamp on the first grip toggle, we don't want to toggle twice.
-      if (hybrid_time == 0) then
-        hybrid_time = os.clock() + grip_mode.delay
-      end
-      gripped = true
-    else
-      -- If the user releases the grip after the delay has passed, then we can release the grip normally.
-      if (os.clock() > hybrid_time) then
-        gripped = false
+  if (state.Grip.pressed ~= last_state.Grip.pressed) then
+    -- Allow users to enable a toggled grip.
+    if (grip_mode.hybrid) then
+      -- In hybrid grip mode the user will toggle the grip if it has been released within the delay time.
+      if (state.Grip.pressed) then
+        -- Only set the timestamp on when we're not toggled on, we don't want to toggle twice.
+        if (not gripped) then
+          hybrid_time = time + grip_mode.delay
+        end
+        gripped = true
+      else
+        -- If the user releases the grip after the delay has passed, then we can release the grip normally.
+        if (time > hybrid_time) then
+          gripped = false
+        end
+        -- Reset the timestamp so we immediately release the next time.
         hybrid_time = 0
       end
+    elseif (grip_mode.toggle) then
+      -- A simple grip toggle
+      if (state.Grip.pressed) then
+        gripped = not gripped
+      end
+    else
+      gripped = state.Grip.pressed
     end
-  elseif (grip_mode.toggle) then
-    if (state.Grip.pressed) then
-      gripped = not gripped
-    end
-  else
-    gripped = state.Grip.pressed
   end
 
   if (grip_mode.trigger) then
