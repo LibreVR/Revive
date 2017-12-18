@@ -494,6 +494,9 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	AddStateField(L, index, state, vr::k_EButton_ProximitySensor);
 	lua_setglobal(L, "state");
 
+	lua_pushnumber(L, inputState->TimeInSeconds);
+	lua_setglobal(L, "time");
+
 	lua_getglobal(L, "GetButtons");
 	lua_pushboolean(L, hand == ovrHand_Right);
 	if (lua_pcall(L, 1, LUA_MULTRET, 1))
