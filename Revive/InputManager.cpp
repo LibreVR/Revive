@@ -498,7 +498,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_pushboolean(L, hand == ovrHand_Right);
 	if (lua_pcall(L, 1, LUA_MULTRET, 1))
 		return false;
-	while (lua_gettop(L))
+	while (lua_gettop(L) > 1)
 	{
 		inputState->Buttons |= lua_tointeger(L, -1);
 		lua_pop(L, 1);
@@ -508,7 +508,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_pushboolean(L, hand == ovrHand_Right);
 	if (lua_pcall(L, 1, LUA_MULTRET, 1))
 		return false;
-	while (lua_gettop(L))
+	while (lua_gettop(L) > 1)
 	{
 		inputState->Touches |= lua_tointeger(L, -1);
 		lua_pop(L, 1);
