@@ -26,6 +26,26 @@ end
 function GetButtons(right_hand)
   buttons = {}
 
+  if (string.match(controller_model, "Knuckles")) then
+    if (state.ApplicationMenu.pressed and state.Grip.pressed) then
+      table.insert(buttons, ovrButton_Enter)
+    else
+      if (state.Grip.pressed) then
+        table.insert(buttons, right_hand and ovrButton_A or ovrButton_X)
+      end
+
+      if (state.ApplicationMenu.pressed) then
+        table.insert(buttons, right_hand and ovrButton_B or ovrButton_Y)
+      end
+    end
+
+    if (state[SteamVR_Touchpad].pressed) then
+      table.insert(buttons, right_hand and ovrButton_RThumb or ovrButton_LThumb)
+    end
+
+    return unpack(buttons)
+  end
+
   if (state.ApplicationMenu.pressed) then
     table.insert(buttons, ovrButton_Enter)
   end
@@ -47,6 +67,30 @@ end
 
 function GetTouches(right_hand)
   touches = {}
+
+  if (string.match(controller_model, "Knuckles")) then
+    if (state.Grip.touched) then
+      table.insert(touches, right_hand and ovrTouch_A or ovrTouch_X)
+    end
+
+    if (state.ApplicationMenu.touched) then
+      table.insert(touches, right_hand and ovrTouch_B or ovrTouch_Y)
+    end
+
+    if (state[SteamVR_Touchpad].touched) then
+      table.insert(touches, right_hand and ovrTouch_RThumb or ovrTouch_LThumb)
+    elseif (not state.Grip.touched and not state.ApplicationMenu.touched) then
+      table.insert(touches, right_hand and ovrTouch_RThumbUp or ovrTouch_LThumbUp)
+    end
+
+    if (state[SteamVR_Trigger].touched) then
+      table.insert(touches, right_hand and ovrTouch_RIndexTrigger or ovrTouch_LIndexTrigger)
+    elseif (state[4].x < 0.8) then
+      table.insert(touches, right_hand and ovrTouch_RIndexPointing or ovrTouch_LIndexPointing)
+    end
+
+    return unpack(touches)
+  end
 
   if (state.A.touched) then
     table.insert(touches, right_hand and ovrTouch_A or ovrTouch_X)
@@ -71,21 +115,32 @@ function GetTouches(right_hand)
   return unpack(touches)
 end
 
-local was_released = true
+function ApplyDeadzone(axis, deadZoneLow, deadZoneHigh)
+  mag = math.sqrt(axis.x^2 + axis.y^2)
+  if (mag > deadZoneLow) then
+    -- scale such that output magnitude is in the range [0, 1]
+    legalRange = 1 - deadZoneHigh - deadZoneLow
+    normalizedMag = math.min(1, (mag - deadZoneLow) / legalRange)
+    scale = normalizedMag / mag
+    return axis.x * scale, axis.y * scale
+  else
+    -- stick is in the inner dead zone
+    return 0, 0
+  end
+end
+
 local center = {x=0, y=0}
 function GetThumbstick(right_hand, deadzone)
+  if (string.match(controller_model, "Knuckles")) then
+    -- For the knuckles we use the trackpad and apply a simple radial deadzone
+    return ApplyDeadzone(state[SteamVR_Touchpad], deadzone, 0)
+  end
+
   -- Find a physical Joystick
   for i=1,5 do
     if (state[i].type == "Joystick") then
       -- If there is a physical joystick use that axis with a simple radial deadzone
-      axis = state[i]
-      magnitude = math.sqrt(axis.x^2 + axis.y^2)
-      if (magnitude < deadzone) then
-        return 0,0
-      else
-        normalize = (magnitude - deadzone) / (1 - deadzone)
-        return axis.x / magnitude * normalize, axis.y / magnitude * normalize
-      end
+      return ApplyDeadzone(state[i], deadzone, 0)
     elseif (state[i].type == "None") then
       -- This is not a valid axis anymore, so exit the loop
       break
@@ -94,47 +149,29 @@ function GetThumbstick(right_hand, deadzone)
 
   -- If we can't find a physical joystick, emulate one with the trackpad
   axis = state[SteamVR_Touchpad]
+  last_axis = last_state[SteamVR_Touchpad]
+
   if (not axis.touched) then
     -- we're not touching the touchpad
     return 0, 0
-  elseif was_released then
-    -- immediately recenter the virtual thumbstick if the touchpad is touched
+  elseif not last_axis.touched then
+    -- center the virtual thumbstick at the location the touchpad is touched for the first time
     center.x = axis.x
     center.y = axis.y
   end
-  was_released = not axis.touched
-
-  local out = {x=axis.x, y=axis.y}
-
-  --[[
+  
   -- account for the center
-  out.x = math.min(1, axis.x - center.x)
-  out.y = math.min(1, axis.y - center.y)
-
-  -- update the center so it moves if we go outside the range
-  center.x = axis.x - out.x
-  center.y = axis.y - out.y
-  --]]
-
-  deadZoneLow = deadzone
-  deadZoneHigh = deadzone / 2
-
-  mag = math.sqrt(out.x^2 + out.y^2)
-  if (mag > deadZoneLow) then
-    -- scale such that output magnitude is in the range [0, 1]
-    legalRange = 1 - deadZoneHigh - deadZoneLow
-    normalizedMag = math.min(1, (mag - deadZoneLow) / legalRange)
-    scale = normalizedMag / mag
-    return out.x * scale, out.y * scale
-  else
-    -- stick is in the inner dead zone
-    return 0, 0
-  end
+  local out = {x=axis.x - center.x, y=axis.y - center.y}
+  return ApplyDeadzone(out, deadzone, deadzone / 2)
 end
 
 local gripped = false
 local hybrid_time = 0
 function GetTriggers(right_hand, grip_mode)
+  if (string.match(controller_model, "Knuckles")) then
+    return state[SteamVR_Trigger].x, state[4].y
+  end
+
   if (state.Grip.pressed ~= last_state.Grip.pressed) then
     -- Allow users to enable a toggled grip.
     if (grip_mode.hybrid) then

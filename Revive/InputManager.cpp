@@ -508,6 +508,12 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_pushnumber(L, inputState->TimeInSeconds);
 	lua_setglobal(L, "time");
 
+	uint32_t size = vr::VRSystem()->GetStringTrackedDeviceProperty(index, vr::Prop_ModelNumber_String, nullptr, 0);
+	std::vector<char> model(size);
+	vr::VRSystem()->GetStringTrackedDeviceProperty(index, vr::Prop_ModelNumber_String, model.data(), size);
+	lua_pushstring(L, model.data());
+	lua_setglobal(L, "controller_model");
+
 	lua_getglobal(L, "GetButtons");
 	lua_pushboolean(L, hand == ovrHand_Right);
 	if (lua_pcall(L, 1, LUA_MULTRET, 1))

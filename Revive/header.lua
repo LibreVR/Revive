@@ -60,7 +60,8 @@ ovrTouch_LThumbUp = 0x00004000
 SteamVR_Touchpad  = 1
 SteamVR_Trigger   = 2
 
--- The controller state global
+-- The controller globals
 state = {}
 last_state = {}
 time = 0
+controller_model = ""
