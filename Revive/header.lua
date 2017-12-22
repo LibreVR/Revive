@@ -64,3 +64,4 @@ SteamVR_Trigger   = 2
 state = {}
 time = 0
 controller_model = ""
+grip_mode = {}

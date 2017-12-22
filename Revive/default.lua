@@ -169,7 +169,7 @@ end
 local gripped = false
 local was_pressed = false
 local hybrid_time = 0
-function GetTriggers(right_hand, grip_mode)
+function GetTriggers(right_hand)
   if (string.match(controller_model, "Knuckles")) then
     return state[SteamVR_Trigger].x, state[4].y
   end

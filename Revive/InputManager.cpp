@@ -530,6 +530,19 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_pushstring(L, model.data());
 	lua_setglobal(L, "controller_model");
 
+	lua_createtable(L, 0, 3);
+	lua_pushboolean(L, settings->ToggleGrip == revGrip_Normal);
+	lua_setfield(L, -2, "normal");
+	lua_pushboolean(L, settings->ToggleGrip == revGrip_Toggle);
+	lua_setfield(L, -2, "toggle");
+	lua_pushboolean(L, settings->ToggleGrip == revGrip_Hybrid);
+	lua_setfield(L, -2, "hybrid");
+	lua_pushnumber(L, settings->ToggleDelay);
+	lua_setfield(L, -2, "delay");
+	lua_pushboolean(L, settings->TriggerAsGrip);
+	lua_setfield(L, -2, "trigger");
+	lua_setglobal(L, "grip_mode");
+
 	lua_getglobal(L, "GetButtons");
 	lua_pushboolean(L, hand == ovrHand_Right);
 	if (lua_pcall(L, 1, LUA_MULTRET, 1))
@@ -552,18 +565,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 	lua_getglobal(L, "GetTriggers");
 	lua_pushboolean(L, hand == ovrHand_Right);
-	lua_createtable(L, 0, 3);
-	lua_pushboolean(L, settings->ToggleGrip == revGrip_Normal);
-	lua_setfield(L, -2, "normal");
-	lua_pushboolean(L, settings->ToggleGrip == revGrip_Toggle);
-	lua_setfield(L, -2, "toggle");
-	lua_pushboolean(L, settings->ToggleGrip == revGrip_Hybrid);
-	lua_setfield(L, -2, "hybrid");
-	lua_pushnumber(L, settings->ToggleDelay);
-	lua_setfield(L, -2, "delay");
-	lua_pushboolean(L, settings->TriggerAsGrip);
-	lua_setfield(L, -2, "trigger");
-	if (lua_pcall(L, 2, 2, 1))
+	if (lua_pcall(L, 1, 2, 1))
 		return false;
 	inputState->IndexTrigger[hand] = (float)lua_tonumber(L, -2);
 	inputState->HandTrigger[hand] = (float)lua_tonumber(L, -1);
