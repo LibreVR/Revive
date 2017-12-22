@@ -8,6 +8,7 @@
 #include <vector>
 #include <atomic>
 #include <list>
+#include <mutex>
 #include <openvr.h>
 #include <Windows.h>
 #include <Xinput.h>
@@ -111,6 +112,7 @@ protected:
 	std::vector<InputDevice*> m_InputDevices;
 
 private:
+	std::mutex m_InputMutex;
 	float m_fVsyncToPhotons;
 	ovrPoseStatef m_LastPoses[vr::k_unMaxTrackedDeviceCount];
 

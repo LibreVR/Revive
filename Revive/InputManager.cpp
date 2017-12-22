@@ -71,8 +71,10 @@ ovrResult InputManager::SetControllerVibration(ovrSession session, ovrController
 	return ovrSuccess;
 }
 
+// TODO: Make GetInputState() lock-free
 ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
+	std::unique_lock<std::mutex> lk(m_InputMutex);
 	memset(inputState, 0, sizeof(ovrInputState));
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
