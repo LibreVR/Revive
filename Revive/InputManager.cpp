@@ -464,10 +464,6 @@ void InputManager::OculusTouch::AddStateField(lua_State* L, vr::TrackedDeviceInd
 	lua_pushboolean(L, !!(state.ulButtonTouched & vr::ButtonMaskFromId(button)));
 	lua_setfield(L, -2, "touched");
 
-	/*uint64_t buttonSupport = vr::VRSystem()->GetUint64TrackedDeviceProperty(touch, vr::Prop_SupportedButtons_Uint64);
-	lua_pushboolean(L, !!(buttonSupport & vr::ButtonMaskFromId(button)));
-	lua_setfield(L, -2, "supported");*/
-
 	if (isAxis)
 	{
 		int n = button - vr::k_EButton_Axis0;
