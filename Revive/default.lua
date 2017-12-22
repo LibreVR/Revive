@@ -116,7 +116,7 @@ function GetTouches(right_hand)
 end
 
 function ApplyDeadzone(axis, deadZoneLow, deadZoneHigh)
-  mag = math.sqrt(axis.x^2 + axis.y^2)
+  local mag = math.sqrt(axis.x^2 + axis.y^2)
   if (mag > deadZoneLow) then
     -- scale such that output magnitude is in the range [0, 1]
     legalRange = 1 - deadZoneHigh - deadZoneLow
@@ -151,19 +151,21 @@ function GetThumbstick(right_hand, deadzone)
   -- If we can't find a physical joystick, emulate one with the trackpad
   local axis = state[SteamVR_Touchpad]
 
-  if (not axis.touched) then
-    -- we're not touching the touchpad
-    return 0, 0
-  elseif not was_touched then
+  if (axis.touched and not was_touched) then
     -- center the virtual thumbstick at the location the touchpad is touched for the first time
     center.x = axis.x
     center.y = axis.y
   end
   was_touched = axis.touched
-  
-  -- account for the center
-  local out = {x=axis.x - center.x, y=axis.y - center.y}
-  return ApplyDeadzone(out, deadzone, deadzone / 2)
+
+  if (not axis.touched) then
+    -- we're not touching the touchpad
+    return 0, 0
+  else  
+    -- account for the center
+    local out = {x=axis.x - center.x, y=axis.y - center.y}
+    return ApplyDeadzone(out, deadzone, deadzone / 2)
+  end
 end
 
 local gripped = false
