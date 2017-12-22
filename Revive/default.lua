@@ -136,8 +136,8 @@ function GetThumbstick(right_hand, deadzone)
     return ApplyDeadzone(state[SteamVR_Touchpad], deadzone, 0)
   end
 
-  -- Find a physical Joystick
-  for i=1,5 do
+  -- Find a physical Joystick, skip the touchpad and trigger
+  for i=3,5 do
     if (state[i].type == "Joystick") then
       -- If there is a physical joystick use that axis with a simple radial deadzone
       return ApplyDeadzone(state[i], deadzone, 0)
