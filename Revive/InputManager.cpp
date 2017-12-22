@@ -13,6 +13,8 @@
 #include <lua.hpp>
 #include <assert.h>
 
+const char* InputManager::m_ButtonNames[vr::k_EButton_Max];
+
 InputManager::InputManager()
 	: m_InputDevices()
 	, m_LastPoses()
@@ -22,6 +24,9 @@ InputManager::InputManager()
 
 	// TODO: This might change if a new HMD is connected (unlikely)
 	m_fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
+
+	for (int i = 0; i < vr::k_EButton_Max; i++)
+		m_ButtonNames[i] = vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)i) + 10; // Skip the 10-char enum prefix
 
 	// TODO: XInput is slow, move it to another thread
 #if 0
@@ -431,7 +436,7 @@ void InputManager::AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index,
 	{
 		// And buttons in the hash table
 		if (!name)
-			name = vr::VRSystem()->GetButtonIdNameFromEnum(button) + 10; // Skip the 10-char enum prefix
+			name = m_ButtonNames[button];
 		lua_pushstring(L, name);
 	}
 

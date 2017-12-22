@@ -121,9 +121,12 @@ private:
 	std::list<lua_State*> m_ScriptStates;
 	bool LoadResourceScript(lua_State* L, const char* name);
 	bool LoadFileScript(lua_State* L, const char* fn);
+	static int ErrorHandler(lua_State* L);
+
+	// LUA controller state generator
+	static const char* m_ButtonNames[vr::k_EButton_Max];
 	static void AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state,
 		vr::EVRButtonId button, const char* name = nullptr);
 	static void CreateStateTable(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state);
-	static int ErrorHandler(lua_State* L);
 };
 
