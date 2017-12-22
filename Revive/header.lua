@@ -62,6 +62,5 @@ SteamVR_Trigger   = 2
 
 -- The controller globals
 state = {}
-last_state = {}
 time = 0
 controller_model = ""

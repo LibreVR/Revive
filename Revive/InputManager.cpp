@@ -55,6 +55,24 @@ void InputManager::UpdateConnectedControllers()
 	{
 		if (device->IsConnected())
 			types |= device->GetType();
+
+		if (device->GetType() & ovrControllerType_Touch)
+		{
+			OculusTouch* touch = dynamic_cast<OculusTouch*>(device);
+			assert(touch);
+			if (!touch)
+				continue;
+
+			uint16_t axes = 0;
+			vr::TrackedDeviceIndex_t index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(touch->GetRole());
+			for (int i = 0; i < vr::k_unControllerStateAxisCount; i++)
+			{
+				vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(
+					index, (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + i));
+				axes |= (type & 3) << (i * 2);
+			}
+			touch->m_AxisTypes = axes;
+		}
 	}
 	ConnectedControllers = types;
 }
@@ -260,11 +278,6 @@ bool InputManager::LoadInputScript(const char* fn)
 			if (!success)
 				return false;
 
-			// Set an placeholder state table as the last state
-			vr::VRControllerState_t state = {};
-			CreateStateTable(L, vr::k_unTrackedDeviceIndexInvalid, state);
-			lua_setglobal(L, "last_state");
-
 			OculusTouch* touch = dynamic_cast<OculusTouch*>(device);
 			if (touch)
 				touch->m_Script = L;
@@ -428,7 +441,7 @@ bool InputManager::OculusTouch::IsConnected() const
 	return touch != vr::k_unTrackedDeviceIndexInvalid;
 }
 
-void InputManager::AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index,
+void InputManager::OculusTouch::AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index,
 	vr::VRControllerState_t& state, vr::EVRButtonId button, const char* name)
 {
 	bool isAxis = vr::k_EButton_Axis0 <= button && button <= vr::k_EButton_Axis4;
@@ -465,9 +478,7 @@ void InputManager::AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index,
 		lua_pushnumber(L, axis.y);
 		lua_setfield(L, -2, "y");
 
-		vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(
-			index, (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + n));
-		lua_pushstring(L, s_TypeNames[type]);
+		lua_pushstring(L, s_TypeNames[(m_AxisTypes >> n) & 3]);
 		lua_setfield(L, -2, "type");
 	}
 
@@ -475,7 +486,7 @@ void InputManager::AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index,
 }
 
 
-void InputManager::CreateStateTable(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state)
+void InputManager::OculusTouch::CreateStateTable(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state)
 {
 	lua_createtable(L, vr::k_unControllerStateAxisCount, 12);
 	// Known buttons

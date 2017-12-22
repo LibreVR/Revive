@@ -129,6 +129,7 @@ function ApplyDeadzone(axis, deadZoneLow, deadZoneHigh)
   end
 end
 
+local was_touched = false
 local center = {x=0, y=0}
 function GetThumbstick(right_hand, deadzone)
   if (string.match(controller_model, "Knuckles")) then
@@ -148,17 +149,17 @@ function GetThumbstick(right_hand, deadzone)
   end
 
   -- If we can't find a physical joystick, emulate one with the trackpad
-  axis = state[SteamVR_Touchpad]
-  last_axis = last_state[SteamVR_Touchpad]
+  local axis = state[SteamVR_Touchpad]
 
   if (not axis.touched) then
     -- we're not touching the touchpad
     return 0, 0
-  elseif not last_axis.touched then
+  elseif not was_touched then
     -- center the virtual thumbstick at the location the touchpad is touched for the first time
     center.x = axis.x
     center.y = axis.y
   end
+  was_touched = axis.touched
   
   -- account for the center
   local out = {x=axis.x - center.x, y=axis.y - center.y}
@@ -166,13 +167,14 @@ function GetThumbstick(right_hand, deadzone)
 end
 
 local gripped = false
+local was_pressed = false
 local hybrid_time = 0
 function GetTriggers(right_hand, grip_mode)
   if (string.match(controller_model, "Knuckles")) then
     return state[SteamVR_Trigger].x, state[4].y
   end
 
-  if (state.Grip.pressed ~= last_state.Grip.pressed) then
+  if (state.Grip.pressed ~= was_pressed) then
     -- Allow users to enable a toggled grip.
     if (grip_mode.hybrid) then
       -- In hybrid grip mode the user will toggle the grip if it has been released within the delay time.
@@ -199,6 +201,7 @@ function GetTriggers(right_hand, grip_mode)
       gripped = state.Grip.pressed
     end
   end
+  was_pressed = state.Grip.pressed
 
   if (grip_mode.trigger) then
     -- Some users prefer the trigger and grip to be swapped.

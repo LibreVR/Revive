@@ -42,6 +42,7 @@ public:
 		virtual ~OculusTouch();
 
 		std::atomic<lua_State*> m_Script;
+		std::atomic_uint16_t m_AxisTypes;
 
 		virtual vr::ETrackedControllerRole GetRole() { return m_Role; }
 		virtual ovrControllerType GetType();
@@ -58,6 +59,10 @@ public:
 
 		std::thread m_HapticsThread;
 		static void HapticsThread(OculusTouch* device);
+
+		void AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state,
+			vr::EVRButtonId button, const char* name = nullptr);
+		void CreateStateTable(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state);
 	};
 
 	class OculusRemote : public InputDevice
@@ -125,11 +130,8 @@ private:
 	bool LoadFileScript(lua_State* L, const char* fn);
 	static int ErrorHandler(lua_State* L);
 
-	// LUA controller state generator
+	// Enumeration name caches
 	static const char* s_ButtonNames[vr::k_EButton_Max];
 	static const char* s_TypeNames[4];
-	static void AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state,
-		vr::EVRButtonId button, const char* name = nullptr);
-	static void CreateStateTable(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state);
 };
 
