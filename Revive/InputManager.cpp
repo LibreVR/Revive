@@ -13,7 +13,8 @@
 #include <lua.hpp>
 #include <assert.h>
 
-const char* InputManager::m_ButtonNames[vr::k_EButton_Max];
+const char* InputManager::s_ButtonNames[vr::k_EButton_Max];
+const char* InputManager::s_TypeNames[4];
 
 InputManager::InputManager()
 	: m_InputDevices()
@@ -26,7 +27,9 @@ InputManager::InputManager()
 	m_fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
 
 	for (int i = 0; i < vr::k_EButton_Max; i++)
-		m_ButtonNames[i] = vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)i) + 10; // Skip the 10-char enum prefix
+		s_ButtonNames[i] = vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)i) + 10; // Skip the 10-char enum prefix
+	for (int i = 0; i < 4; i++)
+		s_TypeNames[i] = vr::VRSystem()->GetControllerAxisTypeNameFromEnum((vr::EVRControllerAxisType)i) + +18; // Skip the 18-char enum prefix
 
 	// TODO: XInput is slow, move it to another thread
 #if 0
@@ -438,7 +441,7 @@ void InputManager::AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index,
 	{
 		// And buttons in the hash table
 		if (!name)
-			name = m_ButtonNames[button];
+			name = s_ButtonNames[button];
 		lua_pushstring(L, name);
 	}
 
@@ -464,8 +467,7 @@ void InputManager::AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index,
 
 		vr::EVRControllerAxisType type = (vr::EVRControllerAxisType)vr::VRSystem()->GetInt32TrackedDeviceProperty(
 			index, (vr::ETrackedDeviceProperty)(vr::Prop_Axis0Type_Int32 + n));
-		const char* typeName = vr::VRSystem()->GetControllerAxisTypeNameFromEnum(type);
-		lua_pushstring(L, typeName + 18); // Skip the 18-char enum prefix
+		lua_pushstring(L, s_TypeNames[type]);
 		lua_setfield(L, -2, "type");
 	}
 

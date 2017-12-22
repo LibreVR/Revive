@@ -126,7 +126,8 @@ private:
 	static int ErrorHandler(lua_State* L);
 
 	// LUA controller state generator
-	static const char* m_ButtonNames[vr::k_EButton_Max];
+	static const char* s_ButtonNames[vr::k_EButton_Max];
+	static const char* s_TypeNames[4];
 	static void AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state,
 		vr::EVRButtonId button, const char* name = nullptr);
 	static void CreateStateTable(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state);
