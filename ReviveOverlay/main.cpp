@@ -16,6 +16,11 @@
 #include <QTextStream>
 #include <QStandardPaths>
 
+extern "C" {
+    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+
 QFile* g_LogFile = nullptr;
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
