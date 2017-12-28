@@ -138,14 +138,16 @@ void SessionDetails::UpdateTrackerDesc()
 		// Fill the descriptor.
 		ovrTrackerDesc desc;
 
-		if (spoofSensors) {
+		if (spoofSensors) 
+		{
 			desc.FrustumHFovInRadians = OVR::DegreeToRad(180.0);
 			desc.FrustumVFovInRadians = OVR::DegreeToRad(180.0);
 			// Get the tracking frustum.
 			desc.FrustumNearZInMeters = 1;
 			desc.FrustumFarZInMeters = 20;
 		}
-		else {
+		else 
+		{
 			vr::TrackedDeviceIndex_t index = trackers[i];
 
 			// Calculate field-of-view.
@@ -159,9 +161,6 @@ void SessionDetails::UpdateTrackerDesc()
 			desc.FrustumNearZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
 			desc.FrustumFarZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
 		}
-	
-
-		
 
 		// Add the state to the list and update the pointer
 		TrackerDescList.push_back(desc);
