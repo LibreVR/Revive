@@ -128,28 +128,40 @@ void SessionDetails::UpdateHmdDesc()
 
 void SessionDetails::UpdateTrackerDesc()
 {
+	bool spoofSensors = UseHack(SessionDetails::HACK_SPOOF_SENSORS);
 	// Get the index for this tracker.
 	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount];
-	uint32_t count = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
+	uint32_t count = spoofSensors? 2: vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
 
 	for (uint32_t i = 0; i < count; i++)
 	{
-		vr::TrackedDeviceIndex_t index = trackers[i];
-
 		// Fill the descriptor.
 		ovrTrackerDesc desc;
 
-		// Calculate field-of-view.
-		float left = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewLeftDegrees_Float);
-		float right = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewRightDegrees_Float);
-		float top = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewTopDegrees_Float);
-		float bottom = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewBottomDegrees_Float);
-		desc.FrustumHFovInRadians = OVR::DegreeToRad(left + right);
-		desc.FrustumVFovInRadians = OVR::DegreeToRad(top + bottom);
+		if (spoofSensors) {
+			desc.FrustumHFovInRadians = OVR::DegreeToRad(180.0);
+			desc.FrustumVFovInRadians = OVR::DegreeToRad(180.0);
+			// Get the tracking frustum.
+			desc.FrustumNearZInMeters = 1;
+			desc.FrustumFarZInMeters = 20;
+		}
+		else {
+			vr::TrackedDeviceIndex_t index = trackers[i];
 
-		// Get the tracking frustum.
-		desc.FrustumNearZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
-		desc.FrustumFarZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
+			// Calculate field-of-view.
+			float left = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewLeftDegrees_Float);
+			float right = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewRightDegrees_Float);
+			float top = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewTopDegrees_Float);
+			float bottom = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewBottomDegrees_Float);
+			desc.FrustumHFovInRadians = OVR::DegreeToRad(left + right);
+			desc.FrustumVFovInRadians = OVR::DegreeToRad(top + bottom);
+			// Get the tracking frustum.
+			desc.FrustumNearZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
+			desc.FrustumFarZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
+		}
+	
+
+		
 
 		// Add the state to the list and update the pointer
 		TrackerDescList.push_back(desc);
