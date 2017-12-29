@@ -144,7 +144,7 @@ void SessionDetails::UpdateTrackerDesc()
 			desc.FrustumVFovInRadians = OVR::DegreeToRad(180.0);
 			// Get the tracking frustum.
 			desc.FrustumNearZInMeters = 1;
-			desc.FrustumFarZInMeters = 20;
+			desc.FrustumFarZInMeters = 10;
 		}
 		else 
 		{
