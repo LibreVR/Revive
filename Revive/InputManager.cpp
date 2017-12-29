@@ -474,7 +474,8 @@ void InputManager::OculusTouch::AddStateField(lua_State* L, vr::TrackedDeviceInd
 		lua_pushnumber(L, axis.y);
 		lua_setfield(L, -2, "y");
 
-		lua_pushstring(L, s_TypeNames[(m_AxisTypes >> n) & 3]);
+		const char* type = s_TypeNames[(m_AxisTypes >> (n * 2)) & 3];
+		lua_pushstring(L, type);
 		lua_setfield(L, -2, "type");
 	}
 
@@ -530,7 +531,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	lua_pushstring(L, model.data());
 	lua_setglobal(L, "controller_model");
 
-	lua_createtable(L, 0, 3);
+	lua_createtable(L, 0, 5);
 	lua_pushboolean(L, settings->ToggleGrip == revGrip_Normal);
 	lua_setfield(L, -2, "normal");
 	lua_pushboolean(L, settings->ToggleGrip == revGrip_Toggle);
