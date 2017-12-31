@@ -37,6 +37,9 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 
 int main(int argc, char *argv[])
 {
+	QApplication a(argc, argv);
+	a.setQuitOnLastWindowClosed(false);
+
 	// Open the log file and install our handler.
 	QString logPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
 	logPath.append("/Revive");
@@ -51,8 +54,10 @@ int main(int argc, char *argv[])
 	}
 	qInstallMessageHandler(myMessageOutput);
 
-	QApplication a(argc, argv);
-	a.setQuitOnLastWindowClosed(false);
+	// Make sure the folder for scripts exists.
+	QString scriptPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+	scriptPath.append("/Revive");
+	QDir().mkpath(scriptPath);
 
 	// Handle command-line arguments
 	if (a.arguments().contains("-manifest")) {
