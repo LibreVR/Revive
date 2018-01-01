@@ -5,22 +5,36 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.1.14</title>
+			<title>Version 1.2.0</title>
 			<description>
 			<![CDATA[
-			<p><b>This release supports Asynchronous Reprojection with all Oculus games if you use the SteamVR Beta.</b></p>
+			Happy new year everyone.
 
-			<h2>Bug fixes</h2>
+			This is the first release of the new stable version that support full customization of the input mapping using LUA scripts. Currently it requires a bit of LUA knowledge, but in an upcoming version this LUA support will be the base for new customization options in the dashboard.
+
+			The documentation of the new scripting system can be found on the wiki: https://github.com/LibreVR/Revive/wiki/Input-Scripting
+
+			<h2>Changes</h2>
 
 			<ul>
-			    <li>Implemented a different fix for the invisible chaperone that doesn't cause re-centering issues (#738)</li>
+			    <li>Added support for LUA scripting of the input system</li>
+			    <li>Updated the Oculus SDK to 1.20</li>
+			    <li>Performance optimizations to reduce translation overhead</li>
+			</ul>
+
+			<h2>Known issues</h2>
+
+			<ul>
+			    <li>Changing the settings while the game is running is not supported</li>
+			    <li>Xbox Controller support on a few games might be broken, this will be fixed in the next version</li>
+			    <li>Multiple users reported issues with the SteamVR version of Dirt Rally, last known good version for that game is 1.1.12</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>18 August 2017</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.1.14/ReviveInstaller.exe"
+			<pubDate>1 January 2018</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.2.0/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.1.14.2"
+					   sparkle:version="1.2.0.6"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
