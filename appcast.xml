@@ -8,12 +8,6 @@
 			<title>Version 1.2.0</title>
 			<description>
 			<![CDATA[
-			Happy new year everyone.
-
-			This is the first release of the new stable version that support full customization of the input mapping using LUA scripts. Currently it requires a bit of LUA knowledge, but in an upcoming version this LUA support will be the base for new customization options in the dashboard.
-
-			The documentation of the new scripting system can be found on the wiki: https://github.com/LibreVR/Revive/wiki/Input-Scripting
-
 			<h2>Changes</h2>
 
 			<ul>
