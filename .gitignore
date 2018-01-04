@@ -252,7 +252,7 @@ paket-files/
 *.sln.iml
 
 # Ignore third-party library
-LibOVR/
+Externals/LibOVR/
 
 # Ignore compiled installers
 Installer/*.exe

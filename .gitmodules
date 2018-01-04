@@ -1,21 +1,21 @@
 [submodule "openvr"]
-	path = openvr
+	path = Externals/openvr
 	url = https://github.com/ValveSoftware/openvr.git
 [submodule "minhook"]
-	path = minhook
+	path = Externals/minhook
 	url = https://github.com/TsudaKageyu/minhook.git
 [submodule "glew"]
-	path = glew
+	path = Externals/glew
 	url = https://github.com/LibreVR/ext-win-glew.git
 [submodule "WinSparkle"]
-	path = WinSparkle
+	path = Externals/WinSparkle
 	url = https://github.com/LibreVR/ext-win-sparkle.git
 [submodule "microprofile"]
-	path = microprofile
+	path = Externals/microprofile
 	url = https://github.com/zeux/microprofile.git
 [submodule "Vulkan"]
-	path = Vulkan
+	path = Externals/Vulkan
 	url = https://github.com/KhronosGroup/Vulkan-Docs.git
 [submodule "LuaJIT"]
-	path = LuaJIT
+	path = Externals/LuaJIT
 	url = https://github.com/LibreVR/ext-win-luajit.git

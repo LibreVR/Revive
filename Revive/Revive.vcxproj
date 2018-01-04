@@ -57,15 +57,19 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Common.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Common.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Common.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Common.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -90,11 +94,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\LuaJIT\include;..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;..\Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glew\include;$(Externals)Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\LuaJIT\lib\$(Configuration)\$(Platform);..\glew\lib\Release\$(Platform);..\openvr\lib\win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(Externals)LuaJIT\lib\$(Configuration)\$(Platform);$(Externals)glew\lib\Release\$(Platform);$(Externals)openvr\lib\win32</AdditionalLibraryDirectories>
       <AdditionalDependencies>lua51.lib;Ws2_32.lib;openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
@@ -109,10 +113,10 @@
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)openvr\bin\win32"  "$(TargetDir)"</Command>
+      <Command>copy /Y "$(Externals)openvr\bin\win32"  "$(TargetDir)"</Command>
     </PostBuildEvent>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\LibOVR\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -121,11 +125,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\LuaJIT\include;..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;..\Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glew\include;$(Externals)Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\LuaJIT\lib\$(Configuration)\$(Platform);..\glew\lib\Release\$(Platform);..\openvr\lib\win64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(Externals)LuaJIT\lib\$(Configuration)\$(Platform);$(Externals)glew\lib\Release\$(Platform);$(Externals)openvr\lib\win64</AdditionalLibraryDirectories>
       <AdditionalDependencies>lua51.lib;Ws2_32.lib;openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
@@ -140,10 +144,10 @@
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)openvr\bin\win64"  "$(TargetDir)"</Command>
+      <Command>copy /Y "$(Externals)openvr\bin\win64"  "$(TargetDir)"</Command>
     </PostBuildEvent>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\LibOVR\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -154,13 +158,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\LuaJIT\include;..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;..\Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glew\include;$(Externals)Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\LuaJIT\lib\$(Configuration)\$(Platform);..\glew\lib\Release\$(Platform);..\openvr\lib\win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(Externals)LuaJIT\lib\$(Configuration)\$(Platform);$(Externals)glew\lib\Release\$(Platform);$(Externals)openvr\lib\win32</AdditionalLibraryDirectories>
       <AdditionalDependencies>lua51.lib;Ws2_32.lib;openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
@@ -174,10 +178,10 @@
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)openvr\bin\win32"  "$(TargetDir)"</Command>
+      <Command>copy /Y "$(Externals)openvr\bin\win32"  "$(TargetDir)"</Command>
     </PostBuildEvent>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\LibOVR\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -188,13 +192,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\LuaJIT\include;..\microprofile;..\minhook\include;..\openvr\headers;..\LibOVR\Include;..\glew\include;..\Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glew\include;$(Externals)Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\LuaJIT\lib\$(Configuration)\$(Platform);..\glew\lib\Release\$(Platform);..\openvr\lib\win64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(Externals)LuaJIT\lib\$(Configuration)\$(Platform);$(Externals)glew\lib\Release\$(Platform);$(Externals)openvr\lib\win64</AdditionalLibraryDirectories>
       <AdditionalDependencies>lua51.lib;Ws2_32.lib;openvr_api.lib;glew32s.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
@@ -208,10 +212,10 @@
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)openvr\bin\win64"  "$(TargetDir)"</Command>
+      <Command>copy /Y "$(Externals)openvr\bin\win64"  "$(TargetDir)"</Command>
     </PostBuildEvent>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\LibOVR\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -272,11 +276,6 @@
     <ClCompile Include="xinput.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\minhook\build\VC15\libMinHook.vcxproj">
-      <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <FxCompile Include="CompositorShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -303,6 +302,11 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Externals\minhook\build\VC15\libMinHook.vcxproj">
+      <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
