@@ -19,3 +19,6 @@
 [submodule "LuaJIT"]
 	path = Externals/LuaJIT
 	url = https://github.com/LibreVR/ext-win-luajit.git
+[submodule "Externals/cppwinrt"]
+	path = Externals/cppwinrt
+	url = https://github.com/LibreVR/cppwinrt.git
