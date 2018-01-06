@@ -106,8 +106,8 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		ovrEyeRenderDesc eyeDesc = {};
-		// TODO: Get the FOV
-		ovrFovPort eyeFov = OVR::FovPort(1.0f);
+		// TODO: Get the FOV, currently we just assume 105 degrees
+		ovrFovPort eyeFov = OVR::FovPort(1.303225f);
 
 		eyeDesc.Eye = (ovrEyeType)i;
 		eyeDesc.Fov = eyeFov;
@@ -580,7 +580,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 
 	desc.Eye = eyeType;
 	desc.DistortedViewport = OVR::Recti((int)viewport.X, (int)viewport.Y, (int)viewport.Width, (int)viewport.Height);
-	desc.Fov = OVR::FovPort(.5f / matrix.m22, .5f / matrix.m22, .5f / matrix.m11, .5f / matrix.m11);
+	desc.Fov = OVR::FovPort(1.0f / matrix.m22, 1.0f / matrix.m22, 1.0f / matrix.m11, 1.0f / matrix.m11);
 	desc.HmdToEyePose.Orientation = OVR::Quatf::Identity();
 	desc.HmdToEyePose.Position = OVR::Vector3f(matrix.m14, matrix.m24);
 
