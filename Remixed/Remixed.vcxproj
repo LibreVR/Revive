@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="CompositorBase.cpp" />
     <ClCompile Include="CompositorD3D.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="REV_CAPI.cpp" />
     <ClCompile Include="REV_CAPI_Audio.cpp" />
     <ClCompile Include="REV_CAPI_D3D.cpp" />
@@ -35,6 +36,11 @@
     <ClInclude Include="Session.h" />
     <ClInclude Include="TextureBase.h" />
     <ClInclude Include="TextureD3D.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Externals\minhook\build\VC15\libMinHook.vcxproj">
+      <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -120,13 +126,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;_CRT_SECURE_NO_WARNINGS;_DEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>4.0</ShaderModel>
@@ -143,13 +150,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>4.0</ShaderModel>
@@ -168,15 +176,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>4.0</ShaderModel>
@@ -195,15 +204,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;_CRT_SECURE_NO_WARNINGS;NDEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>4.0</ShaderModel>
