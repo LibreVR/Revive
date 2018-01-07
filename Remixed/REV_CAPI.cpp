@@ -495,8 +495,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session,
 	if (!chain || !out_Length)
 		return ovrError_InvalidParameter;
 
-	// TODO: Swapchains
-	*out_Length = 1;
+	*out_Length = chain->Length;
 	return ovrSuccess;
 }
 
@@ -507,8 +506,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession se
 	if (!chain || !out_Index)
 		return ovrError_InvalidParameter;
 
-	// TODO: Swapchains
-	*out_Index = 0;
+	*out_Index = chain->CurrentIndex;
 	return ovrSuccess;
 }
 
@@ -519,7 +517,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, o
 	if (!chain || !out_Desc)
 		return ovrError_InvalidParameter;
 
-	// TODO: Swapchains
 	*out_Desc = chain->Desc;
 	return ovrSuccess;
 }
@@ -531,7 +528,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	// TODO: Swapchains
+	if (chain->Full())
+		return ovrError_TextureSwapChainFull;
+
+	chain->Commit();
 	return ovrSuccess;
 }
 

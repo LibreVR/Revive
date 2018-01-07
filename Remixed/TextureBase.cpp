@@ -16,6 +16,7 @@ ovrTextureSwapChainData::~ovrTextureSwapChainData()
 
 ovrMirrorTextureData::ovrMirrorTextureData(ovrMirrorTextureDesc desc)
 	: Desc(desc)
+	, Texture()
 {
 }
 

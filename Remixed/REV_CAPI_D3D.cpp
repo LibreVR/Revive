@@ -46,6 +46,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 			{
 				OutputDebugStringW(ex.message().c_str());
 				OutputDebugStringW(L"\n");
+				return ovrError_RuntimeException;
 			}
 		}
 
