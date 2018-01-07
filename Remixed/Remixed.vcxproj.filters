@@ -71,5 +71,8 @@
     <ClInclude Include="TextureD3D.h">
       <Filter>Header Files\LibRemixed</Filter>
     </ClInclude>
+    <ClInclude Include="REM_Math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

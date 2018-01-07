@@ -33,6 +33,7 @@
   <ItemGroup>
     <ClInclude Include="CompositorBase.h" />
     <ClInclude Include="CompositorD3D.h" />
+    <ClInclude Include="REM_Math.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="TextureBase.h" />
     <ClInclude Include="TextureD3D.h" />

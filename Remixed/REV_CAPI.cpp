@@ -5,6 +5,7 @@
 #include "OVR_CAPI.h"
 #include "OVR_Version.h"
 #include "Extras/OVR_Math.h"
+#include "REM_MATH.h"
 
 #include <Windows.h>
 #include <list>
@@ -111,16 +112,15 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		ovrEyeRenderDesc eyeDesc = {};
-		// TODO: Get the FOV, currently we just assume 105 degrees
-		ovrFovPort eyeFov = OVR::FovPort(1.303225f);
 
+		// TODO: Get the FOV, currently we just assume 105 degrees
+		OVR::FovPort eyeFov = OVR::FovPort(1.303225f);
 		eyeDesc.Eye = (ovrEyeType)i;
 		eyeDesc.Fov = eyeFov;
 
-		float WidthTan = eyeFov.LeftTan + eyeFov.RightTan;
-		float HeightTan = eyeFov.UpTan + eyeFov.DownTan;
 		eyeDesc.DistortedViewport = OVR::Recti(i == ovrEye_Right ? (int)size.Width : 0, 0, (int)size.Width, (int)size.Height);
-		eyeDesc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.Width / WidthTan, size.Height / HeightTan);
+		eyeDesc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.Width * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
+			size.Height * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
 		eyeDesc.HmdToEyePose = OVR::Posef::Identity();
 
 		// Update the HMD descriptor
@@ -168,7 +168,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	g_Sessions.emplace_back();
 	ovrSession session = &g_Sessions.back();
 
-	session->Space = HolographicSpace::CreateForHWND(*g_pWnd);
+	try
+	{
+		session->Space = HolographicSpace::CreateForHWND(*g_pWnd);
+		session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation();
+	}
+	catch (winrt::hresult_invalid_argument& ex)
+	{
+		OutputDebugStringW(ex.message().c_str());
+		OutputDebugStringW(L"\n");
+		return ovrError_RuntimeException;
+	}
 
 	HolographicAdapterId luid = session->Space.PrimaryAdapterId();
 	memcpy(&pLuid->Reserved[0], &luid.LowPart, sizeof(luid.LowPart));
@@ -264,8 +274,31 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	if (!session)
 		return state;
 
-	// TODO: Get the tracking state
-	state.HeadPose.ThePose = OVR::Posef::Identity();
+	SpatialLocator locator = SpatialLocator::GetDefault();
+
+	// Even though it's called FromHistoricalTargetTime() it seems to accept future target times as well.
+	// This is important as it's the only convenient way to go back from DateTime to PerceptionTimestamp.
+	DateTime target(TimeSpan((int64_t)(absTime * 1.0e+7)));
+	PerceptionTimestamp timestamp = PerceptionTimestampHelper::FromHistoricalTargetTime(target);
+
+	SpatialLocation location = locator.TryLocateAtTimestamp(timestamp, session->Reference.CoordinateSystem());
+	if (location)
+	{
+		// TODO: Figure out a good way to convert the angular quaternions to vectors.
+		state.HeadPose.ThePose.Orientation = REM::Quatf(location.Orientation());
+		state.HeadPose.ThePose.Position = REM::Vector3f(location.Position());
+		//state.HeadPose.AngularVelocity = REM::Quatf(location.AbsoluteAngularVelocity());
+		state.HeadPose.LinearVelocity = REM::Vector3f(location.AbsoluteLinearVelocity());
+		//state.HeadPose.AngularAcceleration = REM::Quatf(location.AbsoluteAngularAcceleration());
+		state.HeadPose.LinearAcceleration = REM::Vector3f(location.AbsoluteLinearAcceleration());
+	}
+	else
+	{
+		state.HeadPose.ThePose = OVR::Posef::Identity();
+	}
+	state.HeadPose.TimeInSeconds = absTime;
+
+	// TODO: Get the hand tracking state
 	state.HandPoses[ovrHand_Left].ThePose = OVR::Posef::Identity();
 	state.HandPoses[ovrHand_Right].ThePose = OVR::Posef::Identity();
 	return state;
@@ -559,6 +592,7 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 {
 	REV_TRACE(ovr_GetFovTextureSize);
 
+	// TODO: Create our own D3D device so we can get/set these values before we receive the device from the app.
 	/*HolographicFramePrediction prediction = session->Frame.CurrentPrediction();
 	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
 	HolographicCamera cam = pose.HolographicCamera();
@@ -583,12 +617,14 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	Rect viewport = pose.Viewport();
 	Numerics::float4x4 matrix = eyeType == ovrEye_Left ? transform.Left : transform.Right;
 
+	OVR::FovPort eyeFov = OVR::FovPort(1.0f / matrix.m22, 1.0f / matrix.m22, 1.0f / matrix.m11, 1.0f / matrix.m11);
 	desc.Eye = eyeType;
 	desc.DistortedViewport = OVR::Recti((int)viewport.X, (int)viewport.Y, (int)viewport.Width, (int)viewport.Height);
-	desc.Fov = OVR::FovPort(1.0f / matrix.m22, 1.0f / matrix.m22, 1.0f / matrix.m11, 1.0f / matrix.m11);
-	desc.HmdToEyePose.Orientation = OVR::Quatf::Identity();
-	desc.HmdToEyePose.Position = OVR::Vector3f(matrix.m14, matrix.m24);
-
+	desc.Fov = eyeFov;
+	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(viewport.Width * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
+		viewport.Height * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
+	// TODO: Figure out the IPD, possibly directly from the registry.
+	desc.HmdToEyePose = OVR::Posef::Identity();
 	return desc;
 }
 
