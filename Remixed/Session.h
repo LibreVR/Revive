@@ -5,15 +5,17 @@
 #include <memory>
 
 #include <winrt/Windows.Graphics.Holographic.h>
-using namespace winrt::Windows::Graphics::Holographic;
+#include <winrt/Windows.Perception.h>
+#include <winrt/Windows.Perception.Spatial.h>
 
 // FWD-decl
 class CompositorBase;
 
 struct ovrHmdStruct
 {
-	HolographicSpace Space = nullptr;
-	HolographicFrame Frame = nullptr;
+	winrt::Windows::Graphics::Holographic::HolographicSpace Space = nullptr;
+	winrt::Windows::Graphics::Holographic::HolographicFrame Frame = nullptr;
+	winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference Reference = nullptr;
 
 	std::unique_ptr<CompositorBase> Compositor = nullptr;
 };
