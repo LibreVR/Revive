@@ -20,6 +20,9 @@ using namespace winrt::Windows::Graphics::Holographic;
 #include <winrt/Windows.Perception.h>
 using namespace winrt::Windows::Perception;
 
+#include <winrt/Windows.Perception.Spatial.h>
+using namespace winrt::Windows::Perception::Spatial;
+
 #define REV_TRACE(x)
 #define REV_DEFAULT_TIMEOUT 10000
 #define REV_HAPTICS_SAMPLE_RATE 320
@@ -96,8 +99,10 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	// Get capabilities
 	desc.AvailableHmdCaps = 0;
 	desc.DefaultHmdCaps = 0;
+	desc.AvailableTrackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection;
+	if (display.SpatialLocator().Locatability() == SpatialLocatability::PositionalTrackingActive)
+		desc.AvailableTrackingCaps |= ovrTrackingCap_Position;
 	desc.DefaultTrackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position;
-	desc.AvailableTrackingCaps = desc.DefaultTrackingCaps;
 
 	// Get the render target size
 	Size size = display.MaxViewportSize();
