@@ -60,10 +60,6 @@ void CompositorD3D::RenderTextureSwapChain(ovrSession session, ovrEyeType eye, o
 	{
 		HolographicCamera cam = pose.HolographicCamera();
 
-		// Skip the right eye on monoscopic cameras
-		if (eye == ovrEye_Right)
-			continue;
-
 		HolographicCameraRenderingParameters renderingParameters = session->Frame.GetRenderingParameters(pose);
 		IDirect3DSurface surface = renderingParameters.Direct3D11BackBuffer();
 
@@ -76,6 +72,6 @@ void CompositorD3D::RenderTextureSwapChain(ovrSession session, ovrEyeType eye, o
 
 		CD3D11_BOX box(viewport.Pos.x, viewport.Pos.y, 0, viewport.Size.w, viewport.Size.h, 1);
 		TextureD3D* texture = (TextureD3D*)swapChain->Textures[swapChain->SubmitIndex].get();
-		m_pContext->CopySubresourceRegion(back_buffer.get(), 0, 0, 0, (UINT)eye, texture->Texture(), 0, &box);
+		m_pContext->CopySubresourceRegion(back_buffer.get(), (UINT)eye, 0, 0, 0, texture->Texture(), 0, &box);
 	}
 }
