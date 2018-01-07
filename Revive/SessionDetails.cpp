@@ -91,8 +91,8 @@ void SessionDetails::UpdateHmdDesc()
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		ovrEyeRenderDesc eyeDesc = {};
-		ovrFovPort eyeFov = {};
 
+		OVR::FovPort eyeFov;
 		vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &eyeFov.LeftTan, &eyeFov.RightTan, &eyeFov.DownTan, &eyeFov.UpTan);
 		eyeFov.LeftTan *= -1.0f;
 		eyeFov.DownTan *= -1.0f;
@@ -101,10 +101,9 @@ void SessionDetails::UpdateHmdDesc()
 		eyeDesc.Fov = eyeFov;
 
 		REV::Matrix4f HmdToEyeMatrix = (REV::Matrix4f)vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)i);
-		float WidthTan = eyeFov.LeftTan + eyeFov.RightTan;
-		float HeightTan = eyeFov.UpTan + eyeFov.DownTan;
 		eyeDesc.DistortedViewport = OVR::Recti(i == ovrEye_Right ? size.w : 0, 0, size.w, size.h);
-		eyeDesc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w / WidthTan, size.h / HeightTan);
+		eyeDesc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
+			size.h * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
 		eyeDesc.HmdToEyePose = OVR::Posef(OVR::Quatf(HmdToEyeMatrix), HmdToEyeMatrix.GetTranslation());
 
 		// Add the state to the list and update the pointer
