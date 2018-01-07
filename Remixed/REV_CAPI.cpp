@@ -719,7 +719,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	HolographicFramePrediction prediction = session->Frame.CurrentPrediction();
 	PerceptionTimestamp timestamp = prediction.Timestamp();
 	DateTime target = timestamp.TargetTime();
-	return double(target.time_since_epoch().count()) / 1.0e-7;
+	return double(target.time_since_epoch().count()) * 1.0e-7;
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
@@ -727,7 +727,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 	REV_TRACE(ovr_GetTimeInSeconds);
 
 	DateTime time = winrt::clock::now();
-	return double(time.time_since_epoch().count()) / 1.0e-7;
+	return double(time.time_since_epoch().count()) * 1.0e-7;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal)
