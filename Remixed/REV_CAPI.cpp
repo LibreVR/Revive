@@ -27,6 +27,7 @@ using namespace winrt::Windows::Perception::Spatial;
 #define REV_TRACE(x)
 #define REV_DEFAULT_TIMEOUT 10000
 #define REV_HAPTICS_SAMPLE_RATE 320
+#define REM_DEFAULT_IPD 62.715
 
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
@@ -623,8 +624,10 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	desc.Fov = eyeFov;
 	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(viewport.Width * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
 		viewport.Height * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
+
 	// TODO: Figure out the IPD, possibly directly from the registry.
-	desc.HmdToEyePose = OVR::Posef::Identity();
+	desc.HmdToEyePose.Orientation = OVR::Quatf::Identity();
+	desc.HmdToEyePose.Position.x = eyeType == ovrEye_Left ? -REM_DEFAULT_IPD / 2000.0f : REM_DEFAULT_IPD / 2000.0f;
 	return desc;
 }
 
