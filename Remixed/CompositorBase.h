@@ -24,7 +24,7 @@ public:
 
 	ovrResult WaitToBeginFrame(ovrSession session, long long frameIndex);
 	ovrResult BeginFrame(ovrSession session, long long frameIndex);
-	ovrResult EndFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
+	ovrResult EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
 

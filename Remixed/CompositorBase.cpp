@@ -61,17 +61,17 @@ ovrResult CompositorBase::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, 
 
 ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIndex)
 {
-	session->Frame.WaitForFrameToFinish();
+	session->GetFrameFromIndex(frameIndex).WaitForFrameToFinish();
 	return ovrSuccess;
 }
 
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
-	session->Frame = session->Space.CreateNextFrame();
+	session->CurrentFrame = session->GetFrameFromIndex(frameIndex);
 	return ovrSuccess;
 }
 
-ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	if (layerCount == 0 || !layerPtrList)
 		return ovrError_InvalidParameter;
@@ -105,12 +105,13 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 		}
 	}
 
-	HolographicFramePrediction prediction = session->Frame.CurrentPrediction();
+	HolographicFrame frame = session->GetFrameFromIndex(frameIndex);
+	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
 	HolographicCamera cam = pose.HolographicCamera();
 	//cam.IsPrimaryLayerEnabled(baseLayerFound);
 
-	HolographicFramePresentResult result = session->Frame.PresentUsingCurrentPrediction(HolographicFramePresentWaitBehavior::DoNotWaitForFrameToFinish);
+	HolographicFramePresentResult result = frame.PresentUsingCurrentPrediction(HolographicFramePresentWaitBehavior::DoNotWaitForFrameToFinish);
 	if (result == HolographicFramePresentResult::DeviceRemoved)
 		return ovrError_DisplayLost;
 

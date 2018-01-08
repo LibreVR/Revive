@@ -40,7 +40,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 			try
 			{
 				session->Space.SetDirect3D11Device(device);
-				session->Frame = session->Space.CreateNextFrame();
+				session->CurrentFrame = session->GetFrameFromIndex(0);
 			}
 			catch (winrt::hresult_invalid_argument& ex)
 			{

@@ -279,6 +279,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 	// Even though it's called FromHistoricalTargetTime() it seems to accept future target times as well.
 	// This is important as it's the only convenient way to go back from DateTime to PerceptionTimestamp.
+	// TODO: Okay, this doesn't work, switch to looking the time up in a list of prediction frames.
 	DateTime target(TimeSpan((int64_t)(absTime * 1.0e+7)));
 	PerceptionTimestamp timestamp = PerceptionTimestampHelper::FromHistoricalTargetTime(target);
 
@@ -612,7 +613,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 
 	ovrEyeRenderDesc desc = {};
 
-	HolographicFramePrediction prediction = session->Frame.CurrentPrediction();
+	HolographicFramePrediction prediction = session->CurrentFrame.CurrentPrediction();
 	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
 	HolographicStereoTransform transform = pose.ProjectionTransform();
 	Rect viewport = pose.Viewport();
@@ -677,7 +678,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		return ovrError_InvalidSession;
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	return session->Compositor->EndFrame(session, layerPtrList, layerCount);
+	return session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
@@ -688,8 +689,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
 
+	if (frameIndex == 0)
+		frameIndex = session->Frames.front().first;
+
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	ovrResult result = session->Compositor->EndFrame(session, layerPtrList, layerCount);
+	ovrResult result = session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
+
+	// Wait for the current frame to finish
+	ovr_WaitToBeginFrame(session, frameIndex);
 
 	// Begin the next frame
 	session->Compositor->BeginFrame(session, frameIndex + 1);
@@ -755,7 +762,8 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 {
 	REV_TRACE(ovr_GetPredictedDisplayTime);
 
-	HolographicFramePrediction prediction = session->Frame.CurrentPrediction();
+	HolographicFrame frame = session->GetFrameFromIndex(frameIndex);
+	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	PerceptionTimestamp timestamp = prediction.Timestamp();
 	DateTime target = timestamp.TargetTime();
 	return double(target.time_since_epoch().count()) * 1.0e-7;
