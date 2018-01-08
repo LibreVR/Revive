@@ -9,7 +9,8 @@
 SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
 	{ "drt.exe", nullptr, HACK_WAIT_IN_TRACKING_STATE, false }, // TODO: Fix this hack
 	{ "ultrawings.exe", nullptr, HACK_FAKE_PRODUCT_NAME, true },
-	{ nullptr, "holographic", HACK_SPOOF_SENSORS, true }
+	{ nullptr, "holographic", HACK_SPOOF_SENSORS, true },
+	{ nullptr, "holographic", HACK_RECONSTRUCT_EYE_MATRIX, true }
 };
 
 SessionDetails::SessionDetails()
@@ -88,31 +89,41 @@ void SessionDetails::UpdateHmdDesc()
 	vr::VRSystem()->GetRecommendedRenderTargetSize((uint32_t*)&size.w, (uint32_t*)&size.h);
 
 	// Update the render descriptors
-	for (int i = 0; i < ovrEye_Count; i++)
+	for (int eye = 0; eye < ovrEye_Count; eye++)
 	{
 		ovrEyeRenderDesc eyeDesc = {};
 
 		OVR::FovPort eyeFov;
-		vr::VRSystem()->GetProjectionRaw((vr::EVREye)i, &eyeFov.LeftTan, &eyeFov.RightTan, &eyeFov.DownTan, &eyeFov.UpTan);
+		vr::VRSystem()->GetProjectionRaw((vr::EVREye)eye, &eyeFov.LeftTan, &eyeFov.RightTan, &eyeFov.DownTan, &eyeFov.UpTan);
 		eyeFov.LeftTan *= -1.0f;
 		eyeFov.DownTan *= -1.0f;
 
-		eyeDesc.Eye = (ovrEyeType)i;
+		eyeDesc.Eye = (ovrEyeType)eye;
 		eyeDesc.Fov = eyeFov;
 
-		REV::Matrix4f HmdToEyeMatrix = (REV::Matrix4f)vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)i);
-		eyeDesc.DistortedViewport = OVR::Recti(i == ovrEye_Right ? size.w : 0, 0, size.w, size.h);
+		eyeDesc.DistortedViewport = OVR::Recti(eye == ovrEye_Left ? 0 : size.w, 0, size.w, size.h);
 		eyeDesc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
 			size.h * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
-		eyeDesc.HmdToEyePose = OVR::Posef(OVR::Quatf(HmdToEyeMatrix), HmdToEyeMatrix.GetTranslation());
+
+		if (UseHack(HACK_RECONSTRUCT_EYE_MATRIX))
+		{
+			float ipd = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_UserIpdMeters_Float);
+			eyeDesc.HmdToEyePose.Orientation = OVR::Quatf::Identity();
+			eyeDesc.HmdToEyePose.Position.x = (eye == ovrEye_Left) ? -ipd / 2.0f : ipd / 2.0f;
+		}
+		else
+		{
+			REV::Matrix4f HmdToEyeMatrix = (REV::Matrix4f)vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)eye);
+			eyeDesc.HmdToEyePose = OVR::Posef(OVR::Quatf(HmdToEyeMatrix), HmdToEyeMatrix.GetTranslation());
+		}
 
 		// Add the state to the list and update the pointer
 		RenderDescList.push_back(eyeDesc);
-		RenderDesc[i] = &RenderDescList.back();
+		RenderDesc[eye] = &RenderDescList.back();
 
 		// Update the HMD descriptor
-		desc.DefaultEyeFov[i] = eyeFov;
-		desc.MaxEyeFov[i] = eyeFov;
+		desc.DefaultEyeFov[eye] = eyeFov;
+		desc.MaxEyeFov[eye] = eyeFov;
 	}
 
 	// Get the display properties
@@ -139,8 +150,8 @@ void SessionDetails::UpdateTrackerDesc()
 
 		if (spoofSensors) 
 		{
-			desc.FrustumHFovInRadians = OVR::DegreeToRad(180.0);
-			desc.FrustumVFovInRadians = OVR::DegreeToRad(180.0);
+			desc.FrustumHFovInRadians = (float)OVR::DegreeToRad(180.0);
+			desc.FrustumVFovInRadians = (float)OVR::DegreeToRad(180.0);
 			// Get the tracking frustum.
 			desc.FrustumNearZInMeters = 1;
 			desc.FrustumFarZInMeters = 10;
@@ -154,8 +165,8 @@ void SessionDetails::UpdateTrackerDesc()
 			float right = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewRightDegrees_Float);
 			float top = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewTopDegrees_Float);
 			float bottom = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewBottomDegrees_Float);
-			desc.FrustumHFovInRadians = OVR::DegreeToRad(left + right);
-			desc.FrustumVFovInRadians = OVR::DegreeToRad(top + bottom);
+			desc.FrustumHFovInRadians = (float)OVR::DegreeToRad(left + right);
+			desc.FrustumVFovInRadians = (float)OVR::DegreeToRad(top + bottom);
 			// Get the tracking frustum.
 			desc.FrustumNearZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
 			desc.FrustumFarZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);

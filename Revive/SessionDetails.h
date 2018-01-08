@@ -27,6 +27,11 @@ public:
 		// Some headsets don't have external trackers, so we have to spoof the number of connected
 		// sensors.
 		HACK_SPOOF_SENSORS,
+
+		// Hack: Calculate the eye matrix based on the IPD.
+		// Some driver don't properly report the eye matrix, but do correctly report the IPD.
+		// We can use the IPD to reconstruct the eye matrix.
+		HACK_RECONSTRUCT_EYE_MATRIX,
 	};
 
 	SessionDetails();
