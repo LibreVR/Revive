@@ -22,6 +22,12 @@
     <Filter Include="Source Files\LibRemixed">
       <UniqueIdentifier>{f1f0f03a-c0c4-41f7-90f2-c87ca29dd77c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\microprofile">
+      <UniqueIdentifier>{294bd8ab-fc4c-43b8-86f7-b946e6c28187}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\microprofile">
+      <UniqueIdentifier>{f2dc7008-3c4e-4180-9d7f-ce9aa68014b9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="REV_CAPI_Vk.cpp">
@@ -54,6 +60,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="microprofile.cpp">
+      <Filter>Source Files\microprofile</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameList.cpp">
+      <Filter>Source Files\LibRemixed</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Session.h">
@@ -73,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="REM_Math.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameList.h">
+      <Filter>Header Files\LibRemixed</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

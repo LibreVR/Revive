@@ -21,7 +21,9 @@
   <ItemGroup>
     <ClCompile Include="CompositorBase.cpp" />
     <ClCompile Include="CompositorD3D.cpp" />
+    <ClCompile Include="FrameList.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="microprofile.cpp" />
     <ClCompile Include="REV_CAPI.cpp" />
     <ClCompile Include="REV_CAPI_Audio.cpp" />
     <ClCompile Include="REV_CAPI_D3D.cpp" />
@@ -33,6 +35,7 @@
   <ItemGroup>
     <ClInclude Include="CompositorBase.h" />
     <ClInclude Include="CompositorD3D.h" />
+    <ClInclude Include="FrameList.h" />
     <ClInclude Include="REM_Math.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="TextureBase.h" />
@@ -125,9 +128,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>OVR_DLL_BUILD;_CRT_SECURE_NO_WARNINGS;_DEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;_DEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -149,9 +152,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>OVR_DLL_BUILD;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -175,9 +178,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>OVR_DLL_BUILD;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -203,9 +206,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>OVR_DLL_BUILD;_CRT_SECURE_NO_WARNINGS;NDEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;NDEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>

@@ -1,12 +1,20 @@
 #include "CompositorBase.h"
 #include "Session.h"
+#include "FrameList.h"
 
-#include <OVR_CAPI.h>
+#include "OVR_CAPI.h"
+#include "microprofile.h"
+
 #include <vector>
 #include <algorithm>
 
 #include <winrt/Windows.Graphics.Holographic.h>
 using namespace winrt::Windows::Graphics::Holographic;
+
+MICROPROFILE_DEFINE(WaitToBeginFrame, "Compositor", "WaitFrame", 0x00ff00);
+MICROPROFILE_DEFINE(BeginFrame, "Compositor", "BeginFrame", 0x00ff00);
+MICROPROFILE_DEFINE(EndFrame, "Compositor", "EndFrame", 0x00ff00);
+MICROPROFILE_DEFINE(SubmitFovLayer, "Compositor", "SubmitFovLayer", 0x00ff00);
 
 CompositorBase::CompositorBase()
 	: m_MirrorTexture(nullptr)
@@ -61,18 +69,25 @@ ovrResult CompositorBase::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, 
 
 ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIndex)
 {
-	session->GetFrameFromIndex(frameIndex).WaitForFrameToFinish();
+	MICROPROFILE_SCOPE(WaitToBeginFrame);
+
+	session->Frames->GetFrame(frameIndex).WaitForFrameToFinish();
+	session->Frames->PopFrame(frameIndex);
 	return ovrSuccess;
 }
 
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
-	session->CurrentFrame = session->GetFrameFromIndex(frameIndex);
+	MICROPROFILE_SCOPE(BeginFrame);
+
+	session->CurrentFrame = session->Frames->GetFrame(frameIndex);
 	return ovrSuccess;
 }
 
 ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
+	MICROPROFILE_SCOPE(EndFrame);
+
 	if (layerCount == 0 || !layerPtrList)
 		return ovrError_InvalidParameter;
 
@@ -93,19 +108,19 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 		{
 			ovrLayerEyeFov* layer = (ovrLayerEyeFov*)layerPtrList[i];
 
-			SubmitFovLayer(session, layer);
+			SubmitFovLayer(session, frameIndex, layer);
 			baseLayerFound = true;
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeMatrix)
 		{
 			ovrLayerEyeFov layer = ToFovLayer((ovrLayerEyeMatrix*)layerPtrList[i]);
 
-			SubmitFovLayer(session, &layer);
+			SubmitFovLayer(session, frameIndex, &layer);
 			baseLayerFound = true;
 		}
 	}
 
-	HolographicFrame frame = session->GetFrameFromIndex(frameIndex);
+	HolographicFrame frame = session->Frames->GetFrame(frameIndex);
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
 	HolographicCamera cam = pose.HolographicCamera();
@@ -118,6 +133,8 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	// TODO: Mirror textures
 	//if (m_MirrorTexture && success)
 	//	RenderMirrorTexture(m_MirrorTexture);
+
+	MicroProfileFlip();
 
 	return ovrSuccess;
 }
@@ -140,8 +157,10 @@ ovrLayerEyeFov CompositorBase::ToFovLayer(ovrLayerEyeMatrix* matrix)
 	return layer;
 }
 
-void CompositorBase::SubmitFovLayer(ovrSession session, ovrLayerEyeFov* fovLayer)
+void CompositorBase::SubmitFovLayer(ovrSession session, long long frameIndex, ovrLayerEyeFov* fovLayer)
 {
+	MICROPROFILE_SCOPE(SubmitFovLayer);
+
 	ovrTextureSwapChain swapChain[ovrEye_Count] = {
 		fovLayer->ColorTexture[ovrEye_Left],
 		fovLayer->ColorTexture[ovrEye_Right]
@@ -154,7 +173,7 @@ void CompositorBase::SubmitFovLayer(ovrSession session, ovrLayerEyeFov* fovLayer
 	// Submit the scene layer.
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		RenderTextureSwapChain(session, (ovrEyeType)i, swapChain[i], fovLayer->Viewport[i]);
+		RenderTextureSwapChain(session, frameIndex, (ovrEyeType)i, swapChain[i], fovLayer->Viewport[i]);
 	}
 
 	swapChain[ovrEye_Left]->Submit();

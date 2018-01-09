@@ -2,6 +2,7 @@
 #include "Session.h"
 #include "CompositorD3D.h"
 #include "TextureD3D.h"
+#include "FrameList.h"
 
 #include <d3d11.h>
 #include <dxgi1_3.h>
@@ -40,7 +41,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 			try
 			{
 				session->Space.SetDirect3D11Device(device);
-				session->CurrentFrame = session->GetFrameFromIndex(0);
+				session->CurrentFrame = session->Frames->GetFrame(0);
 			}
 			catch (winrt::hresult_invalid_argument& ex)
 			{

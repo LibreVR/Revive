@@ -16,7 +16,7 @@ public:
 
 	// Texture Swapchain
 	ovrResult CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain);
-	virtual void RenderTextureSwapChain(ovrSession session, ovrEyeType eye, ovrTextureSwapChain swapChain, ovrRecti viewport) = 0;
+	virtual void RenderTextureSwapChain(ovrSession session, long long frameIndex, ovrEyeType eye, ovrTextureSwapChain swapChain, ovrRecti viewport) = 0;
 
 	// Mirror Texture
 	ovrResult CreateMirrorTexture(const ovrMirrorTextureDesc* desc, ovrMirrorTexture* out_MirrorTexture);
@@ -34,7 +34,7 @@ protected:
 
 	ovrLayerEyeFov ToFovLayer(ovrLayerEyeMatrix* matrix);
 
-	void SubmitFovLayer(ovrSession session, ovrLayerEyeFov* fovLayer);
+	void SubmitFovLayer(ovrSession session, long long frameIndex, ovrLayerEyeFov* fovLayer);
 
 private:
 	// TODO: Overlays

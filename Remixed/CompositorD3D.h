@@ -16,7 +16,7 @@ public:
 	virtual void Flush() { if (m_pContext) m_pContext->Flush(); };
 	virtual TextureBase* CreateTexture();
 
-	virtual void RenderTextureSwapChain(ovrSession session, ovrEyeType eye, ovrTextureSwapChain swapChain, ovrRecti viewport);
+	virtual void RenderTextureSwapChain(ovrSession session, long long frameIndex, ovrEyeType eye, ovrTextureSwapChain swapChain, ovrRecti viewport);
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture);
 
 protected:

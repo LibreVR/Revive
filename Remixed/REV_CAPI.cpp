@@ -1,11 +1,13 @@
 #include "Session.h"
 #include "TextureBase.h"
 #include "CompositorBase.h"
+#include "FrameList.h"
 
 #include "OVR_CAPI.h"
 #include "OVR_Version.h"
 #include "Extras/OVR_Math.h"
 #include "REM_MATH.h"
+#include "microprofile.h"
 
 #include <Windows.h>
 #include <list>
@@ -24,10 +26,10 @@ using namespace winrt::Windows::Perception;
 #include <winrt/Windows.Perception.Spatial.h>
 using namespace winrt::Windows::Perception::Spatial;
 
-#define REV_TRACE(x)
+#define REV_TRACE(x) MICROPROFILE_SCOPEI("Revive", #x, 0xff0000);
 #define REV_DEFAULT_TIMEOUT 10000
 #define REV_HAPTICS_SAMPLE_RATE 320
-#define REM_DEFAULT_IPD 62.715
+#define REM_DEFAULT_IPD 62.715f
 
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
@@ -35,6 +37,12 @@ HWND* g_pWnd;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
+	MicroProfileOnThreadCreate("Main");
+	MicroProfileSetForceEnable(true);
+	MicroProfileSetEnableAllGroups(true);
+	MicroProfileSetForceMetaCounters(true);
+	MicroProfileWebServerStart();
+
 	g_pWnd = (HWND*)params;
 
 	winrt::init_apartment();
@@ -173,6 +181,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	{
 		session->Space = HolographicSpace::CreateForHWND(*g_pWnd);
 		session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation();
+		session->Frames.reset(new FrameList(session->Space));
 	}
 	catch (winrt::hresult_invalid_argument& ex)
 	{
@@ -689,14 +698,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
 
-	if (frameIndex == 0)
-		frameIndex = session->Frames.front().first;
-
 	// Use our own intermediate compositor to convert the frame to OpenVR.
 	ovrResult result = session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
 
 	// Wait for the current frame to finish
-	ovr_WaitToBeginFrame(session, frameIndex);
+	session->Compositor->WaitToBeginFrame(session, frameIndex);
 
 	// Begin the next frame
 	session->Compositor->BeginFrame(session, frameIndex + 1);
@@ -762,7 +768,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 {
 	REV_TRACE(ovr_GetPredictedDisplayTime);
 
-	HolographicFrame frame = session->GetFrameFromIndex(frameIndex);
+	HolographicFrame frame = session->Frames->GetFrame(frameIndex);
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	PerceptionTimestamp timestamp = prediction.Timestamp();
 	DateTime target = timestamp.TargetTime();

@@ -1,6 +1,7 @@
 #include "CompositorD3D.h"
 #include "TextureD3D.h"
 #include "Session.h"
+#include "FrameList.h"
 
 #include <d3d11.h>
 #include <d3d12.h>
@@ -53,14 +54,15 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	// TODO: Support mirror textures
 }
 
-void CompositorD3D::RenderTextureSwapChain(ovrSession session, ovrEyeType eye, ovrTextureSwapChain swapChain, ovrRecti viewport)
+void CompositorD3D::RenderTextureSwapChain(ovrSession session, long long frameIndex, ovrEyeType eye, ovrTextureSwapChain swapChain, ovrRecti viewport)
 {
-	HolographicFramePrediction prediction = session->Frame.CurrentPrediction();
+	HolographicFrame frame = session->Frames->GetFrame(frameIndex);
+	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	for (HolographicCameraPose pose : prediction.CameraPoses())
 	{
 		HolographicCamera cam = pose.HolographicCamera();
 
-		HolographicCameraRenderingParameters renderingParameters = session->Frame.GetRenderingParameters(pose);
+		HolographicCameraRenderingParameters renderingParameters = frame.GetRenderingParameters(pose);
 		IDirect3DSurface surface = renderingParameters.Direct3D11BackBuffer();
 
 		winrt::com_ptr<ID3D11Texture2D> back_buffer;
