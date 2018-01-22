@@ -160,7 +160,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
 				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
 			else
-				vr::VROverlay()->SetOverlayTransformAbsolute(overlay, vr::VRCompositor()->GetTrackingSpace(), &transform);
+				vr::VROverlay()->SetOverlayTransformAbsolute(overlay, session->TrackingOrigin, &transform);
 
 			// Set the texture and show the overlay.
 			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
