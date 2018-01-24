@@ -57,6 +57,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
 	g_Sessions.clear();
+	winrt::clear_factory_cache();
 	winrt::uninit_apartment();
 }
 
@@ -604,6 +605,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirror
 	if (!mirrorTexture)
 		return;
 
+	session->Compositor->SetMirrorTexture(nullptr);
 	delete mirrorTexture;
 }
 
