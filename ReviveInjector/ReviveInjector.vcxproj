@@ -172,6 +172,9 @@
     <ClInclude Include="ReviveInject.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Remixed\Remixed.vcxproj">
+      <Project>{cd882909-7404-4cfc-bc8e-47364cc4727d}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Revive\Revive.vcxproj">
       <Project>{bc34622b-5bfc-42d0-858a-331becc048ae}</Project>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>

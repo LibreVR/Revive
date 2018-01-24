@@ -10,6 +10,7 @@
 // FWD-decl
 class FrameList;
 class CompositorBase;
+class Win32Window;
 
 struct ovrHmdStruct
 {
@@ -19,4 +20,5 @@ struct ovrHmdStruct
 
 	std::unique_ptr<FrameList> Frames = nullptr;
 	std::unique_ptr<CompositorBase> Compositor = nullptr;
+	std::unique_ptr<Win32Window> Window = nullptr;
 };

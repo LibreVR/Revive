@@ -2,6 +2,7 @@
 #include "TextureBase.h"
 #include "CompositorBase.h"
 #include "FrameList.h"
+#include "Win32Window.h"
 
 #include "OVR_CAPI.h"
 #include "OVR_Version.h"
@@ -26,14 +27,17 @@ using namespace winrt::Windows::Perception;
 #include <winrt/Windows.Perception.Spatial.h>
 using namespace winrt::Windows::Perception::Spatial;
 
+#if 0
+#define REV_TRACE(x) OutputDebugStringA(#x "\n");
+#else
 #define REV_TRACE(x) MICROPROFILE_SCOPEI("Revive", #x, 0xff0000);
+#endif
 #define REV_DEFAULT_TIMEOUT 10000
 #define REV_HAPTICS_SAMPLE_RATE 320
 #define REM_DEFAULT_IPD 62.715f
 
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
-HWND* g_pWnd;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
@@ -43,9 +47,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	MicroProfileSetForceMetaCounters(true);
 	MicroProfileWebServerStart();
 
-	g_pWnd = (HWND*)params;
-
 	winrt::init_apartment();
+
+	g_MinorVersion = params->RequestedMinorVersion;
 
 	return ovrSuccess;
 }
@@ -177,9 +181,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	g_Sessions.emplace_back();
 	ovrSession session = &g_Sessions.back();
 
+	session->Window.reset(new Win32Window());
+
 	try
 	{
-		session->Space = HolographicSpace::CreateForHWND(*g_pWnd);
+		session->Space = HolographicSpace::CreateForHWND(session->Window->GetWindowHandle());
 		session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation();
 		session->Frames.reset(new FrameList(session->Space));
 	}
@@ -193,6 +199,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	HolographicAdapterId luid = session->Space.PrimaryAdapterId();
 	memcpy(&pLuid->Reserved[0], &luid.LowPart, sizeof(luid.LowPart));
 	memcpy(&pLuid->Reserved[4], &luid.HighPart, sizeof(luid.HighPart));
+
+	session->Window->Show();
 
 	*pSession = session;
 	return ovrSuccess;
