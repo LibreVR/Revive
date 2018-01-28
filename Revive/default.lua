@@ -23,6 +23,15 @@ function ButtonFromQuadrant(axis, right_hand)
   end
 end
 
+-- Current state for gripping behaviour
+local gripped = false
+local was_pressed = false
+local hybrid_time = 0
+
+-- Current state for thumbstick behaviour
+local was_touched = false
+local center = {x=0, y=0}
+
 function GetButtons(right_hand)
   buttons = {}
 
@@ -102,13 +111,13 @@ function GetTouches(right_hand)
 
   if (state[SteamVR_Touchpad].touched) then
     table.insert(touches, ButtonFromQuadrant(state[SteamVR_Touchpad], right_hand))
-  elseif (state.Grip.pressed) then
+  elseif (gripped) then
     table.insert(touches, right_hand and ovrTouch_RThumbUp or ovrTouch_LThumbUp)
   end
 
   if (state[SteamVR_Trigger].touched) then
     table.insert(touches, right_hand and ovrTouch_RIndexTrigger or ovrTouch_LIndexTrigger)
-  elseif (state.Grip.pressed) then
+  elseif (gripped) then
     table.insert(touches, right_hand and ovrTouch_RIndexPointing or ovrTouch_LIndexPointing)
   end
 
@@ -129,8 +138,6 @@ function ApplyDeadzone(axis, deadZoneLow, deadZoneHigh)
   end
 end
 
-local was_touched = false
-local center = {x=0, y=0}
 function GetThumbstick(right_hand, deadzone)
   if (string.match(controller_model, "Knuckles")) then
     -- For the knuckles we use the trackpad and apply a simple radial deadzone
@@ -168,9 +175,6 @@ function GetThumbstick(right_hand, deadzone)
   end
 end
 
-local gripped = false
-local was_pressed = false
-local hybrid_time = 0
 function GetTriggers(right_hand)
   if (string.match(controller_model, "Knuckles")) then
     return state[SteamVR_Trigger].x, state[4].y
