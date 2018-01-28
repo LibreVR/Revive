@@ -207,7 +207,11 @@ function GetTriggers(right_hand)
 
   if (grip_mode.trigger) then
     -- Some users prefer the trigger and grip to be swapped.
-    return gripped and 1 or 0, state[SteamVR_Trigger].x
+    if (gripped) then
+      return state[SteamVR_Trigger].x, 1
+    else
+      return 0, state[SteamVR_Trigger].x
+    end
   else
     -- When we release the grip we need to keep it just a little bit pressed.
     -- This is necessary because Toybox can't handle a sudden jump to zero.
