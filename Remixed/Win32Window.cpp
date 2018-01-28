@@ -5,7 +5,7 @@
 
 extern HMODULE revModule;
 
-static LRESULT WindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK WindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	return DefWindowProcW(hWnd, Msg, wParam, lParam);
 }
