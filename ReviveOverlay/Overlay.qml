@@ -22,6 +22,23 @@ Rectangle {
         }
     }
 
+    FolderListModel {
+        id: assetsModel
+        folder: Revive.BaseURL + 'CoreData/Manifests/'
+        nameFilters: ["*.json"]
+        showDirs: false
+        onCountChanged: {
+            // If an application was previously installed, its assets bundle remains.
+            // Check if the corresponding applications are still installed.
+            for (var i = 0; i < assetsModel.count; i++)
+            {
+                var key = assetsModel.get(i, "fileName");
+                console.log("Found assets bundle " + key);
+                Oculus.verifyAppManifest(key.substring(0, key.indexOf("_assets")));
+            }
+        }
+    }
+
     Text {
         id: emptyText
         visible: !Revive.LibraryFound

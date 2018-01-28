@@ -265,3 +265,5 @@ Installer/*.exe
 
 # Ignore Qt generated files
 GeneratedFiles
+*.qmlc
+*.jsc

@@ -60,7 +60,7 @@ function generateManifest(manifest) {
                 "binary_path_windows" : "Revive/ReviveInjector_x64.exe",
                 "arguments" : "/library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
 
-                "image_path" : Revive.LibraryPath + "Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
+                "image_path" : Revive.BasePath + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
 
                 "strings" : {
                     "en_us" : {
@@ -101,19 +101,10 @@ function loadManifest(manifestURL) {
         if (xhr.readyState == XMLHttpRequest.DONE) {
             var manifest = JSON.parse(xhr.responseText);
 
-            // If an application was previously installed, it's assets bundle remains.
-            // Check if the corresponding applications is still installed.
-            if (manifest["packageType"] == "ASSET_BUNDLE") {
-                console.log("Found assets bundle " + manifest["canonicalName"]);
-                var key = manifest["canonicalName"];
-                key = key.substring(0, key.indexOf("_assets"));
-                verifyAppManifest(key);
-            }
-
             // Add the application manifest to the Revive manifest and include their cover.
             if (manifest["packageType"] == "APP" && !manifest["isCore"] && !manifest["thirdParty"]) {
                 console.log("Found application " + manifest["canonicalName"]);
-                var cover = Revive.LibraryURL + "Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_square_image.jpg";
+                var cover = Revive.BaseURL + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_square_image.jpg";
                 coverModel.append({coverURL: cover, appKey: manifest["canonicalName"]});
                 if (!Revive.isApplicationInstalled(manifest["canonicalName"]))
                     generateManifest(manifest);
