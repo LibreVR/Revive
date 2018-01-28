@@ -174,7 +174,7 @@ bool COpenVROverlayController::Init()
 	{
 		vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, 3.0f );
 		vr::VROverlay()->SetOverlayAlpha( m_ulOverlayHandle, 0.9f );
-		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
+		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, VROverlayInputMethod_Mouse );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_SendVRScrollEvents, true );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_AcceptsGamepadEvents, true );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_ShowGamepadFocus, true );
