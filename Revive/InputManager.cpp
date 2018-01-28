@@ -326,24 +326,9 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
 
-	if (origin == vr::TrackingUniverseSeated)
-	{
-		REV::Matrix4f origin = (REV::Matrix4f)vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose();
-
-		// The calibrated origin should be the location of the seated origin relative to the absolute tracking space.
-		// It currently describes the location of the absolute origin relative to the seated origin, so we have to invert it.
-		origin.Invert();
-
-		outState->CalibratedOrigin.Orientation = OVR::Quatf(origin);
-		outState->CalibratedOrigin.Position = origin.GetTranslation();
-	}
-	else
-	{
-		// In a standing universe we don't calibrate the origin outside of the room setup, thus this should always be the
-		// identity matrix.
-		outState->CalibratedOrigin.Orientation = OVR::Quatf::Identity();
-		outState->CalibratedOrigin.Position = OVR::Vector3f();
-	}
+	// TODO: Calibrate the origin ourselves instead of relying on OpenVR.
+	outState->CalibratedOrigin.Orientation = OVR::Quatf::Identity();
+	outState->CalibratedOrigin.Position = OVR::Vector3f();
 }
 
 ovrResult InputManager::GetDevicePoses(ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
