@@ -81,6 +81,16 @@ Rectangle {
             width: coverGrid.cellWidth
             height: coverGrid.cellHeight
 
+            Text {
+                color: "#1cc4f7"
+                id: coverText
+                text: appKey
+                font.pixelSize: 24
+                width: parent.width - 25
+                anchors.centerIn: parent
+                wrapMode: Text.WordWrap
+            }
+
             Image {
                 id: coverImage
                 anchors.fill: parent
