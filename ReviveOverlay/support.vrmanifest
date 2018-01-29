@@ -8,7 +8,7 @@
             "launch_type": "binary",
             "strings": {
                 "en_us": {
-                    "name": "Dreamdeck"
+                    "name": "Oculus Dreamdeck"
                 }
             }
         },
@@ -20,7 +20,7 @@
             "launch_type": "binary",
             "strings": {
                 "en_us": {
-                    "name": "Touch Tutorial"
+                    "name": "Oculus Touch Tutorial"
                 }
             }
         },
