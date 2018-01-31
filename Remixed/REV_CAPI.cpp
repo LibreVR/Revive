@@ -47,7 +47,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	MicroProfileSetForceMetaCounters(true);
 	MicroProfileWebServerStart();
 
-	winrt::init_apartment();
+	winrt::init_apartment(winrt::apartment_type::single_threaded);
 
 	g_MinorVersion = params->RequestedMinorVersion;
 
