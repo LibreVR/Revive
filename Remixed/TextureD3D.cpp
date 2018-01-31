@@ -151,28 +151,14 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 	if (FAILED(hr))
 		return false;
 
-	if (m_pDevice)
-	{
-		D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
-		desc.Format = TextureFormatToDXGIFormat(Format, 0);
-		desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		desc.Texture2D.MipLevels = -1;
-		desc.Texture2D.MostDetailedMip = 0;
-		HRESULT hr = m_pDevice->CreateShaderResourceView(m_pTexture.Get(), &desc, m_pSRV.GetAddressOf());
-		if (FAILED(hr))
-			return false;
-	}
-
-	if (m_pDevice && BindFlags & ovrTextureBind_DX_RenderTarget)
-	{
-		D3D11_RENDER_TARGET_VIEW_DESC target_desc = {};
-		target_desc.Format = TextureFormatToDXGIFormat(Format, 0);
-		target_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-		target_desc.Texture2D.MipSlice = 0;
-		HRESULT hr = m_pDevice->CreateRenderTargetView(m_pTexture.Get(), &target_desc, m_pRTV.GetAddressOf());
-		if (FAILED(hr))
-			return false;
-	}
+	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+	srv_desc.Format = TextureFormatToDXGIFormat(ToLinearFormat(Format));
+	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srv_desc.Texture2D.MipLevels = -1;
+	srv_desc.Texture2D.MostDetailedMip = 0;
+	hr = m_pDevice->CreateShaderResourceView(m_pTexture.Get(), &srv_desc, m_pSRV.GetAddressOf());
+	if (FAILED(hr))
+		return false;
 
 	return true;
 }
