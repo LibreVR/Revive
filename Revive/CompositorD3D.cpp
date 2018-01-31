@@ -168,8 +168,6 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 	if (!m_pDevice)
 		return;
 
-	uint32_t width, height;
-	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
 	TextureD3D* texture = (TextureD3D*)swapChain->Textures[swapChain->SubmitIndex].get();
 	TextureD3D* scene = (TextureD3D*)sceneChain->Textures[sceneChain->SubmitIndex].get();
 
