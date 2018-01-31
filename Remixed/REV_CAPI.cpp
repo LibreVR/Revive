@@ -297,7 +297,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 	// Even though it's called FromHistoricalTargetTime() it seems to accept future target times as well.
 	// This is important as it's the only convenient way to go back from DateTime to PerceptionTimestamp.
-	// TODO: Okay, this doesn't work, switch to looking the time up in a list of prediction frames.
+	// TODO: This can be replaced by GetFrameAtTime() now.
 	DateTime target(TimeSpan((int64_t)(absTime * 1.0e+7)));
 	PerceptionTimestamp timestamp = PerceptionTimestampHelper::FromHistoricalTargetTime(target);
 
@@ -632,18 +632,17 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 
 	ovrEyeRenderDesc desc = {};
 
-	HolographicFramePrediction prediction = session->CurrentFrame.CurrentPrediction();
-	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
-	HolographicStereoTransform transform = pose.ProjectionTransform();
-	Rect viewport = pose.Viewport();
-	Numerics::float4x4 matrix = eyeType == ovrEye_Left ? transform.Left : transform.Right;
+	HolographicDisplay display = HolographicDisplay::GetDefault();
+	Size size = display.MaxViewportSize();
 
-	OVR::FovPort eyeFov = OVR::FovPort(1.0f / matrix.m22, 1.0f / matrix.m22, 1.0f / matrix.m11, 1.0f / matrix.m11);
+
+	// TODO: Get the FOV, currently we just assume 105 degrees
+	OVR::FovPort eyeFov = OVR::FovPort(1.303225f);
 	desc.Eye = eyeType;
-	desc.DistortedViewport = OVR::Recti((int)viewport.X, (int)viewport.Y, (int)viewport.Width, (int)viewport.Height);
+	desc.DistortedViewport = OVR::Recti(eyeType == ovrEye_Right ? (int)size.Width : 0, 0, (int)size.Width, (int)size.Height);
 	desc.Fov = eyeFov;
-	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(viewport.Width * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
-		viewport.Height * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
+	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.Width * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
+		size.Height * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
 
 	// TODO: Figure out the IPD, possibly directly from the registry.
 	desc.HmdToEyePose.Orientation = OVR::Quatf::Identity();
