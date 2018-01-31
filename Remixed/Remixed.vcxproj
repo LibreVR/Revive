@@ -24,11 +24,11 @@
     <ClCompile Include="FrameList.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="microprofile.cpp" />
-    <ClCompile Include="REV_CAPI.cpp" />
-    <ClCompile Include="REV_CAPI_Audio.cpp" />
-    <ClCompile Include="REV_CAPI_D3D.cpp" />
-    <ClCompile Include="REV_CAPI_GL.cpp" />
-    <ClCompile Include="REV_CAPI_Vk.cpp" />
+    <ClCompile Include="REM_CAPI.cpp" />
+    <ClCompile Include="REM_CAPI_Audio.cpp" />
+    <ClCompile Include="REM_CAPI_D3D.cpp" />
+    <ClCompile Include="REM_CAPI_GL.cpp" />
+    <ClCompile Include="REM_CAPI_Vk.cpp" />
     <ClCompile Include="TextureBase.cpp" />
     <ClCompile Include="TextureD3D.cpp" />
     <ClCompile Include="Win32Window.cpp" />

@@ -28,12 +28,12 @@ using namespace winrt::Windows::Perception;
 using namespace winrt::Windows::Perception::Spatial;
 
 #if 0
-#define REV_TRACE(x) OutputDebugStringA(#x "\n");
+#define REM_TRACE(x) OutputDebugStringA(#x "\n");
 #else
-#define REV_TRACE(x) MICROPROFILE_SCOPEI("Revive", #x, 0xff0000);
+#define REM_TRACE(x) MICROPROFILE_SCOPEI("Revive", #x, 0xff0000);
 #endif
-#define REV_DEFAULT_TIMEOUT 10000
-#define REV_HAPTICS_SAMPLE_RATE 320
+#define REM_DEFAULT_TIMEOUT 10000
+#define REM_HAPTICS_SAMPLE_RATE 320
 #define REM_DEFAULT_IPD 62.715f
 
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
@@ -63,7 +63,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 
 OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
 {
-	REV_TRACE(ovr_GetLastErrorInfo);
+	REM_TRACE(ovr_GetLastErrorInfo);
 
 	if (!errorInfo)
 		return;
@@ -73,7 +73,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
 
 OVR_PUBLIC_FUNCTION(const char*) ovr_GetVersionString()
 {
-	REV_TRACE(ovr_GetVersionString);
+	REM_TRACE(ovr_GetVersionString);
 
 	return OVR_VERSION_STRING;
 }
@@ -84,7 +84,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_IdentifyClient(const char* identity) { return
 
 OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 {
-	REV_TRACE(ovr_GetHmdDesc);
+	REM_TRACE(ovr_GetHmdDesc);
 
 	ovrHmdDesc desc = {};
 	desc.Type = HolographicSpace::IsAvailable() ? ovrHmd_CV1 : ovrHmd_None;
@@ -151,7 +151,7 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 {
-	REV_TRACE(ovr_GetTrackerCount);
+	REM_TRACE(ovr_GetTrackerCount);
 
 	if (!session)
 		return ovrError_InvalidSession;
@@ -161,7 +161,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 
 OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsigned int trackerDescIndex)
 {
-	REV_TRACE(ovr_GetTrackerDesc);
+	REM_TRACE(ovr_GetTrackerDesc);
 
 	if (!session)
 		return ovrTrackerDesc();
@@ -171,7 +171,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsig
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid* pLuid)
 {
-	REV_TRACE(ovr_Create);
+	REM_TRACE(ovr_Create);
 
 	if (!pSession)
 		return ovrError_InvalidParameter;
@@ -209,7 +209,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 {
-	REV_TRACE(ovr_Destroy);
+	REM_TRACE(ovr_Destroy);
 
 	// Delete the session from the list of sessions
 	g_Sessions.erase(std::find_if(g_Sessions.begin(), g_Sessions.end(), [session](ovrHmdStruct const& o) { return &o == session; }));
@@ -217,7 +217,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessionStatus* sessionStatus)
 {
-	REV_TRACE(ovr_GetSessionStatus);
+	REM_TRACE(ovr_GetSessionStatus);
 
 	if (!session)
 		return ovrError_InvalidSession;
@@ -248,7 +248,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovrTrackingOrigin origin)
 {
-	REV_TRACE(ovr_SetTrackingOriginType);
+	REM_TRACE(ovr_SetTrackingOriginType);
 
 	if (!session)
 		return ovrError_InvalidSession;
@@ -258,7 +258,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 
 OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession session)
 {
-	REV_TRACE(ovr_GetTrackingOriginType);
+	REM_TRACE(ovr_GetTrackingOriginType);
 
 	if (!session)
 		return ovrTrackingOrigin_EyeLevel;
@@ -268,7 +268,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 {
-	REV_TRACE(ovr_RecenterTrackingOrigin);
+	REM_TRACE(ovr_RecenterTrackingOrigin);
 
 	if (!session)
 		return ovrError_InvalidSession;
@@ -286,7 +286,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session) { /* N
 
 OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker)
 {
-	REV_TRACE(ovr_GetTrackingState);
+	REM_TRACE(ovr_GetTrackingState);
 
 	ovrTrackingState state = { 0 };
 
@@ -326,7 +326,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
 {
-	REV_TRACE(ovr_GetDevicePoses);
+	REM_TRACE(ovr_GetDevicePoses);
 
 	if (!session)
 		return ovrError_InvalidSession;
@@ -340,7 +340,7 @@ typedef struct ovrSensorData_ ovrSensorData;
 
 OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingStateWithSensorData(ovrSession session, double absTime, ovrBool latencyMarker, ovrSensorData* sensorData)
 {
-	REV_TRACE(ovr_GetTrackingStateWithSensorData);
+	REM_TRACE(ovr_GetTrackingStateWithSensorData);
 
 	// This is a private API, ignore the raw sensor data request and hope for the best.
 	assert(sensorData == nullptr);
@@ -350,7 +350,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingStateWithSensorData(ovrSess
 
 OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsigned int trackerPoseIndex)
 {
-	REV_TRACE(ovr_GetTrackerPose);
+	REM_TRACE(ovr_GetTrackerPose);
 
 	ovrTrackerPose tracker = { 0 };
 
@@ -392,7 +392,7 @@ typedef struct ovrInputState2_
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
-	REV_TRACE(ovr_GetInputState);
+	REM_TRACE(ovr_GetInputState);
 
 	if (!session)
 		return ovrError_InvalidSession;
@@ -417,7 +417,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession session)
 {
-	REV_TRACE(ovr_GetConnectedControllerTypes);
+	REM_TRACE(ovr_GetConnectedControllerTypes);
 
 	// TODO: Get the connected controllers
 	return ovrControllerType_Touch;
@@ -425,13 +425,13 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 
 OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession session, ovrControllerType controllerType)
 {
-	REV_TRACE(ovr_GetTouchHapticsDesc);
+	REM_TRACE(ovr_GetTouchHapticsDesc);
 
 	ovrTouchHapticsDesc desc = { 0 };
 
 	if (controllerType & ovrControllerType_Touch)
 	{
-		desc.SampleRateHz = REV_HAPTICS_SAMPLE_RATE;
+		desc.SampleRateHz = REM_HAPTICS_SAMPLE_RATE;
 		desc.SampleSizeInBytes = sizeof(uint8_t);
 		desc.SubmitMaxSamples = OVR_HAPTICS_BUFFER_SAMPLES_MAX;
 		desc.SubmitMinSamples = 1;
@@ -444,7 +444,7 @@ OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession sess
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
 {
-	REV_TRACE(ovr_SetControllerVibration);
+	REM_TRACE(ovr_SetControllerVibration);
 
 	if (!session)
 		return ovrError_InvalidSession;
@@ -455,7 +455,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ov
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer)
 {
-	REV_TRACE(ovr_SubmitControllerVibration);
+	REM_TRACE(ovr_SubmitControllerVibration);
 
 	if (!session)
 		return ovrError_InvalidSession;
@@ -466,7 +466,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitControllerVibration(ovrSession session,
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState)
 {
-	REV_TRACE(ovr_GetControllerVibrationState);
+	REM_TRACE(ovr_GetControllerVibrationState);
 
 	if (!session)
 		return ovrError_InvalidSession;
@@ -478,7 +478,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetControllerVibrationState(ovrSession sessio
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDeviceType deviceBitmask,
 	ovrBoundaryType boundaryType, ovrBoundaryTestResult* outTestResult)
 {
-	REV_TRACE(ovr_TestBoundary);
+	REM_TRACE(ovr_TestBoundary);
 
 	// TODO: Boundary support
 	return ovrSuccess;
@@ -487,7 +487,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDe
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundaryPoint(ovrSession session, const ovrVector3f* point,
 	ovrBoundaryType singleBoundaryType, ovrBoundaryTestResult* outTestResult)
 {
-	REV_TRACE(ovr_TestBoundaryPoint);
+	REM_TRACE(ovr_TestBoundaryPoint);
 
 	// TODO: Boundary support
 	return ovrSuccess_BoundaryInvalid;
@@ -495,7 +495,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundaryPoint(ovrSession session, const o
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetBoundaryLookAndFeel(ovrSession session, const ovrBoundaryLookAndFeel* lookAndFeel)
 {
-	REV_TRACE(ovr_SetBoundaryLookAndFeel);
+	REM_TRACE(ovr_SetBoundaryLookAndFeel);
 
 	// TODO: Boundary support
 	return ovrSuccess_BoundaryInvalid;
@@ -503,7 +503,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetBoundaryLookAndFeel(ovrSession session, co
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetBoundaryLookAndFeel(ovrSession session)
 {
-	REV_TRACE(ovr_ResetBoundaryLookAndFeel);
+	REM_TRACE(ovr_ResetBoundaryLookAndFeel);
 
 	// TODO: Boundary support
 	return ovrSuccess_BoundaryInvalid;
@@ -511,7 +511,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetBoundaryLookAndFeel(ovrSession session)
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryGeometry(ovrSession session, ovrBoundaryType boundaryType, ovrVector3f* outFloorPoints, int* outFloorPointsCount)
 {
-	REV_TRACE(ovr_GetBoundaryGeometry);
+	REM_TRACE(ovr_GetBoundaryGeometry);
 
 	// TODO: Boundary support
 	return ovrSuccess_BoundaryInvalid;
@@ -519,7 +519,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryGeometry(ovrSession session, ovrBo
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryDimensions(ovrSession session, ovrBoundaryType boundaryType, ovrVector3f* outDimensions)
 {
-	REV_TRACE(ovr_GetBoundaryDimensions);
+	REM_TRACE(ovr_GetBoundaryDimensions);
 
 	// TODO: Boundary support
 	return ovrSuccess_BoundaryInvalid;
@@ -527,7 +527,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryDimensions(ovrSession session, ovr
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryVisible(ovrSession session, ovrBool* outIsVisible)
 {
-	REV_TRACE(ovr_GetBoundaryVisible);
+	REM_TRACE(ovr_GetBoundaryVisible);
 
 	// TODO: Boundary support
 	return ovrSuccess_BoundaryInvalid;
@@ -535,7 +535,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryVisible(ovrSession session, ovrBoo
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RequestBoundaryVisible(ovrSession session, ovrBool visible)
 {
-	REV_TRACE(ovr_RequestBoundaryVisible);
+	REM_TRACE(ovr_RequestBoundaryVisible);
 
 	// TODO: Boundary support
 	return ovrSuccess_BoundaryInvalid;
@@ -543,7 +543,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RequestBoundaryVisible(ovrSession session, ov
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session, ovrTextureSwapChain chain, int* out_Length)
 {
-	REV_TRACE(ovr_GetTextureSwapChainLength);
+	REM_TRACE(ovr_GetTextureSwapChainLength);
 
 	if (!chain || !out_Length)
 		return ovrError_InvalidParameter;
@@ -554,7 +554,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session,
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession session, ovrTextureSwapChain chain, int* out_Index)
 {
-	REV_TRACE(ovr_GetTextureSwapChainCurrentIndex);
+	REM_TRACE(ovr_GetTextureSwapChainCurrentIndex);
 
 	if (!chain || !out_Index)
 		return ovrError_InvalidParameter;
@@ -565,7 +565,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession se
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, ovrTextureSwapChain chain, ovrTextureSwapChainDesc* out_Desc)
 {
-	REV_TRACE(ovr_GetTextureSwapChainDesc);
+	REM_TRACE(ovr_GetTextureSwapChainDesc);
 
 	if (!chain || !out_Desc)
 		return ovrError_InvalidParameter;
@@ -576,7 +576,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, o
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
 {
-	REV_TRACE(ovr_CommitTextureSwapChain);
+	REM_TRACE(ovr_CommitTextureSwapChain);
 
 	if (!chain)
 		return ovrError_InvalidParameter;
@@ -590,7 +590,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 
 OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
 {
-	REV_TRACE(ovr_DestroyTextureSwapChain);
+	REM_TRACE(ovr_DestroyTextureSwapChain);
 
 	if (!chain)
 		return;
@@ -600,7 +600,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTex
 
 OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirrorTexture mirrorTexture)
 {
-	REV_TRACE(ovr_DestroyMirrorTexture);
+	REM_TRACE(ovr_DestroyMirrorTexture);
 
 	if (!mirrorTexture)
 		return;
@@ -611,7 +611,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirror
 
 OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeType eye, ovrFovPort fov, float pixelsPerDisplayPixel)
 {
-	REV_TRACE(ovr_GetFovTextureSize);
+	REM_TRACE(ovr_GetFovTextureSize);
 
 	// TODO: Create our own D3D device so we can get/set these values before we receive the device from the app.
 	/*HolographicFramePrediction prediction = session->Frame.CurrentPrediction();
@@ -628,7 +628,7 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 
 OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovrEyeType eyeType, ovrFovPort fov)
 {
-	REV_TRACE(ovr_GetRenderDesc);
+	REM_TRACE(ovr_GetRenderDesc);
 
 	ovrEyeRenderDesc desc = {};
 
@@ -669,7 +669,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc1) ovr_GetRenderDesc(ovrSession session, ovr
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long long frameIndex)
 {
-	REV_TRACE(ovr_WaitToBeginFrame);
+	REM_TRACE(ovr_WaitToBeginFrame);
 
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
@@ -679,7 +679,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long frameIndex)
 {
-	REV_TRACE(ovr_BeginFrame);
+	REM_TRACE(ovr_BeginFrame);
 
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
@@ -690,7 +690,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
-	REV_TRACE(ovr_EndFrame);
+	REM_TRACE(ovr_EndFrame);
 
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
@@ -702,7 +702,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
-	REV_TRACE(ovr_SubmitFrame);
+	REM_TRACE(ovr_SubmitFrame);
 
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
@@ -759,7 +759,7 @@ typedef struct OVR_ALIGNAS(4) ovrPerfStats1_
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats* outStats)
 {
-	REV_TRACE(ovr_GetPerfStats);
+	REM_TRACE(ovr_GetPerfStats);
 
 	// TODO: Performance statistics
 	return ovrSuccess;
@@ -767,7 +767,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetPerfStats(ovrSession session)
 {
-	REV_TRACE(ovr_ResetPerfStats);
+	REM_TRACE(ovr_ResetPerfStats);
 
 	// TODO: Performance statistics
 	return ovrSuccess;
@@ -775,7 +775,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetPerfStats(ovrSession session)
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
 {
-	REV_TRACE(ovr_GetPredictedDisplayTime);
+	REM_TRACE(ovr_GetPredictedDisplayTime);
 
 	HolographicFrame frame = session->Frames->GetFrame(frameIndex);
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
@@ -786,7 +786,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 {
-	REV_TRACE(ovr_GetTimeInSeconds);
+	REM_TRACE(ovr_GetTimeInSeconds);
 
 	DateTime time = winrt::clock::now();
 	return double(time.time_since_epoch().count()) * 1.0e-7;
@@ -794,14 +794,14 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal)
 {
-	REV_TRACE(ovr_GetBool);
+	REM_TRACE(ovr_GetBool);
 
 	return defaultVal;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propertyName, ovrBool value)
 {
-	REV_TRACE(ovr_SetBool);
+	REM_TRACE(ovr_SetBool);
 
 	// TODO: Should we handle QueueAheadEnabled with always-on reprojection?
 	return false;
@@ -809,7 +809,7 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetBool(ovrSession session, const char* propert
 
 OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName, int defaultVal)
 {
-	REV_TRACE(ovr_GetInt);
+	REM_TRACE(ovr_GetInt);
 
 	if (strcmp("TextureSwapChainDepth", propertyName) == 0)
 		return REV_SWAPCHAIN_MAX_LENGTH;
@@ -819,14 +819,14 @@ OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetInt(ovrSession session, const char* propertyName, int value)
 {
-	REV_TRACE(ovr_SetInt);
+	REM_TRACE(ovr_SetInt);
 
 	return false;
 }
 
 OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* propertyName, float defaultVal)
 {
-	REV_TRACE(ovr_GetFloat);
+	REM_TRACE(ovr_GetFloat);
 
 	//if (strcmp(propertyName, "IPD") == 0)
 	//	return vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_UserIpdMeters_Float);
@@ -842,14 +842,14 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* propertyName, float value)
 {
-	REV_TRACE(ovr_SetFloat);
+	REM_TRACE(ovr_SetFloat);
 
 	return false;
 }
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const char* propertyName, float values[], unsigned int valuesCapacity)
 {
-	REV_TRACE(ovr_GetFloatArray);
+	REM_TRACE(ovr_GetFloatArray);
 
 	if (strcmp(propertyName, OVR_KEY_NECK_TO_EYE_DISTANCE) == 0)
 	{
@@ -867,14 +867,14 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const ch
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* propertyName, const float values[], unsigned int valuesSize)
 {
-	REV_TRACE(ovr_SetFloatArray);
+	REM_TRACE(ovr_SetFloatArray);
 
 	return false;
 }
 
 OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* propertyName, const char* defaultVal)
 {
-	REV_TRACE(ovr_GetString);
+	REM_TRACE(ovr_GetString);
 
 	if (!session)
 		return defaultVal;
@@ -888,7 +888,7 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* propertyName, const char* value)
 {
-	REV_TRACE(ovr_SetString);
+	REM_TRACE(ovr_SetString);
 
 	return false;
 }
