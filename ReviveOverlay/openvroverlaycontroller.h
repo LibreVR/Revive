@@ -73,7 +73,6 @@ private:
 	void DisconnectFromVRRuntime();
 	void UpdateThumbnail();
 
-	vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 	QString m_strVRDriver;
 	QString m_strVRDisplay;
 	QString m_strName;
