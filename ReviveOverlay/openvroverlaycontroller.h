@@ -41,10 +41,8 @@ public:
 
 	bool Init();
 	void Shutdown();
-	void EnableRestart();
 
 	bool BHMDAvailable();
-	vr::IVRSystem *GetVRSystem();
 	vr::HmdError GetLastHmdError();
 
 	QString GetVRDriverString();
@@ -56,6 +54,7 @@ public:
 	QString GetRuntimeURL() { return m_strRuntimeURL; }
 
 	void SetQuickItem( QQuickItem *pItem );
+	void ShowWindow() { if (m_pWindow) m_pWindow->show(); }
 
 public slots:
 	void OnSceneChanged();

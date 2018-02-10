@@ -146,7 +146,7 @@ bool COpenVROverlayController::Init()
 	if( !bSuccess )
 	{
 		qDebug( "Failed to connect to OpenVR Runtime" );
-		return false;
+		return true;
 	}
 
 	// Check if the compositor is ready
@@ -216,12 +216,12 @@ void COpenVROverlayController::Shutdown()
 //-----------------------------------------------------------------------------
 void COpenVROverlayController::OnSceneChanged()
 {
-	// skip rendering if the overlay isn't visible
-	if( !vr::VROverlay() ||
-		!vr::VROverlay()->IsOverlayVisible( m_ulOverlayHandle ) && !vr::VROverlay()->IsOverlayVisible( m_ulOverlayThumbnailHandle ) )
+	// skip rendering if the overlay and window aren't visible
+	const bool overlayVisible = vr::VROverlay() && (vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle) || vr::VROverlay()->IsOverlayVisible(m_ulOverlayThumbnailHandle));
+	if(!overlayVisible && !m_pWindow->isVisible())
 		return;
 
-	if (!m_pOpenGLContext->makeCurrent( m_pOffscreenSurface ))
+	if (!m_pOpenGLContext->makeCurrent(m_pOffscreenSurface))
 		return;
 
 	// Polish, synchronize and render the next frame (into our fbo).  In this example
@@ -236,13 +236,20 @@ void COpenVROverlayController::OnSceneChanged()
 	QOpenGLFramebufferObject::bindDefault();
 
 	m_pOpenGLContext->functions()->glFlush();
-
 	GLuint unTexture = m_pFbo->texture();
-	if( unTexture != 0 )
+	if( vr::VROverlay() && unTexture != 0 )
 	{
 		vr::Texture_t texture = {(void*)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto };
 		vr::VROverlay()->SetOverlayTexture( m_ulOverlayHandle, &texture );
 	}
+
+	if (!m_pOpenGLContext->makeCurrent(m_pWindow))
+		return;
+
+	QRect target(QPoint(), m_pWindow->size());
+	QRect source(QPoint(), m_pWindow->renderTargetSize());
+	QOpenGLFramebufferObject::blitFramebuffer(nullptr, target, m_pFbo, source, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	m_pOpenGLContext->swapBuffers(m_pWindow);
 }
 
 
@@ -439,6 +446,8 @@ void COpenVROverlayController::SetQuickItem( QQuickItem *pItem )
 		vr::VROverlay()->SetOverlayMouseScale( m_ulOverlayHandle, &vecWindowSize );
 	}
 
+	if (!QCoreApplication::arguments().contains("-compositor"))
+		m_pWindow->show();
 }
 
 
@@ -448,7 +457,7 @@ void COpenVROverlayController::SetQuickItem( QQuickItem *pItem )
 bool COpenVROverlayController::ConnectToVRRuntime()
 {
 	m_eLastHmdError = vr::VRInitError_None;
-	vr::IVRSystem *pVRSystem = vr::VR_Init( &m_eLastHmdError, vr::VRApplication_Overlay );
+	vr::IVRSystem *pVRSystem = vr::VR_Init( &m_eLastHmdError, vr::VRApplication_Background );
 
 	if ( m_eLastHmdError != vr::VRInitError_None )
 	{
@@ -516,7 +525,7 @@ vr::HmdError COpenVROverlayController::GetLastHmdError()
 void COpenVROverlayController::UpdateThumbnail()
 {
 	GLuint unThumbnail = m_pThumbnailTexture->textureId();
-	if( unThumbnail != 0 )
+	if( vr::VROverlay() && unThumbnail != 0 )
 	{
 		vr::Texture_t thumbnail = {(void*)unThumbnail, vr::TextureType_OpenGL, vr::ColorSpace_Auto };
 		vr::VROverlay()->SetOverlayTexture( m_ulOverlayThumbnailHandle, &thumbnail );
