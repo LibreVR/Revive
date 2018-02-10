@@ -3,6 +3,7 @@
 
 #include "openvroverlaycontroller.h"
 #include "trayiconcontroller.h"
+#include "qquickwindowscaled.h"
 
 #include <QOpenGLFramebufferObjectFormat>
 #include <QOpenGLFunctions>
@@ -125,7 +126,8 @@ bool COpenVROverlayController::Init()
 	// Create a QQuickWindow that is associated with out render control. Note that this
 	// window never gets created or shown, meaning that it will never get an underlying
 	// native (platform) window.
-	m_pWindow = new QQuickWindow(m_pRenderControl);
+	m_pWindow = new QQuickWindowScaled(m_pRenderControl);
+	m_pWindow->setMinimumSize(QSize(1280, 720));
 
 	// Load the thumbnail
 	QImage image(":/revive_overlay.png");
@@ -283,10 +285,12 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 				QPoint ptGlobal = ptNewMouse.toPoint();
 				QMouseEvent mouseEvent( QEvent::MouseMove,
 										ptNewMouse,
+										ptNewMouse,
 										ptGlobal,
 										Qt::NoButton,
 										m_lastMouseButtons,
-										0 );
+										0,
+										Qt::MouseEventSynthesizedByApplication );
 
 				m_ptLastMouse = ptNewMouse;
 
@@ -304,10 +308,12 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 				QPoint ptGlobal = m_ptLastMouse.toPoint();
 				QMouseEvent mouseEvent( QEvent::MouseButtonPress,
 										m_ptLastMouse,
+										m_ptLastMouse,
 										ptGlobal,
 										button,
 										m_lastMouseButtons,
-										0 );
+										0,
+										Qt::MouseEventSynthesizedByApplication );
 
 				QCoreApplication::sendEvent( m_pWindow, &mouseEvent );
 			}
@@ -321,10 +327,12 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 				QPoint ptGlobal = m_ptLastMouse.toPoint();
 				QMouseEvent mouseEvent( QEvent::MouseButtonRelease,
 										m_ptLastMouse,
+										m_ptLastMouse,
 										ptGlobal,
 										button,
 										m_lastMouseButtons,
-										0 );
+										0,
+										Qt::MouseEventSynthesizedByApplication );
 
 				QCoreApplication::sendEvent( m_pWindow, &mouseEvent );
 			}
@@ -342,7 +350,9 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 										0,
 										Qt::Vertical,
 										m_lastMouseButtons,
-										0 );
+										0,
+										Qt::NoScrollPhase,
+										Qt::MouseEventSynthesizedByApplication );
 
 				QCoreApplication::sendEvent( m_pWindow, &wheelEvent );
 			}
@@ -361,10 +371,12 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 				QPoint ptGlobal = m_ptLastMouse.toPoint();
 				QMouseEvent mouseEvent( QEvent::MouseButtonRelease,
 										m_ptLastMouse,
+										m_ptLastMouse,
 										ptGlobal,
 										Qt::LeftButton,
 										m_lastMouseButtons,
-										0 );
+										0,
+										Qt::MouseEventSynthesizedByApplication );
 
 				QCoreApplication::sendEvent( m_pWindow, &mouseEvent );
 			}
@@ -430,7 +442,6 @@ void COpenVROverlayController::SetQuickItem( QQuickItem *pItem )
 
 	// The root item is ready. Associate it with the window.
 	pItem->setParentItem(m_pWindow->contentItem());
-	m_pWindow->setGeometry(0, 0, pItem->width(), pItem->height());
 
 	// Initialize the render control and our OpenGL resources.
 	m_pOpenGLContext->makeCurrent(m_pOffscreenSurface);

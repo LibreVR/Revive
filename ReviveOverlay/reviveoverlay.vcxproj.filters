@@ -93,6 +93,15 @@
     <ClCompile Include="GeneratedFiles\qrc_overlay.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="Debug\moc_qquickwindowscaled.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_qquickwindowscaled.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="qquickwindowscaled.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="openvroverlaycontroller.h">
@@ -138,6 +147,9 @@
     </CustomBuild>
     <CustomBuild Include="revive_overlay.png">
       <Filter>Resource Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="qquickwindowscaled.h">
+      <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
