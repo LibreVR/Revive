@@ -146,7 +146,7 @@ bool COpenVROverlayController::Init()
 	if( !bSuccess )
 	{
 		qDebug( "Failed to connect to OpenVR Runtime" );
-		return false;
+		return true;
 	}
 
 	// Check if the compositor is ready
@@ -217,11 +217,11 @@ void COpenVROverlayController::Shutdown()
 void COpenVROverlayController::OnSceneChanged()
 {
 	// skip rendering if the overlay isn't visible
-	if( !vr::VROverlay() ||
+	/*if( !vr::VROverlay() ||
 		!vr::VROverlay()->IsOverlayVisible( m_ulOverlayHandle ) && !vr::VROverlay()->IsOverlayVisible( m_ulOverlayThumbnailHandle ) )
-		return;
+		return;*/
 
-	if (!m_pOpenGLContext->makeCurrent( m_pOffscreenSurface ))
+	if (!m_pOpenGLContext->makeCurrent(m_pWindow))
 		return;
 
 	// Polish, synchronize and render the next frame (into our fbo).  In this example
@@ -238,11 +238,13 @@ void COpenVROverlayController::OnSceneChanged()
 	m_pOpenGLContext->functions()->glFlush();
 
 	GLuint unTexture = m_pFbo->texture();
-	if( unTexture != 0 )
+	if( vr::VROverlay() && unTexture != 0 )
 	{
 		vr::Texture_t texture = {(void*)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto };
 		vr::VROverlay()->SetOverlayTexture( m_ulOverlayHandle, &texture );
 	}
+
+	m_pOpenGLContext->swapBuffers(m_pWindow);
 }
 
 
@@ -419,7 +421,7 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 void COpenVROverlayController::SetQuickItem( QQuickItem *pItem )
 {
 	m_pFbo = new QOpenGLFramebufferObject( pItem->width(), pItem->height(),  QOpenGLFramebufferObject::CombinedDepthStencil );
-	m_pWindow->setRenderTarget(m_pFbo);
+	//m_pWindow->setRenderTarget(m_pFbo);
 
 	// The root item is ready. Associate it with the window.
 	pItem->setParentItem(m_pWindow->contentItem());
@@ -439,6 +441,8 @@ void COpenVROverlayController::SetQuickItem( QQuickItem *pItem )
 		vr::VROverlay()->SetOverlayMouseScale( m_ulOverlayHandle, &vecWindowSize );
 	}
 
+	if (!QCoreApplication::arguments().contains("-compositor"))
+		m_pWindow->show();
 }
 
 
@@ -516,7 +520,7 @@ vr::HmdError COpenVROverlayController::GetLastHmdError()
 void COpenVROverlayController::UpdateThumbnail()
 {
 	GLuint unThumbnail = m_pThumbnailTexture->textureId();
-	if( unThumbnail != 0 )
+	if( vr::VROverlay() && unThumbnail != 0 )
 	{
 		vr::Texture_t thumbnail = {(void*)unThumbnail, vr::TextureType_OpenGL, vr::ColorSpace_Auto };
 		vr::VROverlay()->SetOverlayTexture( m_ulOverlayThumbnailHandle, &thumbnail );

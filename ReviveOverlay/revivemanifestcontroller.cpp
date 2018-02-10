@@ -140,7 +140,7 @@ bool CReviveManifestController::Init()
 	AddApplicationManifest(m_supportFile);
 
 	// Ensure the auto-launch flag is set
-	if (vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true) != vr::VRApplicationError_None)
+	if (vr::VRApplications() && vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true) != vr::VRApplicationError_None)
 		CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_AutoLaunchFailed);
 
 	// Get the base path
@@ -157,7 +157,6 @@ bool CReviveManifestController::Init()
 		emit BaseChanged();
 	}
 
-
 	// Get the library path
 	if (GetDefaultLibraryPath(path, MAX_PATH))
 	{
@@ -171,7 +170,7 @@ bool CReviveManifestController::Init()
 		m_strLibraryPath = QDir::fromNativeSeparators(library);
 		emit LibraryChanged();
 
-		if (!QCoreApplication::arguments().contains("-compositor"))
+		if (vr::VRApplications() && !QCoreApplication::arguments().contains("-compositor"))
 		{
 			if (vr::VRApplications()->IsApplicationInstalled(AppKey) && vr::VRApplications()->GetApplicationAutoLaunch(AppKey))
 				CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_AutoLaunchEnabled);
@@ -187,6 +186,9 @@ bool CReviveManifestController::Init()
 
 bool CReviveManifestController::AddApplicationManifest(QFile& file)
 {
+	if (!vr::VRApplications())
+		return false;
+
 	QFileInfo info(file);
 	QString filePath = QDir::toNativeSeparators(info.absoluteFilePath());
 	vr::EVRApplicationError error = vr::VRApplications()->AddApplicationManifest(qPrintable(filePath));
@@ -322,40 +324,44 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
 
-	vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(qPrintable(appKey));
-	if (error != vr::VRApplicationError_None)
+	if (vr::VRApplications())
 	{
-		qWarning("Failed to launch application, falling back to injector: %s (%s)", qUtf8Printable(appKey), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
-
-		if (!vr::VRApplications()->IsApplicationInstalled(qPrintable(appKey)))
-			return false;
-
-		// Allocate a buffer large enough to store the string
-		uint32_t size = vr::VRApplications()->GetApplicationPropertyString(qPrintable(appKey), vr::VRApplicationProperty_Arguments_String, nullptr, 0);
-		QByteArray args(size, '\0');
-
-		// Get the arguments string for the injector
-		vr::EVRApplicationError error;
-		vr::VRApplications()->GetApplicationPropertyString(qPrintable(appKey), vr::VRApplicationProperty_Arguments_String, args.data(), size, &error);
-		if (error != vr::VRApplicationError_None)
-			return false;
-
-		// Launch the injector with the arguments
-		QProcess injector;
-		injector.setProgram(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe");
-		injector.setNativeArguments(args);
-		injector.start();
-
-		if (!injector.waitForFinished())
-			return false;
-		return injector.exitCode() == 0;
+		vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(qPrintable(appKey));
+		if (error == vr::VRApplicationError_None)
+			return true;
+		else
+			qWarning("Failed to launch application through OpenVR, falling back to injector: %s (%s)", qUtf8Printable(appKey), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 	}
 
-	return true;
+	// Search for the app in the cached manifest
+	for (QJsonValue app : m_manifest["applications"].toArray())
+	{
+		if (app["app_key"].toString() == appKey)
+		{
+			// Launch the injector with the arguments
+			QProcess injector;
+			injector.setProgram(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe");
+			injector.setNativeArguments(app["arguments"].toString());
+			injector.start();
+
+			if (!injector.waitForFinished())
+				return false;
+			return injector.exitCode() == 0;
+		}
+	}
+	return false;
 }
 
 bool CReviveManifestController::isApplicationInstalled(const QString &canonicalName)
 {
 	QString appKey = AppPrefix + canonicalName;
-	return vr::VRApplications()->IsApplicationInstalled(qPrintable(appKey));
+	if (vr::VRApplications())
+		return vr::VRApplications()->IsApplicationInstalled(qPrintable(appKey));
+
+	for (QJsonValue app : m_manifest["applications"].toArray())
+	{
+		if (app["app_key"].toString() == appKey)
+			return true;
+	}
+	return false;
 }

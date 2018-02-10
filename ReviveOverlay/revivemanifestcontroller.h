@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QFile>
+#include <QDir>
 #include <QJsonObject>
 #include <QSystemTrayIcon>
 
@@ -53,6 +54,7 @@ private:
 	QFile m_manifestFile;
 	QFile m_supportFile;
 	QFile m_defaultsFile;
+	QDir m_appManifests;
 	QJsonObject m_manifest;
 
 	bool m_bLibraryFound;

@@ -33,8 +33,10 @@ public slots:
 protected slots:
 	void inject();
 	void patch();
+	void show();
 	void showHelp();
 	void messageClicked();
+	void activated(QSystemTrayIcon::ActivationReason reason);
 
 private:
 	QSystemTrayIcon m_trayIcon;

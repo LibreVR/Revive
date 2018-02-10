@@ -120,7 +120,6 @@ Rectangle {
                     onHoveredChanged: coverGrid.currentIndex = index
                     onPressed: {
                         if (Revive.launchApplication(appKey)) {
-                            OpenVR.loading = true;
                             activateSound.play();
                         } else {
                             failSound.play();

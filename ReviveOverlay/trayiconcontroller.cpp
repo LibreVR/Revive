@@ -1,4 +1,6 @@
 #include "trayiconcontroller.h"
+#include "openvroverlaycontroller.h"
+
 #include <windowsservices.h>
 #include <qt_windows.h>
 #include <winsparkle.h>
@@ -27,6 +29,7 @@ CTrayIconController::CTrayIconController()
 	, m_trayIcon(QIcon(":/revive_white.ico"))
 {
 	QObject::connect(&m_trayIcon, SIGNAL(messageClicked()), this, SLOT(messageClicked()));
+	QObject::connect(&m_trayIcon, SIGNAL(activated()), this, SLOT(activated()));
 }
 
 CTrayIconController::~CTrayIconController()
@@ -39,6 +42,7 @@ bool CTrayIconController::Init()
 	m_trayIconMenu.addAction("&Patch...", this, SLOT(patch()));
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addSeparator();
+	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
 	m_trayIconMenu.addAction("Check for &updates", win_sparkle_check_update_with_ui);
 	m_trayIconMenu.addAction("&Quit", this, SLOT(quit()));
 	m_trayIcon.setContextMenu(&m_trayIconMenu);
@@ -143,4 +147,15 @@ QString CTrayIconController::openDialog()
 				nullptr, "Revive",
 				QStandardPaths::writableLocation(QStandardPaths::DesktopLocation),
 				"Application (*.exe)");
+}
+
+void CTrayIconController::show()
+{
+	COpenVROverlayController::SharedInstance()->ShowWindow();
+}
+
+void CTrayIconController::activated(QSystemTrayIcon::ActivationReason reason)
+{
+	if (reason == QSystemTrayIcon::ActivationReason::DoubleClick)
+		show();
 }
