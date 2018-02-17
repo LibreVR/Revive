@@ -10,6 +10,9 @@ using namespace winrt::Windows::Perception;
 #include <winrt/Windows.Foundation.h>
 using namespace winrt::Windows::Foundation;
 
+#include <winrt/Windows.Perception.Spatial.h>
+using namespace winrt::Windows::Perception::Spatial;
+
 FrameList::FrameList(HolographicSpace space)
 	: m_space(space)
 {
@@ -88,4 +91,16 @@ HolographicCameraPose FrameList::GetPose(long long frameIndex, uint32_t displayI
 	HolographicFrame frame = GetFrame(frameIndex);
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	return prediction.CameraPoses().GetAt(displayIndex);
+}
+
+HolographicStereoTransform FrameList::GetLocalViewTransform(long long frameIndex, uint32_t displayIndex)
+{
+	HolographicFrame frame = GetFrame(frameIndex);
+	HolographicFramePrediction prediction = frame.CurrentPrediction();
+	HolographicCameraPose pose = prediction.CameraPoses().GetAt(displayIndex);
+
+	SpatialLocatorAttachedFrameOfReference reference = SpatialLocator::GetDefault().CreateAttachedFrameOfReferenceAtCurrentHeading();
+	IReference<HolographicStereoTransform> ref = pose.TryGetViewTransform(reference.GetStationaryCoordinateSystemAtTimestamp(prediction.Timestamp()));
+	assert(ref);
+	return ref.Value();
 }

@@ -152,7 +152,7 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 		return false;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-	srv_desc.Format = TextureFormatToDXGIFormat(ToLinearFormat(Format));
+	srv_desc.Format = TextureFormatToDXGIFormat(Format);
 	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srv_desc.Texture2D.MipLevels = -1;
 	srv_desc.Texture2D.MostDetailedMip = 0;

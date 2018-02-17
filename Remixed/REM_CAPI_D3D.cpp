@@ -80,11 +80,20 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	if (!d3dPtr || !desc || !out_MirrorTexture)
 		return ovrError_InvalidParameter;
 
-	if (!session->Compositor)
+	if (session->Compositor->SetDevice(d3dPtr))
 	{
-		session->Compositor.reset(CompositorD3D::Create());
-		if (!session->Compositor)
+		try
+		{
+			session->Frames->Clear();
+			session->Space.SetDirect3D11Device(session->Compositor->GetDevice());
+			session->Frames->BeginFrame(0);
+		}
+		catch (winrt::hresult_invalid_argument& ex)
+		{
+			OutputDebugStringW(ex.message().c_str());
+			OutputDebugStringW(L"\n");
 			return ovrError_RuntimeException;
+		}
 	}
 
 	return session->Compositor->CreateMirrorTexture(desc, out_MirrorTexture);

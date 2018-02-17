@@ -142,6 +142,14 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 			size.Height * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
 
 		eyeDesc.HmdToEyePose = OVR::Posef::Identity();
+		if (i == ovrEye_Right)
+		{
+			HolographicStereoTransform transform = session->Frames->GetLocalViewTransform();
+			OVR::Matrix4f offset = REM::Matrix4f(transform.Left).Inverted() * REM::Matrix4f(transform.Right);
+			offset.Invert();
+			eyeDesc.HmdToEyePose.Orientation = OVR::Quatf(offset);
+			eyeDesc.HmdToEyePose.Position = offset.GetTranslation();
+		}
 
 		// Update the HMD descriptor
 		desc.DefaultEyeFov[i] = eyeFov;
@@ -304,6 +312,8 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		return state;
 
 	SpatialLocator locator = SpatialLocator::GetDefault();
+	state.HeadPose.TimeInSeconds = absTime;
+	state.HeadPose.ThePose = OVR::Posef::Identity();
 
 	// Even though it's called FromHistoricalTargetTime() it seems to accept future target times as well.
 	// This is important as it's the only convenient way to go back from DateTime to PerceptionTimestamp.
@@ -322,11 +332,18 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		//state.HeadPose.AngularAcceleration = REM::Quatf(location.AbsoluteAngularAcceleration());
 		state.HeadPose.LinearAcceleration = REM::Vector3f(location.AbsoluteLinearAcceleration());
 	}
-	else
+
+	HolographicFrame frame = session->Frames->GetFrameAtTime(absTime);
+	HolographicFramePrediction prediction = frame.CurrentPrediction();
+	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
+	IReference<HolographicStereoTransform> transform = pose.TryGetViewTransform(session->Reference.CoordinateSystem());
+	if (transform)
 	{
-		state.HeadPose.ThePose = OVR::Posef::Identity();
+		REM::Matrix4f leftEye(transform.Value().Left);
+		leftEye.Invert();
+		state.HeadPose.ThePose.Orientation = REM::Quatf(leftEye);
+		state.HeadPose.ThePose.Position = leftEye.GetTranslation();
 	}
-	state.HeadPose.TimeInSeconds = absTime;
 
 	// TODO: Get the hand tracking state
 	state.HandPoses[ovrHand_Left].ThePose = OVR::Posef::Identity();
@@ -640,7 +657,6 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	HolographicDisplay display = HolographicDisplay::GetDefault();
 	Size size = display.MaxViewportSize();
 
-	// TODO: Get the FOV, currently we just assume 105 degrees
 	OVR::FovPort eyeFov(fov);
 	desc.Eye = eyeType;
 	desc.DistortedViewport = OVR::Recti(eyeType == ovrEye_Right ? (int)size.Width : 0, 0, (int)size.Width, (int)size.Height);
@@ -648,9 +664,15 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.Width * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
 		size.Height * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
 
-	// TODO: Figure out the IPD, possibly directly from the registry.
-	desc.HmdToEyePose.Orientation = OVR::Quatf::Identity();
-	desc.HmdToEyePose.Position.x = eyeType == ovrEye_Left ? -REM_DEFAULT_IPD / 2000.0f : REM_DEFAULT_IPD / 2000.0f;
+	desc.HmdToEyePose = OVR::Posef::Identity();
+	if (eyeType == ovrEye_Right)
+	{
+		HolographicStereoTransform transform = session->Frames->GetLocalViewTransform();
+		OVR::Matrix4f offset = REM::Matrix4f(transform.Left).Inverted() * REM::Matrix4f(transform.Right);
+		offset.Invert();
+		desc.HmdToEyePose.Orientation = OVR::Quatf(offset);
+		desc.HmdToEyePose.Position = offset.GetTranslation();
+	}
 	return desc;
 }
 
