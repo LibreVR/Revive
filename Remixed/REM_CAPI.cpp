@@ -1,6 +1,6 @@
 #include "Session.h"
 #include "TextureBase.h"
-#include "CompositorBase.h"
+#include "CompositorD3D.h"
 #include "FrameList.h"
 #include "Win32Window.h"
 
@@ -14,6 +14,7 @@
 #include <list>
 #include <algorithm>
 #include <assert.h>
+#include <dxgi.h>
 
 #include <winrt/Windows.Foundation.h>
 using namespace winrt::Windows::Foundation;
@@ -121,20 +122,25 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 
 	// Get the render target size
 	Size size = display.MaxViewportSize();
+	HolographicCameraPose pose = session->Frames->GetPose();
+	HolographicStereoTransform transform = pose.ProjectionTransform();
+	Rect viewport = pose.Viewport();
 
 	// Update the render descriptors
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		ovrEyeRenderDesc eyeDesc = {};
 
-		// TODO: Get the FOV, currently we just assume 105 degrees
-		OVR::FovPort eyeFov = OVR::FovPort(1.303225f);
+		REM::Matrix4f matrix = i == ovrEye_Left ? REM::Matrix4f(transform.Left) : REM::Matrix4f(transform.Right);
+		OVR::FovPort eyeFov(1.0f / matrix.M[1][1], 1.0f / matrix.M[1][1], 1.0f / matrix.M[0][0], 1.0f / matrix.M[0][0]);
+
 		eyeDesc.Eye = (ovrEyeType)i;
 		eyeDesc.Fov = eyeFov;
 
-		eyeDesc.DistortedViewport = OVR::Recti(i == ovrEye_Right ? (int)size.Width : 0, 0, (int)size.Width, (int)size.Height);
+		eyeDesc.DistortedViewport = OVR::Recti((int)viewport.X, (int)viewport.Y, (int)viewport.Width, (int)viewport.Height);
 		eyeDesc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.Width * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
 			size.Height * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
+
 		eyeDesc.HmdToEyePose = OVR::Posef::Identity();
 
 		// Update the HMD descriptor
@@ -183,10 +189,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	ovrSession session = &g_Sessions.back();
 
 	session->Window.reset(new Win32Window());
+	session->Compositor.reset(CompositorD3D::Create());
+	if (!session->Compositor)
+		return ovrError_RuntimeException;
 
 	try
 	{
 		session->Space = HolographicSpace::CreateForHWND(session->Window->GetWindowHandle());
+		session->Space.SetDirect3D11Device(session->Compositor->GetDevice());
 		session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation();
 		session->Frames.reset(new FrameList(session->Space));
 	}
@@ -613,16 +623,11 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 {
 	REM_TRACE(ovr_GetFovTextureSize);
 
-	// TODO: Create our own D3D device so we can get/set these values before we receive the device from the app.
-	/*HolographicFramePrediction prediction = session->Frame.CurrentPrediction();
-	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
+	HolographicCameraPose pose = session->Frames->GetPose();
 	HolographicCamera cam = pose.HolographicCamera();
 
-	cam.ViewportScaleFactor(pixelsPerDisplayPixel);
-	Size size = cam.RenderTargetSize();*/
-
-	HolographicDisplay display = HolographicDisplay::GetDefault();
-	Size size = display.MaxViewportSize();
+	cam.ViewportScaleFactor(std::min(pixelsPerDisplayPixel, 1.0f));
+	Size size = cam.RenderTargetSize();
 	return OVR::Sizei((int)size.Width, (int)size.Height);
 }
 
@@ -635,9 +640,8 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	HolographicDisplay display = HolographicDisplay::GetDefault();
 	Size size = display.MaxViewportSize();
 
-
 	// TODO: Get the FOV, currently we just assume 105 degrees
-	OVR::FovPort eyeFov = OVR::FovPort(1.303225f);
+	OVR::FovPort eyeFov(fov);
 	desc.Eye = eyeType;
 	desc.DistortedViewport = OVR::Recti(eyeType == ovrEye_Right ? (int)size.Width : 0, 0, (int)size.Width, (int)size.Height);
 	desc.Fov = eyeFov;

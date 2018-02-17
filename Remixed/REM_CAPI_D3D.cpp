@@ -24,36 +24,20 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	if (!d3dPtr || !desc || !out_TextureSwapChain || desc->Type != ovrTexture_2D)
 		return ovrError_InvalidParameter;
 
-	// TODO: DX12 support
-	if (!session->Compositor)
+	if (session->Compositor->SetDevice(d3dPtr))
 	{
-		IDirect3DDevice device;
-		winrt::com_ptr<IDXGIDevice3> pDevice;
-		HRESULT hr = d3dPtr->QueryInterface(pDevice.put());
-		if (SUCCEEDED(hr))
+		try
 		{
-			winrt::com_ptr<IInspectable> inspectableDevice;
-			hr = CreateDirect3D11DeviceFromDXGIDevice(pDevice.get(), inspectableDevice.put());
-			device = inspectableDevice.as<IDirect3DDevice>();
+			session->Frames->Clear();
+			session->Space.SetDirect3D11Device(session->Compositor->GetDevice());
+			session->Frames->BeginFrame(0);
 		}
-		if (SUCCEEDED(hr))
+		catch (winrt::hresult_invalid_argument& ex)
 		{
-			try
-			{
-				session->Space.SetDirect3D11Device(device);
-				session->CurrentFrame = session->Frames->GetFrame(0);
-			}
-			catch (winrt::hresult_invalid_argument& ex)
-			{
-				OutputDebugStringW(ex.message().c_str());
-				OutputDebugStringW(L"\n");
-				return ovrError_RuntimeException;
-			}
-		}
-
-		session->Compositor.reset(CompositorD3D::Create(d3dPtr));
-		if (!session->Compositor)
+			OutputDebugStringW(ex.message().c_str());
+			OutputDebugStringW(L"\n");
 			return ovrError_RuntimeException;
+		}
 	}
 
 	return session->Compositor->CreateTextureSwapChain(desc, out_TextureSwapChain);
@@ -98,7 +82,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 
 	if (!session->Compositor)
 	{
-		session->Compositor.reset(CompositorD3D::Create(d3dPtr));
+		session->Compositor.reset(CompositorD3D::Create());
 		if (!session->Compositor)
 			return ovrError_RuntimeException;
 	}

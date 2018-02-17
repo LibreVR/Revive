@@ -11,9 +11,13 @@ public:
 	FrameList(winrt::Windows::Graphics::Holographic::HolographicSpace space);
 	~FrameList() {};
 
-	winrt::Windows::Graphics::Holographic::HolographicFrame GetFrame(long long frameIndex);
+	winrt::Windows::Graphics::Holographic::HolographicFrame GetFrame(long long frameIndex = -1);
 	winrt::Windows::Graphics::Holographic::HolographicFrame GetFrameAtTime(double absTime);
-	void PopFrame(long long frameIndex);
+	winrt::Windows::Graphics::Holographic::HolographicCameraPose GetPose(long long frameIndex = -1, uint32_t displayIndex = 0);
+
+	void BeginFrame(long long frameIndex);
+	void EndFrame(long long frameIndex);
+	void Clear();
 
 private:
 	winrt::Windows::Graphics::Holographic::HolographicSpace m_space;

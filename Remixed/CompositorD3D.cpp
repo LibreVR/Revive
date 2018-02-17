@@ -3,6 +3,7 @@
 #include "Session.h"
 #include "FrameList.h"
 
+#include <dxgi1_3.h>
 #include <d3d11.h>
 #include <d3d12.h>
 #include <wrl/client.h>
@@ -26,27 +27,71 @@ struct Vertex
 	ovrVector2f TexCoord;
 };
 
-CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
+CompositorD3D* CompositorD3D::Create()
 {
-	// Get the device for this context
-	// TODO: DX12 support
-	ID3D11Device* pDevice = nullptr;
-	HRESULT hr = d3dPtr->QueryInterface(&pDevice);
-	if (SUCCEEDED(hr))
-		return new CompositorD3D(pDevice);
+	HolographicDisplay display = HolographicDisplay::GetDefault();
+	HolographicAdapterId id = display.AdapterId();
 
-	return nullptr;
+	IDXGIFactory1* pFactory = nullptr;
+	HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory);
+	if (FAILED(hr))
+		return nullptr;
+
+	Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
+	for (int i = 0; pFactory->EnumAdapters1(i, pAdapter.GetAddressOf()) != DXGI_ERROR_NOT_FOUND; i++)
+	{
+		DXGI_ADAPTER_DESC1 desc;
+		if (SUCCEEDED(pAdapter->GetDesc1(&desc)))
+		{
+			if (id.HighPart == desc.AdapterLuid.HighPart &&
+				id.LowPart == desc.AdapterLuid.LowPart)
+				break;
+		}
+		pAdapter = nullptr;
+	}
+
+	ID3D11Device* pDevice = nullptr;
+	hr = D3D11CreateDevice(pAdapter.Get(), pAdapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0, D3D11_SDK_VERSION, &pDevice, nullptr, nullptr);
+	if (FAILED(hr))
+		return nullptr;
+	return new CompositorD3D(pDevice);
 }
 
-CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
+CompositorD3D::CompositorD3D(IUnknown* pDevice)
 {
-	m_pDevice = pDevice;
-	m_pDevice->GetImmediateContext(m_pContext.GetAddressOf());
+	SetDevice(pDevice);
+}
+
+CompositorD3D::~CompositorD3D()
+{
+}
+
+IDirect3DDevice CompositorD3D::GetDevice()
+{
+	IDirect3DDevice device = nullptr;
+	winrt::com_ptr<IDXGIDevice3> pDevice;
+	HRESULT hr = m_pDevice->QueryInterface(pDevice.put());
+	if (SUCCEEDED(hr))
+	{
+		winrt::com_ptr<IInspectable> inspectableDevice;
+		hr = CreateDirect3D11DeviceFromDXGIDevice(pDevice.get(), inspectableDevice.put());
+		device = inspectableDevice.as<IDirect3DDevice>();
+	}
+	return device;
+}
+
+bool CompositorD3D::SetDevice(IUnknown* pDevice)
+{
+	if (m_pDevice.Get() == pDevice)
+		return false;
+
+	pDevice->QueryInterface(m_pDevice.ReleaseAndGetAddressOf());
+	m_pDevice->GetImmediateContext(m_pContext.ReleaseAndGetAddressOf());
 
 	// Create the shaders.
-	m_pDevice->CreateVertexShader(g_VertexShader, sizeof(g_VertexShader), NULL, m_VertexShader.GetAddressOf());
-	m_pDevice->CreatePixelShader(g_MirrorShader, sizeof(g_MirrorShader), NULL, m_MirrorShader.GetAddressOf());
-	m_pDevice->CreatePixelShader(g_CompositorShader, sizeof(g_CompositorShader), NULL, m_CompositorShader.GetAddressOf());
+	m_pDevice->CreateVertexShader(g_VertexShader, sizeof(g_VertexShader), NULL, m_VertexShader.ReleaseAndGetAddressOf());
+	m_pDevice->CreatePixelShader(g_MirrorShader, sizeof(g_MirrorShader), NULL, m_MirrorShader.ReleaseAndGetAddressOf());
+	m_pDevice->CreatePixelShader(g_CompositorShader, sizeof(g_CompositorShader), NULL, m_CompositorShader.ReleaseAndGetAddressOf());
 
 	// Create the vertex buffer.
 	D3D11_BUFFER_DESC bufferDesc;
@@ -55,17 +100,17 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	bufferDesc.MiscFlags = 0;
-	m_pDevice->CreateBuffer(&bufferDesc, nullptr, m_VertexBuffer.GetAddressOf());
+	m_pDevice->CreateBuffer(&bufferDesc, nullptr, m_VertexBuffer.ReleaseAndGetAddressOf());
 
 	// Create the input layout.
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0,
 		D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8,
-	D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 8,
+		D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	HRESULT hr = m_pDevice->CreateInputLayout(layout, 2, g_VertexShader, sizeof(g_VertexShader), m_InputLayout.GetAddressOf());
+	m_pDevice->CreateInputLayout(layout, 2, g_VertexShader, sizeof(g_VertexShader), m_InputLayout.ReleaseAndGetAddressOf());
 
 	// Create state objects.
 	D3D11_BLEND_DESC bm = { 0 };
@@ -75,11 +120,9 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 	bm.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 	bm.RenderTarget[0].SrcBlendAlpha = bm.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	bm.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	m_pDevice->CreateBlendState(&bm, m_BlendState.GetAddressOf());
-}
+	m_pDevice->CreateBlendState(&bm, m_BlendState.ReleaseAndGetAddressOf());
 
-CompositorD3D::~CompositorD3D()
-{
+	return true;
 }
 
 TextureBase* CompositorD3D::CreateTexture()

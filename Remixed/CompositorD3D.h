@@ -5,14 +5,20 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
+#include <winrt/Windows.Graphics.DirectX.Direct3D11.h>
+using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
+
 class CompositorD3D :
 	public CompositorBase
 {
 public:
-	CompositorD3D(ID3D11Device* pDevice);
+	CompositorD3D(IUnknown* pDevice);
 	virtual ~CompositorD3D();
 
-	static CompositorD3D* Create(IUnknown* d3dPtr);
+	bool SetDevice(IUnknown* pDevice);
+	IDirect3DDevice GetDevice();
+
+	static CompositorD3D* Create();
 	virtual void Flush() { if (m_pContext) m_pContext->Flush(); };
 	virtual TextureBase* CreateTexture();
 

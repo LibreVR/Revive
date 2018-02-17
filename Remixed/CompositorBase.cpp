@@ -72,7 +72,7 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
 	session->Frames->GetFrame(frameIndex).WaitForFrameToFinish();
-	session->Frames->PopFrame(frameIndex);
+	session->Frames->EndFrame(frameIndex);
 	return ovrSuccess;
 }
 
@@ -80,7 +80,7 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
 
-	session->CurrentFrame = session->Frames->GetFrame(frameIndex);
+	session->Frames->BeginFrame(frameIndex);
 	return ovrSuccess;
 }
 
