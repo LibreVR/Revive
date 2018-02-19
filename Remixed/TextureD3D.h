@@ -13,7 +13,7 @@ public:
 	virtual ~TextureD3D();
 
 	virtual bool Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
-		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
+		int sampleCount, ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
 
 	ID3D11Texture2D* Texture() { return m_pTexture.Get(); };
 	ID3D11ShaderResourceView* Resource() { return m_pSRV.Get(); };

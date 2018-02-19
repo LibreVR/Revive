@@ -13,7 +13,7 @@ public:
 	virtual ~TextureBase() { };
 
 	virtual bool Init(ovrTextureType type, int width, int height, int mipLevels, int arraySize,
-		ovrTextureFormat format, unsigned int miscFlags, unsigned int bindFlags) = 0;
+		int sampleCount, ovrTextureFormat format, unsigned int miscFlags, unsigned int bindFlags) = 0;
 };
 
 struct ovrTextureSwapChainData
