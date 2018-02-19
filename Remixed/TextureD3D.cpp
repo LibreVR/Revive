@@ -132,14 +132,14 @@ UINT TextureD3D::MiscFlagsToD3DMiscFlags(unsigned int flags)
 }
 
 bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
-	ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
+	int SampleCount, ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
 {
 	D3D11_TEXTURE2D_DESC desc = {};
 	desc.Width = Width;
 	desc.Height = Height;
 	desc.MipLevels = MipLevels;
 	desc.ArraySize = ArraySize;
-	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Count = SampleCount;
 	desc.SampleDesc.Quality = 0;
 	desc.Format = TextureFormatToDXGIFormat(Format, MiscFlags);
 	desc.Usage = D3D11_USAGE_DEFAULT;
@@ -151,14 +151,19 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 	if (FAILED(hr))
 		return false;
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-	srv_desc.Format = TextureFormatToDXGIFormat(ToLinearFormat(Format));
-	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srv_desc.Texture2D.MipLevels = -1;
-	srv_desc.Texture2D.MostDetailedMip = 0;
-	hr = m_pDevice->CreateShaderResourceView(m_pTexture.Get(), &srv_desc, m_pSRV.GetAddressOf());
-	if (FAILED(hr))
-		return false;
+	if (SampleCount <= 1)
+	{
+		if (MiscFlags & ovrTextureMisc_DX_Typeless)
+			Format = ToLinearFormat(Format);
+		D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
+		srv_desc.Format = TextureFormatToDXGIFormat(Format);
+		srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srv_desc.Texture2D.MipLevels = -1;
+		srv_desc.Texture2D.MostDetailedMip = 0;
+		hr = m_pDevice->CreateShaderResourceView(m_pTexture.Get(), &srv_desc, m_pSRV.GetAddressOf());
+		if (FAILED(hr))
+			return false;
+	}
 
 	return true;
 }
