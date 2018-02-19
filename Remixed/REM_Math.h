@@ -47,12 +47,13 @@ namespace REM {
 		Matrix4f() : OVR::Matrix4f() { }
 
 		// Numerics-interop support
+		// FIXME: For some reason the float4x4 matrices are column-major instead of row-major
 		Matrix4f(const winrt::Windows::Foundation::Numerics::float4x4& s)
 			: OVR::Matrix4f(
-				s.m11, s.m12, s.m13, s.m14,
-				s.m21, s.m22, s.m23, s.m24,
-				s.m31, s.m32, s.m33, s.m34,
-				s.m41, s.m42, s.m43, s.m44) { }
+				s.m11, s.m21, s.m31, s.m41,
+				s.m12, s.m22, s.m32, s.m42,
+				s.m13, s.m23, s.m33, s.m43,
+				s.m14, s.m24, s.m34, s.m44) { }
 
 		operator const winrt::Windows::Foundation::Numerics::float4x4& () const
 		{
