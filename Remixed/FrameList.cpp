@@ -15,19 +15,20 @@ using namespace winrt::Windows::Perception::Spatial;
 
 FrameList::FrameList(HolographicSpace space)
 	: m_space(space)
+	, m_next_index(0)
 {
 	BeginFrame(0);
 }
 
 HolographicFrame FrameList::GetFrame(long long frameIndex)
 {
-	if (frameIndex < 0)
+	if (frameIndex <= 0)
 	{
 		std::shared_lock<std::shared_mutex> lk(m_frame_mutex);
 		return m_frames.back().second;
 	}
 
-	if (m_last_index < frameIndex)
+	if (m_next_index < frameIndex)
 	{
 		BeginFrame(frameIndex);
 		std::shared_lock<std::shared_mutex> lk(m_frame_mutex);
@@ -64,10 +65,12 @@ HolographicFrame FrameList::GetFrameAtTime(double absTime)
 
 void FrameList::BeginFrame(long long frameIndex)
 {
+	if (frameIndex <= 0)
+		frameIndex = m_next_index;
+
 	std::unique_lock<std::shared_mutex> lk(m_frame_mutex);
-	for (long long i = m_last_index + 1; i <= frameIndex; i++)
-		m_frames.push_back(Frame(i, m_space.CreateNextFrame()));
-	m_last_index = m_frames.back().first;
+	for (; m_next_index <= frameIndex; m_next_index++)
+		m_frames.push_back(Frame(m_next_index, m_space.CreateNextFrame()));
 }
 
 void FrameList::EndFrame(long long frameIndex)
@@ -76,6 +79,9 @@ void FrameList::EndFrame(long long frameIndex)
 	if (m_frames.empty())
 		return;
 
+	if (frameIndex <= 0)
+		frameIndex = m_next_index - 1;
+
 	do m_frames.pop_front(); while (!m_frames.empty() && m_frames.front().first <= frameIndex);
 }
 
@@ -83,7 +89,7 @@ void FrameList::Clear()
 {
 	std::unique_lock<std::shared_mutex> lk(m_frame_mutex);
 	m_frames.clear();
-	m_last_index = -1;
+	m_next_index = 0;
 }
 
 HolographicCameraPose FrameList::GetPose(long long frameIndex, uint32_t displayIndex)

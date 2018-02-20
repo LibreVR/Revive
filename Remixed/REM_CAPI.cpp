@@ -710,7 +710,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
 
-	return session->Compositor->BeginFrame(session, frameIndex);
+	session->Frames->BeginFrame(frameIndex);
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
@@ -736,11 +737,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 	// Use our own intermediate compositor to convert the frame to OpenVR.
 	ovrResult result = session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
 
+	if (frameIndex > 0)
+		frameIndex++;
+
 	// Wait for the current frame to finish
 	session->Compositor->WaitToBeginFrame(session, frameIndex);
 
 	// Begin the next frame
-	session->Compositor->BeginFrame(session, frameIndex + 1);
+	session->Frames->BeginFrame(frameIndex);
 
 	return result;
 }
