@@ -2,7 +2,7 @@
 
 #include "CompositorBase.h"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <openvr.h>
 #include <utility>
 
@@ -22,7 +22,7 @@ public:
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture);
 
 protected:
-	static GLboolean glewInitialized;
+	static GLboolean gladInitialized;
 
 	std::pair<vr::glUInt_t, vr::glSharedTextureHandle_t> m_mirror[ovrEye_Count];
 	GLuint m_mirrorFB[ovrEye_Count];

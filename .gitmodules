@@ -4,9 +4,6 @@
 [submodule "minhook"]
 	path = Externals/minhook
 	url = https://github.com/TsudaKageyu/minhook.git
-[submodule "glew"]
-	path = Externals/glew
-	url = https://github.com/LibreVR/ext-win-glew.git
 [submodule "WinSparkle"]
 	path = Externals/WinSparkle
 	url = https://github.com/LibreVR/ext-win-sparkle.git

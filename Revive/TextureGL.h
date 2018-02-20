@@ -2,7 +2,7 @@
 
 #include "TextureBase.h"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 class TextureGL :
 	public TextureBase

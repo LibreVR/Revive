@@ -1,6 +1,6 @@
 #include "TextureGL.h"
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 TextureGL::TextureGL()
 	: Texture(0)
