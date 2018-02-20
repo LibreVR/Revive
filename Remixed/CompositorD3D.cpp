@@ -21,6 +21,9 @@ using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 #include <winrt/Windows.Graphics.Holographic.h>
 using namespace winrt::Windows::Graphics::Holographic;
 
+#include <winrt/Windows.Foundation.h>
+// Don't import the namespace, it conflicts
+
 struct Vertex
 {
 	ovrVector2f Position;
@@ -150,6 +153,7 @@ void CompositorD3D::RenderTextureSwapChain(ovrSession session, long long frameIn
 
 		HolographicCameraRenderingParameters renderingParameters = frame.GetRenderingParameters(pose);
 		IDirect3DSurface surface = renderingParameters.Direct3D11BackBuffer();
+		winrt::Windows::Foundation::Size surface_size = cam.RenderTargetSize();
 
 		winrt::com_ptr<ID3D11Texture2D> back_buffer;
 		winrt::com_ptr<IDirect3DDxgiInterfaceAccess> dxgiInterfaceAccess = surface.as<IDirect3DDxgiInterfaceAccess>();
@@ -205,7 +209,7 @@ void CompositorD3D::RenderTextureSwapChain(ovrSession session, long long frameIn
 		m_pContext->ClearRenderTargetView(rtv.get(), clear);
 
 		ID3D11RenderTargetView* targets[] = { rtv.get() };
-		D3D11_VIEWPORT vp = { 0.0f, 0.0f, w, h, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+		D3D11_VIEWPORT vp = { 0.0f, 0.0f, surface_size.Width, surface_size.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 		m_pContext->RSSetViewports(1, &vp);
 		m_pContext->OMSetRenderTargets(1, targets, nullptr);
 		m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);
