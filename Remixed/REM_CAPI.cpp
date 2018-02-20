@@ -1,6 +1,6 @@
 #include "Session.h"
 #include "TextureBase.h"
-#include "CompositorD3D.h"
+#include "CompositorWGL.h"
 #include "FrameList.h"
 #include "Win32Window.h"
 
@@ -197,8 +197,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	ovrSession session = &g_Sessions.back();
 
 	session->Window.reset(new Win32Window());
-	session->Compositor.reset(CompositorD3D::Create());
-	if (!session->Compositor)
+	session->Compositor.reset(new CompositorWGL());
+	if (!session->Compositor->InitDevice())
 		return ovrError_RuntimeException;
 
 	try

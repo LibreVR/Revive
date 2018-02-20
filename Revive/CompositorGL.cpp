@@ -18,9 +18,7 @@ CompositorGL* CompositorGL::Create()
 	if (!gladInitialized)
 	{
 		if (!gladLoadGL())
-		{
 			return false;
-		}
 #ifdef DEBUG
 		glEnable(GL_DEBUG_OUTPUT);
 		glDebugMessageCallback((GLDEBUGPROC)DebugCallback, nullptr);

@@ -12,13 +12,14 @@ class CompositorD3D :
 	public CompositorBase
 {
 public:
+	CompositorD3D();
 	CompositorD3D(IUnknown* pDevice);
 	virtual ~CompositorD3D();
 
-	bool SetDevice(IUnknown* pDevice);
+	bool InitDevice();
 	IDirect3DDevice GetDevice();
+	bool SetDevice(IUnknown* pDevice);
 
-	static CompositorD3D* Create();
 	virtual void Flush() { if (m_pContext) m_pContext->Flush(); };
 	virtual TextureBase* CreateTexture();
 

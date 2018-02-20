@@ -22,11 +22,10 @@ public:
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture);
 
 protected:
-	static GLboolean gladInitialized;
-
 	std::pair<vr::glUInt_t, vr::glSharedTextureHandle_t> m_mirror[ovrEye_Count];
 	GLuint m_mirrorFB[ovrEye_Count];
 
 private:
+	static GLboolean gladInitialized;
 	static void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 };

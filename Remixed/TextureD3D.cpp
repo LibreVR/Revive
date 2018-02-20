@@ -12,7 +12,7 @@ TextureD3D::~TextureD3D()
 {
 }
 
-DXGI_FORMAT TextureD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int flags)
+DXGI_FORMAT TextureD3D::ToDXGIFormat(ovrTextureFormat format, unsigned int flags)
 {
 	if (flags & ovrTextureMisc_DX_Typeless)
 	{
@@ -110,9 +110,22 @@ ovrTextureFormat TextureD3D::ToLinearFormat(ovrTextureFormat format)
 	}
 }
 
+bool TextureD3D::IsDepthFormat(ovrTextureFormat format)
+{
+	switch (format)
+	{
+		case OVR_FORMAT_D16_UNORM:            return true;
+		case OVR_FORMAT_D24_UNORM_S8_UINT:    return true;
+		case OVR_FORMAT_D32_FLOAT:            return true;
+		case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return true;
+
+		default: return false;
+	}
+}
+
 UINT TextureD3D::BindFlagsToD3DBindFlags(unsigned int flags)
 {
-	UINT result = D3D11_BIND_SHADER_RESOURCE;
+	UINT result = 0;
 	if (flags & ovrTextureBind_DX_RenderTarget)
 		result |= D3D11_BIND_RENDER_TARGET;
 	if (flags & ovrTextureBind_DX_UnorderedAccess)
@@ -134,6 +147,8 @@ UINT TextureD3D::MiscFlagsToD3DMiscFlags(unsigned int flags)
 bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 	int SampleCount, ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
 {
+	const bool isBindable = !IsDepthFormat(Format) || MiscFlags & ovrTextureMisc_DX_Typeless;
+
 	D3D11_TEXTURE2D_DESC desc = {};
 	desc.Width = Width;
 	desc.Height = Height;
@@ -141,9 +156,11 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 	desc.ArraySize = ArraySize;
 	desc.SampleDesc.Count = SampleCount;
 	desc.SampleDesc.Quality = 0;
-	desc.Format = TextureFormatToDXGIFormat(Format, MiscFlags);
+	desc.Format = ToDXGIFormat(Format, MiscFlags);
 	desc.Usage = D3D11_USAGE_DEFAULT;
 	desc.BindFlags = BindFlagsToD3DBindFlags(BindFlags);
+	if (isBindable)
+		desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = MiscFlagsToD3DMiscFlags(MiscFlags);
 
@@ -151,14 +168,14 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 	if (FAILED(hr))
 		return false;
 
-	if (SampleCount <= 1)
+	if (SampleCount <= 1 && isBindable)
 	{
 		if (MiscFlags & ovrTextureMisc_DX_Typeless)
 			Format = ToLinearFormat(Format);
 		D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-		srv_desc.Format = TextureFormatToDXGIFormat(Format);
+		srv_desc.Format = ToDXGIFormat(Format);
 		srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		srv_desc.Texture2D.MipLevels = -1;
+		srv_desc.Texture2D.MipLevels = MipLevels;
 		srv_desc.Texture2D.MostDetailedMip = 0;
 		hr = m_pDevice->CreateShaderResourceView(m_pTexture.Get(), &srv_desc, m_pSRV.GetAddressOf());
 		if (FAILED(hr))

@@ -19,8 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Externals\glad\src\glad.c" />
+    <ClCompile Include="..\Externals\glad\src\glad_wgl.c" />
     <ClCompile Include="CompositorBase.cpp" />
     <ClCompile Include="CompositorD3D.cpp" />
+    <ClCompile Include="CompositorWGL.cpp" />
     <ClCompile Include="FrameList.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="microprofile.cpp" />
@@ -31,16 +34,19 @@
     <ClCompile Include="REM_CAPI_Vk.cpp" />
     <ClCompile Include="TextureBase.cpp" />
     <ClCompile Include="TextureD3D.cpp" />
+    <ClCompile Include="TextureWGL.cpp" />
     <ClCompile Include="Win32Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CompositorBase.h" />
     <ClInclude Include="CompositorD3D.h" />
+    <ClInclude Include="CompositorWGL.h" />
     <ClInclude Include="FrameList.h" />
     <ClInclude Include="REM_Math.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="TextureBase.h" />
     <ClInclude Include="TextureD3D.h" />
+    <ClInclude Include="TextureWGL.h" />
     <ClInclude Include="Win32Window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -152,14 +158,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_DEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>4.0</ShaderModel>
@@ -176,14 +182,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;NOMINMAX;WIN32;_DEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>4.0</ShaderModel>
@@ -202,7 +208,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;NOMINMAX;WIN32;NDEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -211,7 +217,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>4.0</ShaderModel>
@@ -230,7 +236,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;NOMINMAX;NDEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -239,7 +245,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderModel>4.0</ShaderModel>

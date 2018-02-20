@@ -27,34 +27,8 @@ struct Vertex
 	ovrVector2f TexCoord;
 };
 
-CompositorD3D* CompositorD3D::Create()
+CompositorD3D::CompositorD3D()
 {
-	HolographicDisplay display = HolographicDisplay::GetDefault();
-	HolographicAdapterId id = display.AdapterId();
-
-	IDXGIFactory1* pFactory = nullptr;
-	HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory);
-	if (FAILED(hr))
-		return nullptr;
-
-	Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
-	for (int i = 0; pFactory->EnumAdapters1(i, pAdapter.GetAddressOf()) != DXGI_ERROR_NOT_FOUND; i++)
-	{
-		DXGI_ADAPTER_DESC1 desc;
-		if (SUCCEEDED(pAdapter->GetDesc1(&desc)))
-		{
-			if (id.HighPart == desc.AdapterLuid.HighPart &&
-				id.LowPart == desc.AdapterLuid.LowPart)
-				break;
-		}
-		pAdapter = nullptr;
-	}
-
-	ID3D11Device* pDevice = nullptr;
-	hr = D3D11CreateDevice(pAdapter.Get(), pAdapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0, D3D11_SDK_VERSION, &pDevice, nullptr, nullptr);
-	if (FAILED(hr))
-		return nullptr;
-	return new CompositorD3D(pDevice);
 }
 
 CompositorD3D::CompositorD3D(IUnknown* pDevice)
@@ -78,6 +52,37 @@ IDirect3DDevice CompositorD3D::GetDevice()
 		device = inspectableDevice.as<IDirect3DDevice>();
 	}
 	return device;
+}
+
+bool CompositorD3D::InitDevice()
+{
+	HolographicDisplay display = HolographicDisplay::GetDefault();
+	HolographicAdapterId id = display.AdapterId();
+
+	IDXGIFactory1* pFactory = nullptr;
+	HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory);
+	if (FAILED(hr))
+		return false;
+
+	Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
+	for (int i = 0; pFactory->EnumAdapters1(i, pAdapter.GetAddressOf()) != DXGI_ERROR_NOT_FOUND; i++)
+	{
+		DXGI_ADAPTER_DESC1 desc;
+		if (SUCCEEDED(pAdapter->GetDesc1(&desc)))
+		{
+			if (id.HighPart == desc.AdapterLuid.HighPart &&
+				id.LowPart == desc.AdapterLuid.LowPart)
+				break;
+		}
+		pAdapter = nullptr;
+	}
+
+	ID3D11Device* pDevice = nullptr;
+	hr = D3D11CreateDevice(pAdapter.Get(), pAdapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0, D3D11_SDK_VERSION, &pDevice, nullptr, nullptr);
+	if (FAILED(hr))
+		return false;
+	SetDevice(pDevice);
+	return true;
 }
 
 bool CompositorD3D::SetDevice(IUnknown* pDevice)

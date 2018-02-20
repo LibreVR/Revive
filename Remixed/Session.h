@@ -9,7 +9,7 @@
 
 // FWD-decl
 class FrameList;
-class CompositorD3D;
+class CompositorWGL;
 class Win32Window;
 
 struct ovrHmdStruct
@@ -18,6 +18,6 @@ struct ovrHmdStruct
 	winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference Reference = nullptr;
 
 	std::unique_ptr<FrameList> Frames = nullptr;
-	std::unique_ptr<CompositorD3D> Compositor = nullptr;
+	std::unique_ptr<CompositorWGL> Compositor = nullptr;
 	std::unique_ptr<Win32Window> Window = nullptr;
 };

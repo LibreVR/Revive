@@ -1,6 +1,6 @@
 #include "OVR_CAPI_D3D.h"
 #include "Session.h"
-#include "CompositorD3D.h"
+#include "CompositorWGL.h"
 #include "TextureD3D.h"
 #include "FrameList.h"
 

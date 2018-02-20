@@ -13,17 +13,18 @@ public:
 	virtual ~TextureD3D();
 
 	virtual bool Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
-		int sampleCount, ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
+		int SampleCount, ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
 
 	ID3D11Texture2D* Texture() { return m_pTexture.Get(); };
 	ID3D11ShaderResourceView* Resource() { return m_pSRV.Get(); };
 	ID3D11RenderTargetView* Target() { return m_pRTV.Get(); };
 
 protected:
-	static DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int flags = 0);
+	static DXGI_FORMAT ToDXGIFormat(ovrTextureFormat format, unsigned int flags = 0);
+	static ovrTextureFormat ToLinearFormat(ovrTextureFormat format);
+	static bool IsDepthFormat(ovrTextureFormat format);
 	static UINT BindFlagsToD3DBindFlags(unsigned int flags);
 	static UINT MiscFlagsToD3DMiscFlags(unsigned int flags);
-	static ovrTextureFormat ToLinearFormat(ovrTextureFormat format);
 
 	// DirectX 11
 	Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice;
