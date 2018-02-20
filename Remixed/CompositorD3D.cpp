@@ -171,12 +171,16 @@ void CompositorD3D::RenderTextureSwapChain(ovrSession session, long long frameIn
 		m_pContext->PSSetShaderResources(0, 1, &resource);
 
 		// Update the vertex buffer
-		// TODO: Account for the Field-of-View and the texture bounds
+		// TODO: Account for the Field-of-View
+		float w = (float)swapChain->Desc.Width;
+		float h = (float)swapChain->Desc.Height;
+		ovrVector2f min = { viewport.Pos.x / w, viewport.Pos.y / h };
+		ovrVector2f max = { (viewport.Pos.x + viewport.Size.w) / w, (viewport.Pos.y + viewport.Size.h) / h };
 		Vertex vertices[4] = {
-			{ { -1.0f,  1.0f },{ 0.0f, 1.0f } },
-			{ {  1.0f,  1.0f },{ 1.0f, 1.0f } },
-			{ { -1.0f, -1.0f },{ 0.0f, 0.0f } },
-			{ {  1.0f, -1.0f },{ 1.0f, 0.0f } }
+			{ { -1.0f,  1.0f },{ min.x, min.y } },
+			{ {  1.0f,  1.0f },{ max.x, min.y } },
+			{ { -1.0f, -1.0f },{ min.x, max.y } },
+			{ {  1.0f, -1.0f },{ max.x, max.y } }
 		};
 		D3D11_MAPPED_SUBRESOURCE map = { 0 };
 		m_pContext->Map(m_VertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
@@ -196,7 +200,7 @@ void CompositorD3D::RenderTextureSwapChain(ovrSession session, long long frameIn
 		m_pContext->ClearRenderTargetView(rtv.get(), clear);
 
 		ID3D11RenderTargetView* targets[] = { rtv.get() };
-		D3D11_VIEWPORT vp = { (float)viewport.Pos.x, (float)viewport.Pos.y, (float)viewport.Size.w, (float)viewport.Size.h, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+		D3D11_VIEWPORT vp = { 0.0f, 0.0f, w, h, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 		m_pContext->RSSetViewports(1, &vp);
 		m_pContext->OMSetRenderTargets(1, targets, nullptr);
 		m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);

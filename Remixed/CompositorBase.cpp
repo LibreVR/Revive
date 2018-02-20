@@ -173,7 +173,13 @@ void CompositorBase::SubmitFovLayer(ovrSession session, long long frameIndex, ov
 	// Submit the scene layer.
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		RenderTextureSwapChain(session, frameIndex, (ovrEyeType)i, swapChain[i], fovLayer->Viewport[i]);
+		ovrRecti viewport = fovLayer->Viewport[i];
+		if (fovLayer->Header.Flags & ovrLayerFlag_TextureOriginAtBottomLeft)
+		{
+			viewport.Pos.y += viewport.Size.h;
+			viewport.Size.h *= -1;
+		}
+		RenderTextureSwapChain(session, frameIndex, (ovrEyeType)i, swapChain[i], viewport);
 	}
 
 	swapChain[ovrEye_Left]->Submit();
