@@ -14,6 +14,9 @@ public:
 
 	virtual bool Init(ovrTextureType type, int width, int height, int mipLevels, int arraySize,
 		int sampleCount, ovrTextureFormat format, unsigned int miscFlags, unsigned int bindFlags) = 0;
+
+	static bool IsDepthFormat(ovrTextureFormat format);
+	static bool IsSRGBFormat(ovrTextureFormat format);
 };
 
 struct ovrTextureSwapChainData

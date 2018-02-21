@@ -92,37 +92,6 @@ DXGI_FORMAT TextureD3D::ToDXGIFormat(ovrTextureFormat format, unsigned int flags
 	}
 }
 
-ovrTextureFormat TextureD3D::ToLinearFormat(ovrTextureFormat format)
-{
-	switch (format)
-	{
-		case OVR_FORMAT_R8G8B8A8_UNORM_SRGB:  return OVR_FORMAT_R8G8B8A8_UNORM;
-		case OVR_FORMAT_B8G8R8A8_UNORM_SRGB:  return OVR_FORMAT_B8G8R8A8_UNORM;
-		case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return OVR_FORMAT_B8G8R8X8_UNORM;
-
-		// Added in 1.5 compressed formats can be used for static layers
-		case OVR_FORMAT_BC1_UNORM_SRGB:       return OVR_FORMAT_BC1_UNORM;
-		case OVR_FORMAT_BC2_UNORM_SRGB:       return OVR_FORMAT_BC2_UNORM;
-		case OVR_FORMAT_BC3_UNORM_SRGB:       return OVR_FORMAT_BC3_UNORM;
-		case OVR_FORMAT_BC7_UNORM_SRGB:       return OVR_FORMAT_BC7_UNORM;
-
-		default: return format;
-	}
-}
-
-bool TextureD3D::IsDepthFormat(ovrTextureFormat format)
-{
-	switch (format)
-	{
-		case OVR_FORMAT_D16_UNORM:            return true;
-		case OVR_FORMAT_D24_UNORM_S8_UINT:    return true;
-		case OVR_FORMAT_D32_FLOAT:            return true;
-		case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return true;
-
-		default: return false;
-	}
-}
-
 UINT TextureD3D::BindFlagsToD3DBindFlags(unsigned int flags)
 {
 	UINT result = 0;
@@ -170,8 +139,6 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 
 	if (SampleCount <= 1 && isBindable)
 	{
-		if (MiscFlags & ovrTextureMisc_DX_Typeless)
-			Format = ToLinearFormat(Format);
 		D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
 		srv_desc.Format = ToDXGIFormat(Format);
 		srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;

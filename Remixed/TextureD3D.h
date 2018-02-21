@@ -21,8 +21,6 @@ public:
 
 protected:
 	static DXGI_FORMAT ToDXGIFormat(ovrTextureFormat format, unsigned int flags = 0);
-	static ovrTextureFormat ToLinearFormat(ovrTextureFormat format);
-	static bool IsDepthFormat(ovrTextureFormat format);
 	static UINT BindFlagsToD3DBindFlags(unsigned int flags);
 	static UINT MiscFlagsToD3DMiscFlags(unsigned int flags);
 

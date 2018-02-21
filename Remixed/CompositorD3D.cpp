@@ -199,7 +199,7 @@ void CompositorD3D::RenderTextureSwapChain(ovrSession session, long long frameIn
 		// Prepare the render target
 		winrt::com_ptr<ID3D11RenderTargetView> rtv;
 		D3D11_RENDER_TARGET_VIEW_DESC target_desc = {};
-		target_desc.Format = DXGI_FORMAT_UNKNOWN;
+		target_desc.Format = TextureBase::IsSRGBFormat(swapChain->Desc.Format) ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM;
 		target_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 		target_desc.Texture2DArray.MipSlice = 0;
 		target_desc.Texture2DArray.FirstArraySlice = (UINT)eye;
