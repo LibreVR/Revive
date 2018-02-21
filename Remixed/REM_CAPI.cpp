@@ -271,6 +271,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 	if (!session)
 		return ovrError_InvalidSession;
 
+	session->OriginPosition = Numerics::float3::zero();
+	if (origin == ovrTrackingOrigin_FloorLevel)
+		session->OriginPosition.y = -OVR_DEFAULT_PLAYER_HEIGHT;
+	ovr_RecenterTrackingOrigin(session);
 	return ovrSuccess;
 }
 
@@ -281,7 +285,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 	if (!session)
 		return ovrTrackingOrigin_EyeLevel;
 
-	return ovrTrackingOrigin_EyeLevel;
+	return session->OriginPosition == Numerics::float3::zero() ? ovrTrackingOrigin_EyeLevel : ovrTrackingOrigin_FloorLevel;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
@@ -291,12 +295,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
+	session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation(session->OriginPosition, session->OriginOrientation);
 	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovrPosef originPose)
 {
-	// TODO: Implement through ApplyTransform()
+	session->OriginPosition = REM::Vector3f(originPose.Position);
+	session->OriginOrientation = REM::Quatf(originPose.Orientation);
+	ovr_RecenterTrackingOrigin(session);
 	return ovrSuccess;
 }
 
