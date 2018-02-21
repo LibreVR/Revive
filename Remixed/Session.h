@@ -15,8 +15,11 @@ class Win32Window;
 
 struct ovrHmdStruct
 {
+	ovrTrackingOrigin Origin = ovrTrackingOrigin_EyeLevel;
+
 	winrt::Windows::Graphics::Holographic::HolographicSpace Space = nullptr;
 	winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference Reference = nullptr;
+	winrt::Windows::Perception::Spatial::SpatialCoordinateSystem CoordinateSystem = nullptr;
 	winrt::Windows::Foundation::Numerics::float3 OriginPosition = winrt::Windows::Foundation::Numerics::float3::zero();
 	winrt::Windows::Foundation::Numerics::quaternion OriginOrientation = winrt::Windows::Foundation::Numerics::quaternion::identity();
 

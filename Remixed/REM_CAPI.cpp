@@ -206,6 +206,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		session->Space = HolographicSpace::CreateForHWND(session->Window->GetWindowHandle());
 		session->Space.SetDirect3D11Device(session->Compositor->GetDevice());
 		session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation();
+		session->CoordinateSystem = session->Reference.CoordinateSystem();
 		session->Frames.reset(new FrameList(session->Space));
 	}
 	catch (winrt::hresult_invalid_argument& ex)
@@ -271,6 +272,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 	if (!session)
 		return ovrError_InvalidSession;
 
+	session->Origin = origin;
 	session->OriginPosition = Numerics::float3::zero();
 	if (origin == ovrTrackingOrigin_FloorLevel)
 		session->OriginPosition.y = -OVR_DEFAULT_PLAYER_HEIGHT;
@@ -285,7 +287,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 	if (!session)
 		return ovrTrackingOrigin_EyeLevel;
 
-	return session->OriginPosition == Numerics::float3::zero() ? ovrTrackingOrigin_EyeLevel : ovrTrackingOrigin_FloorLevel;
+	return session->Origin;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
@@ -296,6 +298,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 		return ovrError_InvalidSession;
 
 	session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation(session->OriginPosition, session->OriginOrientation);
+	if (session->Origin == ovrTrackingOrigin_FloorLevel)
+		session->CoordinateSystem = SpatialStageFrameOfReference::Current().CoordinateSystem();
+	else
+		session->CoordinateSystem = session->Reference.CoordinateSystem();
 	return ovrSuccess;
 }
 
@@ -328,7 +334,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	DateTime target(TimeSpan((int64_t)(absTime * 1.0e+7)));
 	PerceptionTimestamp timestamp = PerceptionTimestampHelper::FromHistoricalTargetTime(target);
 
-	SpatialLocation location = locator.TryLocateAtTimestamp(timestamp, session->Reference.CoordinateSystem());
+	SpatialLocation location = locator.TryLocateAtTimestamp(timestamp, session->CoordinateSystem);
 	if (location)
 	{
 		// TODO: Figure out a good way to convert the angular quaternions to vectors.
@@ -343,7 +349,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	HolographicFrame frame = session->Frames->GetFrameAtTime(absTime);
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
-	IReference<HolographicStereoTransform> transform = pose.TryGetViewTransform(session->Reference.CoordinateSystem());
+	IReference<HolographicStereoTransform> transform = pose.TryGetViewTransform(session->CoordinateSystem);
 	if (transform)
 	{
 		REM::Matrix4f leftEye(transform.Value().Left);
