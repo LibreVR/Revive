@@ -3,6 +3,7 @@
 #include "OVR_CAPI.h"
 
 #include <memory>
+#include <atomic>
 
 #include <winrt/Windows.Graphics.Holographic.h>
 #include <winrt/Windows.Perception.Spatial.h>
@@ -28,4 +29,6 @@ struct ovrHmdStruct
 	std::unique_ptr<FrameList> Frames = nullptr;
 	std::unique_ptr<CompositorWGL> Compositor = nullptr;
 	std::unique_ptr<Win32Window> Window = nullptr;
+
+	std::atomic_uint32_t ConnectedControllers = 0;
 };

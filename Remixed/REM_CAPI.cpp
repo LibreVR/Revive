@@ -39,6 +39,7 @@ using namespace winrt::Windows::UI::Input::Spatial;
 #define REM_DEFAULT_TIMEOUT 10000
 #define REM_HAPTICS_SAMPLE_RATE 320
 #define REM_DEFAULT_IPD 62.715f
+#define REM_DEFAULT_DEADZONE 0.12f
 
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
@@ -226,6 +227,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 	session->Window->Show();
 
+	session->Interaction.SourceDetected([=](SpatialInteractionManager manager, SpatialInteractionSourceEventArgs event)
+	{
+		SpatialInteractionSourceState state = event.State();
+		session->ConnectedControllers |= (uint32_t)state.Source().Handedness();
+	});
+
+	session->Interaction.SourceLost([=](SpatialInteractionManager manager, SpatialInteractionSourceEventArgs event)
+	{
+		SpatialInteractionSourceState state = event.State();
+		session->ConnectedControllers &= ~(uint32_t)state.Source().Handedness();
+	});
+
 	*pSession = session;
 	return ovrSuccess;
 }
@@ -366,31 +379,22 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 	state.HandPoses[ovrHand_Left].ThePose = OVR::Posef::Identity();
 	state.HandPoses[ovrHand_Right].ThePose = OVR::Posef::Identity();
-	try
+	auto sources = session->Interaction.GetDetectedSourcesAtTimestamp(timestamp);
+	for (SpatialInteractionSourceState source : sources)
 	{
-		auto sources = session->Interaction.GetDetectedSourcesAtTimestamp(timestamp);
-
-		for (SpatialInteractionSourceState source : sources)
+		ovrHandType hand = (source.Source().Handedness() == SpatialInteractionSourceHandedness::Right) ? ovrHand_Right : ovrHand_Left;
+		SpatialInteractionSourceLocation location = source.Properties().TryGetLocation(session->CoordinateSystem);
+		if (location)
 		{
-			ovrHandType hand = (source.Source().Handedness() == SpatialInteractionSourceHandedness::Right) ? ovrHand_Right : ovrHand_Left;
-			SpatialInteractionSourceLocation location = source.Properties().TryGetLocation(session->CoordinateSystem);
-			if (location)
-			{
-				// TODO: Calculate the angular and linear acceleration.
-				state.HandPoses[hand].ThePose.Orientation = REM::Quatf(location.Orientation());
-				state.HandPoses[hand].ThePose.Position = REM::Vector3f(location.Position());
-				state.HandPoses[hand].AngularVelocity = REM::Vector3f(location.AngularVelocity());
-				state.HandPoses[hand].LinearVelocity = REM::Vector3f(location.Velocity());
-				//state.HandPoses[hand].AngularAcceleration = REM::Vector3f(location.AbsoluteAngularAcceleration());
-				//state.HandPoses[hand].LinearAcceleration = REM::Vector3f(location.AbsoluteLinearAcceleration());
-				state.HandStatusFlags[hand] = ovrStatus_OrientationTracked | ovrStatus_PositionTracked;
-			}
+			// TODO: Calculate the angular and linear acceleration.
+			state.HandPoses[hand].ThePose.Orientation = REM::Quatf(location.Orientation());
+			state.HandPoses[hand].ThePose.Position = REM::Vector3f(location.Position());
+			state.HandPoses[hand].AngularVelocity = REM::Vector3f(location.AngularVelocity());
+			state.HandPoses[hand].LinearVelocity = REM::Vector3f(location.Velocity());
+			//state.HandPoses[hand].AngularAcceleration = REM::Vector3f(location.AbsoluteAngularAcceleration());
+			//state.HandPoses[hand].LinearAcceleration = REM::Vector3f(location.AbsoluteLinearAcceleration());
+			state.HandStatusFlags[hand] = ovrStatus_OrientationTracked | ovrStatus_PositionTracked;
 		}
-	}
-	catch (winrt::hresult_error& ex)
-	{
-		OutputDebugStringW(ex.message().c_str());
-		OutputDebugStringW(L"\n");
 	}
 
 	return state;
@@ -473,7 +477,81 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 		return ovrError_InvalidParameter;
 
 	ovrInputState state = { 0 };
-	state.ControllerType = ovrControllerType_Touch;
+	HolographicFramePrediction prediction = session->Frames->GetFrame().CurrentPrediction();
+	PerceptionTimestamp timestamp = prediction.Timestamp();
+	DateTime target = timestamp.TargetTime();
+	state.TimeInSeconds = double(target.time_since_epoch().count()) * 1.0e-7;
+
+	uint32_t connected = 0;
+	auto sources = session->Interaction.GetDetectedSourcesAtTimestamp(timestamp);
+	for (SpatialInteractionSourceState source : sources)
+	{
+		ovrHandType hand = (source.Source().Handedness() == SpatialInteractionSourceHandedness::Right) ? ovrHand_Right : ovrHand_Left;
+		connected |= (hand == ovrHand_Right) ? ovrControllerType_RTouch : ovrControllerType_LTouch;
+
+		DateTime sampleTime = source.Timestamp().TargetTime();
+		state.TimeInSeconds = std::min(double(sampleTime.time_since_epoch().count()) * 1.0e-7, state.TimeInSeconds);
+
+		unsigned int buttons = 0, touches = 0;
+
+		if (source.IsMenuPressed())
+			buttons |= ovrButton_Enter;
+
+		// When we release the grip we need to keep it just a little bit pressed.
+		// This is necessary because Toybox can't handle a sudden jump to zero.
+		state.HandTrigger[hand] = source.IsGrasped() ? 1.0f : 0.01f;
+		state.HandTriggerNoDeadzone[hand] = state.HandTrigger[hand];
+		state.HandTriggerRaw[hand] = state.HandTrigger[hand];
+
+		state.IndexTrigger[hand] = (float)source.SelectPressedValue();
+		state.IndexTriggerNoDeadzone[hand] = state.IndexTrigger[hand];
+		state.IndexTriggerRaw[hand] = state.IndexTrigger[hand];
+
+		SpatialInteractionControllerProperties props = source.ControllerProperties();
+		if (props.IsThumbstickPressed())
+		{
+			buttons |= ovrButton_RThumb;
+			touches |= ovrTouch_RThumb;
+		}
+
+		const float deadzone = REM_DEFAULT_DEADZONE;
+		OVR::Vector2f stickInput((float)props.ThumbstickX(), (float)props.ThumbstickY());
+		state.ThumbstickNoDeadzone[hand] = stickInput;
+		state.ThumbstickRaw[hand] = stickInput;
+
+		const float magnitude = stickInput.Length();
+		if (magnitude < deadzone)
+			stickInput = OVR::Vector2f::Zero();
+		else
+			state.Thumbstick[hand] = stickInput.Normalized() * ((magnitude - deadzone) / (1.0f - deadzone));
+
+		if (props.IsTouchpadTouched())
+		{
+			if (props.TouchpadY() < 0.0f)
+			{
+				touches |= ovrTouch_A;
+				if (props.IsTouchpadPressed())
+					buttons |= ovrButton_A;
+			}
+			else
+			{
+				touches |= ovrTouch_B;
+				if (props.IsTouchpadPressed())
+					buttons |= ovrButton_B;
+			}
+		}
+		else if (source.IsGrasped())
+		{
+			touches |= ovrTouch_RThumbUp;
+			if (source.SelectPressedValue() < 0.1f)
+				touches |= ovrTouch_RIndexPointing;
+		}
+
+		state.Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
+		state.Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
+	}
+
+	state.ControllerType = (ovrControllerType)connected;
 
 	// We need to make sure we don't write outside of the bounds of the struct
 	// when the client expects a pre-1.7 version of LibOVR.
@@ -492,8 +570,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 {
 	REM_TRACE(ovr_GetConnectedControllerTypes);
 
-	// TODO: Get the connected controllers
-	return ovrControllerType_Touch;
+	return session->ConnectedControllers;
 }
 
 OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession session, ovrControllerType controllerType)
