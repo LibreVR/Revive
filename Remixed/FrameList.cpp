@@ -22,13 +22,13 @@ FrameList::FrameList(HolographicSpace space)
 
 HolographicFrame FrameList::GetFrame(long long frameIndex)
 {
-	if (frameIndex <= 0)
+	if (frameIndex <= 0 && frameIndex < m_next_index)
 	{
 		std::shared_lock<std::shared_mutex> lk(m_frame_mutex);
 		return m_frames.back().second;
 	}
 
-	if (m_next_index < frameIndex)
+	if (frameIndex >= m_next_index)
 	{
 		BeginFrame(frameIndex);
 		std::shared_lock<std::shared_mutex> lk(m_frame_mutex);
