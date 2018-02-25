@@ -196,8 +196,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	g_Sessions.emplace_back();
 	ovrSession session = &g_Sessions.back();
 
-	session->Window.reset(new Win32Window());
-	session->Compositor.reset(new CompositorWGL());
+	session->Window = std::make_unique<Win32Window>();
+	session->Compositor = std::make_unique<CompositorWGL>();
 	if (!session->Compositor->InitDevice())
 		return ovrError_RuntimeException;
 
@@ -207,9 +207,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		session->Space.SetDirect3D11Device(session->Compositor->GetDevice());
 		session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation();
 		session->CoordinateSystem = session->Reference.CoordinateSystem();
-		session->Frames.reset(new FrameList(session->Space));
+		session->Frames = std::make_unique<FrameList>(session->Space);
 	}
-	catch (winrt::hresult_invalid_argument& ex)
+	catch (winrt::hresult_error& ex)
 	{
 		OutputDebugStringW(ex.message().c_str());
 		OutputDebugStringW(L"\n");
