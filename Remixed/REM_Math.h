@@ -15,6 +15,8 @@ namespace REM {
 		// Numerics-interop support
 		Vector3f(const winrt::Windows::Foundation::Numerics::float3& s)
 			: OVR::Vector3f(s.x, s.y, s.z) { }
+		Vector3f(const winrt::Windows::Foundation::IReference<winrt::Windows::Foundation::Numerics::float3>& s)
+			: REM::Vector3f(s ? s.Value() : winrt::Windows::Foundation::Numerics::float3::zero()) { }
 
 		operator const winrt::Windows::Foundation::Numerics::float3& () const
 		{
@@ -32,6 +34,8 @@ namespace REM {
 		// Numerics-interop support
 		Quatf(const winrt::Windows::Foundation::Numerics::quaternion& s)
 			: OVR::Quatf(s.x, s.y, s.z, s.w) { }
+		Quatf(const winrt::Windows::Foundation::IReference<winrt::Windows::Foundation::Numerics::quaternion>& s)
+			: REM::Quatf(s ? s.Value() : winrt::Windows::Foundation::Numerics::quaternion::identity()) { }
 
 		operator const winrt::Windows::Foundation::Numerics::quaternion& () const
 		{
@@ -54,6 +58,8 @@ namespace REM {
 				s.m12, s.m22, s.m32, s.m42,
 				s.m13, s.m23, s.m33, s.m43,
 				s.m14, s.m24, s.m34, s.m44) { }
+		Matrix4f(const winrt::Windows::Foundation::IReference<winrt::Windows::Foundation::Numerics::float4x4>& s)
+			: REM::Matrix4f(s ? s.Value() : winrt::Windows::Foundation::Numerics::float4x4::identity()) { }
 
 		operator const winrt::Windows::Foundation::Numerics::float4x4& () const
 		{

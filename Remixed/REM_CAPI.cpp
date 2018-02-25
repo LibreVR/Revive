@@ -28,6 +28,9 @@ using namespace winrt::Windows::Perception;
 #include <winrt/Windows.Perception.Spatial.h>
 using namespace winrt::Windows::Perception::Spatial;
 
+#include <winrt/Windows.UI.Input.Spatial.h>
+using namespace winrt::Windows::UI::Input::Spatial;
+
 #if 0
 #define REM_TRACE(x) OutputDebugStringA(#x "\n");
 #else
@@ -205,6 +208,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	{
 		session->Space = HolographicSpace::CreateForHWND(session->Window->GetWindowHandle());
 		session->Space.SetDirect3D11Device(session->Compositor->GetDevice());
+		session->Interaction = SpatialInteractionManager::GetForHWND(session->Window->GetWindowHandle());
 		session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation();
 		session->CoordinateSystem = session->Reference.CoordinateSystem();
 		session->Frames = std::make_unique<FrameList>(session->Space);
@@ -334,16 +338,17 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	DateTime target(TimeSpan((int64_t)(absTime * 1.0e+7)));
 	PerceptionTimestamp timestamp = PerceptionTimestampHelper::FromHistoricalTargetTime(target);
 
-	SpatialLocation location = locator.TryLocateAtTimestamp(timestamp, session->CoordinateSystem);
-	if (location)
+	SpatialLocation headset = locator.TryLocateAtTimestamp(timestamp, session->CoordinateSystem);
+	if (headset)
 	{
 		// TODO: Figure out a good way to convert the angular quaternions to vectors.
-		state.HeadPose.ThePose.Orientation = REM::Quatf(location.Orientation());
-		state.HeadPose.ThePose.Position = REM::Vector3f(location.Position());
-		//state.HeadPose.AngularVelocity = REM::Quatf(location.AbsoluteAngularVelocity());
-		state.HeadPose.LinearVelocity = REM::Vector3f(location.AbsoluteLinearVelocity());
-		//state.HeadPose.AngularAcceleration = REM::Quatf(location.AbsoluteAngularAcceleration());
-		state.HeadPose.LinearAcceleration = REM::Vector3f(location.AbsoluteLinearAcceleration());
+		state.HeadPose.ThePose.Orientation = REM::Quatf(headset.Orientation());
+		state.HeadPose.ThePose.Position = REM::Vector3f(headset.Position());
+		//state.HeadPose.AngularVelocity = REM::Quatf(headset.AbsoluteAngularVelocity());
+		state.HeadPose.LinearVelocity = REM::Vector3f(headset.AbsoluteLinearVelocity());
+		//state.HeadPose.AngularAcceleration = REM::Quatf(headset.AbsoluteAngularAcceleration());
+		state.HeadPose.LinearAcceleration = REM::Vector3f(headset.AbsoluteLinearAcceleration());
+		state.StatusFlags = ovrStatus_OrientationTracked | ovrStatus_PositionTracked;
 	}
 
 	HolographicFrame frame = session->Frames->GetFrameAtTime(absTime);
@@ -356,11 +361,38 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		leftEye.Invert();
 		state.HeadPose.ThePose.Orientation = REM::Quatf(leftEye);
 		state.HeadPose.ThePose.Position = leftEye.GetTranslation();
+		state.StatusFlags = ovrStatus_OrientationTracked | ovrStatus_PositionTracked;
 	}
 
-	// TODO: Get the hand tracking state
 	state.HandPoses[ovrHand_Left].ThePose = OVR::Posef::Identity();
 	state.HandPoses[ovrHand_Right].ThePose = OVR::Posef::Identity();
+	try
+	{
+		auto sources = session->Interaction.GetDetectedSourcesAtTimestamp(timestamp);
+
+		for (SpatialInteractionSourceState source : sources)
+		{
+			ovrHandType hand = (source.Source().Handedness() == SpatialInteractionSourceHandedness::Right) ? ovrHand_Right : ovrHand_Left;
+			SpatialInteractionSourceLocation location = source.Properties().TryGetLocation(session->CoordinateSystem);
+			if (location)
+			{
+				// TODO: Calculate the angular and linear acceleration.
+				state.HandPoses[hand].ThePose.Orientation = REM::Quatf(location.Orientation());
+				state.HandPoses[hand].ThePose.Position = REM::Vector3f(location.Position());
+				state.HandPoses[hand].AngularVelocity = REM::Vector3f(location.AngularVelocity());
+				state.HandPoses[hand].LinearVelocity = REM::Vector3f(location.Velocity());
+				//state.HandPoses[hand].AngularAcceleration = REM::Vector3f(location.AbsoluteAngularAcceleration());
+				//state.HandPoses[hand].LinearAcceleration = REM::Vector3f(location.AbsoluteLinearAcceleration());
+				state.HandStatusFlags[hand] = ovrStatus_OrientationTracked | ovrStatus_PositionTracked;
+			}
+		}
+	}
+	catch (winrt::hresult_error& ex)
+	{
+		OutputDebugStringW(ex.message().c_str());
+		OutputDebugStringW(L"\n");
+	}
+
 	return state;
 }
 
@@ -441,6 +473,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 		return ovrError_InvalidParameter;
 
 	ovrInputState state = { 0 };
+	state.ControllerType = ovrControllerType_Touch;
 
 	// We need to make sure we don't write outside of the bounds of the struct
 	// when the client expects a pre-1.7 version of LibOVR.
