@@ -149,10 +149,9 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 		if (i == ovrEye_Right)
 		{
 			HolographicStereoTransform transform = session->Frames->GetLocalViewTransform();
-			OVR::Matrix4f offset = REM::Matrix4f(transform.Left).Inverted() * REM::Matrix4f(transform.Right);
-			offset.Invert();
-			eyeDesc.HmdToEyePose.Orientation = OVR::Quatf(offset);
-			eyeDesc.HmdToEyePose.Position = offset.GetTranslation();
+			REM::Matrix4f left(transform.Left), right(transform.Right);
+			eyeDesc.HmdToEyePose.Orientation = OVR::Quatf(left).Inverted() * OVR::Quatf(right);
+			eyeDesc.HmdToEyePose.Position = left.GetTranslation() - right.GetTranslation();
 		}
 
 		// Update the HMD descriptor
@@ -791,10 +790,9 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	if (eyeType == ovrEye_Right)
 	{
 		HolographicStereoTransform transform = session->Frames->GetLocalViewTransform();
-		OVR::Matrix4f offset = REM::Matrix4f(transform.Left).Inverted() * REM::Matrix4f(transform.Right);
-		offset.Invert();
-		desc.HmdToEyePose.Orientation = OVR::Quatf(offset);
-		desc.HmdToEyePose.Position = offset.GetTranslation();
+		REM::Matrix4f left(transform.Left), right(transform.Right);
+		desc.HmdToEyePose.Orientation = OVR::Quatf(left).Inverted() * OVR::Quatf(right);
+		desc.HmdToEyePose.Position = left.GetTranslation() - right.GetTranslation();
 	}
 	return desc;
 }
