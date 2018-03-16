@@ -21,6 +21,9 @@ using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 #include <winrt/Windows.Graphics.Holographic.h>
 using namespace winrt::Windows::Graphics::Holographic;
 
+#include <winrt/Windows.Perception.Spatial.h>
+using namespace winrt::Windows::Perception::Spatial;
+
 #include <winrt/Windows.Foundation.h>
 // Don't import the namespace, it conflicts
 
@@ -205,27 +208,31 @@ void CompositorD3D::RenderTextureSwapChain(ovrSession session, long long frameIn
 		target_desc.Texture2DArray.FirstArraySlice = (UINT)eye;
 		target_desc.Texture2DArray.ArraySize = 1;
 		m_pDevice->CreateRenderTargetView(back_buffer.get(), &target_desc, rtv.put());
-		FLOAT clear[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		FLOAT clear[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
 		m_pContext->ClearRenderTargetView(rtv.get(), clear);
 
-		ID3D11RenderTargetView* targets[] = { rtv.get() };
-		D3D11_VIEWPORT vp = { 0.0f, 0.0f, surface_size.Width, surface_size.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
-		m_pContext->RSSetViewports(1, &vp);
-		m_pContext->OMSetRenderTargets(1, targets, nullptr);
-		m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);
-		m_pContext->RSSetState(nullptr);
+		// Check if we have positional tracking
+		if (pose.TryGetViewTransform(session->CoordinateSystem))
+		{
+			ID3D11RenderTargetView* targets[] = { rtv.get() };
+			D3D11_VIEWPORT vp = { 0.0f, 0.0f, surface_size.Width, surface_size.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+			m_pContext->RSSetViewports(1, &vp);
+			m_pContext->OMSetRenderTargets(1, targets, nullptr);
+			m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);
+			m_pContext->RSSetState(nullptr);
+		
+			// Set and draw the vertices
+			uint32_t stride = sizeof(Vertex);
+			uint32_t offset = 0;
+			m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			m_pContext->IASetInputLayout(m_InputLayout.Get());
+			m_pContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
+			m_pContext->Draw(4, 0);
 
-		// Set and draw the vertices
-		uint32_t stride = sizeof(Vertex);
-		uint32_t offset = 0;
-		m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		m_pContext->IASetInputLayout(m_InputLayout.Get());
-		m_pContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
-		m_pContext->Draw(4, 0);
-
-		// Restore the state objects
-		m_pContext->RSSetState(ras_state);
-		m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
-		m_pContext->IASetPrimitiveTopology(topology);
+			// Restore the state objects
+			m_pContext->RSSetState(ras_state);
+			m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
+			m_pContext->IASetPrimitiveTopology(topology);
+		}
 	}
 }
