@@ -22,6 +22,8 @@ CompositorGL* CompositorGL::Create()
 #ifdef DEBUG
 		glEnable(GL_DEBUG_OUTPUT);
 		glDebugMessageCallback((GLDEBUGPROC)DebugCallback, nullptr);
+#else
+		glDisable(GL_DEBUG_OUTPUT);
 #endif // DEBUG
 		glGetError(); // to clear the error caused deep in GLEW
 		gladInitialized = GL_TRUE;
