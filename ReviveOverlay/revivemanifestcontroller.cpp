@@ -1,5 +1,6 @@
 #include "revivemanifestcontroller.h"
 #include "trayiconcontroller.h"
+#include "openvroverlaycontroller.h"
 #include "openvr.h"
 #include "OVR_CAPI_Keys.h"
 #include "Settings.h"
@@ -113,6 +114,10 @@ CReviveManifestController::CReviveManifestController()
 	, m_defaultsFile(QString(vr::VR_RuntimePath()) + "/resources/settings/default.vrsettings")
 	, m_bLibraryFound(false)
 {
+	m_supportArgs["revive.app.oculus-dreamdeck-nux"] = "/base \"Support/oculus-dreamdeck-nux/Dreamdeck/Binaries/Win64/Dreamdeck-Win64-Shipping.exe\" -vr -dreamdeck=NUX";
+	m_supportArgs["revive.app.oculus-touch-tutorial"] = "/base \"Support/oculus-touch-tutorial/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=nux";
+	m_supportArgs["revive.app.oculus-first-contact"] = "/base \"Support/oculus-touch-tutorial/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=\"experienceonly\"";
+	m_supportArgs["revive.app.oculus-avatar-editor"] = "/base \"Support/oculus-avatar-editor/OVRAvatarEditor.exe\"";
 }
 
 CReviveManifestController::~CReviveManifestController()
@@ -319,6 +324,31 @@ bool CReviveManifestController::removeManifest(const QString &canonicalName)
 	return SaveDocument();
 }
 
+bool CReviveManifestController::LaunchInjector(const QString& args)
+{
+	// Launch the injector with the arguments
+	QProcess injector;
+	injector.setProgram(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe");
+	injector.setNativeArguments(args);
+	injector.start();
+
+	if (!injector.waitForFinished())
+		return false;
+	return injector.exitCode() == 0;
+}
+
+bool CReviveManifestController::LaunchSupportApp(const QString& appKey)
+{
+	if (!m_supportArgs.contains(appKey))
+		return false;
+
+	QString args;
+	if (!COpenVROverlayController::SharedInstance()->BHMDAvailable())
+		args = "/remixed ";
+	args.append(m_supportArgs[appKey]);
+	return LaunchInjector(args);
+}
+
 bool CReviveManifestController::launchApplication(const QString &canonicalName)
 {
 	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
@@ -333,20 +363,19 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 			qWarning("Failed to launch application through OpenVR, falling back to injector: %s (%s)", qUtf8Printable(appKey), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 	}
 
+	if (LaunchSupportApp(appKey))
+		return true;
+
 	// Search for the app in the cached manifest
 	for (QJsonValue app : m_manifest["applications"].toArray())
 	{
 		if (app["app_key"].toString() == appKey)
 		{
-			// Launch the injector with the arguments
-			QProcess injector;
-			injector.setProgram(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe");
-			injector.setNativeArguments(app["arguments"].toString());
-			injector.start();
-
-			if (!injector.waitForFinished())
-				return false;
-			return injector.exitCode() == 0;
+			QString args;
+			if (!COpenVROverlayController::SharedInstance()->BHMDAvailable())
+				args = "/remixed ";
+			args.append(app["arguments"].toString());
+			return LaunchInjector(args);
 		}
 	}
 	return false;

@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QJsonObject>
 #include <QSystemTrayIcon>
+#include <QMap>
 
 class CReviveManifestController : public QObject
 {
@@ -49,6 +50,8 @@ private:
 	bool SetDefaults();
 	bool GetDefaultLibraryPath(wchar_t* path, uint32_t length);
 	bool AddApplicationManifest(QFile& file);
+	bool LaunchSupportApp(const QString& appKey);
+	bool LaunchInjector(const QString& args);
 
 	QFile m_appFile;
 	QFile m_manifestFile;
@@ -56,6 +59,7 @@ private:
 	QFile m_defaultsFile;
 	QDir m_appManifests;
 	QJsonObject m_manifest;
+	QMap<QString, QString> m_supportArgs;
 
 	bool m_bLibraryFound;
 	QString m_strLibraryURL;

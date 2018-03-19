@@ -16,5 +16,5 @@ extern FILE* g_LogFile;
 					printf(x, __VA_ARGS__); \
 					fflush(g_LogFile);
 
-int CreateProcessAndInject(wchar_t *programPath);
-int OpenProcessAndInject(wchar_t *processId);
+int CreateProcessAndInject(wchar_t *programPath, bool remixed);
+int OpenProcessAndInject(wchar_t *processId, bool remixed);

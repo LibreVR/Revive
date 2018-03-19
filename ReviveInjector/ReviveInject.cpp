@@ -4,11 +4,11 @@
 #include <stdlib.h>
 #include <Shlwapi.h>
 
-bool InjectLibRevive(HANDLE hProcess);
+bool InjectLibRevive(HANDLE hProcess, bool remixed);
 bool InjectOpenVR(HANDLE hProcess);
 bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength);
 
-int CreateProcessAndInject(wchar_t *programPath) {
+int CreateProcessAndInject(wchar_t *programPath, bool remixed) {
 	LOG("Creating process: %ls\n", programPath);
 
 	STARTUPINFO si;
@@ -76,7 +76,7 @@ int CreateProcessAndInject(wchar_t *programPath) {
 #endif
 
 	if (!InjectOpenVR(pi.hProcess) ||
-		!InjectLibRevive(pi.hProcess)) {
+		!InjectLibRevive(pi.hProcess, remixed)) {
 		ResumeThread(pi.hThread);
 		return -1;
 	}
@@ -86,7 +86,7 @@ int CreateProcessAndInject(wchar_t *programPath) {
 	return 0;
 }
 
-int OpenProcessAndInject(wchar_t *processId) {
+int OpenProcessAndInject(wchar_t *processId, bool remixed) {
 	LOG("Injecting process handle: %ls\n", processId);
 
 	HANDLE hProcess = (HANDLE)wcstol(processId, nullptr, 0);
@@ -97,7 +97,7 @@ int OpenProcessAndInject(wchar_t *processId) {
 	}
 
 	if (!InjectOpenVR(hProcess) ||
-		!InjectLibRevive(hProcess)) {
+		!InjectLibRevive(hProcess, remixed)) {
 		return -1;
 	}
 
@@ -119,12 +119,23 @@ bool InjectDLL(HANDLE hProcess, const char *dllName) {
 	return InjectDLL(hProcess, dllPath, dllPathLength);
 }
 
-bool InjectLibRevive(HANDLE hProcess) {
+bool InjectLibRevive(HANDLE hProcess, bool remixed) {
+	if (remixed)
+	{
 #if _WIN64
-	return InjectDLL(hProcess, "LibRevive64_1.dll");
+		return InjectDLL(hProcess, "LibRemixed64_1.dll");
 #else
-	return InjectDLL(hProcess, "LibRevive32_1.dll");
+		return InjectDLL(hProcess, "LibRemixed32_1.dll");
 #endif
+	}
+	else
+	{
+#if _WIN64
+		return InjectDLL(hProcess, "LibRevive64_1.dll");
+#else
+		return InjectDLL(hProcess, "LibRevive32_1.dll");
+#endif
+	}
 }
 
 bool InjectOpenVR(HANDLE hProcess) {

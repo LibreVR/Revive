@@ -109,12 +109,17 @@ int wmain(int argc, wchar_t *argv[]) {
 
 	LOG("Launched injector with: %ls\n", GetCommandLine());
 
+	bool remixed = false;
 	WCHAR path[MAX_PATH] = { 0 };
 	for (int i = 1; i < argc; i++)
 	{
-		if (wcscmp(argv[i], L"/handle") == 0)
+		if (wcscmp(argv[i], L"/remixed") == 0)
 		{
-			return OpenProcessAndInject(argv[++i]);
+			remixed = true;
+		}
+		else if (wcscmp(argv[i], L"/handle") == 0)
+		{
+			return OpenProcessAndInject(argv[++i], remixed);
 		}
 		else if (wcscmp(argv[i], L"/base") == 0)
 		{
@@ -136,5 +141,5 @@ int wmain(int argc, wchar_t *argv[]) {
 		wcsncat(path, L" ", MAX_PATH);
 	}
 
-	return CreateProcessAndInject(path);
+	return CreateProcessAndInject(path, remixed);
 }
