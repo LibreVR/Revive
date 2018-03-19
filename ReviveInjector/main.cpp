@@ -137,8 +137,8 @@ int wmain(int argc, wchar_t *argv[]) {
 		{
 			// Concatenate all other arguments
 			wcsncat(path, argv[i], MAX_PATH);
+			wcsncat(path, L" ", MAX_PATH);
 		}
-		wcsncat(path, L" ", MAX_PATH);
 	}
 
 	return CreateProcessAndInject(path, remixed);
