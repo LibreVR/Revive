@@ -238,6 +238,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		session->ConnectedControllers &= ~(uint32_t)state.Source().Handedness();
 	});
 
+	SpatialStageFrameOfReference::CurrentChanged([=](winrt::Windows::Foundation::IUnknown sender, winrt::Windows::Foundation::IUnknown args)
+	{
+		session->ShouldRecenter = true;
+	});
+
 	*pSession = session;
 	return ovrSuccess;
 }
@@ -274,7 +279,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	// TODO: Detect these bits
 	sessionStatus->DisplayLost = false;
 	sessionStatus->ShouldQuit = false;
-	sessionStatus->ShouldRecenter = false;
+	sessionStatus->ShouldRecenter = session->ShouldRecenter;
 	sessionStatus->HasInputFocus = true;
 	sessionStatus->OverlayPresent = false;
 
@@ -313,9 +318,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
+	session->ShouldRecenter = false;
 	session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation(session->OriginPosition, session->OriginOrientation);
-	if (session->Origin == ovrTrackingOrigin_FloorLevel)
-		session->CoordinateSystem = SpatialStageFrameOfReference::Current().CoordinateSystem();
+	SpatialStageFrameOfReference stage = SpatialStageFrameOfReference::Current();
+	if (session->Origin == ovrTrackingOrigin_FloorLevel && stage)
+		session->CoordinateSystem = stage.CoordinateSystem();
 	else
 		session->CoordinateSystem = session->Reference.CoordinateSystem();
 	return ovrSuccess;

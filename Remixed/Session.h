@@ -31,4 +31,5 @@ struct ovrHmdStruct
 	std::unique_ptr<Win32Window> Window = nullptr;
 
 	std::atomic_uint32_t ConnectedControllers = 0;
+	std::atomic_bool ShouldRecenter = false;
 };
