@@ -17,7 +17,7 @@ Win32Window::Win32Window()
 	wc.hInstance = revModule;
 	wc.lpszClassName = L"Remixed";
 	wc.lpfnWndProc = WindowProc;
-	_ASSERT(RegisterClassW(&wc));
+	RegisterClassW(&wc);
 
 	m_hWnd = CreateWindowW(wc.lpszClassName, L"Remixed", 0, 0, 0, 0, 0, 0, 0, revModule, 0);
 }
