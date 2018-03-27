@@ -3,12 +3,13 @@
 # else
 #  include <windows.h>
 # endif
+#include "version.h"
 
 IDI_ICON1	ICON	DISCARDABLE	"revive_white.ico"
 
 VS_VERSION_INFO VERSIONINFO
-	FILEVERSION 1,2,1,0
-	PRODUCTVERSION 1,2,1,0
+	FILEVERSION REV_MAJOR_VERSION,REV_MINOR_VERSION,REV_PATCH_VERSION,REV_BUILD_NUMBER
+	PRODUCTVERSION REV_MAJOR_VERSION,REV_MINOR_VERSION,REV_PATCH_VERSION,REV_BUILD_NUMBER
 	FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
 	FILEFLAGS VS_FF_DEBUG
@@ -25,11 +26,11 @@ VS_VERSION_INFO VERSIONINFO
 			BEGIN
 				VALUE "CompanyName", "LibreVR\0"
 				VALUE "FileDescription", "\0"
-				VALUE "FileVersion", "1.2.2.1\0"
+				VALUE "FileVersion", REV_VERSION_STRING
 				VALUE "LegalCopyright", "\0"
 				VALUE "OriginalFilename", "ReviveOverlay.exe\0"
 				VALUE "ProductName", "Revive\0"
-				VALUE "ProductVersion", "1.2.2.1\0"
+				VALUE "ProductVersion", REV_VERSION_STRING
 			END
 		END
 		BLOCK "VarFileInfo"

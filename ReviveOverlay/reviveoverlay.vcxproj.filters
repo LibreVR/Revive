@@ -176,4 +176,9 @@
   <ItemGroup>
     <ResourceCompile Include="C:\Source\revive\ReviveOverlay\ReviveOverlay_resource.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
