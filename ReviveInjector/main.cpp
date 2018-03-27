@@ -125,13 +125,13 @@ int wmain(int argc, wchar_t *argv[]) {
 		{
 			if (!GetOculusBasePath(path, MAX_PATH))
 				return -1;
-			wnsprintf(path, MAX_PATH, L"%s\\%s", path, argv[++i]);
+			wnsprintf(path, MAX_PATH, L"%s\\%s ", path, argv[++i]);
 		}
 		else if (wcscmp(argv[i], L"/library") == 0)
 		{
 			if (!GetDefaultLibraryPath(path, MAX_PATH))
 				return -1;
-			wnsprintf(path, MAX_PATH, L"%s\\%s", path, argv[++i]);
+			wnsprintf(path, MAX_PATH, L"%s\\%s ", path, argv[++i]);
 		}
 		else
 		{
