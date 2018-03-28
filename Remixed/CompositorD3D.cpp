@@ -149,6 +149,9 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 void CompositorD3D::RenderTextureSwapChain(ovrSession session, long long frameIndex, ovrEyeType eye, ovrTextureSwapChain swapChain, ovrRecti viewport)
 {
 	HolographicFrame frame = session->Frames->GetFrame(frameIndex);
+	if (!frame)
+		return;
+
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	for (HolographicCameraPose pose : prediction.CameraPoses())
 	{

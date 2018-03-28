@@ -350,6 +350,8 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	SpatialLocator locator = SpatialLocator::GetDefault();
 	state.HeadPose.TimeInSeconds = absTime;
 	state.HeadPose.ThePose = OVR::Posef::Identity();
+	state.HandPoses[ovrHand_Left].ThePose = OVR::Posef::Identity();
+	state.HandPoses[ovrHand_Right].ThePose = OVR::Posef::Identity();
 
 	// Even though it's called FromHistoricalTargetTime() it seems to accept future target times as well.
 	// This is important as it's the only convenient way to go back from DateTime to PerceptionTimestamp.
@@ -371,6 +373,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	}
 
 	HolographicFrame frame = session->Frames->GetFrameAtTime(absTime);
+	if (!frame)
+		return state;
+
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
 	IReference<HolographicStereoTransform> transform = pose.TryGetViewTransform(session->CoordinateSystem);
@@ -383,8 +388,6 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		state.StatusFlags = ovrStatus_OrientationTracked | ovrStatus_PositionTracked;
 	}
 
-	state.HandPoses[ovrHand_Left].ThePose = OVR::Posef::Identity();
-	state.HandPoses[ovrHand_Right].ThePose = OVR::Posef::Identity();
 	auto sources = session->Interaction.GetDetectedSourcesAtTimestamp(timestamp);
 	for (SpatialInteractionSourceState source : sources)
 	{
@@ -936,6 +939,9 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	REM_TRACE(ovr_GetPredictedDisplayTime);
 
 	HolographicFrame frame = session->Frames->GetFrame(frameIndex);
+	if (!frame)
+		return ovr_GetTimeInSeconds();
+
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	PerceptionTimestamp timestamp = prediction.Timestamp();
 	DateTime target = timestamp.TargetTime();

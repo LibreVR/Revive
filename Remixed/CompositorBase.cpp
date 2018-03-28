@@ -74,7 +74,9 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
-	session->Frames->GetFrame(frameIndex - 1).WaitForFrameToFinish();
+	HolographicFrame frame = session->Frames->GetFrame(frameIndex - 1);
+	if (frame)
+		frame.WaitForFrameToFinish();
 	session->Frames->EndFrame(frameIndex - 1);
 	return ovrSuccess;
 }
@@ -116,6 +118,9 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	}
 
 	HolographicFrame frame = session->Frames->GetFrame(frameIndex);
+	if (!frame)
+		return ovrSuccess;
+
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
 	HolographicCamera cam = pose.HolographicCamera();

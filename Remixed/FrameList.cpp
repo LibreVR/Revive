@@ -37,6 +37,9 @@ HolographicFrame FrameList::GetFrame(long long frameIndex)
 	else
 	{
 		std::shared_lock<std::shared_mutex> lk(m_frame_mutex);
+		if (frameIndex < m_frames.front().first)
+			return nullptr;
+
 		auto it = m_frames.begin();
 		while (it != m_frames.end() && it->first < frameIndex)
 			it++;
@@ -77,6 +80,9 @@ void FrameList::EndFrame(long long frameIndex)
 {
 	std::unique_lock<std::shared_mutex> lk(m_frame_mutex);
 	if (m_frames.empty())
+		return;
+
+	if (frameIndex < m_frames.front().first)
 		return;
 
 	if (frameIndex <= 0)
