@@ -8,32 +8,23 @@
 			<title>Version 1.2.0</title>
 			<description>
 			<![CDATA[
-			<p>This release fixes Oculus library scanning for the new Core 2.0 release. Please note that Revive only supports scanning your default library right now, support for multiple libraries will come in a later version.</p>
-
-			<p>Oculus Home Classic is no longer supported, make sure you're running the latest version of the Oculus software.</p>
-
 			<h2>Changes</h2>
 
 			<ul>
-			    <li>Added support for scanning Oculus Core 2.0 libraries</li>
-			    <li>Updated to Qt 5.10</li>
+			    <li>Updated to Oculus SDK 1.24</li>
 			</ul>
 
 			<h2>Bug fixes</h2>
 
 			<ul>
-			    <li>Fixed floor level issues when recentering in a seated experience</li>
-			    <li>Fixed Grip toggle state not affecting touch gestures</li>
-			    <li>Fixed Trigger-as-Grip not allowing you to fire guns or use touch gestures (#913)</li>
-			    <li>Fixed 2D overlays not being placed relative to the seated position (Contributed by LukeRoss00) (#908)</li>
-			    <li>Fixed WMR headsets rendering everything in monoscopic (#893)</li>
+			    <li>Oculus Medium crashing on startup (#922)</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>28 January 2018</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.2.1/ReviveInstaller.exe"
+			<pubDate>27 March 2018</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.2.2/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.2.1.0"
+					   sparkle:version="1.2.2.2"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
