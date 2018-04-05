@@ -81,6 +81,9 @@
     <ClCompile Include="TextureWGL.cpp">
       <Filter>Source Files\LibRemixed</Filter>
     </ClCompile>
+    <ClCompile Include="TrackingManager.cpp">
+      <Filter>Source Files\LibRemixed</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Session.h">
@@ -111,6 +114,9 @@
       <Filter>Header Files\LibRemixed</Filter>
     </ClInclude>
     <ClInclude Include="TextureWGL.h">
+      <Filter>Header Files\LibRemixed</Filter>
+    </ClInclude>
+    <ClInclude Include="TrackingManager.h">
       <Filter>Header Files\LibRemixed</Filter>
     </ClInclude>
   </ItemGroup>

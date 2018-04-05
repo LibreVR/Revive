@@ -104,15 +104,3 @@ HolographicCameraPose FrameList::GetPose(long long frameIndex, uint32_t displayI
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	return prediction.CameraPoses().GetAt(displayIndex);
 }
-
-HolographicStereoTransform FrameList::GetLocalViewTransform(long long frameIndex, uint32_t displayIndex)
-{
-	HolographicFrame frame = GetFrame(frameIndex);
-	HolographicFramePrediction prediction = frame.CurrentPrediction();
-	HolographicCameraPose pose = prediction.CameraPoses().GetAt(displayIndex);
-
-	SpatialLocatorAttachedFrameOfReference reference = SpatialLocator::GetDefault().CreateAttachedFrameOfReferenceAtCurrentHeading();
-	IReference<HolographicStereoTransform> ref = pose.TryGetViewTransform(reference.GetStationaryCoordinateSystemAtTimestamp(prediction.Timestamp()));
-	assert(ref);
-	return ref.Value();
-}

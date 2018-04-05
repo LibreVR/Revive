@@ -2,12 +2,12 @@
 #include "TextureBase.h"
 #include "CompositorWGL.h"
 #include "FrameList.h"
+#include "TrackingManager.h"
 #include "Win32Window.h"
 
 #include "OVR_CAPI.h"
 #include "OVR_Version.h"
-#include "Extras/OVR_Math.h"
-#include "REM_MATH.h"
+#include "REM_Math.h"
 #include "microprofile.h"
 
 #include <Windows.h>
@@ -148,9 +148,9 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 		eyeDesc.HmdToEyePose = OVR::Posef::Identity();
 		if (i == ovrEye_Right)
 		{
-			HolographicStereoTransform transform = session->Frames->GetLocalViewTransform();
+			HolographicStereoTransform transform = session->Tracking->GetLocalViewTransform(session->Frames->GetFrame());
 			REM::Matrix4f left(transform.Left), right(transform.Right);
-			eyeDesc.HmdToEyePose.Orientation = OVR::Quatf(left).Inverted() * OVR::Quatf(right);
+			eyeDesc.HmdToEyePose.Orientation = OVR::Quatf(left) * OVR::Quatf(right).Inverted();
 			eyeDesc.HmdToEyePose.Position = left.GetTranslation() - right.GetTranslation();
 		}
 
@@ -209,9 +209,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		session->Space = HolographicSpace::CreateForHWND(session->Window->GetWindowHandle());
 		session->Space.SetDirect3D11Device(session->Compositor->GetDevice());
 		session->Interaction = SpatialInteractionManager::GetForHWND(session->Window->GetWindowHandle());
-		session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation();
-		session->CoordinateSystem = session->Reference.CoordinateSystem();
 		session->Frames = std::make_unique<FrameList>(session->Space);
+		session->Tracking = std::make_unique<TrackingManager>();
 	}
 	catch (winrt::hresult_error& ex)
 	{
@@ -236,11 +235,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	{
 		SpatialInteractionSourceState state = event.State();
 		session->ConnectedControllers &= ~(uint32_t)state.Source().Handedness();
-	});
-
-	SpatialStageFrameOfReference::CurrentChanged([=](winrt::Windows::Foundation::IUnknown sender, winrt::Windows::Foundation::IUnknown args)
-	{
-		session->ShouldRecenter = true;
 	});
 
 	*pSession = session;
@@ -279,7 +273,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	// TODO: Detect these bits
 	sessionStatus->DisplayLost = false;
 	sessionStatus->ShouldQuit = false;
-	sessionStatus->ShouldRecenter = session->ShouldRecenter;
+	sessionStatus->ShouldRecenter = session->Tracking->ShouldRecenter();
 	sessionStatus->HasInputFocus = true;
 	sessionStatus->OverlayPresent = false;
 
@@ -293,11 +287,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 	if (!session)
 		return ovrError_InvalidSession;
 
-	session->Origin = origin;
-	session->OriginPosition = Numerics::float3::zero();
-	if (origin == ovrTrackingOrigin_FloorLevel)
-		session->OriginPosition.y = -OVR_DEFAULT_PLAYER_HEIGHT;
-	ovr_RecenterTrackingOrigin(session);
+	session->Tracking->UseFloorLevelFrameOfReference(origin == ovrTrackingOrigin_FloorLevel);
 	return ovrSuccess;
 }
 
@@ -305,10 +295,10 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 {
 	REM_TRACE(ovr_GetTrackingOriginType);
 
-	if (!session)
-		return ovrTrackingOrigin_EyeLevel;
+	if (session && session->Tracking->UsingFloorLevel())
+		return ovrTrackingOrigin_FloorLevel;
 
-	return session->Origin;
+	return ovrTrackingOrigin_EyeLevel;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
@@ -318,21 +308,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	session->ShouldRecenter = false;
-	session->Reference = SpatialLocator::GetDefault().CreateStationaryFrameOfReferenceAtCurrentLocation(session->OriginPosition, session->OriginOrientation);
-	SpatialStageFrameOfReference stage = SpatialStageFrameOfReference::Current();
-	if (session->Origin == ovrTrackingOrigin_FloorLevel && stage)
-		session->CoordinateSystem = stage.CoordinateSystem();
-	else
-		session->CoordinateSystem = session->Reference.CoordinateSystem();
+	session->Tracking->RecenterTrackingOrigin();
 	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovrPosef originPose)
 {
-	session->OriginPosition = REM::Vector3f(originPose.Position);
-	session->OriginOrientation = REM::Quatf(originPose.Orientation);
-	ovr_RecenterTrackingOrigin(session);
+	session->Tracking->RecenterTrackingOrigin(REM::Vector3f(originPose.Position), REM::Quatf(originPose.Orientation));
 	return ovrSuccess;
 }
 
@@ -352,14 +334,15 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	state.HeadPose.ThePose = OVR::Posef::Identity();
 	state.HandPoses[ovrHand_Left].ThePose = OVR::Posef::Identity();
 	state.HandPoses[ovrHand_Right].ThePose = OVR::Posef::Identity();
+	state.StatusFlags = ovrStatus_OrientationTracked;
 
-	// Even though it's called FromHistoricalTargetTime() it seems to accept future target times as well.
-	// This is important as it's the only convenient way to go back from DateTime to PerceptionTimestamp.
-	// TODO: This can be replaced by GetFrameAtTime() now.
-	DateTime target(TimeSpan((int64_t)(absTime * 1.0e+7)));
-	PerceptionTimestamp timestamp = PerceptionTimestampHelper::FromHistoricalTargetTime(target);
+	HolographicFrame frame = session->Frames->GetFrameAtTime(absTime);
+	if (!frame)
+		return state;
 
-	SpatialLocation headset = locator.TryLocateAtTimestamp(timestamp, session->CoordinateSystem);
+	HolographicFramePrediction prediction = frame.CurrentPrediction();
+	PerceptionTimestamp timestamp = prediction.Timestamp();
+	SpatialLocation headset = locator.TryLocateAtTimestamp(timestamp, session->Tracking->CoordinateSystem());
 	if (headset)
 	{
 		// TODO: Figure out a good way to convert the angular quaternions to vectors.
@@ -372,27 +355,17 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		state.StatusFlags = ovrStatus_OrientationTracked | ovrStatus_PositionTracked;
 	}
 
-	HolographicFrame frame = session->Frames->GetFrameAtTime(absTime);
-	if (!frame)
-		return state;
-
-	HolographicFramePrediction prediction = frame.CurrentPrediction();
-	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
-	IReference<HolographicStereoTransform> transform = pose.TryGetViewTransform(session->CoordinateSystem);
-	if (transform)
-	{
-		REM::Matrix4f leftEye(transform.Value().Left);
-		leftEye.Invert();
-		state.HeadPose.ThePose.Orientation = REM::Quatf(leftEye);
-		state.HeadPose.ThePose.Position = leftEye.GetTranslation();
-		state.StatusFlags = ovrStatus_OrientationTracked | ovrStatus_PositionTracked;
-	}
+	HolographicStereoTransform transform = session->Tracking->GetViewTransform(frame);
+	REM::Matrix4f leftEye(transform.Left);
+	leftEye.Invert();
+	state.HeadPose.ThePose.Orientation = REM::Quatf(leftEye);
+	state.HeadPose.ThePose.Position = leftEye.GetTranslation();
 
 	auto sources = session->Interaction.GetDetectedSourcesAtTimestamp(timestamp);
 	for (SpatialInteractionSourceState source : sources)
 	{
 		ovrHandType hand = (source.Source().Handedness() == SpatialInteractionSourceHandedness::Right) ? ovrHand_Right : ovrHand_Left;
-		SpatialInteractionSourceLocation location = source.Properties().TryGetLocation(session->CoordinateSystem);
+		SpatialInteractionSourceLocation location = source.Properties().TryGetLocation(session->Tracking->CoordinateSystem());
 		if (location)
 		{
 			// TODO: Calculate the angular and linear acceleration.
@@ -799,9 +772,9 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	desc.HmdToEyePose = OVR::Posef::Identity();
 	if (eyeType == ovrEye_Right)
 	{
-		HolographicStereoTransform transform = session->Frames->GetLocalViewTransform();
+		HolographicStereoTransform transform = session->Tracking->GetLocalViewTransform(session->Frames->GetFrame());
 		REM::Matrix4f left(transform.Left), right(transform.Right);
-		desc.HmdToEyePose.Orientation = OVR::Quatf(left).Inverted() * OVR::Quatf(right);
+		desc.HmdToEyePose.Orientation = OVR::Quatf(left) * OVR::Quatf(right).Inverted();
 		desc.HmdToEyePose.Position = left.GetTranslation() - right.GetTranslation();
 	}
 	return desc;
