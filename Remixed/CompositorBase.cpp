@@ -11,9 +11,6 @@
 #include <winrt/Windows.Graphics.Holographic.h>
 using namespace winrt::Windows::Graphics::Holographic;
 
-#include <winrt/Windows.Perception.Spatial.h>
-using namespace winrt::Windows::Perception::Spatial;
-
 MICROPROFILE_DEFINE(WaitToBeginFrame, "Compositor", "WaitFrame", 0x00ff00);
 MICROPROFILE_DEFINE(BeginFrame, "Compositor", "BeginFrame", 0x00ff00);
 MICROPROFILE_DEFINE(EndFrame, "Compositor", "EndFrame", 0x00ff00);
@@ -136,8 +133,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 
 	MicroProfileFlip();
 
-	SpatialLocatability loc = SpatialLocator::GetDefault().Locatability();
-	return (loc == SpatialLocatability::PositionalTrackingActive) ? ovrSuccess : ovrSuccess_NotVisible;
+	return ovrSuccess;
 }
 
 ovrLayerEyeFov CompositorBase::ToFovLayer(ovrLayerEyeMatrix* matrix)
