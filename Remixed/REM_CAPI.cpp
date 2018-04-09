@@ -523,9 +523,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 					buttons |= ovrButton_B;
 			}
 		}
-		else if (source.IsGrasped())
+
+		if (source.IsGrasped())
 		{
-			touches |= ovrTouch_RThumbUp;
+			if (!props.IsTouchpadTouched())
+				touches |= ovrTouch_RThumbUp;
 			if (source.SelectPressedValue() < 0.1f)
 				touches |= ovrTouch_RIndexPointing;
 		}
