@@ -361,6 +361,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	state.HeadPose.ThePose.Orientation = REM::Quatf(leftEye);
 	state.HeadPose.ThePose.Position = leftEye.GetTranslation();
 
+	static const REM::Quatf OrientationOffset(OVR::Axis_X, -MATH_FLOAT_PIOVER4);
 	auto sources = session->Interaction.GetDetectedSourcesAtTimestamp(timestamp);
 	for (SpatialInteractionSourceState source : sources)
 	{
@@ -369,7 +370,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		if (location)
 		{
 			// TODO: Calculate the angular and linear acceleration.
-			state.HandPoses[hand].ThePose.Orientation = REM::Quatf(location.Orientation());
+			state.HandPoses[hand].ThePose.Orientation = REM::Quatf(location.Orientation()) * OrientationOffset;
 			state.HandPoses[hand].ThePose.Position = REM::Vector3f(location.Position());
 			state.HandPoses[hand].AngularVelocity = REM::Vector3f(location.AngularVelocity());
 			state.HandPoses[hand].LinearVelocity = REM::Vector3f(location.Velocity());
