@@ -66,12 +66,10 @@ TextureBase* CompositorGL::CreateTexture()
 
 void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
-	uint32_t width, height;
-	vr::VRSystem()->GetRecommendedRenderTargetSize(&width, &height);
-
-	GLint drawFboId = 0, readFboId = 0;
+	GLint drawFboId = 0, readFboId = 0, texId = 0;
 	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
 	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFboId);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &texId);
 
 	TextureGL* texture = (TextureGL*)mirrorTexture->Texture.get();
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, texture->Framebuffer);
@@ -79,6 +77,11 @@ void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		vr::VRCompositor()->LockGLSharedTextureForAccess(m_mirror[i].second);
+
+		GLint width, height;
+		glBindTexture(GL_TEXTURE_2D, m_mirror[i].first);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
 
 		// Bind the buffer to copy from the compositor to the mirror texture
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_mirrorFB[i]);
@@ -88,6 +91,7 @@ void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 		vr::VRCompositor()->UnlockGLSharedTextureForAccess(m_mirror[i].second);
 	}
 
+	glBindTexture(GL_TEXTURE_2D, texId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
 }
