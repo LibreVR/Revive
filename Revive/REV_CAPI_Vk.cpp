@@ -141,7 +141,13 @@ ovr_GetSessionPhysicalDeviceVk(
 	return physicalDevice ? ovrSuccess : ovrError_MismatchedAdapters;
 }
 
+#undef ovr_SetSynchonizationQueueVk
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetSynchonizationQueueVk(ovrSession session, VkQueue queue)
+{
+	return ovr_SetSynchronizationQueueVk(session, queue);
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetSynchronizationQueueVk(ovrSession session, VkQueue queue)
 {
 	CompositorVk* compositor = dynamic_cast<CompositorVk*>(session->Compositor.get());
 

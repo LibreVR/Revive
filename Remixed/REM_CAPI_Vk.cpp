@@ -34,7 +34,13 @@ ovr_GetSessionPhysicalDeviceVk(
 	return ovrError_Unsupported;
 }
 
+#undef ovr_SetSynchonizationQueueVk
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetSynchonizationQueueVk(ovrSession session, VkQueue queue)
+{
+	return ovr_SetSynchronizationQueueVk(session, queue);
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetSynchronizationQueueVk(ovrSession session, VkQueue queue)
 {
 	return ovrError_Unsupported;
 }
