@@ -2,6 +2,8 @@
 
 #include <list>
 #include <atomic>
+#include <thread>
+#include "rcu_ptr.h"
 
 #include <openvr.h>
 #include <OVR_CAPI.h>
@@ -21,8 +23,6 @@ struct InputSettings
 class SettingsManager
 {
 public:
-	std::atomic<InputSettings*> Input;
-
 	SettingsManager();
 	~SettingsManager();
 
@@ -30,11 +30,15 @@ public:
 	std::string GetInputScript();
 	template<typename T> T Get(const char* key, T defaultVal);
 
+	rcu_ptr<InputSettings> Input;
+
 private:
 	char m_Section[vr::k_unMaxApplicationKeyLength];
+	std::shared_ptr<InputSettings> m_WorkingCopy;
 
-	// We keep a list of all instances, but we don't garbage collect them.
-	// These structures rarely change, the app is short-lived and RCU is hard.
-	std::list<InputSettings> InputSettingsList;
+	bool m_Running;
+	std::thread m_Thread;
+
 	bool FileExists(const char* path);
+	static void SettingThreadFunc(SettingsManager* settings);
 };

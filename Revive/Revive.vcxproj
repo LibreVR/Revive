@@ -230,6 +230,7 @@
     <ClInclude Include="CompositorVk.h" />
     <ClInclude Include="HapticsBuffer.h" />
     <ClInclude Include="OVR_CAPI.h" />
+    <ClInclude Include="rcu_ptr.h" />
     <ClInclude Include="REV_Math.h" />
     <ClInclude Include="SessionDetails.h" />
     <ClInclude Include="InputManager.h" />

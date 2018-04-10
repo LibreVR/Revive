@@ -1,24 +1,41 @@
 #include "SettingsManager.h"
 #include "Settings.h"
 #include "REV_Math.h"
+#include "OVR_CAPI.h"
 
 #include <Windows.h>
 #include <Shlobj.h>
 #include <atlbase.h>
-#include <OVR_CAPI.h>
+
+void SettingsManager::SettingThreadFunc(SettingsManager* settings)
+{
+	while (settings->m_Running)
+	{
+		std::chrono::microseconds freq(std::chrono::milliseconds(100));
+		settings->ReloadSettings();
+		std::this_thread::sleep_for(freq);
+	}
+}
 
 SettingsManager::SettingsManager()
-	: m_Section()
+	: Input(std::make_shared<InputSettings>())
+	, m_WorkingCopy(std::make_shared<InputSettings>())
+	, m_Section()
+	, m_Running(true)
 {
 	DWORD procId = GetCurrentProcessId();
 	vr::EVRApplicationError err = vr::VRApplications()->GetApplicationKeyByProcessId(procId, m_Section, vr::k_unMaxApplicationKeyLength);
 	if (err != vr::VRApplicationError_None)
 		strcpy(m_Section, REV_SETTINGS_SECTION);
-	ReloadSettings();
+
+	m_Thread = std::thread(SettingThreadFunc, this);
 }
 
 SettingsManager::~SettingsManager()
 {
+	m_Running = false;
+	if (m_Thread.joinable())
+		m_Thread.join();
 }
 
 template<> float SettingsManager::Get<float>(const char* key, float defaultVal)
@@ -60,12 +77,10 @@ template<> const char* SettingsManager::Get<const char*>(const char* key, const 
 
 void SettingsManager::ReloadSettings()
 {
-	InputSettings s = {
-		Get<float>(REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE),
-		(revGripType)Get<int>(REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP),
-		Get<bool>(REV_KEY_TRIGGER_GRIP, REV_DEFAULT_TRIGGER_GRIP),
-		Get<float>(REV_KEY_TOGGLE_DELAY, REV_DEFAULT_TOGGLE_DELAY)
-	};
+	m_WorkingCopy->Deadzone = Get<float>(REV_KEY_THUMB_DEADZONE, REV_DEFAULT_THUMB_DEADZONE);
+	m_WorkingCopy->ToggleGrip = (revGripType)Get<int>(REV_KEY_TOGGLE_GRIP, REV_DEFAULT_TOGGLE_GRIP);
+	m_WorkingCopy->ToggleDelay = Get<float>(REV_KEY_TOGGLE_DELAY, REV_DEFAULT_TOGGLE_DELAY);
+	m_WorkingCopy->TriggerAsGrip = Get<bool>(REV_KEY_TRIGGER_GRIP, REV_DEFAULT_TRIGGER_GRIP);
 
 	OVR::Vector3f angles(
 		OVR::DegreeToRad(Get<float>(REV_KEY_TOUCH_PITCH, REV_DEFAULT_TOUCH_PITCH)),
@@ -94,12 +109,11 @@ void SettingsManager::ReloadSettings()
 
 		OVR::Matrix4f matrix(yaw * pitch * roll);
 		matrix.SetTranslation(offset);
-		memcpy(s.TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
+		memcpy(m_WorkingCopy->TouchOffset[i].m, matrix.M, sizeof(vr::HmdMatrix34_t));
 	}
 
-	// Add the state to the list and update the pointer
-	InputSettingsList.push_back(s);
-	Input = &InputSettingsList.back();
+	// Swap the input settings pointers
+	Input.swap(m_WorkingCopy);
 }
 
 bool SettingsManager::FileExists(const char* path)

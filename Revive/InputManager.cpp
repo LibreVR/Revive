@@ -6,6 +6,7 @@
 #include "CompositorBase.h"
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
+#include "rcu_ptr.h"
 
 #include <openvr.h>
 #include <Windows.h>
@@ -308,7 +309,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	outState->StatusFlags = TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
 
 	// Convert the hand poses
-	InputSettings* settings = session->Settings->Input;
+	rcu_ptr<InputSettings> settings = session->Settings->Input;
 	vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
 		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 	for (int i = 0; i < ovrHand_Count; i++)
@@ -495,7 +496,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	vr::TrackedDeviceIndex_t index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(m_Role);
 	ovrHandType hand = (m_Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
 
-	InputSettings* settings = session->Settings->Input;
+	rcu_ptr<InputSettings> settings = session->Settings->Input;
 	lua_State* L = m_Script.load();
 
 	if (!L || index == vr::k_unTrackedDeviceIndexInvalid)
