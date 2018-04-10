@@ -1,11 +1,11 @@
 #pragma once
 
 #include <map>
-#include <list>
 #include <atomic>
-
 #include <openvr.h>
-#include <OVR_CAPI.h>
+
+#include "OVR_CAPI.h"
+#include "rcu_ptr.h"
 
 class SessionDetails
 {
@@ -39,12 +39,12 @@ public:
 
 	bool UseHack(Hack hack);
 
-	std::atomic<ovrHmdDesc*> HmdDesc;
-	std::atomic<ovrEyeRenderDesc*> RenderDesc[ovrEye_Count];
+	rcu_ptr<ovrHmdDesc> HmdDesc;
+	rcu_ptr<ovrEyeRenderDesc> RenderDesc[ovrEye_Count];
 	void UpdateHmdDesc();
 
 	std::atomic_uint32_t TrackerCount;
-	std::atomic<ovrTrackerDesc*> TrackerDesc[vr::k_unMaxTrackedDeviceCount];
+	rcu_ptr<ovrTrackerDesc> TrackerDesc[vr::k_unMaxTrackedDeviceCount];
 	void UpdateTrackerDesc();
 
 private:
@@ -58,10 +58,4 @@ private:
 
 	static HackInfo m_known_hacks[];
 	std::map<Hack, HackInfo> m_hacks;
-
-	// We keep a list of all instances, but we don't garbage collect them.
-	// These structures rarely change, the app is short-lived and RCU is hard.
-	std::list<ovrHmdDesc> HmdDescList;
-	std::list<ovrEyeRenderDesc> RenderDescList;
-	std::list<ovrTrackerDesc> TrackerDescList;
 };

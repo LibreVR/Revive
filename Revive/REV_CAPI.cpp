@@ -9,6 +9,7 @@
 #include "InputManager.h"
 #include "Settings.h"
 #include "SettingsManager.h"
+#include "rcu_ptr.h"
 
 #include <dxgi1_2.h>
 #include <openvr.h>
@@ -137,7 +138,8 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 		return desc;
 	}
 
-	return *session->Details->HmdDesc;
+	rcu_ptr<ovrHmdDesc> pDesc = session->Details->HmdDesc;
+	return *pDesc;
 }
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
@@ -160,7 +162,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsig
 	if (!session)
 		return ovrTrackerDesc();
 
-	ovrTrackerDesc* pDesc = session->Details->TrackerDesc[trackerDescIndex];
+	rcu_ptr<ovrTrackerDesc> pDesc = session->Details->TrackerDesc[trackerDescIndex];
 
 	if (!pDesc)
 		return ovrTrackerDesc();
@@ -734,7 +736,7 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	REV_TRACE(ovr_GetFovTextureSize);
 
 	// Get the descriptor for this eye
-	ovrEyeRenderDesc* desc = session->Details->RenderDesc[eye];
+	rcu_ptr<ovrEyeRenderDesc> desc = session->Details->RenderDesc[eye];
 	ovrSizei size = desc->DistortedViewport.Size;
 
 	// Grow the recommended size to account for the overlapping fov
@@ -751,7 +753,11 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	REV_TRACE(ovr_GetRenderDesc);
 
 	// Make a copy so we can adjust a few parameters
-	ovrEyeRenderDesc desc = *session->Details->RenderDesc[eyeType];
+	ovrEyeRenderDesc desc;
+	{
+		rcu_ptr<ovrEyeRenderDesc> pDesc = session->Details->RenderDesc[eyeType];
+		desc = *pDesc;
+	}
 
 	// Adjust the descriptor for the supplied field-of-view
 	desc.Fov = fov;
@@ -988,7 +994,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	if (session && frameIndex > 0)
 	{
 		// Some applications ask for frames ahead of the current frame
-		ovrHmdDesc* pHmd = session->Details->HmdDesc;
+		rcu_ptr<ovrHmdDesc> pHmd = session->Details->HmdDesc;
 		predictAhead += double(frameIndex - session->FrameIndex) / pHmd->DisplayRefreshRate;
 	}
 	return ovr_GetTimeInSeconds() + predictAhead;

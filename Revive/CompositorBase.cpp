@@ -5,6 +5,7 @@
 #include "Session.h"
 #include "SessionDetails.h"
 #include "microprofile.h"
+#include "rcu_ptr.h"
 
 #include <openvr.h>
 #include <vector>
@@ -355,7 +356,7 @@ vr::VRCompositorError CompositorBase::SubmitFovLayer(ovrSession session, ovrLaye
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(fovLayer->Viewport[i], swapChain[i], fovLayer->Header.Flags);
 
 		// Get the descriptor for this eye
-		ovrEyeRenderDesc* desc = session->Details->RenderDesc[i];
+		rcu_ptr<ovrEyeRenderDesc> desc = session->Details->RenderDesc[i];
 
 		// Shrink the bounds to account for the overlapping fov
 		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fovLayer->Fov[i]);

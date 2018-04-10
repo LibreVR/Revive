@@ -17,7 +17,7 @@ class rcu_ptr
 {
 public:
 	// Null-pointer
-	rcu_ptr() : m_ptr(nullptr), m_mutex(nullptr), m_reader() { }
+	rcu_ptr() : m_ptr(nullptr), m_mutex(std::make_shared<std::shared_mutex>()), m_reader() { }
 
 	// Copying implies you acquire a read-lock on the underlying pointer
 	rcu_ptr(const rcu_ptr& r) : m_mutex(r.m_mutex), m_ptr(r.m_ptr), m_reader(std::this_thread::get_id())
@@ -39,6 +39,7 @@ public:
 
 	const T* operator->() const { assert(m_reader == std::this_thread::get_id()); return m_ptr.get(); }
 	const T& operator*() const { assert(m_reader == std::this_thread::get_id()); return *m_ptr.get(); }
+	explicit operator bool() const  { return (m_ptr.get() != nullptr); }
 
 	// Swaps out the pointer when all other readers are done with it
 	// This function returns the old pointer which is now safe to
