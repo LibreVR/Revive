@@ -22,7 +22,7 @@ public:
 	ID3D11RenderTargetView* Target() { return m_pRTV.Get(); };
 
 protected:
-	static DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format, unsigned int flags = 0);
+	static DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format, bool typeless = false);
 	static UINT BindFlagsToD3DBindFlags(unsigned int flags);
 	static UINT MiscFlagsToD3DMiscFlags(unsigned int flags);
 	static D3D12_RESOURCE_FLAGS BindFlagsToD3DResourceFlags(unsigned int flags);
