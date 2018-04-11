@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
 		QString filePath = QDir::toNativeSeparators(QCoreApplication::applicationDirPath() + "/app.vrmanifest");
 		vr::VRApplications()->AddApplicationManifest(qPrintable(filePath));
-		vr::VRApplications()->SetApplicationAutoLaunch(CReviveManifestController::SharedInstance()->AppKey, true);
+		vr::VRApplications()->SetApplicationAutoLaunch(CReviveManifestController::AppKey, true);
 		vr::VR_Shutdown();
 		return 0;
 	}

@@ -16,6 +16,8 @@
 #include <QUrl>
 
 CReviveManifestController *s_pSharedRevController = NULL;
+const char* CReviveManifestController::AppKey = "revive.dashboard.overlay";
+const char* CReviveManifestController::AppPrefix = "revive.app.";
 
 CReviveManifestController *CReviveManifestController::SharedInstance()
 {
@@ -140,9 +142,11 @@ bool CReviveManifestController::Init()
 	if (!SetDefaults())
 		qDebug("Failed to set runtime default values, Revive will fall back to internal defaults");
 
-	// Add support manifest
+#ifndef DEBUG
+	// Add application and support manifest
 	AddApplicationManifest(m_appFile);
 	AddApplicationManifest(m_supportFile);
+#endif
 
 	// Ensure the auto-launch flag is set
 	if (vr::VRApplications() && vr::VRApplications()->SetApplicationAutoLaunch(AppKey, true) != vr::VRApplicationError_None)
@@ -220,7 +224,9 @@ bool CReviveManifestController::LoadDocument()
 	m_manifest = doc.object();
 	m_manifestFile.close();
 
+#ifndef DEBUG
 	AddApplicationManifest(m_manifestFile);
+#endif
 
 	return true;
 }

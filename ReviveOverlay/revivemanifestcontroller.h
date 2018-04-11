@@ -21,8 +21,8 @@ class CReviveManifestController : public QObject
 public:
 	static CReviveManifestController *SharedInstance();
 
-	const char* AppKey = "revive.dashboard.overlay";
-	const char* AppPrefix = "revive.app.";
+	static const char* AppKey;
+	static const char* AppPrefix;
 
 public:
 	CReviveManifestController();
