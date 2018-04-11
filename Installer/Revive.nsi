@@ -127,9 +127,7 @@ install:
   
   !insertmacro MUI_STARTMENU_WRITE_END
 
-  ; If SteamVR is already running, execute the dashboard as the user
-  FindWindow $0 "Qt5QWindowIcon" "SteamVR Status"
-  StrCmp $0 0 +2
+  ; Execute the dashboard as the user
   Exec '"$WINDIR\explorer.exe" "$INSTDIR\ReviveOverlay.exe"'
 SectionEnd
  
