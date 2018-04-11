@@ -54,7 +54,7 @@ public:
 	QString GetRuntimeURL() { return m_strRuntimeURL; }
 
 	void SetQuickItem( QQuickItem *pItem );
-	void ShowWindow() { if (m_pWindow) m_pWindow->show(); }
+	void ShowWindow() { if (m_pWindow) { m_pWindow->show(); m_pWindow->update(); } }
 
 public slots:
 	void OnSceneChanged();

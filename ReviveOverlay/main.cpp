@@ -25,7 +25,7 @@ QFile* g_LogFile = nullptr;
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-
+	Q_UNUSED(context);
 	QByteArray localMsg = msg.toLocal8Bit();
 	QTextStream log(g_LogFile);
 	log << localMsg.constData() << "\n";

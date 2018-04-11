@@ -180,12 +180,12 @@ bool COpenVROverlayController::Init()
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_SendVRScrollEvents, true );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_AcceptsGamepadEvents, true );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_ShowGamepadFocus, true );
+		UpdateThumbnail();
 
 		m_pPumpEventsTimer = new QTimer( this );
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
 		m_pPumpEventsTimer->setInterval( 20 );
 		m_pPumpEventsTimer->start();
-
 	}
 	return bSuccess;
 }
@@ -262,7 +262,6 @@ void COpenVROverlayController::OnRequestUpdate()
 {
 	if (!m_pUpdateTimer->isActive())
 		m_pUpdateTimer->start();
-	UpdateThumbnail();
 }
 
 
