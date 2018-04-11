@@ -28,8 +28,8 @@ CTrayIconController::CTrayIconController()
 	: BaseClass()
 	, m_trayIcon(QIcon(":/revive_white.ico"))
 {
-	QObject::connect(&m_trayIcon, SIGNAL(messageClicked()), this, SLOT(messageClicked()));
-	QObject::connect(&m_trayIcon, SIGNAL(activated()), this, SLOT(activated()));
+	connect(&m_trayIcon, &QSystemTrayIcon::messageClicked, this, &CTrayIconController::messageClicked);
+	connect(&m_trayIcon, &QSystemTrayIcon::activated, this, &CTrayIconController::activated);
 }
 
 CTrayIconController::~CTrayIconController()
