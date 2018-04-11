@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QMenu>
 #include <QSystemTrayIcon>
+#include <memory>
 
 enum ETrayInfo
 {
@@ -39,7 +40,7 @@ protected slots:
 	void activated(QSystemTrayIcon::ActivationReason reason);
 
 private:
-	QSystemTrayIcon m_trayIcon;
+	std::unique_ptr<QSystemTrayIcon> m_trayIcon;
 	QMenu m_trayIconMenu;
 	ETrayInfo m_LastInfo;
 

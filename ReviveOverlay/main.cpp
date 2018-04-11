@@ -39,7 +39,6 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	a.setQuitOnLastWindowClosed(false);
 
 	// Open the log file and install our handler.
 	QString logPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -76,13 +75,17 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	// Initialize singletons
-	if (!COpenVROverlayController::SharedInstance()->Init())
-		return -1;
-	if (!CTrayIconController::SharedInstance()->Init())
-		return -1;
+	if (COpenVROverlayController::SharedInstance()->Init())
+	{
+		// If the dashboard was successfully created keep running in the background
+		a.setQuitOnLastWindowClosed(false);
+
+		if (!CTrayIconController::SharedInstance()->Init())
+			qDebug("Failed to initialize the tray icon");
+	}
+
 	if (!CReviveManifestController::SharedInstance()->Init())
-		return -1;
+		qDebug("Failed to initialize the revive manifest");
 
 	// Create a QML engine.
 	QQmlEngine qmlEngine;

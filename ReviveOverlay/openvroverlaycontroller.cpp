@@ -166,12 +166,6 @@ bool COpenVROverlayController::Init()
 		bSuccess = bSuccess && overlayError == vr::VROverlayError_None;
 	}
 
-	if( !bSuccess )
-	{
-		qDebug( "Failed to create the dashboard overlay (is it already running?)" );
-		return false;
-	}
-
 	if( bSuccess )
 	{
 		vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, 3.0f );
@@ -186,6 +180,10 @@ bool COpenVROverlayController::Init()
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
 		m_pPumpEventsTimer->setInterval( 20 );
 		m_pPumpEventsTimer->start();
+	}
+	else
+	{
+		qDebug("Failed to create the dashboard overlay (is it already running?)");
 	}
 	return bSuccess;
 }

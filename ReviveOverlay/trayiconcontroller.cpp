@@ -26,10 +26,8 @@ CTrayIconController *CTrayIconController::SharedInstance()
 
 CTrayIconController::CTrayIconController()
 	: BaseClass()
-	, m_trayIcon(QIcon(":/revive_white.ico"))
+	, m_trayIcon()
 {
-	connect(&m_trayIcon, &QSystemTrayIcon::messageClicked, this, &CTrayIconController::messageClicked);
-	connect(&m_trayIcon, &QSystemTrayIcon::activated, this, &CTrayIconController::activated);
 }
 
 CTrayIconController::~CTrayIconController()
@@ -38,6 +36,7 @@ CTrayIconController::~CTrayIconController()
 
 bool CTrayIconController::Init()
 {
+	m_trayIcon = std::make_unique<QSystemTrayIcon>(QIcon(":/revive_white.ico"));
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
 	m_trayIconMenu.addAction("&Patch...", this, SLOT(patch()));
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
@@ -45,31 +44,36 @@ bool CTrayIconController::Init()
 	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
 	m_trayIconMenu.addAction("Check for &updates", win_sparkle_check_update_with_ui);
 	m_trayIconMenu.addAction("&Quit", this, SLOT(quit()));
-	m_trayIcon.setContextMenu(&m_trayIconMenu);
-	m_trayIcon.setToolTip("Revive Dashboard");
-	m_trayIcon.show();
+	m_trayIcon->setContextMenu(&m_trayIconMenu);
+	m_trayIcon->setToolTip("Revive Dashboard");
 
+	connect(m_trayIcon.get(), &QSystemTrayIcon::messageClicked, this, &CTrayIconController::messageClicked);
+	connect(m_trayIcon.get(), &QSystemTrayIcon::activated, this, &CTrayIconController::activated);
+
+	m_trayIcon->show();
 	return true;
 }
 
 void CTrayIconController::ShowInformation(ETrayInfo info)
 {
 	m_LastInfo = info;
+	if (!m_trayIcon)
+		return;
 
 	switch (info)
 	{
 		case TrayInfo_AutoLaunchEnabled:
-			m_trayIcon.showMessage("Revive succesfully installed",
+			m_trayIcon->showMessage("Revive succesfully installed",
 								   "Revive will automatically add Oculus Store games to your library while SteamVR is running.",
 								   QSystemTrayIcon::Information);
 		break;
 		case TrayInfo_AutoLaunchFailed:
-			m_trayIcon.showMessage("Revive did not start correctly",
+			m_trayIcon->showMessage("Revive did not start correctly",
 								   "Unable to set the auto-launch flag, please report this to the Revive issue tracker.",
 								   QSystemTrayIcon::Critical);
 		break;
 		case TrayInfo_OculusLibraryNotFound:
-			m_trayIcon.showMessage("Revive did not start correctly",
+			m_trayIcon->showMessage("Revive did not start correctly",
 								   "No Oculus Library was found, please install the Oculus Software from oculus.com/setup.",
 								   QSystemTrayIcon::Warning);
 		break;
@@ -78,7 +82,9 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 
 void CTrayIconController::quit()
 {
-	m_trayIcon.setVisible(false);
+	if (!m_trayIcon)
+		return;
+	m_trayIcon->setVisible(false);
 	QCoreApplication::quit();
 }
 
