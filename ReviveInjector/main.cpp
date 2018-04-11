@@ -1,9 +1,11 @@
+#include "inject.h"
+
 #include <Windows.h>
 #include <stdio.h>
 #include <string.h>
 #include <Shlobj.h>
 #include <Shlwapi.h>
-#include "ReviveInject.h"
+#include <openvr.h>
 
 FILE* g_LogFile = NULL;
 
@@ -87,6 +89,30 @@ bool GetDefaultLibraryPath(PWCHAR path, DWORD length)
 	return true;
 }
 
+typedef uint32_t (VR_CALLTYPE* VR_InitInternal2Ptr)(vr::EVRInitError *peError, vr::EVRApplicationType eApplicationType, const char *pStartupInfo);
+typedef void (VR_CALLTYPE* VR_ShutdownInternalPtr)(void);
+
+bool IsSteamVRRunning()
+{
+	char dllPath[MAX_PATH];
+	GetLibraryPath(dllPath, MAX_PATH, "openvr_api.dll");
+	HMODULE openvr = LoadLibraryA(dllPath);
+	if (!openvr)
+		return false;
+
+	vr::EVRInitError err = vr::VRInitError_Unknown;
+	VR_InitInternal2Ptr init = (VR_InitInternal2Ptr)GetProcAddress(openvr, "VR_InitInternal2");
+	VR_ShutdownInternalPtr shutdown = (VR_ShutdownInternalPtr)GetProcAddress(openvr, "VR_ShutdownInternal");
+	if (init)
+		init(&err, vr::VRApplication_Background, nullptr);
+
+	if (shutdown && err == vr::VRInitError_None)
+		shutdown();
+
+	FreeLibrary(openvr);
+	return err == vr::VRInitError_None;
+}
+
 int wmain(int argc, wchar_t *argv[]) {
 	if (argc < 2) {
 		printf("usage: ReviveInjector.exe [/handle] <process path/process handle>\n");
@@ -109,13 +135,17 @@ int wmain(int argc, wchar_t *argv[]) {
 
 	LOG("Launched injector with: %ls\n", GetCommandLine());
 
-	bool remixed = false;
+	bool remixed = !IsSteamVRRunning();
 	WCHAR path[MAX_PATH] = { 0 };
 	for (int i = 1; i < argc; i++)
 	{
 		if (wcscmp(argv[i], L"/remixed") == 0)
 		{
 			remixed = true;
+		}
+		else if (wcscmp(argv[i], L"/revive") == 0)
+		{
+			remixed = false;
 		}
 		else if (wcscmp(argv[i], L"/handle") == 0)
 		{

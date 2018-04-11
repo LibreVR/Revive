@@ -348,11 +348,7 @@ bool CReviveManifestController::LaunchSupportApp(const QString& appKey)
 	if (!m_supportArgs.contains(appKey))
 		return false;
 
-	QString args;
-	if (!COpenVROverlayController::SharedInstance()->BHMDAvailable())
-		args = "/remixed ";
-	args.append(m_supportArgs[appKey]);
-	return LaunchInjector(args);
+	return LaunchInjector(m_supportArgs[appKey]);
 }
 
 bool CReviveManifestController::launchApplication(const QString &canonicalName)
@@ -376,13 +372,7 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 	for (QJsonValue app : m_manifest["applications"].toArray())
 	{
 		if (app["app_key"].toString() == appKey)
-		{
-			QString args;
-			if (!COpenVROverlayController::SharedInstance()->BHMDAvailable())
-				args = "/remixed ";
-			args.append(app["arguments"].toString());
-			return LaunchInjector(args);
-		}
+			return LaunchInjector(app["arguments"].toString());
 	}
 	return false;
 }

@@ -18,3 +18,4 @@ extern FILE* g_LogFile;
 
 int CreateProcessAndInject(wchar_t *programPath, bool remixed);
 int OpenProcessAndInject(wchar_t *processId, bool remixed);
+int GetLibraryPath(char *path, int length, const char *fileName);

@@ -1,4 +1,5 @@
-#include "ReviveInject.h"
+#include "inject.h"
+
 #include <windows.h>
 #include <direct.h>
 #include <stdlib.h>
@@ -8,7 +9,8 @@ bool InjectLibRevive(HANDLE hProcess, bool remixed);
 bool InjectOpenVR(HANDLE hProcess);
 bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength);
 
-int CreateProcessAndInject(wchar_t *programPath, bool remixed) {
+int CreateProcessAndInject(wchar_t *programPath, bool remixed)
+{
 	LOG("Creating process: %ls\n", programPath);
 
 	STARTUPINFO si;
@@ -86,7 +88,8 @@ int CreateProcessAndInject(wchar_t *programPath, bool remixed) {
 	return 0;
 }
 
-int OpenProcessAndInject(wchar_t *processId, bool remixed) {
+int OpenProcessAndInject(wchar_t *processId, bool remixed)
+{
 	LOG("Injecting process handle: %ls\n", processId);
 
 	HANDLE hProcess = (HANDLE)wcstol(processId, nullptr, 0);
@@ -105,41 +108,45 @@ int OpenProcessAndInject(wchar_t *processId, bool remixed) {
 	return 0;
 }
 
-bool InjectDLL(HANDLE hProcess, const char *dllName) {
-	char dllPath[MAX_PATH];
+int GetLibraryPath(char *path, int length, const char *fileName)
+{
 	char cwd[MAX_PATH];
 	GetModuleFileNameA(NULL, cwd, MAX_PATH);
 	PathRemoveFileSpecA(cwd);
 #if _WIN64
-	snprintf(dllPath, sizeof(dllPath), "%s\\x64\\%s", cwd, dllName);
+	return snprintf(path, length, "%s\\x64\\%s", cwd, fileName);
 #else
-	snprintf(dllPath, sizeof(dllPath), "%s\\x86\\%s", cwd, dllName);
+	return snprintf(path, length, "%s\\x86\\%s", cwd, fileName);
 #endif
-	int dllPathLength = sizeof(dllPath);
-	return InjectDLL(hProcess, dllPath, dllPathLength);
 }
 
-bool InjectLibRevive(HANDLE hProcess, bool remixed) {
+bool InjectLibRevive(HANDLE hProcess, bool remixed)
+{
+	char dllPath[MAX_PATH];
 	if (remixed)
 	{
 #if _WIN64
-		return InjectDLL(hProcess, "LibRemixed64_1.dll");
+		GetLibraryPath(dllPath, MAX_PATH, "LibRemixed64_1.dll");
 #else
-		return InjectDLL(hProcess, "LibRemixed32_1.dll");
+		GetLibraryPath(dllPath, MAX_PATH, "LibRemixed32_1.dll");
 #endif
 	}
 	else
 	{
 #if _WIN64
-		return InjectDLL(hProcess, "LibRevive64_1.dll");
+		GetLibraryPath(dllPath, MAX_PATH, "LibRevive64_1.dll");
 #else
-		return InjectDLL(hProcess, "LibRevive32_1.dll");
+		GetLibraryPath(dllPath, MAX_PATH, "LibRevive32_1.dll");
 #endif
 	}
+	return InjectDLL(hProcess, dllPath, MAX_PATH);
 }
 
-bool InjectOpenVR(HANDLE hProcess) {
-	return InjectDLL(hProcess, "openvr_api.dll");
+bool InjectOpenVR(HANDLE hProcess)
+{
+	char dllPath[MAX_PATH];
+	GetLibraryPath(dllPath, MAX_PATH, "openvr_api.dll");
+	return InjectDLL(hProcess, dllPath, MAX_PATH);
 }
 
 bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength)
