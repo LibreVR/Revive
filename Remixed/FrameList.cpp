@@ -13,9 +13,13 @@ using namespace winrt::Windows::Foundation;
 #include <winrt/Windows.Perception.Spatial.h>
 using namespace winrt::Windows::Perception::Spatial;
 
+// Should be at least ovrMaxProvidedFrameStats or larger
+#define MAX_FRAME_HISTORY 10
+
 FrameList::FrameList(HolographicSpace space)
 	: m_space(space)
 	, m_next_index(0)
+	, m_submitted_index(0)
 {
 	BeginFrame(0);
 }
@@ -45,6 +49,14 @@ HolographicFrame FrameList::GetFrame(long long frameIndex)
 			it++;
 		return it->second;
 	}
+}
+
+HolographicFrame FrameList::GetPendingFrame(long long frameIndex)
+{
+	if (frameIndex <= m_submitted_index)
+		return nullptr;
+
+	return GetFrame(frameIndex);
 }
 
 HolographicFrame FrameList::GetFrameAtTime(double absTime)
@@ -88,7 +100,11 @@ void FrameList::EndFrame(long long frameIndex)
 	if (frameIndex <= 0)
 		frameIndex = m_next_index - 1;
 
-	do m_frames.pop_front(); while (!m_frames.empty() && m_frames.front().first <= frameIndex);
+	// Remember the index of the last submitted frame
+	m_submitted_index = frameIndex;
+
+	// Clean up old frames that are too old to keep in the cache
+	do m_frames.pop_front(); while (!m_frames.empty() && m_frames.front().first <= frameIndex - MAX_FRAME_HISTORY);
 }
 
 void FrameList::Clear()
@@ -96,6 +112,7 @@ void FrameList::Clear()
 	std::unique_lock<std::shared_mutex> lk(m_frame_mutex);
 	m_frames.clear();
 	m_next_index = 0;
+	m_submitted_index = 0;
 }
 
 HolographicCameraPose FrameList::GetPose(long long frameIndex, uint32_t displayIndex)

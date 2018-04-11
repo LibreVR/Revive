@@ -114,9 +114,9 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 		}
 	}
 
-	HolographicFrame frame = session->Frames->GetFrame(frameIndex);
+	HolographicFrame frame = session->Frames->GetPendingFrame(frameIndex);
 	if (!frame)
-		return ovrSuccess;
+		return ovrError_InvalidParameter;
 
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);

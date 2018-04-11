@@ -914,7 +914,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 {
 	REM_TRACE(ovr_GetPredictedDisplayTime);
 
-	HolographicFrame frame = session->Frames->GetFrame(frameIndex);
+	HolographicFrame frame = session->Frames->GetPendingFrame(frameIndex);
 	if (!frame)
 		return ovr_GetTimeInSeconds();
 

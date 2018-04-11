@@ -13,6 +13,7 @@ public:
 	~FrameList() {};
 
 	winrt::Windows::Graphics::Holographic::HolographicFrame GetFrame(long long frameIndex = 0);
+	winrt::Windows::Graphics::Holographic::HolographicFrame GetPendingFrame(long long frameIndex = 0);
 	winrt::Windows::Graphics::Holographic::HolographicFrame GetFrameAtTime(double absTime);
 	winrt::Windows::Graphics::Holographic::HolographicCameraPose GetPose(long long frameIndex = 0, uint32_t displayIndex = 0);
 
@@ -27,4 +28,5 @@ private:
 	std::list<Frame> m_frames;
 	std::shared_mutex m_frame_mutex;
 	std::atomic_llong m_next_index;
+	std::atomic_llong m_submitted_index;
 };
