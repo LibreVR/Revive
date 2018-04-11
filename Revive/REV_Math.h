@@ -2,6 +2,7 @@
 
 #include "openvr.h"
 #include "Extras/OVR_Math.h"
+#include "Extras/OVR_StereoProjection.h"
 
 namespace REV {
 	class Vector3f : public OVR::Vector3f
@@ -56,5 +57,20 @@ namespace REV {
 		{
 			return reinterpret_cast<const vr::HmdMatrix44_t&>(*this);
 		}
+
+#ifndef OVR_EXCLUDE_CAPI_FROM_MATH
+		static Matrix4f FromProjectionDesc(ovrTimewarpProjectionDesc desc, ovrFovPort fov) {
+			Matrix4f projection;
+			OVR::ScaleAndOffset2D scaleAndOffset = OVR::CreateNDCScaleAndOffsetFromFov(fov);
+			projection.M[0][0] = scaleAndOffset.Scale.x;
+			projection.M[0][2] = desc.Projection32 * scaleAndOffset.Offset.x;
+			projection.M[1][1] = scaleAndOffset.Scale.y;
+			projection.M[1][2] = desc.Projection32 * -scaleAndOffset.Offset.y;
+			projection.M[2][2] = desc.Projection22;
+			projection.M[2][3] = desc.Projection23;
+			projection.M[3][2] = desc.Projection32;
+			return projection;
+		}
+#endif
 	};
 }
