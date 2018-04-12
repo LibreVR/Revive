@@ -53,7 +53,7 @@ HolographicFrame FrameList::GetFrame(long long frameIndex)
 
 HolographicFrame FrameList::GetPendingFrame(long long frameIndex)
 {
-	if (frameIndex <= m_submitted_index)
+	if (frameIndex > 0 && frameIndex <= m_submitted_index)
 		return nullptr;
 
 	return GetFrame(frameIndex);
