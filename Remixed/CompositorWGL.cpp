@@ -4,6 +4,9 @@
 #include <glad/glad.h>
 #include <glad/glad_wgl.h>
 
+#include <winrt/Windows.Graphics.DirectX.Direct3D11.h>
+using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
+
 GLboolean CompositorWGL::gladInitialized = GL_FALSE;
 
 void CompositorWGL::DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
@@ -59,12 +62,12 @@ TextureBase* CompositorWGL::CreateTexture()
 		return new TextureD3D(m_pDevice.Get());
 }
 
-void CompositorWGL::RenderTextureSwapChain(ovrSession session, long long frameIndex, ovrEyeType eye, ovrTextureSwapChain swapChain, ovrRecti viewport)
+void CompositorWGL::RenderTextureSwapChain(IDirect3DSurface surface, ovrTextureSwapChain swapChain, ovrRecti viewport, ovrEyeType eye)
 {
 	TextureWGL* texture = dynamic_cast<TextureWGL*>(swapChain->Textures[swapChain->SubmitIndex].get());
 	if (texture)
 		assert(texture->Unlock());
-	CompositorD3D::RenderTextureSwapChain(session, frameIndex, eye, swapChain, viewport);
+	CompositorD3D::RenderTextureSwapChain(surface, swapChain, viewport, eye);
 	if (texture)
 		assert(texture->Lock());
 }

@@ -5,6 +5,25 @@
 #include <winrt/base.h>
 
 namespace REM {
+	class Vector2f : public OVR::Vector2f
+	{
+	public:
+		// Inherit constructors
+		using OVR::Vector2f::Vector2;
+		Vector2f() : OVR::Vector2f() { }
+
+		// Numerics-interop support
+		Vector2f(const winrt::Windows::Foundation::Numerics::float2& s)
+			: OVR::Vector2f(s.x, s.y) { }
+		Vector2f(const winrt::Windows::Foundation::IReference<winrt::Windows::Foundation::Numerics::float2>& s)
+			: REM::Vector2f(s ? s.Value() : winrt::Windows::Foundation::Numerics::float2::zero()) { }
+
+		operator const winrt::Windows::Foundation::Numerics::float2& () const
+		{
+			return reinterpret_cast<const winrt::Windows::Foundation::Numerics::float2&>(*this);
+		}
+	};
+
 	class Vector3f : public OVR::Vector3f
 	{
 	public:

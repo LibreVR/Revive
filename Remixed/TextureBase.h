@@ -4,6 +4,8 @@
 
 #include <memory>
 
+#include <winrt/Windows.Graphics.Holographic.h>
+
 #define REV_SWAPCHAIN_MAX_LENGTH 3
 
 class TextureBase
@@ -22,7 +24,7 @@ public:
 struct ovrTextureSwapChainData
 {
 	ovrTextureSwapChainDesc Desc;
-	//HolographicQuadLayer Overlay;
+	winrt::Windows::Graphics::Holographic::HolographicQuadLayer Overlay;
 
 	unsigned int Identifier;
 	int Length, CurrentIndex, SubmitIndex;

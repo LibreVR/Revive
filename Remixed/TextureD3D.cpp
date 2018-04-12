@@ -30,7 +30,7 @@ DXGI_FORMAT TextureD3D::ToDXGIFormat(ovrTextureFormat format, unsigned int flags
 			case OVR_FORMAT_B8G8R8X8_UNORM:       return DXGI_FORMAT_B8G8R8X8_TYPELESS;
 			case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8X8_TYPELESS;
 			case OVR_FORMAT_R16G16B16A16_FLOAT:   return DXGI_FORMAT_R16G16B16A16_TYPELESS;
-			case OVR_FORMAT_R11G11B10_FLOAT:      return DXGI_FORMAT_R10G10B10A2_TYPELESS; // TODO: OpenVR doesn't support R11G11B10
+			case OVR_FORMAT_R11G11B10_FLOAT:      return DXGI_FORMAT_R11G11B10_FLOAT; // No typeless format
 
 			// Depth formats
 			case OVR_FORMAT_D16_UNORM:            return DXGI_FORMAT_R16_TYPELESS;
@@ -69,7 +69,7 @@ DXGI_FORMAT TextureD3D::ToDXGIFormat(ovrTextureFormat format, unsigned int flags
 			case OVR_FORMAT_B8G8R8X8_UNORM:       return DXGI_FORMAT_B8G8R8X8_UNORM;
 			case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
 			case OVR_FORMAT_R16G16B16A16_FLOAT:   return DXGI_FORMAT_R16G16B16A16_FLOAT;
-			case OVR_FORMAT_R11G11B10_FLOAT:      return DXGI_FORMAT_R10G10B10A2_UNORM; // TODO: OpenVR doesn't support R11G11B10
+			case OVR_FORMAT_R11G11B10_FLOAT:      return DXGI_FORMAT_R11G11B10_FLOAT;
 
 			// Depth formats
 			case OVR_FORMAT_D16_UNORM:            return DXGI_FORMAT_D16_UNORM;
@@ -125,7 +125,7 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 	desc.Height = Height;
 	desc.MipLevels = MipLevels;
 	desc.ArraySize = ArraySize;
-	desc.SampleDesc.Count = SampleCount;
+	desc.SampleDesc.Count = 1; // TODO: Support MSAA
 	desc.SampleDesc.Quality = 0;
 	desc.Format = ToDXGIFormat(Format, MiscFlags);
 	desc.Usage = D3D11_USAGE_DEFAULT;

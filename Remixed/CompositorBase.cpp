@@ -1,15 +1,26 @@
 #include "CompositorBase.h"
 #include "Session.h"
 #include "FrameList.h"
+#include "TrackingManager.h"
 
 #include "OVR_CAPI.h"
+#include "REM_Math.h"
 #include "microprofile.h"
 
 #include <vector>
 #include <algorithm>
 
+#include <winrt/Windows.Foundation.h>
+using namespace winrt::Windows::Foundation;
+
 #include <winrt/Windows.Graphics.Holographic.h>
 using namespace winrt::Windows::Graphics::Holographic;
+
+#include <winrt/Windows.Graphics.DirectX.h>
+using namespace winrt::Windows::Graphics::DirectX;
+
+#include <winrt/Windows.Graphics.DirectX.Direct3D11.h>
+using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 
 MICROPROFILE_DEFINE(WaitToBeginFrame, "Compositor", "WaitFrame", 0x00ff00);
 MICROPROFILE_DEFINE(BeginFrame, "Compositor", "BeginFrame", 0x00ff00);
@@ -88,40 +99,71 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	// Flush all pending draw calls.
 	Flush();
 
-	ovrLayerEyeFov baseLayer;
+	HolographicFrame frame = session->Frames->GetPendingFrame(frameIndex);
+	if (!frame)
+		return ovrError_InvalidParameter;
+
 	bool baseLayerFound = false;
+	std::vector<HolographicQuadLayer> activeOverlays;
 	for (uint32_t i = 0; i < layerCount; i++)
 	{
 		if (layerPtrList[i] == nullptr)
 			continue;
 
-		// TODO: Support ovrLayerType_Quad, ovrLayerType_Cylinder and ovrLayerType_Cube
-		if (layerPtrList[i]->Type == ovrLayerType_EyeFov ||
+		// TODO: Support ovrLayerType_Cylinder and ovrLayerType_Cube
+		if (layerPtrList[i]->Type == ovrLayerType_Quad)
+		{
+			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
+			ovrTextureSwapChain swapchain = layer->ColorTexture;
+
+			if (!swapchain->Overlay)
+			{
+				Size dims = Size((float)swapchain->Desc.Width, (float)swapchain->Desc.Height);
+				DirectXPixelFormat format = TextureBase::IsSRGBFormat(swapchain->Desc.Format) ?
+					DirectXPixelFormat::B8G8R8A8UIntNormalizedSrgb :
+					DirectXPixelFormat::B8G8R8A8UIntNormalized;
+				swapchain->Overlay = HolographicQuadLayer(dims, format);
+			}
+
+			HolographicQuadLayerUpdateParameters params = frame.GetQuadLayerUpdateParameters(swapchain->Overlay);
+			params.UpdateExtents(REM::Vector2f(layer->QuadSize));
+			if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
+				params.UpdateLocationWithDisplayRelativeMode(REM::Vector3f(layer->QuadPoseCenter.Position), REM::Quatf(layer->QuadPoseCenter.Orientation));
+			else
+				params.UpdateLocationWithStationaryMode(session->Tracking->CoordinateSystem(), REM::Vector3f(layer->QuadPoseCenter.Position), REM::Quatf(layer->QuadPoseCenter.Orientation));
+
+			IDirect3DSurface surface = params.AcquireBufferToUpdateContent();
+			RenderTextureSwapChain(surface, layer->ColorTexture, layer->Viewport);
+			activeOverlays.push_back(swapchain->Overlay);
+		}
+		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov ||
 			layerPtrList[i]->Type == ovrLayerType_EyeFovDepth ||
 			layerPtrList[i]->Type == ovrLayerType_EyeFovMultires)
 		{
 			ovrLayerEyeFov* layer = (ovrLayerEyeFov*)layerPtrList[i];
-
-			SubmitFovLayer(session, frameIndex, layer);
+			SubmitFovLayer(frame, layer);
 			baseLayerFound = true;
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeMatrix)
 		{
 			ovrLayerEyeFov layer = ToFovLayer((ovrLayerEyeMatrix*)layerPtrList[i]);
-
-			SubmitFovLayer(session, frameIndex, &layer);
+			SubmitFovLayer(frame, &layer);
 			baseLayerFound = true;
 		}
 	}
 
-	HolographicFrame frame = session->Frames->GetPendingFrame(frameIndex);
-	if (!frame)
-		return ovrError_InvalidParameter;
-
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
-	HolographicCameraPose pose = prediction.CameraPoses().GetAt(0);
-	HolographicCamera cam = pose.HolographicCamera();
-	//cam.IsPrimaryLayerEnabled(baseLayerFound);
+	for (HolographicCameraPose pose : prediction.CameraPoses())
+	{
+		HolographicCamera cam = pose.HolographicCamera();
+		size_t size = std::min(activeOverlays.size(), (size_t)cam.MaxQuadLayerCount());
+		if (size > 0)
+		{
+			winrt::array_view<const HolographicQuadLayer> layers(activeOverlays.data(), activeOverlays.data() + size);
+			cam.QuadLayers().ReplaceAll(layers);
+			cam.IsPrimaryLayerEnabled(baseLayerFound);
+		}
+	}
 
 	HolographicFramePresentResult result = frame.PresentUsingCurrentPrediction(HolographicFramePresentWaitBehavior::DoNotWaitForFrameToFinish);
 	if (result == HolographicFramePresentResult::DeviceRemoved)
@@ -154,7 +196,7 @@ ovrLayerEyeFov CompositorBase::ToFovLayer(ovrLayerEyeMatrix* matrix)
 	return layer;
 }
 
-void CompositorBase::SubmitFovLayer(ovrSession session, long long frameIndex, ovrLayerEyeFov* fovLayer)
+void CompositorBase::SubmitFovLayer(HolographicFrame frame, ovrLayerEyeFov* fovLayer)
 {
 	MICROPROFILE_SCOPE(SubmitFovLayer);
 
@@ -167,16 +209,23 @@ void CompositorBase::SubmitFovLayer(ovrSession session, long long frameIndex, ov
 	if (!swapChain[ovrEye_Right])
 		swapChain[ovrEye_Right] = swapChain[ovrEye_Left];
 
-	// Submit the scene layer.
-	for (int i = 0; i < ovrEye_Count; i++)
+	HolographicFramePrediction prediction = frame.CurrentPrediction();
+	for (HolographicCameraPose pose : prediction.CameraPoses())
 	{
-		ovrRecti viewport = fovLayer->Viewport[i];
-		if (fovLayer->Header.Flags & ovrLayerFlag_TextureOriginAtBottomLeft)
+		// Submit the scene layer.
+		for (int i = 0; i < ovrEye_Count; i++)
 		{
-			viewport.Pos.y += viewport.Size.h;
-			viewport.Size.h *= -1;
+			ovrRecti viewport = fovLayer->Viewport[i];
+			if (fovLayer->Header.Flags & ovrLayerFlag_TextureOriginAtBottomLeft)
+			{
+				viewport.Pos.y += viewport.Size.h;
+				viewport.Size.h *= -1;
+			}
+
+			HolographicCameraRenderingParameters params = frame.GetRenderingParameters(pose);
+			IDirect3DSurface surface = params.Direct3D11BackBuffer();
+			RenderTextureSwapChain(surface, swapChain[i], viewport, (ovrEyeType)i);
 		}
-		RenderTextureSwapChain(session, frameIndex, (ovrEyeType)i, swapChain[i], viewport);
 	}
 
 	swapChain[ovrEye_Left]->Submit();

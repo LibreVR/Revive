@@ -1,5 +1,14 @@
 #include "TextureBase.h"
 
+#include <winrt/Windows.Foundation.h>
+using namespace winrt::Windows::Foundation;
+
+#include <winrt/Windows.Graphics.DirectX.h>
+using namespace winrt::Windows::Graphics::DirectX;
+
+#include <winrt/Windows.Graphics.Holographic.h>
+using namespace winrt::Windows::Graphics::Holographic;
+
 bool TextureBase::IsSRGBFormat(ovrTextureFormat format)
 {
 	switch (format)
@@ -32,11 +41,12 @@ bool TextureBase::IsDepthFormat(ovrTextureFormat format)
 }
 
 ovrTextureSwapChainData::ovrTextureSwapChainData(ovrTextureSwapChainDesc desc)
-	: Length(REV_SWAPCHAIN_MAX_LENGTH)
+	: Desc(desc)
+	, Overlay(nullptr)
+	, Length(REV_SWAPCHAIN_MAX_LENGTH)
 	, Identifier(0)
 	, CurrentIndex(0)
 	, SubmitIndex(0)
-	, Desc(desc)
 	, Textures()
 {
 }

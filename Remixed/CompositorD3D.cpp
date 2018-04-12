@@ -143,92 +143,87 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	// TODO: Support mirror textures
 }
 
-void CompositorD3D::RenderTextureSwapChain(ovrSession session, long long frameIndex, ovrEyeType eye, ovrTextureSwapChain swapChain, ovrRecti viewport)
+void CompositorD3D::RenderTextureSwapChain(IDirect3DSurface surface, ovrTextureSwapChain swapChain, ovrRecti viewport, ovrEyeType eye)
 {
-	HolographicFrame frame = session->Frames->GetFrame(frameIndex);
-	if (!frame)
-		return;
+	Direct3DSurfaceDescription surface_desc = surface.Description();
 
-	HolographicFramePrediction prediction = frame.CurrentPrediction();
-	for (HolographicCameraPose pose : prediction.CameraPoses())
-	{
-		HolographicCamera cam = pose.HolographicCamera();
+	UINT subresource = 0;
+	winrt::com_ptr<ID3D11Texture2D> back_buffer;
+	winrt::com_ptr<IDXGISurface2> dxgi_surface;
+	winrt::com_ptr<IDirect3DDxgiInterfaceAccess> dxgiInterfaceAccess = surface.as<IDirect3DDxgiInterfaceAccess>();
+	HRESULT hr;
+	hr = dxgiInterfaceAccess->GetInterface(IID_PPV_ARGS(dxgi_surface.put()));
+	if (dxgi_surface)
+		hr = dxgi_surface->GetResource(IID_PPV_ARGS(back_buffer.put()), &subresource);
+	else
+		hr = dxgiInterfaceAccess->GetInterface(IID_PPV_ARGS(back_buffer.put()));
 
-		HolographicCameraRenderingParameters renderingParameters = frame.GetRenderingParameters(pose);
-		IDirect3DSurface surface = renderingParameters.Direct3D11BackBuffer();
-		winrt::Windows::Foundation::Size surface_size = cam.RenderTargetSize();
+	TextureD3D* texture = (TextureD3D*)swapChain->Textures[swapChain->SubmitIndex].get();
 
-		winrt::com_ptr<ID3D11Texture2D> back_buffer;
-		winrt::com_ptr<IDirect3DDxgiInterfaceAccess> dxgiInterfaceAccess = surface.as<IDirect3DDxgiInterfaceAccess>();
-		HRESULT hr = dxgiInterfaceAccess->GetInterface(IID_PPV_ARGS(back_buffer.put()));
+	// Get the current state objects
+	Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
+	float blend_factor[4];
+	uint32_t sample_mask;
+	m_pContext->OMGetBlendState(blend_state.GetAddressOf(), blend_factor, &sample_mask);
 
-		TextureD3D* texture = (TextureD3D*)swapChain->Textures[swapChain->SubmitIndex].get();
+	D3D11_PRIMITIVE_TOPOLOGY topology;
+	m_pContext->IAGetPrimitiveTopology(&topology);
 
-		// Get the current state objects
-		Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
-		float blend_factor[4];
-		uint32_t sample_mask;
-		m_pContext->OMGetBlendState(blend_state.GetAddressOf(), blend_factor, &sample_mask);
+	ID3D11RasterizerState* ras_state;
+	m_pContext->RSGetState(&ras_state);
 
-		D3D11_PRIMITIVE_TOPOLOGY topology;
-		m_pContext->IAGetPrimitiveTopology(&topology);
+	// Set the compositor shaders
+	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
+	m_pContext->PSSetShader(m_CompositorShader.Get(), NULL, 0);
+	ID3D11ShaderResourceView* resource = texture->Resource();
+	m_pContext->PSSetShaderResources(0, 1, &resource);
 
-		ID3D11RasterizerState* ras_state;
-		m_pContext->RSGetState(&ras_state);
+	// Update the vertex buffer
+	// TODO: Account for the Field-of-View
+	float w = (float)swapChain->Desc.Width;
+	float h = (float)swapChain->Desc.Height;
+	ovrVector2f min = { viewport.Pos.x / w, viewport.Pos.y / h };
+	ovrVector2f max = { (viewport.Pos.x + viewport.Size.w) / w, (viewport.Pos.y + viewport.Size.h) / h };
+	Vertex vertices[4] = {
+		{ { -1.0f,  1.0f },{ min.x, min.y } },
+		{ {  1.0f,  1.0f },{ max.x, min.y } },
+		{ { -1.0f, -1.0f },{ min.x, max.y } },
+		{ {  1.0f, -1.0f },{ max.x, max.y } }
+	};
+	D3D11_MAPPED_SUBRESOURCE map = { 0 };
+	m_pContext->Map(m_VertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+	memcpy(map.pData, vertices, sizeof(Vertex) * 4);
+	m_pContext->Unmap(m_VertexBuffer.Get(), 0);
 
-		// Set the compositor shaders
-		m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
-		m_pContext->PSSetShader(m_CompositorShader.Get(), NULL, 0);
-		ID3D11ShaderResourceView* resource = texture->Resource();
-		m_pContext->PSSetShaderResources(0, 1, &resource);
+	// Prepare the render target
+	winrt::com_ptr<ID3D11RenderTargetView> rtv;
+	D3D11_RENDER_TARGET_VIEW_DESC target_desc = {};
+	target_desc.Format = TextureBase::IsSRGBFormat(swapChain->Desc.Format) ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM;
+	target_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+	target_desc.Texture2DArray.MipSlice = 0;
+	target_desc.Texture2DArray.FirstArraySlice = (UINT)eye;
+	target_desc.Texture2DArray.ArraySize = 1;
+	m_pDevice->CreateRenderTargetView(back_buffer.get(), &target_desc, rtv.put());
+	FLOAT clear[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	m_pContext->ClearRenderTargetView(rtv.get(), clear);
 
-		// Update the vertex buffer
-		// TODO: Account for the Field-of-View
-		float w = (float)swapChain->Desc.Width;
-		float h = (float)swapChain->Desc.Height;
-		ovrVector2f min = { viewport.Pos.x / w, viewport.Pos.y / h };
-		ovrVector2f max = { (viewport.Pos.x + viewport.Size.w) / w, (viewport.Pos.y + viewport.Size.h) / h };
-		Vertex vertices[4] = {
-			{ { -1.0f,  1.0f },{ min.x, min.y } },
-			{ {  1.0f,  1.0f },{ max.x, min.y } },
-			{ { -1.0f, -1.0f },{ min.x, max.y } },
-			{ {  1.0f, -1.0f },{ max.x, max.y } }
-		};
-		D3D11_MAPPED_SUBRESOURCE map = { 0 };
-		m_pContext->Map(m_VertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, vertices, sizeof(Vertex) * 4);
-		m_pContext->Unmap(m_VertexBuffer.Get(), 0);
+	ID3D11RenderTargetView* targets[] = { rtv.get() };
+	D3D11_VIEWPORT vp = { 0.0f, 0.0f, (float)surface_desc.Width, (float)surface_desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
+	m_pContext->RSSetViewports(1, &vp);
+	m_pContext->OMSetRenderTargets(1, targets, nullptr);
+	m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);
+	m_pContext->RSSetState(nullptr);
 
-		// Prepare the render target
-		winrt::com_ptr<ID3D11RenderTargetView> rtv;
-		D3D11_RENDER_TARGET_VIEW_DESC target_desc = {};
-		target_desc.Format = TextureBase::IsSRGBFormat(swapChain->Desc.Format) ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM;
-		target_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-		target_desc.Texture2DArray.MipSlice = 0;
-		target_desc.Texture2DArray.FirstArraySlice = (UINT)eye;
-		target_desc.Texture2DArray.ArraySize = 1;
-		m_pDevice->CreateRenderTargetView(back_buffer.get(), &target_desc, rtv.put());
-		FLOAT clear[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-		m_pContext->ClearRenderTargetView(rtv.get(), clear);
+	// Set and draw the vertices
+	uint32_t stride = sizeof(Vertex);
+	uint32_t offset = 0;
+	m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	m_pContext->IASetInputLayout(m_InputLayout.Get());
+	m_pContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
+	m_pContext->Draw(4, 0);
 
-		ID3D11RenderTargetView* targets[] = { rtv.get() };
-		D3D11_VIEWPORT vp = { 0.0f, 0.0f, surface_size.Width, surface_size.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
-		m_pContext->RSSetViewports(1, &vp);
-		m_pContext->OMSetRenderTargets(1, targets, nullptr);
-		m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);
-		m_pContext->RSSetState(nullptr);
-
-		// Set and draw the vertices
-		uint32_t stride = sizeof(Vertex);
-		uint32_t offset = 0;
-		m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		m_pContext->IASetInputLayout(m_InputLayout.Get());
-		m_pContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
-		m_pContext->Draw(4, 0);
-
-		// Restore the state objects
-		m_pContext->RSSetState(ras_state);
-		m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
-		m_pContext->IASetPrimitiveTopology(topology);
-	}
+	// Restore the state objects
+	m_pContext->RSSetState(ras_state);
+	m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
+	m_pContext->IASetPrimitiveTopology(topology);
 }

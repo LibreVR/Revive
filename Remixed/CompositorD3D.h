@@ -6,7 +6,6 @@
 #include <wrl/client.h>
 
 #include <winrt/Windows.Graphics.DirectX.Direct3D11.h>
-using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 
 class CompositorD3D :
 	public CompositorBase
@@ -17,13 +16,14 @@ public:
 	virtual ~CompositorD3D();
 
 	bool InitDevice();
-	IDirect3DDevice GetDevice();
+	winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DDevice GetDevice();
 	bool SetDevice(IUnknown* pDevice);
 
 	virtual void Flush() { if (m_pContext) m_pContext->Flush(); };
 	virtual TextureBase* CreateTexture();
 
-	virtual void RenderTextureSwapChain(ovrSession session, long long frameIndex, ovrEyeType eye, ovrTextureSwapChain swapChain, ovrRecti viewport);
+	virtual void RenderTextureSwapChain(winrt::Windows::Graphics::DirectX::Direct3D11::IDirect3DSurface surface,
+		ovrTextureSwapChain swapChain, ovrRecti viewport, ovrEyeType eye);
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture);
 
 protected:
