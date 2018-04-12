@@ -14,7 +14,7 @@ using namespace winrt::Windows::Foundation;
 using namespace winrt::Windows::Perception::Spatial;
 
 // Should be at least ovrMaxProvidedFrameStats or larger
-#define MAX_FRAME_HISTORY 10
+#define MAX_FRAME_HISTORY 5
 
 FrameList::FrameList(HolographicSpace space)
 	: m_space(space)
@@ -91,12 +91,6 @@ void FrameList::BeginFrame(long long frameIndex)
 void FrameList::EndFrame(long long frameIndex)
 {
 	std::unique_lock<std::shared_mutex> lk(m_frame_mutex);
-	if (m_frames.empty())
-		return;
-
-	if (frameIndex < m_frames.front().first)
-		return;
-
 	if (frameIndex <= 0)
 		frameIndex = m_next_index - 1;
 
@@ -104,7 +98,8 @@ void FrameList::EndFrame(long long frameIndex)
 	m_submitted_index = frameIndex;
 
 	// Clean up old frames that are too old to keep in the cache
-	do m_frames.pop_front(); while (!m_frames.empty() && m_frames.front().first <= frameIndex - MAX_FRAME_HISTORY);
+	while (m_frames.size() > MAX_FRAME_HISTORY && m_frames.front().first <= frameIndex)
+		m_frames.pop_front();
 }
 
 void FrameList::Clear()
