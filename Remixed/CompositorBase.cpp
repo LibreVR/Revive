@@ -110,33 +110,8 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 		if (layerPtrList[i] == nullptr)
 			continue;
 
-		// TODO: Support ovrLayerType_Cylinder and ovrLayerType_Cube
-		if (layerPtrList[i]->Type == ovrLayerType_Quad)
-		{
-			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
-			ovrTextureSwapChain swapchain = layer->ColorTexture;
-
-			if (!swapchain->Overlay)
-			{
-				Size dims = Size((float)swapchain->Desc.Width, (float)swapchain->Desc.Height);
-				DirectXPixelFormat format = TextureBase::IsSRGBFormat(swapchain->Desc.Format) ?
-					DirectXPixelFormat::B8G8R8A8UIntNormalizedSrgb :
-					DirectXPixelFormat::B8G8R8A8UIntNormalized;
-				swapchain->Overlay = HolographicQuadLayer(dims, format);
-			}
-
-			HolographicQuadLayerUpdateParameters params = frame.GetQuadLayerUpdateParameters(swapchain->Overlay);
-			params.UpdateExtents(REM::Vector2f(layer->QuadSize));
-			if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
-				params.UpdateLocationWithDisplayRelativeMode(REM::Vector3f(layer->QuadPoseCenter.Position), REM::Quatf(layer->QuadPoseCenter.Orientation));
-			else
-				params.UpdateLocationWithStationaryMode(session->Tracking->CoordinateSystem(), REM::Vector3f(layer->QuadPoseCenter.Position), REM::Quatf(layer->QuadPoseCenter.Orientation));
-
-			IDirect3DSurface surface = params.AcquireBufferToUpdateContent();
-			RenderTextureSwapChain(surface, layer->ColorTexture, layer->Viewport);
-			activeOverlays.push_back(swapchain->Overlay);
-		}
-		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov ||
+		// TODO: Support ovrLayerType_Quad, ovrLayerType_Cylinder and ovrLayerType_Cube
+		if (layerPtrList[i]->Type == ovrLayerType_EyeFov ||
 			layerPtrList[i]->Type == ovrLayerType_EyeFovDepth ||
 			layerPtrList[i]->Type == ovrLayerType_EyeFovMultires)
 		{

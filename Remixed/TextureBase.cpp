@@ -42,7 +42,6 @@ bool TextureBase::IsDepthFormat(ovrTextureFormat format)
 
 ovrTextureSwapChainData::ovrTextureSwapChainData(ovrTextureSwapChainDesc desc)
 	: Desc(desc)
-	, Overlay(nullptr)
 	, Length(REV_SWAPCHAIN_MAX_LENGTH)
 	, Identifier(0)
 	, CurrentIndex(0)

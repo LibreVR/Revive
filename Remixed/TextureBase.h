@@ -24,7 +24,6 @@ public:
 struct ovrTextureSwapChainData
 {
 	ovrTextureSwapChainDesc Desc;
-	winrt::Windows::Graphics::Holographic::HolographicQuadLayer Overlay;
 
 	unsigned int Identifier;
 	int Length, CurrentIndex, SubmitIndex;
