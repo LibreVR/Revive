@@ -361,7 +361,8 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	state.HeadPose.ThePose.Orientation = REM::Quatf(leftEye);
 	state.HeadPose.ThePose.Position = leftEye.GetTranslation();
 
-	static const REM::Quatf OrientationOffset(OVR::Axis_X, -MATH_FLOAT_PIOVER4);
+	static const REM::Quatf orientationOffset(OVR::Axis_X, -MATH_FLOAT_PIOVER4);
+	static ovrPosef lastPose[2] = { OVR::Posef::Identity(), OVR::Posef::Identity() };
 	auto sources = session->Interaction.GetDetectedSourcesAtTimestamp(timestamp);
 	for (SpatialInteractionSourceState source : sources)
 	{
@@ -369,14 +370,22 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		SpatialInteractionSourceLocation location = source.Properties().TryGetLocation(session->Tracking->CoordinateSystem());
 		if (location)
 		{
+			// Make sure the orientation stays in the same hemisphere as the previous orientation, this prevents
+			// linear interpolations from suddenly flipping the long way around in Oculus Medium.
+			OVR::Quatf orientation = REM::Quatf(location.Orientation()) * orientationOffset;
+			orientation.EnsureSameHemisphere(lastPose[hand].Orientation);
+
 			// TODO: Calculate the angular and linear acceleration.
-			state.HandPoses[hand].ThePose.Orientation = REM::Quatf(location.Orientation()) * OrientationOffset;
+			state.HandPoses[hand].ThePose.Orientation = orientation;
 			state.HandPoses[hand].ThePose.Position = REM::Vector3f(location.Position());
 			state.HandPoses[hand].AngularVelocity = REM::Vector3f(location.AngularVelocity());
 			state.HandPoses[hand].LinearVelocity = REM::Vector3f(location.Velocity());
 			//state.HandPoses[hand].AngularAcceleration = REM::Vector3f(location.AbsoluteAngularAcceleration());
 			//state.HandPoses[hand].LinearAcceleration = REM::Vector3f(location.AbsoluteLinearAcceleration());
 			state.HandStatusFlags[hand] = ovrStatus_OrientationTracked | ovrStatus_PositionTracked;
+
+
+			lastPose[hand] = state.HandPoses[hand].ThePose;
 		}
 	}
 
