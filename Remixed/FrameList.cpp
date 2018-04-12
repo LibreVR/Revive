@@ -26,11 +26,8 @@ FrameList::FrameList(HolographicSpace space)
 
 HolographicFrame FrameList::GetFrame(long long frameIndex)
 {
-	if (frameIndex <= 0 && frameIndex < m_next_index)
-	{
-		std::shared_lock<std::shared_mutex> lk(m_frame_mutex);
-		return m_frames.back().second;
-	}
+	if (frameIndex <= 0)
+		frameIndex = m_submitted_index + 1;
 
 	if (frameIndex >= m_next_index)
 	{
@@ -44,8 +41,8 @@ HolographicFrame FrameList::GetFrame(long long frameIndex)
 		if (frameIndex < m_frames.front().first)
 			return nullptr;
 
-		auto it = m_frames.begin();
-		while (it != m_frames.end() && it->first < frameIndex)
+		auto it = m_frames.rbegin();
+		while (it != m_frames.rend() && it->first > frameIndex)
 			it++;
 		return it->second;
 	}
