@@ -4,6 +4,8 @@ This is a compatibility layer between the Oculus SDK and OpenVR. It allows you t
 
 [Refer to the wiki](https://github.com/LibreVR/Revive/wiki) if you run into any problems. You can also find a [community-compiled list of working games on the wiki](https://github.com/LibreVR/Revive/wiki/Compatibility-list), feel free to add your own results.
 
+[![Become a patron](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/bePatron?u=748302)
+
 # Installation
 
 *Always check the [compatibility list](https://github.com/LibreVR/Revive/wiki/Compatibility-list) before making a purchase.*
@@ -22,4 +24,4 @@ If you want to adjust the advanced settings in Revive you should download [OpenV
 - Newly installed applications may refuse to start when you try to launch them for the first time, [simply follow these instructions to fix it](https://github.com/LibreVR/Revive/wiki/Troubleshooting#im-getting-an-entitlement-error-or-oculus-rift-not-found) or reboot your PC.
 - If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard. Or check the Applications tab in the SteamVR settings to see if the tab is enabled.
 
-![logo](Images/revive_black.png)
+![Revive Logo](Images/revive_black.png)
