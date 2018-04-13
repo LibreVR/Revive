@@ -148,7 +148,7 @@ bool COpenVROverlayController::Init()
 	if( !bSuccess )
 	{
 		qDebug( "Failed to connect to OpenVR Runtime" );
-		return true;
+		return false;
 	}
 
 	// Check if the compositor is ready
