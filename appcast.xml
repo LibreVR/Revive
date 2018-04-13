@@ -5,26 +5,29 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.2.2</title>
+			<title>Version 1.3.0</title>
 			<description>
 			<![CDATA[
 			<h2>Changes</h2>
 
 			<ul>
-			    <li>Updated to Oculus SDK 1.24</li>
+			    <li>The Windows Mixed Reality "Remixed" version of Revive is now in beta, open the Revive Dashboard on the desktop without SteamVR running to use it</li>
+			    <li>The dashboard can now be opened on the desktop by double-clicking the tray icon or launching it from the start menu</li>
 			</ul>
 
 			<h2>Bug fixes</h2>
 
 			<ul>
-			    <li>Oculus Medium crashing on startup (#922)</li>
+			    <li>Fixed setting changes not being applied during gameplay</li>
+			    <li>Fixed a crash in the dashboard when opening and closing it on the Desktop several times</li>
+			    <li>Fixed a large portion of Oculus games failing to start (#960)</li>
 			</ul>
 			]]>
 			</description>
 			<pubDate>27 March 2018</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.2.2/ReviveInstaller.exe"
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.3.0/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.2.2.2"
+					   sparkle:version="1.3.0.1"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
