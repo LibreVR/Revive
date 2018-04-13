@@ -20,10 +20,13 @@ public:
 	rcu_ptr() : m_ptr(nullptr), m_mutex(std::make_shared<std::shared_mutex>()), m_reader() { }
 
 	// Copying implies you acquire a read-lock on the underlying pointer
-	rcu_ptr(const rcu_ptr& r) : m_mutex(r.m_mutex), m_ptr(r.m_ptr), m_reader(std::this_thread::get_id())
+	rcu_ptr(const rcu_ptr& r) : m_ptr(nullptr), m_mutex(r.m_mutex), m_reader(std::this_thread::get_id())
 	{
 		if (m_reader != r.m_reader)
 			m_mutex->lock_shared();
+
+		// Only copy the pointer once we're certain we have a read-lock on it
+		m_ptr = r.m_ptr;
 	}
 
 	// Creating a new pointer doesn't acquire a read-lock, because this thread is the writer
