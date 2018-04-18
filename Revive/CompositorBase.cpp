@@ -32,6 +32,8 @@ ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
 	case vr::VRCompositorError_TextureUsesUnsupportedFormat: return ovrError_TextureSwapChainInvalid;
 	case vr::VRCompositorError_SharedTexturesNotSupported: return ovrError_TextureSwapChainInvalid;
 	case vr::VRCompositorError_IndexOutOfRange: return ovrError_InvalidParameter;
+	case vr::VRCompositorError_AlreadySubmitted: return ovrSuccess_NotVisible;
+	case vr::VRCompositorError_InvalidBounds: return ovrError_InvalidParameter;
 	default: return ovrError_RuntimeException;
 	}
 }
