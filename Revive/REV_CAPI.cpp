@@ -17,6 +17,7 @@
 #include <MinHook.h>
 #include <list>
 #include <algorithm>
+#include <thread>
 #include <assert.h>
 
 #define REV_DEFAULT_TIMEOUT 10000
@@ -240,9 +241,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	// Detect if the application has focus, but only return false the first time the status is requested.
 	// If this is true from the first call then Airmech will assume the Health-and-Safety warning
 	// is still being displayed.
-	static bool firstCall = true;
-	sessionStatus->IsVisible = vr::VRCompositor()->CanRenderScene() && !firstCall;
-	firstCall = false;
+	static bool first_call = true;
+	sessionStatus->IsVisible = vr::VRCompositor()->CanRenderScene() && !first_call;
+	first_call = false;
 
 	SessionStatusBits status = session->SessionStatus;
 
@@ -256,6 +257,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	sessionStatus->ShouldRecenter = status.ShouldRecenter;
 	sessionStatus->HasInputFocus = status.HasInputFocus;
 	sessionStatus->OverlayPresent = status.OverlayPresent;
+
+	static const bool do_sleep = session->Details->UseHack(SessionDetails::HACK_SLEEP_IN_SESSION_STATUS);
+	if (do_sleep)
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
 	return ovrSuccess;
 }

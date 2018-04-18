@@ -10,7 +10,8 @@
 SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
 	{ "drt.exe", nullptr, HACK_WAIT_IN_TRACKING_STATE, false }, // TODO: Fix this hack
 	{ "ultrawings.exe", nullptr, HACK_FAKE_PRODUCT_NAME, true },
-	{ nullptr, "holographic", HACK_SPOOF_SENSORS, true }
+	{ nullptr, "holographic", HACK_SPOOF_SENSORS, true },
+	{ "AirMech.exe", nullptr, HACK_SLEEP_IN_SESSION_STATUS, true }
 };
 
 SessionDetails::SessionDetails()

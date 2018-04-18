@@ -32,6 +32,11 @@ public:
 		// Some driver don't properly report the eye matrix, but do correctly report the IPD.
 		// We can use the IPD to reconstruct the eye matrix.
 		HACK_RECONSTRUCT_EYE_MATRIX,
+
+		// Hack: Insert a small sleep duration in ovr_GetSessionStatus().
+		// AirMech: Command doesn't properly synchronize their threads and relies on actual API call
+		// timings to keep the game thread in sync with the render thread.
+		HACK_SLEEP_IN_SESSION_STATUS,
 	};
 
 	SessionDetails();
