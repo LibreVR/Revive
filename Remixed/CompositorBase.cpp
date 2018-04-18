@@ -101,7 +101,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 
 	HolographicFrame frame = session->Frames->GetPendingFrame(frameIndex);
 	if (!frame)
-		return ovrError_InvalidParameter;
+		return ovrSuccess_NotVisible;
 
 	bool baseLayerFound = false;
 	std::vector<HolographicQuadLayer> activeOverlays;
