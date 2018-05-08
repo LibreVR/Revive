@@ -464,16 +464,6 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Oculus.js">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="Overlay.qml">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="C:\Source\revive\ReviveOverlay\ReviveOverlay_resource.rc" />
   </ItemGroup>
   <ItemGroup>
