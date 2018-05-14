@@ -27,6 +27,8 @@ MICROPROFILE_DEFINE(BeginFrame, "Compositor", "BeginFrame", 0x00ff00);
 MICROPROFILE_DEFINE(EndFrame, "Compositor", "EndFrame", 0x00ff00);
 MICROPROFILE_DEFINE(SubmitFovLayer, "Compositor", "SubmitFovLayer", 0x00ff00);
 
+extern uint32_t g_MinorVersion;
+
 CompositorBase::CompositorBase()
 	: m_MirrorTexture(nullptr)
 	, m_ChainCount(0)
@@ -89,6 +91,22 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	return ovrSuccess;
 }
 
+template<typename T>
+T CompositorBase::ToLayer(const ovrLayerHeader* layerPtr)
+{
+	T layer = {};
+	layer.Header.Type = layerPtr->Type;
+	layer.Header.Flags = layerPtr->Flags;
+
+	// Version 1.25 introduced a 128-byte reserved parameter, so on older versions the actual data
+	// falls within this reserved parameter and needs to be copied into the actual data area.
+	if (g_MinorVersion < 25)
+		memcpy((uint8_t*)&layer + sizeof(ovrLayerHeader), layerPtr->Reserved, sizeof(T) - sizeof(ovrLayerHeader));
+	else
+		layer = *(T*)layerPtr;
+	return layer;
+}
+
 ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	MICROPROFILE_SCOPE(EndFrame);
@@ -115,8 +133,8 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 			layerPtrList[i]->Type == ovrLayerType_EyeFovDepth ||
 			layerPtrList[i]->Type == ovrLayerType_EyeFovMultires)
 		{
-			ovrLayerEyeFov* layer = (ovrLayerEyeFov*)layerPtrList[i];
-			SubmitFovLayer(frame, layer);
+			ovrLayerEyeFov layer = ToLayer<ovrLayerEyeFov>(layerPtrList[i]);
+			SubmitFovLayer(frame, &layer);
 			baseLayerFound = true;
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeMatrix)

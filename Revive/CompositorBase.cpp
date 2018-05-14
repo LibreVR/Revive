@@ -11,6 +11,8 @@
 #include <vector>
 #include <algorithm>
 
+extern uint32_t g_MinorVersion;
+
 #define REV_LAYER_BIAS 0.0001f
 
 MICROPROFILE_DEFINE(WaitToBeginFrame, "Compositor", "WaitFrame", 0x00ff00);
@@ -115,6 +117,22 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 	return ovrSuccess;
 }
 
+template<typename T>
+T CompositorBase::ToLayer(const ovrLayerHeader* layerPtr)
+{
+	T layer = {};
+	layer.Header.Type = layerPtr->Type;
+	layer.Header.Flags = layerPtr->Flags;
+
+	// Version 1.25 introduced a 128-byte reserved parameter, so on older versions the actual data
+	// falls within this reserved parameter and needs to be copied into the actual data area.
+	if (g_MinorVersion < 25)
+		memcpy((uint8_t*)&layer + sizeof(ovrLayerHeader), layerPtr->Reserved, sizeof(T) - sizeof(ovrLayerHeader));
+	else
+		layer = *(T*)layerPtr;
+	return layer;
+}
+
 ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	MICROPROFILE_SCOPE(EndFrame);
@@ -130,24 +148,24 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	std::vector<vr::VROverlayHandle_t> activeOverlays;
 	for (uint32_t i = 0; i < layerCount; i++)
 	{
-		if (layerPtrList[i] == nullptr)
+		if (!layerPtrList[i])
 			continue;
 
 		// TODO: Support ovrLayerType_Cylinder and ovrLayerType_Cube
 		if (layerPtrList[i]->Type == ovrLayerType_Quad)
 		{
-			ovrLayerQuad* layer = (ovrLayerQuad*)layerPtrList[i];
-			ovrTextureSwapChain chain = layer->ColorTexture;
+			ovrLayerQuad layer = ToLayer<ovrLayerQuad>(layerPtrList[i]);
+			ovrTextureSwapChain chain = layer.ColorTexture;
 
 			// Every overlay is associated with a swapchain.
 			// This is necessary because the position of the layer may change in the array,
 			// which would otherwise cause flickering between overlays.
 			// TODO: Support multiple overlays using the same texture.
-			vr::VROverlayHandle_t overlay = layer->ColorTexture->Overlay;
+			vr::VROverlayHandle_t overlay = layer.ColorTexture->Overlay;
 			if (overlay == vr::k_ulOverlayHandleInvalid)
 			{
 				overlay = CreateOverlay();
-				layer->ColorTexture->Overlay = overlay;
+				layer.ColorTexture->Overlay = overlay;
 
 				vr::VRTextureWithPose_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
 				vr::VROverlay()->SetOverlayTexture(chain->Overlay, &texture);
@@ -158,15 +176,15 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			vr::VROverlay()->SetOverlaySortOrder(overlay, i);
 
 			// Transform the overlay.
-			vr::HmdMatrix34_t transform = REV::Matrix4f(layer->QuadPoseCenter);
-			vr::VROverlay()->SetOverlayWidthInMeters(overlay, layer->QuadSize.x);
-			if (layer->Header.Flags & ovrLayerFlag_HeadLocked)
+			vr::HmdMatrix34_t transform = REV::Matrix4f(layer.QuadPoseCenter);
+			vr::VROverlay()->SetOverlayWidthInMeters(overlay, layer.QuadSize.x);
+			if (layer.Header.Flags & ovrLayerFlag_HeadLocked)
 				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
 			else
 				vr::VROverlay()->SetOverlayTransformAbsolute(overlay, session->TrackingOrigin, &transform);
 
 			// Set the texture and show the overlay.
-			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer->Viewport, layer->ColorTexture, layer->Header.Flags);
+			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.Viewport, layer.ColorTexture, layer.Header.Flags);
 			vr::Texture_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
 			vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
 
@@ -181,13 +199,13 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			layerPtrList[i]->Type == ovrLayerType_EyeFovDepth ||
 			layerPtrList[i]->Type == ovrLayerType_EyeFovMultires)
 		{
-			ovrLayerEyeFov* layer = (ovrLayerEyeFov*)layerPtrList[i];
+			ovrLayerEyeFov layer = ToLayer<ovrLayerEyeFov>(layerPtrList[i]);
 
 			// We can only submit one eye layer, so once we have a base layer we blit the others.
 			if (!baseLayerFound)
-				baseLayer = *layer;
+				baseLayer = layer;
 			else
-				BlitFovLayers(&baseLayer, layer);
+				BlitFovLayers(&baseLayer, &layer);
 			baseLayerFound = true;
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeMatrix)

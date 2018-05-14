@@ -35,6 +35,8 @@ protected:
 	unsigned int m_ChainCount;
 	ovrMirrorTexture m_MirrorTexture;
 
+	template<typename T>
+	T ToLayer(const ovrLayerHeader* layerPtr);
 	ovrLayerEyeFov ToFovLayer(ovrLayerEyeMatrix* matrix);
 
 	void SubmitFovLayer(winrt::Windows::Graphics::Holographic::HolographicFrame frame, ovrLayerEyeFov* fovLayer);
