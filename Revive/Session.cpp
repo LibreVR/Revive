@@ -56,11 +56,10 @@ void SessionThreadFunc(ovrSession session)
 				session->SessionStatus = status;
 			}
 			break;
-			case vr::VREvent_InputFocusCaptured:
-			case vr::VREvent_InputFocusReleased:
+			case vr::VREvent_InputFocusChanged:
 			{
 				SessionStatusBits status = session->SessionStatus;
-				status.HasInputFocus = vrEvent.eventType == vr::VREvent_InputFocusReleased;
+				status.HasInputFocus = vr::VRSystem()->IsInputAvailable();
 				session->SessionStatus = status;
 			}
 			break;
@@ -68,7 +67,7 @@ void SessionThreadFunc(ovrSession session)
 			case vr::VREvent_DashboardDeactivated:
 			{
 				SessionStatusBits status = session->SessionStatus;
-				status.OverlayPresent = vrEvent.eventType == vr::VREvent_DashboardActivated;
+				status.OverlayPresent = vr::VROverlay()->IsDashboardVisible();
 				session->SessionStatus = status;
 			}
 			break;
@@ -103,13 +102,12 @@ ovrHmdStruct::ovrHmdStruct()
 	status.HmdPresent = vr::VR_IsHmdPresent();
 	vr::EDeviceActivityLevel activity = vr::VRSystem()->GetTrackedDeviceActivityLevel(vr::k_unTrackedDeviceIndex_Hmd);
 	status.HmdMounted = activity != vr::k_EDeviceActivityLevel_Idle;
-	status.HasInputFocus = !vr::VRSystem()->IsInputFocusCapturedByAnotherProcess();
+	status.HasInputFocus = vr::VRSystem()->IsInputAvailable();
 	status.OverlayPresent = vr::VROverlay()->IsDashboardVisible();
 	SessionStatus = status;
 
 	std::string script = Settings->GetInputScript();
 	Input->LoadInputScript(script.c_str());
-
 	SessionThread = std::thread(SessionThreadFunc, this);
 }
 
