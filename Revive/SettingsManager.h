@@ -27,7 +27,7 @@ public:
 	~SettingsManager();
 
 	void ReloadSettings();
-	std::string GetInputScript();
+	void LoadActionManifest();
 	template<typename T> T Get(const char* key, T defaultVal);
 
 	rcu_ptr<InputSettings> Input;

@@ -79,6 +79,8 @@ void SessionThreadFunc(ovrSession session)
 #endif
 		}
 
+		session->Input->UpdateInputState();
+
 		std::this_thread::sleep_for(freq);
 	}
 }
@@ -106,8 +108,6 @@ ovrHmdStruct::ovrHmdStruct()
 	status.OverlayPresent = vr::VROverlay()->IsDashboardVisible();
 	SessionStatus = status;
 
-	std::string script = Settings->GetInputScript();
-	Input->LoadInputScript(script.c_str());
 	SessionThread = std::thread(SessionThreadFunc, this);
 }
 

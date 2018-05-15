@@ -13,18 +13,17 @@
 #include <Windows.h>
 #include <Xinput.h>
 
-typedef struct lua_State lua_State;
-
 class InputManager
 {
 public:
 	class InputDevice
 	{
 	public:
+		InputDevice(vr::VRActionSetHandle_t actionSet)
+			: ActionSet(actionSet) { }
 		virtual ~InputDevice() { }
 
 		// Input
-		virtual vr::ETrackedControllerRole GetRole() { return vr::TrackedControllerRole_Invalid; }
 		virtual ovrControllerType GetType() = 0;
 		virtual bool IsConnected() const = 0;
 		virtual bool GetInputState(ovrSession session, ovrInputState* inputState) = 0;
@@ -33,67 +32,102 @@ public:
 		virtual void SetVibration(float frequency, float amplitude) { }
 		virtual void SubmitVibration(const ovrHapticsBuffer* buffer) { }
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { }
+
+		vr::VRActionSetHandle_t ActionSet;
+
+	protected:
+		static bool GetDigital(vr::VRActionHandle_t action)
+		{
+			vr::InputDigitalActionData_t data = {};
+			vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data));
+			return data.bState;
+		}
+
+		static ovrVector2f GetAnalog(vr::VRActionHandle_t action)
+		{
+			vr::InputAnalogActionData_t data = {};
+			vr::VRInput()->GetAnalogActionData(action, &data, sizeof(data));
+			ovrVector2f vector = { data.x, data.y };
+			return vector;
+		}
 	};
 
 	class OculusTouch : public InputDevice
 	{
 	public:
-		OculusTouch(vr::ETrackedControllerRole role);
+		OculusTouch(vr::VRActionSetHandle_t actionSet, vr::ETrackedControllerRole role);
 		virtual ~OculusTouch();
 
-		std::atomic<lua_State*> m_Script;
-		std::atomic_uint16_t m_AxisTypes;
-
-		virtual vr::ETrackedControllerRole GetRole() { return m_Role; }
 		virtual ovrControllerType GetType();
 		virtual bool IsConnected() const;
 		virtual bool GetInputState(ovrSession session, ovrInputState* inputState);
+
 		virtual void SetVibration(float frequency, float amplitude) { m_Haptics.SetConstant(frequency, amplitude); }
 		virtual void SubmitVibration(const ovrHapticsBuffer* buffer) { m_Haptics.AddSamples(buffer); }
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { *outState = m_Haptics.GetState(); }
 
+		vr::ETrackedControllerRole Role;
+
 	private:
+		vr::VRActionHandle_t m_Button_AX;
+		vr::VRActionHandle_t m_Button_BY;
+		vr::VRActionHandle_t m_Button_Thumb;
+		vr::VRActionHandle_t m_Button_Enter;
+
+		vr::VRActionHandle_t m_Touch_AX;
+		vr::VRActionHandle_t m_Touch_BY;
+		vr::VRActionHandle_t m_Touch_Thumb;
+		vr::VRActionHandle_t m_Touch_ThumbRest;
+		vr::VRActionHandle_t m_Touch_IndexTrigger;
+		vr::VRActionHandle_t m_Touch_IndexPointing;
+		vr::VRActionHandle_t m_Touch_ThumbUp;
+
+		vr::VRActionHandle_t m_IndexTrigger;
+		vr::VRActionHandle_t m_HandTrigger;
+		vr::VRActionHandle_t m_Thumbstick;
+
+		vr::VRActionHandle_t m_Button_IndexTrigger;
+		vr::VRActionHandle_t m_Button_HandTrigger;
+
+		vr::VRActionHandle_t m_Vibration;
 		HapticsBuffer m_Haptics;
 		std::atomic_bool m_bHapticsRunning;
-		vr::ETrackedControllerRole m_Role;
 
 		std::thread m_HapticsThread;
 		static void HapticsThread(OculusTouch* device);
-
-		void AddStateField(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state,
-			vr::EVRButtonId button, const char* name = nullptr);
-		void CreateStateTable(lua_State* L, vr::TrackedDeviceIndex_t index, vr::VRControllerState_t& state);
 	};
 
 	class OculusRemote : public InputDevice
 	{
 	public:
-		OculusRemote() { }
+		OculusRemote(vr::VRActionSetHandle_t actionSet);
 		virtual ~OculusRemote() { }
 
 		virtual ovrControllerType GetType() { return ovrControllerType_Remote; }
 		virtual bool IsConnected() const;
 		virtual bool GetInputState(ovrSession session, ovrInputState* inputState);
+
+	private:
+		vr::VRActionHandle_t m_Button_Up;
+		vr::VRActionHandle_t m_Button_Down;
+		vr::VRActionHandle_t m_Button_Left;
+		vr::VRActionHandle_t m_Button_Right;
+		vr::VRActionHandle_t m_Button_Enter;
+		vr::VRActionHandle_t m_Button_Back;
+		vr::VRActionHandle_t m_Button_VolUp;
+		vr::VRActionHandle_t m_Button_VolDown;
 	};
 
 	class XboxGamepad : public InputDevice
 	{
 	public:
-		XboxGamepad();
+		using InputDevice::InputDevice;
 		virtual ~XboxGamepad();
 
 		virtual ovrControllerType GetType() { return ovrControllerType_XBox; }
-		virtual bool IsConnected() const;
+		virtual bool IsConnected() const { return false; }
 		virtual bool GetInputState(ovrSession session, ovrInputState* inputState);
 		virtual void SetVibration(float frequency, float amplitude);
-
-	private:
-		typedef DWORD(__stdcall* _XInputSetState)(DWORD dwUserIndex, XINPUT_VIBRATION* pVibration);
-		typedef DWORD(__stdcall* _XInputGetState)(DWORD dwUserIndex, XINPUT_STATE* pState);
-
-		HMODULE m_XInput;
-		_XInputSetState SetState;
-		_XInputGetState GetState;
 	};
 
 	InputManager();
@@ -101,6 +135,7 @@ public:
 
 	std::atomic_uint32_t ConnectedControllers;
 
+	void UpdateInputState();
 	void UpdateConnectedControllers();
 	ovrTouchHapticsDesc GetTouchHapticsDesc(ovrControllerType controllerType);
 	ovrResult SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude);
@@ -111,27 +146,14 @@ public:
 	void GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime);
 	ovrResult GetDevicePoses(ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses);
 
-	bool LoadInputScript(const char* fn);
-
 protected:
 	std::vector<InputDevice*> m_InputDevices;
 
 private:
-	std::mutex m_InputMutex;
 	float m_fVsyncToPhotons;
 	ovrPoseStatef m_LastPoses[vr::k_unMaxTrackedDeviceCount];
 
 	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 	ovrPoseStatef TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, ovrPoseStatef& lastPose, double time);
-
-	// LUA Support code
-	std::list<lua_State*> m_ScriptStates;
-	bool LoadResourceScript(lua_State* L, const char* name);
-	bool LoadFileScript(lua_State* L, const char* fn);
-	static int ErrorHandler(lua_State* L);
-
-	// Enumeration name caches
-	static const char* s_ButtonNames[vr::k_EButton_Max];
-	static const char* s_TypeNames[4];
 };
 

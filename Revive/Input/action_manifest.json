@@ -1,0 +1,345 @@
+{
+  "default_bindings": [
+   {
+      "controller_type": "vive_controller",
+      "binding_url": "vive_controller_default.json"
+   },
+   {
+      "controller_type": "gamepad",
+      "binding_url": "gamepad_default.json"
+   }
+  ],
+  "actions": [
+    {
+      "name": "/actions/touch/in/Button_A",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Button_B",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Button_RThumb",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Button_X",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Button_Y",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Button_LThumb",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Button_Enter",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Button_RIndexTrigger",
+      "requirement" : "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Button_LIndexTrigger",
+      "requirement" : "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Button_RHandTrigger",
+      "requirement" : "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Button_LHandTrigger",
+      "requirement" : "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/RIndexTrigger",
+      "requirement" : "optional",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/touch/in/LIndexTrigger",
+      "requirement" : "optional",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/touch/in/RHandTrigger",
+      "requirement" : "optional",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/touch/in/LHandTrigger",
+      "requirement" : "optional",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/touch/in/RThumbstick",
+      "requirement" : "optional",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/touch/in/LThumbstick",
+      "requirement" : "optional",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/touch/in/Touch_A",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_B",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_RThumb",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_RThumbRest",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_RIndexTrigger",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_X",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_Y",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_LThumb",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_LThumbRest",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_LIndexTrigger",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_RIndexPointing",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_RThumbUp",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_LIndexPointing",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_LThumbUp",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/out/RVibration",
+      "type": "vibration"
+    },
+    {
+      "name": "/actions/touch/out/LVibration",
+      "type": "vibration"
+    },
+    {
+      "name": "/actions/xbox/in/Button_A",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_B",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_RThumb",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_RShoulder",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_X",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_Y",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_LThumb",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_LShoulder",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_Up",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_Down",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_Left",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_Right",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_Enter",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/Button_Back",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/xbox/in/RIndexTrigger",
+      "requirement" : "optional",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/xbox/in/LIndexTrigger",
+      "requirement" : "optional",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/xbox/in/RHandTrigger",
+      "requirement" : "optional",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/xbox/in/LHandTrigger",
+      "requirement" : "optional",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/xbox/in/RThumb",
+      "requirement" : "optional",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/xbox/in/LThumb",
+      "requirement" : "optional",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/xbox/out/Vibration",
+      "requirement": "optional",
+      "type": "vibration"
+    },
+    {
+      "name": "/actions/remote/in/Button_Up",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/remote/in/Button_Down",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/remote/in/Button_Left",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/remote/in/Button_Right",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/remote/in/Button_Enter",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/remote/in/Button_Back",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/remote/in/Button_VolUp",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/remote/in/Button_VolDown",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/system/in/Button_Home",
+      "requirement": "optional",
+      "type": "boolean"
+    }
+  ],
+  "action_sets": [
+    {
+      "name": "/actions/touch",
+      "usage": "leftright"
+    },
+    {
+      "name": "/actions/remote",
+      "usage": "single"
+    },
+    {
+      "name": "/actions/xbox",
+      "usage": "leftright"
+    },
+    {
+      "name": "/actions/system",
+      "usage": "hidden"
+    }
+  ]
+}

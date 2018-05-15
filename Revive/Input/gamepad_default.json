@@ -1,0 +1,176 @@
+{
+   "bindings" : {
+      "/actions/remote" : {
+         "sources" : []
+      },
+      "/actions/xbox" : {
+         "sources" : [
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_a"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/a"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_b"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/b"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_x"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/x"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_y"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/y"
+            },
+            {
+               "inputs" : {
+                  "position" : {
+                     "output" : "/actions/xbox/in/lthumbstick"
+                  }
+               },
+               "mode" : "joystick",
+               "path" : "/user/gamepad/input/joystick_left"
+            },
+            {
+               "inputs" : {
+                  "position" : {
+                     "output" : "/actions/xbox/in/rthumbstick"
+                  }
+               },
+               "mode" : "joystick",
+               "path" : "/user/gamepad/input/joystick_right"
+            },
+            {
+               "inputs" : {
+                  "pull" : {
+                     "output" : "/actions/xbox/in/lindextrigger"
+                  }
+               },
+               "mode" : "trigger",
+               "path" : "/user/gamepad/input/trigger_left"
+            },
+            {
+               "inputs" : {
+                  "pull" : {
+                     "output" : "/actions/xbox/in/rindextrigger"
+                  }
+               },
+               "mode" : "trigger",
+               "path" : "/user/gamepad/input/trigger_right"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_lshoulder"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/shoulder_left"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_rshoulder"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/shoulder_right"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_down"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/dpad_down"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_up"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/dpad_up"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_left"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/dpad_left"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_right"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/dpad_right"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_enter"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/start"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_back"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/back"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_lthumb"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/joystick_left"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/xbox/in/button_rthumb"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/gamepad/input/joystick_right"
+            }
+         ]
+      }
+   },
+   "controller_type" : "gamepad",
+   "description" : "",
+   "name" : "Revive for Gamepad"
+}
