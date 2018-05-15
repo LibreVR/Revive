@@ -34,7 +34,7 @@ CompositorGL* CompositorGL::Create()
 CompositorGL::CompositorGL()
 {
 	// Get the mirror textures
-	glGenFramebuffers(ovrEye_Count, m_mirrorFB);
+	/*glGenFramebuffers(ovrEye_Count, m_mirrorFB);
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		vr::VRCompositor()->GetMirrorTextureGL((vr::EVREye)i, &m_mirror[i].first, &m_mirror[i].second);
@@ -50,7 +50,7 @@ CompositorGL::CompositorGL()
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
-	}
+	}*/
 }
 
 CompositorGL::~CompositorGL()
@@ -66,7 +66,7 @@ TextureBase* CompositorGL::CreateTexture()
 
 void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
-	GLint drawFboId = 0, readFboId = 0, texId = 0;
+	/*GLint drawFboId = 0, readFboId = 0, texId = 0;
 	glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFboId);
 	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFboId);
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &texId);
@@ -93,7 +93,7 @@ void CompositorGL::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 
 	glBindTexture(GL_TEXTURE_2D, texId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFboId);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);*/
 }
 
 void CompositorGL::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)

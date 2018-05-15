@@ -28,6 +28,8 @@ SettingsManager::SettingsManager()
 	if (err != vr::VRApplicationError_None)
 		strcpy(m_Section, REV_SETTINGS_SECTION);
 
+	LoadActionManifest();
+
 	m_Thread = std::thread(SettingThreadFunc, this);
 }
 
@@ -124,32 +126,19 @@ bool SettingsManager::FileExists(const char* path)
 		!(attrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-std::string SettingsManager::GetInputScript()
+void SettingsManager::LoadActionManifest()
 {
 	CComHeapPtr<wchar_t> documents;
 	HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &documents);
 
-	const char* script = Get<const char*>(REV_KEY_INPUT_SCRIPT, REV_DEFAULT_INPUT_SCRIPT);
 	if (SUCCEEDED(hr))
 	{
 		char path[MAX_PATH];
-
-		// If this is a known application, try to find a app-specific script for it.
-		if (strstr(m_Section, "revive.app."))
-		{
-			// Skip the session prefix
-			snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\%s", (wchar_t*)documents, m_Section + strlen("revive.app."));
-			if (FileExists(path))
-				return std::string(path);
-		}
-
-		// If not follow the settings and use the script by that name
-		snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\%s", (wchar_t*)documents, script);
-		return std::string(path);
+		snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\action_manifest.json", (wchar_t*)documents);
+		vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(path);
+		if (err == vr::VRInputError_None)
+			return;
 	}
-	else
-	{
-		// Fall-back to a relative path
-		return std::string(script);
-	}
+
+	vr::VROverlay()->ShowMessageOverlay("Failed to load action manifest, input will not function correctly!", "Action manifest error", "Continue");
 }

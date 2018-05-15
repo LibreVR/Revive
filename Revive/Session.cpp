@@ -106,8 +106,6 @@ ovrHmdStruct::ovrHmdStruct()
 	status.OverlayPresent = vr::VROverlay()->IsDashboardVisible();
 	SessionStatus = status;
 
-	std::string script = Settings->GetInputScript();
-	Input->LoadInputScript(script.c_str());
 	SessionThread = std::thread(SessionThreadFunc, this);
 }
 
