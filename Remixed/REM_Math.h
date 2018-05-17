@@ -85,4 +85,18 @@ namespace REM {
 			return reinterpret_cast<const winrt::Windows::Foundation::Numerics::float4x4&>(*this);
 		}
 	};
+
+	class FovPort : public OVR::FovPort
+	{
+	public:
+		// Inherit constructors
+		using OVR::FovPort::FovPort;
+		FovPort() : OVR::FovPort() { }
+
+		// Numerics-interop support
+		// FIXME: For some reason the float4x4 matrices are column-major instead of row-major
+		FovPort(const winrt::Windows::Foundation::Numerics::float4x4& s)
+			: OVR::FovPort(	(s.m32 + 1.0f) / s.m22, (1.0f - s.m32) / s.m22,
+							(1.0f - s.m31) / s.m11, (s.m31 + 1.0f) / s.m11) { }
+	};
 }

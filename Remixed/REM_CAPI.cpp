@@ -137,9 +137,7 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	{
 		ovrEyeRenderDesc eyeDesc = {};
 
-		REM::Matrix4f matrix = i == ovrEye_Left ? REM::Matrix4f(transform.Left) : REM::Matrix4f(transform.Right);
-		OVR::FovPort eyeFov(1.0f / matrix.M[1][1], 1.0f / matrix.M[1][1], 1.0f / matrix.M[0][0], 1.0f / matrix.M[0][0]);
-
+		REM::FovPort eyeFov = (i == ovrEye_Left) ? REM::FovPort(transform.Left) : REM::FovPort(transform.Right);
 		eyeDesc.Eye = (ovrEyeType)i;
 		eyeDesc.Fov = eyeFov;
 

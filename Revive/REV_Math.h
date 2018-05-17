@@ -33,6 +33,12 @@ namespace REV {
 		using OVR::Matrix4f::Matrix4;
 		Matrix4f() : OVR::Matrix4f() { }
 
+		OVR::FovPort ToFovPort()
+		{
+			return OVR::FovPort((M[1][2] + 1.0f) / M[1][1], (1.0f - M[1][2]) / M[1][1],
+								(1.0f - M[0][2]) / M[0][0], (M[0][2] + 1.0f) / M[0][0]);
+		}
+
 		// OpenVR-interop support
 		explicit Matrix4f(const vr::HmdMatrix34_t& s)
 		{

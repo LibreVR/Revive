@@ -299,8 +299,7 @@ ovrLayerEyeFov CompositorBase::ToFovLayer(ovrLayerEyeMatrix* matrix)
 
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		layer.Fov[i].LeftTan = layer.Fov[i].RightTan = .5f / matrix->Matrix[i].M[0][0];
-		layer.Fov[i].UpTan = layer.Fov[i].DownTan = -.5f / matrix->Matrix[i].M[1][1];
+		layer.Fov[i] = REV::Matrix4f(matrix->Matrix[i]).ToFovPort();
 		layer.ColorTexture[i] = matrix->ColorTexture[i];
 		layer.Viewport[i] = matrix->Viewport[i];
 		layer.RenderPose[i] = matrix->RenderPose[i];
