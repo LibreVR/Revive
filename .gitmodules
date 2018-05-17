@@ -13,6 +13,3 @@
 [submodule "Vulkan"]
 	path = Externals/Vulkan
 	url = https://github.com/KhronosGroup/Vulkan-Docs.git
-[submodule "Externals/cppwinrt"]
-	path = Externals/cppwinrt
-	url = https://github.com/LibreVR/cppwinrt.git
