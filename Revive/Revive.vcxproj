@@ -223,7 +223,6 @@
     <ClInclude Include="..\microprofile\microprofiledraw.h" />
     <ClInclude Include="..\microprofile\microprofilehtml.h" />
     <ClInclude Include="..\microprofile\microprofileui.h" />
-    <ClInclude Include="..\openvr\headers\openvr.h" />
     <ClInclude Include="CompositorBase.h" />
     <ClInclude Include="CompositorD3D.h" />
     <ClInclude Include="CompositorGL.h" />
@@ -290,6 +289,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
     <None Include="default.lua" />
     <None Include="header.lua" />
     <None Include="xinput.def" />

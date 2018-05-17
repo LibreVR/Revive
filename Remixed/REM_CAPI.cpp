@@ -31,6 +31,8 @@ using namespace winrt::Windows::Perception::Spatial;
 #include <winrt/Windows.UI.Input.Spatial.h>
 using namespace winrt::Windows::UI::Input::Spatial;
 
+#include "winrt_private.h"
+
 #if 0
 #define REM_TRACE(x) OutputDebugStringA(#x "\n");
 #else
@@ -206,9 +208,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 	try
 	{
-		session->Space = HolographicSpace::CreateForHWND(session->Window->GetWindowHandle());
+		session->Space = CreateForHWND(session->Window->GetWindowHandle());
 		session->Space.SetDirect3D11Device(session->Compositor->GetDevice());
-		session->Interaction = SpatialInteractionManager::GetForHWND(session->Window->GetWindowHandle());
+		session->Interaction = GetForHWND(session->Window->GetWindowHandle());
 		session->Frames = std::make_unique<FrameList>(session->Space);
 		session->Tracking = std::make_unique<TrackingManager>();
 	}

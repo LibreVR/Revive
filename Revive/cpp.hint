@@ -1,0 +1,2 @@
+#define OVR_PUBLIC_FUNCTION(x)
+#define OVR_ALIGNAS(x)

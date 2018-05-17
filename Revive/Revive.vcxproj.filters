@@ -30,9 +30,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\openvr\headers\openvr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Assert.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
@@ -195,6 +192,7 @@
     <None Include="header.lua">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc">

@@ -50,6 +50,7 @@
     <ClInclude Include="TextureWGL.h" />
     <ClInclude Include="TrackingManager.h" />
     <ClInclude Include="Win32Window.h" />
+    <ClInclude Include="winrt_private.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Externals\minhook\build\VC15\libMinHook.vcxproj">
@@ -76,12 +77,15 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{CD882909-7404-4CFC-BC8E-47364CC4727D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Remixed</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -160,7 +164,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_DEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -184,7 +188,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;NOMINMAX;WIN32;_DEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -210,7 +214,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;NOMINMAX;WIN32;NDEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -238,7 +242,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OVR_DLL_BUILD;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;_CRT_SECURE_NO_WARNINGS;NOMINMAX;NDEBUG;REMIXED_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)cppwinrt\$(TargetPlatformVersion)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)minhook\include;$(Externals)LibOVR\Include;$(Externals)glad\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
