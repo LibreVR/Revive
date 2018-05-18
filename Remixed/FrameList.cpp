@@ -63,14 +63,14 @@ HolographicFrame FrameList::GetFrameAtTime(double absTime)
 		return nullptr;
 
 	DateTime target(TimeSpan((int64_t)(absTime * 1.0e+7)));
-	for (Frame frame : m_frames)
+	for (auto it = m_frames.rbegin(); it != m_frames.rend(); it++)
 	{
-		HolographicFramePrediction pred = frame.second.CurrentPrediction();
+		HolographicFramePrediction pred = it->second.CurrentPrediction();
 		PerceptionTimestamp timestamp = pred.Timestamp();
 		DateTime time = timestamp.TargetTime();
-		TimeSpan duration = frame.second.Duration();
+		TimeSpan duration = it->second.Duration();
 		if (target < time + duration)
-			return frame.second;
+			return it->second;
 	}
 	return nullptr;
 }
