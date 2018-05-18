@@ -781,13 +781,18 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.Width * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
 		size.Height * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
 
-	desc.HmdToEyePose = OVR::Posef::Identity();
 	if (eyeType == ovrEye_Right)
 	{
 		HolographicStereoTransform transform = session->Tracking->GetLocalViewTransform(session->Frames->GetFrame());
 		REM::Matrix4f left(transform.Left), right(transform.Right);
-		desc.HmdToEyePose.Orientation = OVR::Quatf(left) * OVR::Quatf(right).Inverted();
-		desc.HmdToEyePose.Position = left.GetTranslation() - right.GetTranslation();
+		left.Invert();
+		right.Invert();
+		desc.HmdToEyePose.Orientation = OVR::Quatf(left).Inverted() * OVR::Quatf(right);
+		desc.HmdToEyePose.Position = right.GetTranslation() - left.GetTranslation();
+	}
+	else
+	{
+		desc.HmdToEyePose = OVR::Posef::Identity();
 	}
 	return desc;
 }
