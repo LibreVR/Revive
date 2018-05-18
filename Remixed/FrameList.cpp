@@ -69,7 +69,12 @@ HolographicFrame FrameList::GetFrameAtTime(double absTime)
 		PerceptionTimestamp timestamp = pred.Timestamp();
 		DateTime time = timestamp.TargetTime();
 		TimeSpan duration = it->second.Duration();
-		if (target < time + duration)
+
+		// Because of rounding errors we need some reasonable timespan
+		// to consider two timestamps to refer to the same frame.
+		// Here we take half the duration of the frame, if it is outside
+		// this timespan it can't possibly refer to the same frame.
+		if (abs(target - time) < duration / 2)
 			return it->second;
 	}
 	return nullptr;
