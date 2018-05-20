@@ -54,6 +54,9 @@
                   }
                },
                "mode" : "dpad_click",
+               "parameters" : {
+                  "overlap_pct" : "0"
+               },
                "path" : "/user/hand/left/input/trackpad"
             },
             {
@@ -72,6 +75,9 @@
                   }
                },
                "mode" : "dpad_click",
+               "parameters" : {
+                  "overlap_pct" : "0"
+               },
                "path" : "/user/hand/right/input/trackpad"
             },
             {
@@ -119,6 +125,9 @@
                "inputs" : {
                   "position" : {
                      "output" : "/actions/touch/in/lthumbstick"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/recenter_lthumb"
                   }
                },
                "mode" : "trackpad",
@@ -140,6 +149,9 @@
                   }
                },
                "mode" : "dpad_click",
+               "parameters" : {
+                  "overlap_pct" : "0"
+               },
                "path" : "/user/hand/left/input/trackpad"
             },
             {
@@ -191,6 +203,9 @@
                "inputs" : {
                   "position" : {
                      "output" : "/actions/touch/in/rthumbstick"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/recenter_rthumb"
                   }
                },
                "mode" : "trackpad",
@@ -212,6 +227,9 @@
                   }
                },
                "mode" : "dpad_click",
+               "parameters" : {
+                  "overlap_pct" : "0"
+               },
                "path" : "/user/hand/right/input/trackpad"
             },
             {

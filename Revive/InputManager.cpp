@@ -9,9 +9,7 @@
 #include "rcu_ptr.h"
 
 #include <openvr.h>
-#include <Windows.h>
-#include <Xinput.h>
-#include <assert.h>
+#include <algorithm>
 
 InputManager::InputManager()
 	: m_InputDevices()
@@ -328,6 +326,7 @@ InputManager::OculusTouch::OculusTouch(vr::VRActionSetHandle_t actionSet, vr::ET
 	GET_HANDED_ACTION(&m_IndexTrigger, RIndexTrigger, LIndexTrigger);
 	GET_HANDED_ACTION(&m_HandTrigger, RHandTrigger, LHandTrigger);
 	GET_HANDED_ACTION(&m_Thumbstick, RThumbstick, LThumbstick);
+	GET_HANDED_ACTION(&m_Recenter_Thumb, Recenter_RThumb, Recenter_LThumb);
 
 	GET_HANDED_ACTION(&m_Button_IndexTrigger, Button_RIndexTrigger, Button_LIndexTrigger);
 	GET_HANDED_ACTION(&m_Button_HandTrigger, Button_RHandTrigger, Button_LHandTrigger);
@@ -359,16 +358,32 @@ bool InputManager::OculusTouch::IsConnected() const
 	return controllerCount > 1;
 }
 
-// TODO: Make GetInputState reentrant (thread-safe).
+OVR::Vector2f InputManager::OculusTouch::ApplyDeadzone(OVR::Vector2f axis, float deadZoneLow, float deadZoneHigh)
+{
+	float mag = axis.Length();
+	if (mag > deadZoneLow)
+	{
+		// scale such that output magnitude is in the range[0, 1]
+		float legalRange = 1.0f - deadZoneHigh - deadZoneLow;
+		float normalizedMag = std::min(1.0f, (mag - deadZoneLow) / legalRange);
+		float scale = normalizedMag / mag;
+		return axis * scale;
+	}
+	else
+	{
+		// stick is in the inner dead zone
+		return OVR::Vector2f();
+	}
+}
+
 bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
 {
-	rcu_ptr<InputSettings> settings = session->Settings->Input;
 	ovrHandType hand = (Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
 
 	if (GetDigital(m_Button_Enter))
 		inputState->Buttons |= ovrButton_Enter;
 
-	unsigned int buttons, touches;
+	unsigned int buttons = 0, touches = 0;
 
 	if (GetDigital(m_Button_AX))
 		buttons |= ovrButton_A;
@@ -394,19 +409,34 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	if (GetDigital(m_Touch_IndexTrigger))
 		touches |= ovrTouch_RIndexTrigger;
 
-	if (!GetDigital(m_Touch_IndexPointing))
+	if (GetDigital(m_Touch_IndexPointing))
 		touches |= ovrTouch_RIndexPointing;
 
-	if (!GetDigital(m_Touch_ThumbUp))
+	if (GetDigital(m_Touch_ThumbUp))
 		touches |= ovrTouch_RThumbUp;
 
 	inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
 	inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
 
+	vr::InputDigitalActionData_t recenter = {};
+	vr::EVRInputError err = vr::VRInput()->GetDigitalActionData(m_Recenter_Thumb, &recenter, sizeof(recenter));
+	if (recenter.bChanged && recenter.bActive)
+	{
+		m_Thumbstick_Center = GetAnalog(m_Thumbstick);
+	}
+
+	// Get the deadzone from the settings
+	float deadzone;
+	{
+		rcu_ptr<InputSettings> settings = session->Settings->Input;
+		deadzone = settings->Deadzone;
+	}
+
+	OVR::Vector2f thumbstick = GetAnalog(m_Thumbstick) - m_Thumbstick_Center;
 	inputState->IndexTrigger[hand] = GetAnalog(m_IndexTrigger).x;
 	inputState->HandTrigger[hand] = GetAnalog(m_HandTrigger).x;
-	inputState->Thumbstick[hand] = GetAnalog(m_Thumbstick);
-	inputState->ThumbstickNoDeadzone[hand] = GetAnalog(m_Thumbstick);
+	inputState->Thumbstick[hand] = ApplyDeadzone(thumbstick, deadzone, deadzone / 2.0f);
+	inputState->ThumbstickNoDeadzone[hand] = thumbstick;
 
 	if (GetDigital(m_Button_IndexTrigger))
 		inputState->IndexTrigger[hand] = 1.0f;

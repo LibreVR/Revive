@@ -5,6 +5,8 @@
 #include "SettingsManager.h"
 #include "Settings.h"
 
+#include <Windows.h>
+
 void SessionThreadFunc(ovrSession session)
 {
 	std::chrono::microseconds freq(std::chrono::milliseconds(10));

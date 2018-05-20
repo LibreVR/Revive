@@ -12,88 +12,98 @@
   "actions": [
     {
       "name": "/actions/touch/in/Button_A",
-      "requirement": "optional",
+      "requirement": "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_B",
-      "requirement": "optional",
+      "requirement": "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_RThumb",
-      "requirement": "optional",
+      "requirement": "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_X",
-      "requirement": "optional",
+      "requirement": "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_Y",
-      "requirement": "optional",
+      "requirement": "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_LThumb",
-      "requirement": "optional",
+      "requirement": "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_Enter",
-      "requirement": "optional",
+      "requirement": "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_RIndexTrigger",
-      "requirement" : "optional",
+      "requirement" : "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_LIndexTrigger",
-      "requirement" : "optional",
+      "requirement" : "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_RHandTrigger",
-      "requirement" : "optional",
+      "requirement" : "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_LHandTrigger",
-      "requirement" : "optional",
+      "requirement" : "suggested",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/RIndexTrigger",
-      "requirement" : "optional",
+      "requirement" : "suggested",
       "type": "vector1"
     },
     {
       "name": "/actions/touch/in/LIndexTrigger",
-      "requirement" : "optional",
+      "requirement" : "suggested",
       "type": "vector1"
     },
     {
       "name": "/actions/touch/in/RHandTrigger",
-      "requirement" : "optional",
+      "requirement" : "suggested",
       "type": "vector1"
     },
     {
       "name": "/actions/touch/in/LHandTrigger",
-      "requirement" : "optional",
+      "requirement" : "suggested",
       "type": "vector1"
     },
     {
       "name": "/actions/touch/in/RThumbstick",
-      "requirement" : "optional",
+      "requirement" : "suggested",
       "type": "vector2"
     },
     {
       "name": "/actions/touch/in/LThumbstick",
-      "requirement" : "optional",
+      "requirement" : "suggested",
       "type": "vector2"
+    },
+    {
+      "name": "/actions/touch/in/Recenter_RThumb",
+      "requirement" : "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Recenter_LThumb",
+      "requirement" : "optional",
+      "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Touch_A",

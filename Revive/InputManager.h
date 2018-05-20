@@ -10,8 +10,6 @@
 #include <list>
 #include <mutex>
 #include <openvr.h>
-#include <Windows.h>
-#include <Xinput.h>
 
 class InputManager
 {
@@ -43,12 +41,11 @@ public:
 			return data.bState;
 		}
 
-		static ovrVector2f GetAnalog(vr::VRActionHandle_t action)
+		static OVR::Vector2f GetAnalog(vr::VRActionHandle_t action)
 		{
 			vr::InputAnalogActionData_t data = {};
 			vr::VRInput()->GetAnalogActionData(action, &data, sizeof(data));
-			ovrVector2f vector = { data.x, data.y };
-			return vector;
+			return OVR::Vector2f(data.x, data.y);
 		}
 	};
 
@@ -66,6 +63,7 @@ public:
 		virtual void SubmitVibration(const ovrHapticsBuffer* buffer) { m_Haptics.AddSamples(buffer); }
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { *outState = m_Haptics.GetState(); }
 
+		static OVR::Vector2f ApplyDeadzone(OVR::Vector2f axis, float deadZoneLow, float deadZoneHigh);
 		vr::ETrackedControllerRole Role;
 
 	private:
@@ -85,6 +83,9 @@ public:
 		vr::VRActionHandle_t m_IndexTrigger;
 		vr::VRActionHandle_t m_HandTrigger;
 		vr::VRActionHandle_t m_Thumbstick;
+
+		OVR::Vector2f m_Thumbstick_Center;
+		vr::VRActionHandle_t m_Recenter_Thumb;
 
 		vr::VRActionHandle_t m_Button_IndexTrigger;
 		vr::VRActionHandle_t m_Button_HandTrigger;
