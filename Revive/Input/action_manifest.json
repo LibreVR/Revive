@@ -264,22 +264,12 @@
       "type": "vector1"
     },
     {
-      "name": "/actions/xbox/in/RHandTrigger",
-      "requirement" : "optional",
-      "type": "vector1"
-    },
-    {
-      "name": "/actions/xbox/in/LHandTrigger",
-      "requirement" : "optional",
-      "type": "vector1"
-    },
-    {
-      "name": "/actions/xbox/in/RThumb",
+      "name": "/actions/xbox/in/RThumbstick",
       "requirement" : "optional",
       "type": "vector2"
     },
     {
-      "name": "/actions/xbox/in/LThumb",
+      "name": "/actions/xbox/in/LThumbstick",
       "requirement" : "optional",
       "type": "vector2"
     },

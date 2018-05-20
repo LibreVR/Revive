@@ -47,6 +47,8 @@ public:
 			vr::VRInput()->GetAnalogActionData(action, &data, sizeof(data));
 			return OVR::Vector2f(data.x, data.y);
 		}
+
+		static OVR::Vector2f ApplyDeadzone(OVR::Vector2f axis, float deadZoneLow, float deadZoneHigh);
 	};
 
 	class OculusTouch : public InputDevice
@@ -63,7 +65,6 @@ public:
 		virtual void SubmitVibration(const ovrHapticsBuffer* buffer) { m_Haptics.AddSamples(buffer); }
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { *outState = m_Haptics.GetState(); }
 
-		static OVR::Vector2f ApplyDeadzone(OVR::Vector2f axis, float deadZoneLow, float deadZoneHigh);
 		vr::ETrackedControllerRole Role;
 
 	private:
@@ -122,13 +123,33 @@ public:
 	class XboxGamepad : public InputDevice
 	{
 	public:
-		using InputDevice::InputDevice;
+		XboxGamepad(vr::VRActionSetHandle_t actionSet);
 		virtual ~XboxGamepad();
 
 		virtual ovrControllerType GetType() { return ovrControllerType_XBox; }
-		virtual bool IsConnected() const { return false; }
+		virtual bool IsConnected() const { return true; }
 		virtual bool GetInputState(ovrSession session, ovrInputState* inputState);
 		virtual void SetVibration(float frequency, float amplitude);
+
+	private:
+		vr::VRActionHandle_t m_Button_A;
+		vr::VRActionHandle_t m_Button_B;
+		vr::VRActionHandle_t m_Button_RThumb;
+		vr::VRActionHandle_t m_Button_RShoulder;
+		vr::VRActionHandle_t m_Button_X;
+		vr::VRActionHandle_t m_Button_Y;
+		vr::VRActionHandle_t m_Button_LThumb;
+		vr::VRActionHandle_t m_Button_LShoulder;
+		vr::VRActionHandle_t m_Button_Up;
+		vr::VRActionHandle_t m_Button_Down;
+		vr::VRActionHandle_t m_Button_Left;
+		vr::VRActionHandle_t m_Button_Right;
+		vr::VRActionHandle_t m_Button_Enter;
+		vr::VRActionHandle_t m_Button_Back;
+		vr::VRActionHandle_t m_RIndexTrigger;
+		vr::VRActionHandle_t m_LIndexTrigger;
+		vr::VRActionHandle_t m_RThumbstick;
+		vr::VRActionHandle_t m_LThumbstick;
 	};
 
 	InputManager();

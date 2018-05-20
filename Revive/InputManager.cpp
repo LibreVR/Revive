@@ -284,6 +284,24 @@ ovrResult InputManager::GetDevicePoses(ovrTrackedDeviceType* deviceTypes, int de
 
 /* Controller child-classes */
 
+OVR::Vector2f InputManager::InputDevice::ApplyDeadzone(OVR::Vector2f axis, float deadZoneLow, float deadZoneHigh)
+{
+	float mag = axis.Length();
+	if (mag > deadZoneLow)
+	{
+		// scale such that output magnitude is in the range[0, 1]
+		float legalRange = 1.0f - deadZoneHigh - deadZoneLow;
+		float normalizedMag = std::min(1.0f, (mag - deadZoneLow) / legalRange);
+		float scale = normalizedMag / mag;
+		return axis * scale;
+	}
+	else
+	{
+		// stick is in the inner dead zone
+		return OVR::Vector2f();
+	}
+}
+
 void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 {
 	std::chrono::microseconds freq(std::chrono::seconds(1));
@@ -356,24 +374,6 @@ bool InputManager::OculusTouch::IsConnected() const
 
 	// If only one controller is available, the Oculus Remote is connected
 	return controllerCount > 1;
-}
-
-OVR::Vector2f InputManager::OculusTouch::ApplyDeadzone(OVR::Vector2f axis, float deadZoneLow, float deadZoneHigh)
-{
-	float mag = axis.Length();
-	if (mag > deadZoneLow)
-	{
-		// scale such that output magnitude is in the range[0, 1]
-		float legalRange = 1.0f - deadZoneHigh - deadZoneLow;
-		float normalizedMag = std::min(1.0f, (mag - deadZoneLow) / legalRange);
-		float scale = normalizedMag / mag;
-		return axis * scale;
-	}
-	else
-	{
-		// stick is in the inner dead zone
-		return OVR::Vector2f();
-	}
 }
 
 bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
@@ -515,13 +515,105 @@ bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState
 	return true;
 }
 
+InputManager::XboxGamepad::XboxGamepad(vr::VRActionSetHandle_t actionSet)
+	: InputDevice(actionSet)
+{
+#define GET_XBOX_ACTION(x) vr::VRInput()->GetActionHandle( \
+	"/actions/xbox/in/" #x, &m_##x)
+
+	GET_XBOX_ACTION(Button_A);
+	GET_XBOX_ACTION(Button_B);
+	GET_XBOX_ACTION(Button_RThumb);
+	GET_XBOX_ACTION(Button_RShoulder);
+	GET_XBOX_ACTION(Button_X);
+	GET_XBOX_ACTION(Button_Y);
+	GET_XBOX_ACTION(Button_LThumb);
+	GET_XBOX_ACTION(Button_LShoulder);
+	GET_XBOX_ACTION(Button_Up);
+	GET_XBOX_ACTION(Button_Down);
+	GET_XBOX_ACTION(Button_Left);
+	GET_XBOX_ACTION(Button_Right);
+	GET_XBOX_ACTION(Button_Enter);
+	GET_XBOX_ACTION(Button_Back);
+	GET_XBOX_ACTION(RIndexTrigger);
+	GET_XBOX_ACTION(LIndexTrigger);
+	GET_XBOX_ACTION(RThumbstick);
+	GET_XBOX_ACTION(LThumbstick);
+
+#undef GET_XBOX_ACTION
+}
+
 InputManager::XboxGamepad::~XboxGamepad()
 {
 }
 
 bool InputManager::XboxGamepad::GetInputState(ovrSession session, ovrInputState* inputState)
 {
-	return false;
+	unsigned int buttons = 0;
+
+	if (GetDigital(m_Button_A))
+		buttons |= ovrButton_A;
+
+	if (GetDigital(m_Button_B))
+		buttons |= ovrButton_B;
+
+	if (GetDigital(m_Button_RThumb))
+		buttons |= ovrButton_RThumb;
+
+	if (GetDigital(m_Button_RShoulder))
+		buttons |= ovrButton_RShoulder;
+
+	if (GetDigital(m_Button_X))
+		buttons |= ovrButton_X;
+
+	if (GetDigital(m_Button_Y))
+		buttons |= ovrButton_Y;
+
+	if (GetDigital(m_Button_LThumb))
+		buttons |= ovrButton_LThumb;
+
+	if (GetDigital(m_Button_LShoulder))
+		buttons |= ovrButton_LShoulder;
+
+	if (GetDigital(m_Button_Up))
+		buttons |= ovrButton_Up;
+
+	if (GetDigital(m_Button_Down))
+		buttons |= ovrButton_Down;
+
+	if (GetDigital(m_Button_Left))
+		buttons |= ovrButton_Left;
+
+	if (GetDigital(m_Button_Right))
+		buttons |= ovrButton_Right;
+
+	if (GetDigital(m_Button_Enter))
+		buttons |= ovrButton_Enter;
+
+	if (GetDigital(m_Button_Back))
+		buttons |= ovrButton_Back;
+
+	vr::VRActionHandle_t triggers[] = { m_LIndexTrigger, m_RIndexTrigger };
+	vr::VRActionHandle_t sticks[] = { m_LThumbstick, m_RThumbstick };
+	float deadzone[] = { 0.24f, 0.265f };
+	for (int hand = 0; hand < ovrHand_Count; hand++)
+	{
+		OVR::Vector2f thumbstick = GetAnalog(sticks[hand]);
+		inputState->IndexTrigger[hand] = GetAnalog(triggers[hand]).x;
+		inputState->Thumbstick[hand] = ApplyDeadzone(thumbstick, deadzone[hand], deadzone[hand] / 2.0f);
+		inputState->ThumbstickNoDeadzone[hand] = thumbstick;
+
+		// We don't apply deadzones yet on triggers and grips
+		inputState->IndexTriggerNoDeadzone[hand] = inputState->IndexTrigger[hand];
+		inputState->HandTriggerNoDeadzone[hand] = inputState->HandTrigger[hand];
+
+		// We have no way to get raw values
+		inputState->ThumbstickRaw[hand] = inputState->ThumbstickNoDeadzone[hand];
+		inputState->IndexTriggerRaw[hand] = inputState->IndexTriggerNoDeadzone[hand];
+		inputState->HandTriggerRaw[hand] = inputState->HandTriggerNoDeadzone[hand];
+	}
+
+	return true;
 }
 
 void InputManager::XboxGamepad::SetVibration(float frequency, float amplitude)
