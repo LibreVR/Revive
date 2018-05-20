@@ -266,15 +266,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	sessionStatus->IsVisible = !firstCall;
 	firstCall = false;
 
-	// Don't use the activity level while debugging, so I don't have to put on the HMD
+	HolographicSpaceUserPresence presence = session->Space.UserPresence();
 	sessionStatus->HmdPresent = HolographicSpace::IsAvailable();
-	sessionStatus->HmdMounted = sessionStatus->HmdPresent;
+	sessionStatus->HmdMounted = presence != HolographicSpaceUserPresence::Absent;
 
-	// TODO: Detect these bits
 	sessionStatus->DisplayLost = false;
 	sessionStatus->ShouldQuit = false;
 	sessionStatus->ShouldRecenter = session->Tracking->ShouldRecenter();
-	sessionStatus->HasInputFocus = true;
+	sessionStatus->HasInputFocus = presence != HolographicSpaceUserPresence::PresentPassive;
 	sessionStatus->OverlayPresent = false;
 
 	return ovrSuccess;
