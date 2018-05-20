@@ -54,11 +54,6 @@ int main(int argc, char *argv[])
 	}
 	qInstallMessageHandler(myMessageOutput);
 
-	// Make sure the folder for scripts exists.
-	QString scriptPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-	scriptPath.append("/Revive");
-	QDir().mkpath(scriptPath);
-
 	// Handle command-line arguments
 	if (a.arguments().contains("-manifest")) {
 		// Only initialize the manifest
