@@ -415,6 +415,10 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	if (GetDigital(m_Touch_ThumbUp))
 		touches |= ovrTouch_RThumbUp;
 
+	// TODO: Should be handled with chords in SteamVR input
+	if (GetDigital(m_Button_HandTrigger) && !GetDigital(m_Touch_IndexTrigger))
+		touches |= ovrTouch_RIndexPointing;
+
 	inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
 	inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
 
