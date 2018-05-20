@@ -128,13 +128,13 @@ bool SettingsManager::FileExists(const char* path)
 
 void SettingsManager::LoadActionManifest()
 {
-	CComHeapPtr<wchar_t> documents;
-	HRESULT hr = SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, NULL, &documents);
+	CComHeapPtr<wchar_t> folder;
+	HRESULT hr = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, NULL, &folder);
 
 	if (SUCCEEDED(hr))
 	{
 		char path[MAX_PATH];
-		snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\action_manifest.json", (wchar_t*)documents);
+		snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\action_manifest.json", (wchar_t*)folder);
 		vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(path);
 		if (err == vr::VRInputError_None)
 			return;
