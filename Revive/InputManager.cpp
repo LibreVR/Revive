@@ -62,13 +62,10 @@ void InputManager::UpdateInputState()
 	std::vector<vr::VRActiveActionSet_t> sets;
 	for (InputDevice* device : m_InputDevices)
 	{
-		if (ConnectedControllers & device->GetType())
-		{
-			vr::VRActiveActionSet_t set;
-			set.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
-			set.ulActionSet = device->ActionSet;
-			sets.push_back(set);
-		}
+		vr::VRActiveActionSet_t set;
+		set.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
+		set.ulActionSet = device->ActionSet;
+		sets.push_back(set);
 	}
 
 	vr::VRInput()->UpdateActionState(sets.data(), sizeof(vr::VRActiveActionSet_t), (uint32_t)sets.size());
@@ -77,8 +74,8 @@ void InputManager::UpdateInputState()
 ovrResult InputManager::SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
 {
 	// Clamp the input
-	frequency = min(max(frequency, 0.0f), 1.0f);
-	amplitude = min(max(amplitude, 0.0f), 1.0f);
+	frequency = std::min(std::max(frequency, 0.0f), 1.0f);
+	amplitude = std::min(std::max(amplitude, 0.0f), 1.0f);
 
 	for (InputDevice* device : m_InputDevices)
 	{
