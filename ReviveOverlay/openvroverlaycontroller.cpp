@@ -101,6 +101,10 @@ bool COpenVROverlayController::Init()
 	// Qt Quick may need a depth and stencil buffer. Always make sure these are available.
 	format.setDepthBufferSize(16);
 	format.setStencilBufferSize(8);
+	format.setRedBufferSize(8);
+	format.setGreenBufferSize(8);
+	format.setBlueBufferSize(8);
+	format.setAlphaBufferSize(8);
 
 	m_pOpenGLContext = new QOpenGLContext();
 	m_pOpenGLContext->setFormat( format );
