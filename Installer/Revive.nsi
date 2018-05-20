@@ -1,4 +1,5 @@
 !define BASE_DIR "..\Release"
+!define SRC_DIR "..\Revive"
 
 ;--------------------------------
 ;Include Modern UI
@@ -83,6 +84,11 @@ install:
   File /r "${BASE_DIR}\*.jpg"
   File /r "${BASE_DIR}\Qt*"
   File /r "${BASE_DIR}\translations"
+  
+  SetOutPath "$APPDATA\Revive\Input"
+  
+  ; Application data
+  File /r "${SRC_DIR}\Input\*.json"
   
   ; Create an empty manifest file
   FileOpen $0 "$INSTDIR\revive.vrmanifest" w
