@@ -291,7 +291,7 @@
                },
                "mode" : "joystick",
                "path" : "/user/hand/right/input/joystick"
-            },
+            }
          ]
       }
    },
