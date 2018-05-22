@@ -5,6 +5,10 @@
       "binding_url": "vive_controller_default.json"
    },
    {
+      "controller_type": "holographic_controller",
+      "binding_url": "holographic_controller_default.json"
+   },
+   {
       "controller_type": "gamepad",
       "binding_url": "gamepad_default.json"
    }
