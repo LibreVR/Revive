@@ -126,18 +126,6 @@
             },
             {
                "inputs" : {
-                  "position" : {
-                     "output" : "/actions/touch/in/lthumbstick"
-                  },
-                  "touch" : {
-                     "output" : "/actions/touch/in/recenter_lthumb"
-                  }
-               },
-               "mode" : "trackpad",
-               "path" : "/user/hand/left/input/trackpad"
-            },
-            {
-               "inputs" : {
                   "east" : {
                      "output" : "/actions/touch/in/button_y"
                   },
@@ -204,18 +192,6 @@
                },
                "mode" : "trigger",
                "path" : "/user/hand/right/input/trigger"
-            },
-            {
-               "inputs" : {
-                  "position" : {
-                     "output" : "/actions/touch/in/rthumbstick"
-                  },
-                  "touch" : {
-                     "output" : "/actions/touch/in/recenter_rthumb"
-                  }
-               },
-               "mode" : "trackpad",
-               "path" : "/user/hand/right/input/trackpad"
             },
             {
                "inputs" : {
