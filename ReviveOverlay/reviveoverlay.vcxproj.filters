@@ -153,12 +153,6 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Oculus.js">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Overlay.qml">
-      <Filter>Resource Files</Filter>
-    </None>
     <CustomBuild Include="overlay.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>

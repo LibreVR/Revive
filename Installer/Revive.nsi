@@ -93,7 +93,6 @@ install:
   File /r "${BASE_DIR}\*.pdb"
   File /r "${BASE_DIR}\*.jpg"
   File /r "${BASE_DIR}\Qt*"
-  File /r "${BASE_DIR}\translations"
   
   SetOutPath "$APPDATA\Revive\Input"
   
