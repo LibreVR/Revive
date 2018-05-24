@@ -90,7 +90,6 @@ install:
   File "${BASE_DIR}\support.vrmanifest"
   File /r "${BASE_DIR}\*.exe"
   File /r /x "${BASE_DIR}\bearer" "${BASE_DIR}\*.dll"
-  File /r "${BASE_DIR}\*.pdb"
   File /r "${BASE_DIR}\*.jpg"
   File /r "${BASE_DIR}\Qt*"
   
