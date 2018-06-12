@@ -784,10 +784,9 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	{
 		HolographicStereoTransform transform = session->Tracking->GetLocalViewTransform(session->Frames->GetFrame());
 		REM::Matrix4f left(transform.Left), right(transform.Right);
-		left.Invert();
-		right.Invert();
-		desc.HmdToEyePose.Orientation = OVR::Quatf(left).Inverted() * OVR::Quatf(right);
-		desc.HmdToEyePose.Position = right.GetTranslation() - left.GetTranslation();
+		OVR::Matrix4f matrix = left * right.Inverted();
+		desc.HmdToEyePose.Orientation = OVR::Quatf(matrix);
+		desc.HmdToEyePose.Position = matrix.GetTranslation();
 	}
 	else
 	{
