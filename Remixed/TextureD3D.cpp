@@ -139,7 +139,7 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 	if (FAILED(hr))
 		return false;
 
-	if (SampleCount <= 1 && isBindable)
+	if (SampleCount <= 1 && !IsDepthFormat(Format))
 	{
 		D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
 		srv_desc.Format = ToDXGIFormat(Format);
