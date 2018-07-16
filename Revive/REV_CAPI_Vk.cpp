@@ -11,6 +11,7 @@
 
 HMODULE VulkanLibrary;
 VkPhysicalDevice g_physicalDevice;
+VkDebugUtilsMessengerEXT g_Messenger;
 
 // Global functions
 VK_DEFINE_FUNCTION(vkGetInstanceProcAddr)
@@ -18,6 +19,22 @@ VK_DEFINE_FUNCTION(vkGetDeviceProcAddr)
 VK_DEFINE_FUNCTION(vkEnumeratePhysicalDevices)
 VK_DEFINE_FUNCTION(vkGetPhysicalDeviceMemoryProperties)
 VK_DEFINE_FUNCTION(vkGetPhysicalDeviceProperties2KHR)
+
+#ifdef DEBUG
+VK_DEFINE_FUNCTION(vkCreateDebugUtilsMessengerEXT)
+VK_DEFINE_FUNCTION(vkDestroyDebugUtilsMessengerEXT)
+#endif
+
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugUtilsCallback(
+	VkDebugUtilsMessageSeverityFlagBitsEXT           messageSeverity,
+	VkDebugUtilsMessageTypeFlagsEXT                  messageType,
+	const VkDebugUtilsMessengerCallbackDataEXT*      pCallbackData,
+	void*                                            pUserData)
+{
+	OutputDebugStringA(pCallbackData->pMessage);
+	OutputDebugStringA("\n");
+	return VK_FALSE;
+}
 
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetInstanceExtensionsVk(
@@ -43,6 +60,15 @@ ovr_GetInstanceExtensionsVk(
 		extensionNames[required - 1] = ' ';
 	}
 	required += (uint32_t)strlen(VK_KHR_WIN32_SURFACE_EXTENSION_NAME) + 1;
+
+#ifdef DEBUG
+	if (required <= size)
+	{
+		strcpy(extensionNames + required, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		extensionNames[required - 1] = ' ';
+	}
+	required += (uint32_t)strlen(VK_EXT_DEBUG_UTILS_EXTENSION_NAME) + 1;
+#endif
 
 	*inoutExtensionNamesSize = required;
 
@@ -89,6 +115,26 @@ ovr_GetSessionPhysicalDeviceVk(
 	VK_INSTANCE_FUNCTION(instance, vkEnumeratePhysicalDevices)
 	VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceMemoryProperties)
 	VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceProperties2KHR)
+
+#ifdef DEBUG
+	VK_INSTANCE_FUNCTION(instance, vkCreateDebugUtilsMessengerEXT)
+	VK_INSTANCE_FUNCTION(instance, vkDestroyDebugUtilsMessengerEXT)
+
+	VkDebugUtilsMessengerCreateInfoEXT callback1 = {
+		VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,  // sType
+		NULL,                                                     // pNext
+		0,                                                        // flags
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |           // messageSeverity
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT,
+		VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |             // messageType
+		VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT,
+		DebugUtilsCallback,                                       // pfnUserCallback
+		NULL                                                      // pUserData
+	};
+	vkCreateDebugUtilsMessengerEXT(instance, &callback1, nullptr, &g_Messenger);
+#endif
 
 	VkPhysicalDevice physicalDevice = 0;
 	vr::VRSystem()->GetOutputDevice((uint64_t*)&physicalDevice, vr::TextureType_Vulkan, instance);
