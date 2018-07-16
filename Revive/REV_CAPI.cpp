@@ -113,7 +113,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
 		return;
 
 	const char* error = VR_GetVRInitErrorAsEnglishDescription(g_InitError);
-	strncpy_s(errorInfo->ErrorString, error, sizeof(ovrErrorInfo::ErrorString));
+	strcpy_s(errorInfo->ErrorString, sizeof(ovrErrorInfo::ErrorString), error);
 	errorInfo->Result = rev_InitErrorToOvrError(g_InitError);
 }
 
@@ -1182,4 +1182,18 @@ ovr_EnableExtension(ovrSession session, ovrExtensions extension)
 {
 	// TODO: Extensions support
 	return ovrError_InvalidOperation;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetViewportStencil(
+	ovrSession session,
+	const ovrViewportStencilDesc* viewportStencilDesc,
+	ovrViewportStencilMeshBuffer* outMeshBuffer)
+{
+	vr::HiddenAreaMesh_t mesh = vr::VRSystem()->GetHiddenAreaMesh((vr::EVREye)viewportStencilDesc->Eye, (vr::EHiddenAreaMeshType)viewportStencilDesc->StencilType);
+	if (outMeshBuffer->AllocVertexCount >= mesh.unTriangleCount)
+		memcpy(outMeshBuffer->VertexBuffer, mesh.pVertexData, mesh.unTriangleCount * sizeof(ovrVector2f));
+	outMeshBuffer->UsedVertexCount = mesh.unTriangleCount;
+	outMeshBuffer->UsedIndexCount = 0;
+	return ovrSuccess;
 }

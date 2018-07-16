@@ -64,7 +64,7 @@ void SessionDetails::UpdateHmdDesc()
 
 	// Some games require a fake product name
 	if (UseHack(SessionDetails::HACK_FAKE_PRODUCT_NAME))
-		strncpy(desc->ProductName, "Oculus Rift", 64);
+		strcpy_s(desc->ProductName, 64, "Oculus Rift");
 
 	// TODO: Get HID information
 	desc->VendorId = 0;
