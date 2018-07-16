@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
 
 #define VK_DEFINE_FUNCTION(func) PFN_##func func;
 

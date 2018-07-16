@@ -94,7 +94,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -125,7 +125,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG;VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -158,7 +158,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -192,7 +192,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
