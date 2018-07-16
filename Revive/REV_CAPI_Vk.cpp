@@ -33,14 +33,14 @@ ovr_GetInstanceExtensionsVk(
 
 	if (required <= size)
 	{
-		strncpy(extensionNames + required, VK_KHR_SURFACE_EXTENSION_NAME, size);
-		extensionNames[required - 1] = '\0';
+		strcpy(extensionNames + required, VK_KHR_SURFACE_EXTENSION_NAME);
+		extensionNames[required - 1] = ' ';
 	}
 	required += (uint32_t)strlen(VK_KHR_SURFACE_EXTENSION_NAME) + 1;
 	if (required <= size)
 	{
-		strncpy(extensionNames + required, VK_KHR_WIN32_SURFACE_EXTENSION_NAME, size);
-		extensionNames[required - 1] = '\0';
+		strcpy(extensionNames + required, VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+		extensionNames[required - 1] = ' ';
 	}
 	required += (uint32_t)strlen(VK_KHR_WIN32_SURFACE_EXTENSION_NAME) + 1;
 
@@ -63,8 +63,8 @@ ovr_GetDeviceExtensionsVk(
 
 	if (required <= size)
 	{
-		strncpy(extensionNames + required, VK_KHR_SWAPCHAIN_EXTENSION_NAME, size);
-		extensionNames[required - 1] = '\0';
+		strcpy(extensionNames + required, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+		extensionNames[required - 1] = ' ';
 	}
 	required += (uint32_t)strlen(VK_KHR_SWAPCHAIN_EXTENSION_NAME) + 1;
 
@@ -94,7 +94,7 @@ ovr_GetSessionPhysicalDeviceVk(
 	vr::VRSystem()->GetOutputDevice((uint64_t*)&physicalDevice, vr::TextureType_Vulkan, instance);
 
 	// Fall-back in case GetOutputDevice fails.
-	if (physicalDevice == 0)
+	if (!physicalDevice)
 	{
 		uint32_t gpu_count;
 		std::vector<VkPhysicalDevice> devices;
