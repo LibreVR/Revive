@@ -5,6 +5,33 @@
 #include "Extras/OVR_StereoProjection.h"
 
 namespace REV {
+	class Vector2f : public OVR::Vector2f
+	{
+	public:
+		// Inherit constructors
+		using OVR::Vector2f::Vector2;
+		Vector2f() : OVR::Vector2f() { }
+
+		// OpenVR-interop support
+		Vector2f(const vr::HmdVector2_t& s)
+		{
+			x = s.v[0];
+			y = s.v[1];
+		}
+
+		// OpenVR-interop support
+		Vector2f(const vr::VRControllerAxis_t& s)
+		{
+			x = s.x;
+			y = s.y;
+		}
+
+		operator const vr::HmdVector2_t& () const
+		{
+			return reinterpret_cast<const vr::HmdVector2_t&>(*this);
+		}
+	};
+
 	class Vector3f : public OVR::Vector3f
 	{
 	public:

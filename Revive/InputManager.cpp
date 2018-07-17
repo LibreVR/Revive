@@ -344,6 +344,7 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 InputManager::OculusTouch::OculusTouch(vr::VRActionSetHandle_t actionSet, vr::ETrackedControllerRole role)
 	: InputDevice(actionSet)
 	, Role(role)
+	, WasTouched(false)
 	, m_bHapticsRunning(true)
 {
 	vr::VRInput()->GetActionHandle("/actions/touch/in/Button_Enter", &m_Button_Enter);
@@ -398,28 +399,70 @@ bool InputManager::OculusTouch::IsConnected() const
 	return controllerCount > 1;
 }
 
+ovrTouch InputManager::OculusTouch::AxisToTouch(vr::VRControllerAxis_t axis)
+{
+	if (Role == vr::TrackedControllerRole_LeftHand)
+	{
+		if (axis.y < axis.x) {
+			if (axis.y < -axis.x)
+				return ovrTouch_X;
+			else
+				return ovrTouch_Y;
+		}
+		else {
+			return ovrTouch_LThumb;
+		}
+	}
+	else
+	{
+		if (axis.y < -axis.x) {
+			if (axis.y < axis.x)
+				return ovrTouch_A;
+			else
+				return ovrTouch_B;
+		}
+		else {
+			return ovrTouch_RThumb;
+		}
+	}
+}
+
 bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
 {
 	ovrHandType hand = (Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
 
-	if (GetDigital(m_Button_Enter))
+	// Fall-back start
+	vr::TrackedDeviceIndex_t index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(Role);
+	vr::VRControllerState_t state = {};
+	vr::VRSystem()->GetControllerState(index, &state, sizeof(state));
+
+#define BUTTON_PRESSED(x) (state.ulButtonPressed & vr::ButtonMaskFromId(x))
+#define BUTTON_TOUCHED(x) (state.ulButtonTouched & vr::ButtonMaskFromId(x))
+	// Fall-back end
+
+	if (GetDigital(m_Button_Enter), BUTTON_PRESSED(vr::k_EButton_ApplicationMenu))
 		inputState->Buttons |= ovrButton_Enter;
 
+	// Fall-back start
+	ovrTouch dpad = (ovrTouch)0;
+	if (BUTTON_PRESSED(vr::k_EButton_SteamVR_Touchpad))
+		dpad = AxisToTouch(state.rAxis[0]);
 	unsigned int buttons = 0, touches = 0;
+	// Fall-back end
 
-	if (GetDigital(m_Button_AX))
+	if (GetDigital(m_Button_AX, dpad == ovrTouch_A || dpad == ovrTouch_X))
 		buttons |= ovrButton_A;
 
 	if (GetDigital(m_Touch_AX))
 		touches |= ovrTouch_A;
 
-	if (GetDigital(m_Button_BY))
+	if (GetDigital(m_Button_BY, dpad == ovrTouch_B || dpad == ovrTouch_Y))
 		buttons |= ovrButton_B;
 
 	if (GetDigital(m_Touch_BY))
 		touches |= ovrTouch_B;
 
-	if (GetDigital(m_Button_Thumb))
+	if (GetDigital(m_Button_Thumb, dpad == ovrTouch_RThumb || dpad == ovrTouch_LThumb))
 		buttons |= ovrButton_RThumb;
 
 	if (GetDigital(m_Touch_Thumb))
@@ -438,17 +481,22 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		touches |= ovrTouch_RThumbUp;
 
 	// TODO: Should be handled with chords in SteamVR input
-	if (GetDigital(m_Button_HandTrigger) && !GetDigital(m_Touch_IndexTrigger))
+	if (GetDigital(m_Button_HandTrigger, BUTTON_PRESSED(vr::k_EButton_Grip)) && !GetDigital(m_Touch_IndexTrigger, BUTTON_PRESSED(vr::k_EButton_SteamVR_Trigger)))
 		touches |= ovrTouch_RIndexPointing;
 
 	inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
 	inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
 
+	// Fall-back start
+	const bool should_recenter = !!BUTTON_TOUCHED(vr::k_EButton_SteamVR_Touchpad) != WasTouched;
+	WasTouched = BUTTON_TOUCHED(vr::k_EButton_SteamVR_Touchpad);
+	// Fall-back end
+
 	vr::InputDigitalActionData_t recenter = {};
 	vr::EVRInputError err = vr::VRInput()->GetDigitalActionData(m_Recenter_Thumb, &recenter, sizeof(recenter));
-	if (recenter.bChanged && recenter.bActive)
+	if ((recenter.bChanged && recenter.bActive) || (err != vr::VRInputError_None && should_recenter))
 	{
-		m_Thumbstick_Center = GetAnalog(m_Thumbstick);
+		m_Thumbstick_Center = GetAnalog(m_Thumbstick, REV::Vector2f(state.rAxis[0]));
 	}
 
 	// Get the deadzone from the settings
@@ -458,8 +506,8 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		deadzone = settings->Deadzone;
 	}
 
-	OVR::Vector2f thumbstick = GetAnalog(m_Thumbstick) - m_Thumbstick_Center;
-	inputState->IndexTrigger[hand] = GetAnalog(m_IndexTrigger).x;
+	OVR::Vector2f thumbstick = GetAnalog(m_Thumbstick, REV::Vector2f(state.rAxis[0])) - m_Thumbstick_Center;
+	inputState->IndexTrigger[hand] = GetAnalog(m_IndexTrigger, REV::Vector2f(state.rAxis[1])).x;
 	inputState->HandTrigger[hand] = GetAnalog(m_HandTrigger).x;
 	inputState->Thumbstick[hand] = ApplyDeadzone(thumbstick, deadzone, deadzone / 2.0f);
 	inputState->ThumbstickNoDeadzone[hand] = thumbstick;
@@ -467,7 +515,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	if (GetDigital(m_Button_IndexTrigger))
 		inputState->IndexTrigger[hand] = 1.0f;
 
-	if (GetDigital(m_Button_HandTrigger))
+	if (GetDigital(m_Button_HandTrigger, BUTTON_PRESSED(vr::k_EButton_Grip)))
 		inputState->HandTrigger[hand] = 1.0f;
 
 	// We don't apply deadzones yet on triggers and grips
@@ -478,6 +526,9 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	inputState->ThumbstickRaw[hand] = inputState->ThumbstickNoDeadzone[hand];
 	inputState->IndexTriggerRaw[hand] = inputState->IndexTriggerNoDeadzone[hand];
 	inputState->HandTriggerRaw[hand] = inputState->HandTriggerNoDeadzone[hand];
+
+#undef BUTTON_PRESSED
+#undef BUTTON_TOUCHED
 
 	return true;
 }
