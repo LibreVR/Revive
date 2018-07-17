@@ -10,6 +10,9 @@
 
 #include <openvr.h>
 #include <algorithm>
+#include <Windows.h>
+#include <Shlobj.h>
+#include <atlbase.h>
 
 InputManager::InputManager()
 	: m_InputDevices()
@@ -20,6 +23,8 @@ InputManager::InputManager()
 
 	// TODO: This might change if a new HMD is connected (unlikely)
 	m_fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
+
+	LoadActionManifest();
 
 	vr::VRActionSetHandle_t handle;
 	vr::EVRInputError err = vr::VRInput()->GetActionSetHandle("/actions/touch", &handle);
@@ -42,6 +47,23 @@ InputManager::~InputManager()
 {
 	for (InputDevice* device : m_InputDevices)
 		delete device;
+}
+
+void InputManager::LoadActionManifest()
+{
+	CComHeapPtr<wchar_t> folder;
+	HRESULT hr = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, NULL, &folder);
+
+	if (SUCCEEDED(hr))
+	{
+		char path[MAX_PATH];
+		snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\action_manifest.json", (wchar_t*)folder);
+		vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(path);
+		if (err == vr::VRInputError_None)
+			return;
+	}
+
+	vr::VROverlay()->ShowMessageOverlay("Failed to load action manifest, input will not function correctly!", "Action manifest error", "Continue");
 }
 
 void InputManager::UpdateConnectedControllers()

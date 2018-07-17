@@ -4,8 +4,6 @@
 #include "OVR_CAPI.h"
 
 #include <Windows.h>
-#include <Shlobj.h>
-#include <atlbase.h>
 
 void SettingsManager::SettingThreadFunc(SettingsManager* settings)
 {
@@ -27,8 +25,6 @@ SettingsManager::SettingsManager()
 	vr::EVRApplicationError err = vr::VRApplications()->GetApplicationKeyByProcessId(procId, m_Section, vr::k_unMaxApplicationKeyLength);
 	if (err != vr::VRApplicationError_None)
 		strcpy(m_Section, REV_SETTINGS_SECTION);
-
-	LoadActionManifest();
 
 	m_Thread = std::thread(SettingThreadFunc, this);
 }
@@ -124,21 +120,4 @@ bool SettingsManager::FileExists(const char* path)
 
 	return (attrib != INVALID_FILE_ATTRIBUTES &&
 		!(attrib & FILE_ATTRIBUTE_DIRECTORY));
-}
-
-void SettingsManager::LoadActionManifest()
-{
-	CComHeapPtr<wchar_t> folder;
-	HRESULT hr = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, NULL, &folder);
-
-	if (SUCCEEDED(hr))
-	{
-		char path[MAX_PATH];
-		snprintf(path, MAX_PATH, "%ls\\Revive\\Input\\action_manifest.json", (wchar_t*)folder);
-		vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(path);
-		if (err == vr::VRInputError_None)
-			return;
-	}
-
-	vr::VROverlay()->ShowMessageOverlay("Failed to load action manifest, input will not function correctly!", "Action manifest error", "Continue");
 }

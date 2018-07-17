@@ -157,6 +157,7 @@ public:
 
 	std::atomic_uint32_t ConnectedControllers;
 
+	void LoadActionManifest();
 	void UpdateInputState();
 	void UpdateConnectedControllers();
 	ovrTouchHapticsDesc GetTouchHapticsDesc(ovrControllerType controllerType);
