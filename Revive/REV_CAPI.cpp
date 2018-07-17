@@ -1191,7 +1191,7 @@ ovr_GetViewportStencil(
 	ovrViewportStencilMeshBuffer* outMeshBuffer)
 {
 	vr::HiddenAreaMesh_t mesh = vr::VRSystem()->GetHiddenAreaMesh((vr::EVREye)viewportStencilDesc->Eye, (vr::EHiddenAreaMeshType)viewportStencilDesc->StencilType);
-	if (outMeshBuffer->AllocVertexCount >= mesh.unTriangleCount)
+	if (outMeshBuffer->AllocVertexCount >= (int)mesh.unTriangleCount)
 		memcpy(outMeshBuffer->VertexBuffer, mesh.pVertexData, mesh.unTriangleCount * sizeof(ovrVector2f));
 	outMeshBuffer->UsedVertexCount = mesh.unTriangleCount;
 	outMeshBuffer->UsedIndexCount = 0;
