@@ -100,13 +100,8 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
-	vr::EVRCompositorError err = vr::VRCompositorError_None;
-	for (long long index = session->FrameIndex; index < frameIndex; index++)
-	{
-		// Call WaitGetPoses to block until the running start, also known as queue-ahead in the Oculus SDK.
-		err = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-	}
-	return rev_CompositorErrorToOvrError(err);
+	// TODO: Allow waiting to begin frame on the CPU thread
+	return ovrSuccess;
 }
 
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
@@ -240,6 +235,8 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 
 	// Flip the profiler.
 	MicroProfileFlip();
+
+	vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 
 	return rev_CompositorErrorToOvrError(error);
 }
