@@ -440,7 +440,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 #define BUTTON_TOUCHED(x) (state.ulButtonTouched & vr::ButtonMaskFromId(x))
 	// Fall-back end
 
-	if (GetDigital(m_Button_Enter), BUTTON_PRESSED(vr::k_EButton_ApplicationMenu))
+	if (GetDigital(m_Button_Enter, BUTTON_PRESSED(vr::k_EButton_ApplicationMenu)))
 		inputState->Buttons |= ovrButton_Enter;
 
 	// Fall-back start
