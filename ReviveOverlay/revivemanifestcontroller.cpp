@@ -117,8 +117,8 @@ CReviveManifestController::CReviveManifestController()
 	, m_bLibraryFound(false)
 {
 	m_supportArgs["revive.app.oculus-dreamdeck-nux"] = R"(/base Support\oculus-dreamdeck-nux\Dreamdeck\Binaries\Win64\Dreamdeck-Win64-Shipping.exe -vr -dreamdeck=NUX)";
-	m_supportArgs["revive.app.oculus-touch-tutorial"] = R"(/base Support\oculus-touch-tutorial\TouchNUX\Binaries\Win64\TouchNUX-Win64-Shipping.exe -gamemode=nux)";
-	m_supportArgs["revive.app.oculus-first-contact"] = R"(/base Support\oculus-touch-tutorial\TouchNUX\Binaries\Win64\TouchNUX-Win64-Shipping.exe -gamemode="experienceonly")";
+	m_supportArgs["revive.app.oculus-touch-tutorial"] = R"(/base Support\oculus-touch-tutorial\WindowsNoEditor\TouchNUX\Binaries\Win64\TouchNUX-Win64-Shipping.exe -gamemode=nux)";
+	m_supportArgs["revive.app.oculus-first-contact"] = R"(/base Support\oculus-touch-tutorial\WindowsNoEditor\TouchNUX\Binaries\Win64\TouchNUX-Win64-Shipping.exe -gamemode="experienceonly")";
 	m_supportArgs["revive.app.oculus-avatar-editor"] = R"(/base Support\oculus-avatar-editor\OVRAvatarEditor.exe)";
 }
 

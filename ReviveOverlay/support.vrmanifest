@@ -14,7 +14,7 @@
         },
         {
             "app_key": "revive.app.oculus-touch-tutorial",
-            "arguments": "/base \"Support/oculus-touch-tutorial/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=nux",
+            "arguments": "/base \"Support/oculus-touch-tutorial/WindowsNoEditor/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=nux",
             "binary_path_windows": "Revive/ReviveInjector_x64.exe",
             "image_path": "SupportAssets/oculus-touch-tutorial/cover_landscape_image.jpg",
             "launch_type": "binary",
@@ -26,7 +26,7 @@
         },
         {
             "app_key": "revive.app.oculus-first-contact",
-            "arguments": "/base \"Support/oculus-touch-tutorial/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=\"experienceonly\"",
+            "arguments": "/base \"Support/oculus-touch-tutorial/WindowsNoEditor/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=\"experienceonly\"",
             "binary_path_windows": "Revive/ReviveInjector_x64.exe",
             "image_path": "SupportAssets/oculus-first-contact/cover_landscape_image.jpg",
             "launch_type": "binary",

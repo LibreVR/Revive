@@ -156,8 +156,6 @@
     <CustomBuild Include="overlay.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-    <None Include="Oculus.js" />
-    <None Include="Overlay.qml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Oculus.js">
@@ -165,6 +163,12 @@
     </None>
     <None Include="Overlay.qml">
       <Filter>Distribution Files</Filter>
+    </None>
+    <None Include="support.vrmanifest">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="app.vrmanifest">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
