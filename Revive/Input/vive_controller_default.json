@@ -101,6 +101,20 @@
          ]
       },
       "/actions/touch" : {
+         "chords" : [
+            {
+               "inputs" : [
+                  [ "/user/hand/left/input/trigger", "touch" ]
+               ],
+               "output" : "/actions/touch/in/touch_lindextrigger"
+            },
+            {
+               "inputs" : [
+                  [ "/user/hand/left/input/trigger", "touch" ]
+               ],
+               "output" : "/actions/touch/in/touch_rindextrigger"
+            }
+         ],
          "haptics" : [
             {
                "output" : "/actions/touch/out/lvibration",
@@ -116,9 +130,6 @@
                "inputs" : {
                   "pull" : {
                      "output" : "/actions/touch/in/lindextrigger"
-                  },
-                  "click" : {
-                     "output" : "/actions/touch/in/touch_lindextrigger"
                   }
                },
                "mode" : "trigger",
@@ -197,9 +208,6 @@
                "inputs" : {
                   "pull" : {
                      "output" : "/actions/touch/in/rindextrigger"
-                  },
-                  "click" : {
-                     "output" : "/actions/touch/in/touch_rindextrigger"
                   }
                },
                "mode" : "trigger",
