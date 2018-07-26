@@ -446,7 +446,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		inputState->Buttons |= ovrButton_Enter;
 
 	// Fall-back start
-	ovrTouch dpad = (ovrTouch)0;
+	ovrTouch dpad = (ovrTouch)0, dtouch = (ovrTouch)0;
 	if (BUTTON_PRESSED(vr::k_EButton_SteamVR_Touchpad))
 		dpad = AxisToTouch(state.rAxis[0]);
 	unsigned int buttons = 0, touches = 0;
@@ -455,35 +455,36 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	if (GetDigital(m_Button_AX, dpad == ovrTouch_A || dpad == ovrTouch_X))
 		buttons |= ovrButton_A;
 
-	if (GetDigital(m_Touch_AX))
+	if (GetDigital(m_Touch_AX, dtouch == ovrTouch_A || dtouch == ovrTouch_X))
 		touches |= ovrTouch_A;
 
 	if (GetDigital(m_Button_BY, dpad == ovrTouch_B || dpad == ovrTouch_Y))
 		buttons |= ovrButton_B;
 
-	if (GetDigital(m_Touch_BY))
+	if (GetDigital(m_Touch_BY, dtouch == ovrTouch_B || dtouch == ovrTouch_Y))
 		touches |= ovrTouch_B;
 
 	if (GetDigital(m_Button_Thumb, dpad == ovrTouch_RThumb || dpad == ovrTouch_LThumb))
 		buttons |= ovrButton_RThumb;
 
-	if (GetDigital(m_Touch_Thumb))
+	if (GetDigital(m_Touch_Thumb, dtouch == ovrTouch_RThumb || dtouch == ovrTouch_LThumb))
 		touches |= ovrTouch_RThumb;
 
 	if (GetDigital(m_Touch_ThumbRest))
 		touches |= ovrTouch_RThumbRest;
 
-	if (GetDigital(m_Touch_IndexTrigger))
+	if (GetDigital(m_Touch_IndexTrigger, BUTTON_TOUCHED(vr::k_EButton_SteamVR_Trigger)))
 		touches |= ovrTouch_RIndexTrigger;
 
-	if (GetDigital(m_Touch_IndexPointing))
+	if (GetDigital(m_Touch_IndexPointing, BUTTON_PRESSED(vr::k_EButton_Grip) && !BUTTON_TOUCHED(vr::k_EButton_SteamVR_Trigger)))
 		touches |= ovrTouch_RIndexPointing;
 
-	if (GetDigital(m_Touch_ThumbUp))
+	// TODO: There is no binding for thumb up until this can be handled with chords
+	if (GetDigital(m_Touch_ThumbUp, BUTTON_PRESSED(vr::k_EButton_Grip) && !BUTTON_TOUCHED(vr::k_EButton_SteamVR_Touchpad)))
 		touches |= ovrTouch_RThumbUp;
 
-	// TODO: Should be handled with chords in SteamVR input
-	if (GetDigital(m_Button_HandTrigger, BUTTON_PRESSED(vr::k_EButton_Grip)) && !GetDigital(m_Touch_IndexTrigger, BUTTON_PRESSED(vr::k_EButton_SteamVR_Trigger)))
+	// TODO: Should be handled completely with chords in SteamVR input
+	if (GetDigital(m_Button_HandTrigger) && !GetDigital(m_Touch_IndexTrigger))
 		touches |= ovrTouch_RIndexPointing;
 
 	inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
