@@ -79,6 +79,8 @@ void InputManager::UpdateConnectedControllers()
 
 void InputManager::UpdateInputState()
 {
+	UpdateConnectedControllers();
+
 	std::vector<vr::VRActiveActionSet_t> sets;
 	for (InputDevice* device : m_InputDevices)
 	{
