@@ -1105,3 +1105,24 @@ ovr_EnableExtension(ovrSession session, ovrExtensions extension)
 	// TODO: Extensions support
 	return ovrError_InvalidOperation;
 }
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetViewportStencil(
+	ovrSession session,
+	const ovrViewportStencilDesc* viewportStencilDesc,
+	ovrViewportStencilMeshBuffer* outMeshBuffer)
+{
+	if (viewportStencilDesc->StencilType != ovrViewportStencil_HiddenArea &&
+		viewportStencilDesc->StencilType != ovrViewportStencil_VisibleArea)
+		return ovrError_Unsupported;
+
+	HolographicCamera cam = session->Frames->GetPose().HolographicCamera();
+	HolographicCameraViewportParameters params = (viewportStencilDesc->Eye == ovrEye_Right) ?
+		cam.RightViewportParameters() : cam.LeftViewportParameters();
+	auto mesh = (viewportStencilDesc->StencilType == ovrViewportStencil_VisibleArea) ? params.VisibleAreaMesh() : params.HiddenAreaMesh();
+	if (outMeshBuffer->AllocVertexCount >= (int)mesh.size())
+		memcpy(outMeshBuffer->VertexBuffer, mesh.data(), mesh.size() * sizeof(Numerics::float2));
+	outMeshBuffer->UsedVertexCount = mesh.size();
+	outMeshBuffer->UsedIndexCount = 0;
+	return ovrSuccess;
+}
