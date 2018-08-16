@@ -41,6 +41,20 @@ public:
 			return data.bState;
 		}
 
+		static bool IsPressed(vr::VRActionHandle_t action)
+		{
+			vr::InputDigitalActionData_t data = {};
+			vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data));
+			return data.bChanged && data.bState;
+		}
+
+		static bool IsReleased(vr::VRActionHandle_t action)
+		{
+			vr::InputDigitalActionData_t data = {};
+			vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data));
+			return data.bChanged && !data.bState;
+		}
+
 		static OVR::Vector2f GetAnalog(vr::VRActionHandle_t action)
 		{
 			vr::InputAnalogActionData_t data = {};
@@ -68,6 +82,9 @@ public:
 		vr::ETrackedControllerRole Role;
 
 	private:
+		bool WasGripped;
+		double TimeGripped;
+
 		vr::VRActionHandle_t m_Button_AX;
 		vr::VRActionHandle_t m_Button_BY;
 		vr::VRActionHandle_t m_Button_Thumb;

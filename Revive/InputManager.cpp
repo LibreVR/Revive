@@ -346,6 +346,8 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 InputManager::OculusTouch::OculusTouch(vr::VRActionSetHandle_t actionSet, vr::ETrackedControllerRole role)
 	: InputDevice(actionSet)
 	, Role(role)
+	, WasGripped(false)
+	, TimeGripped(0.0)
 	, m_bHapticsRunning(true)
 {
 	vr::VRInput()->GetActionHandle("/actions/touch/in/Button_Enter", &m_Button_Enter);
@@ -446,18 +448,46 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
 	inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
 
-	vr::InputDigitalActionData_t recenter = {};
-	vr::EVRInputError err = vr::VRInput()->GetDigitalActionData(m_Recenter_Thumb, &recenter, sizeof(recenter));
-	if (recenter.bChanged && recenter.bActive)
+	if (IsPressed(m_Recenter_Thumb))
 	{
 		m_Thumbstick_Center = GetAnalog(m_Thumbstick);
 	}
 
-	// Get the deadzone from the settings
+	// Read the input settings
 	float deadzone;
 	{
 		rcu_ptr<InputSettings> settings = session->Settings->Input;
 		deadzone = settings->Deadzone;
+
+		if (settings->ToggleGrip == revGrip_Hybrid)
+		{
+			if (IsPressed(m_Button_HandTrigger))
+			{
+				// Only set the timestamp on the first grip toggle, we don't want to toggle twice
+				if (!WasGripped)
+					TimeGripped = ovr_GetTimeInSeconds();
+
+				WasGripped = true;
+			}
+
+			if (IsReleased(m_Button_HandTrigger))
+			{
+				if (ovr_GetTimeInSeconds() - TimeGripped > settings->ToggleDelay)
+					WasGripped = false;
+
+				// Next time we always want to release grip
+				TimeGripped = 0.0;
+			}
+		}
+		else if (settings->ToggleGrip == revGrip_Toggle)
+		{
+			if (IsPressed(m_Button_HandTrigger))
+				WasGripped = !WasGripped;
+		}
+		else
+		{
+			WasGripped = GetDigital(m_Button_HandTrigger);
+		}
 	}
 
 	OVR::Vector2f thumbstick = GetAnalog(m_Thumbstick) - m_Thumbstick_Center;
@@ -469,7 +499,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	if (GetDigital(m_Button_IndexTrigger))
 		inputState->IndexTrigger[hand] = 1.0f;
 
-	if (GetDigital(m_Button_HandTrigger))
+	if (WasGripped)
 		inputState->HandTrigger[hand] = 1.0f;
 
 	// We don't apply deadzones yet on triggers and grips
