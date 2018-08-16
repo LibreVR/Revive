@@ -16,6 +16,9 @@
 #include <assert.h>
 #include <dxgi.h>
 
+#include <HolographicSpaceInterop.h>
+#include <SpatialInteractionManagerInterop.h>
+
 #include <winrt/Windows.Foundation.h>
 using namespace winrt::Windows::Foundation;
 
@@ -30,8 +33,6 @@ using namespace winrt::Windows::Perception::Spatial;
 
 #include <winrt/Windows.UI.Input.Spatial.h>
 using namespace winrt::Windows::UI::Input::Spatial;
-
-#include "winrt_private.h"
 
 #if 0
 #define REM_TRACE(x) OutputDebugStringA(#x "\n");
@@ -204,20 +205,27 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	if (!session->Compositor->InitDevice())
 		return ovrError_RuntimeException;
 
-	try
 	{
-		session->Space = CreateForHWND(session->Window->GetWindowHandle());
-		session->Space.SetDirect3D11Device(session->Compositor->GetDevice());
-		session->Interaction = GetForHWND(session->Window->GetWindowHandle());
-		session->Frames = std::make_unique<FrameList>(session->Space);
-		session->Tracking = std::make_unique<TrackingManager>();
+		auto factory = winrt::get_activation_factory<IHolographicSpaceStatics>();
+		auto interop = factory.as<IHolographicSpaceInterop>();
+
+		HRESULT hr = interop->CreateForWindow(session->Window->GetWindowHandle(), winrt::guid_of<IHolographicSpace>(), (void**)&session->Space);
+		if (FAILED(hr))
+			return ovrError_RuntimeException;
 	}
-	catch (winrt::hresult_error& ex)
+
 	{
-		OutputDebugStringW(ex.message().c_str());
-		OutputDebugStringW(L"\n");
-		return ovrError_RuntimeException;
+		auto factory = winrt::get_activation_factory<ISpatialInteractionManager>();
+		auto interop = factory.as<ISpatialInteractionManagerInterop>();
+
+		HRESULT hr = interop->GetForWindow(session->Window->GetWindowHandle(), winrt::guid_of<ISpatialInteractionManager>(), (void**)&session->Interaction);
+		if (FAILED(hr))
+			return ovrError_RuntimeException;
 	}
+
+	session->Space.SetDirect3D11Device(session->Compositor->GetDevice());
+	session->Frames = std::make_unique<FrameList>(session->Space);
+	session->Tracking = std::make_unique<TrackingManager>();
 
 	HolographicAdapterId luid = session->Space.PrimaryAdapterId();
 	memcpy(&pLuid->Reserved[0], &luid.LowPart, sizeof(luid.LowPart));

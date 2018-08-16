@@ -119,9 +119,6 @@
     <ClInclude Include="TrackingManager.h">
       <Filter>Header Files\LibRemixed</Filter>
     </ClInclude>
-    <ClInclude Include="winrt_private.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CompositorShader.hlsl">

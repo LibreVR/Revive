@@ -50,7 +50,6 @@
     <ClInclude Include="TextureWGL.h" />
     <ClInclude Include="TrackingManager.h" />
     <ClInclude Include="Win32Window.h" />
-    <ClInclude Include="winrt_private.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Externals\minhook\build\VC15\libMinHook.vcxproj">
