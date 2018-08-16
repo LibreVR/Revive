@@ -110,7 +110,7 @@
             },
             {
                "inputs" : [
-                  [ "/user/hand/left/input/trigger", "touch" ]
+                  [ "/user/hand/right/input/trigger", "touch" ]
                ],
                "output" : "/actions/touch/in/touch_rindextrigger"
             }

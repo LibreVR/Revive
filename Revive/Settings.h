@@ -8,7 +8,7 @@ enum revGripType
 };
 
 #define REV_SETTINGS_SECTION				"revive"
-#define REV_ROUND(x)						round((double)x * pow(10.0, 4)) / pow(10.0, 4);
+#define REV_ROUND(x)						round((double)x * 10000.0) / 10000.0;
 
 #define REV_KEY_DEFAULT_ORIGIN				"DefaultTrackingOrigin"
 #define REV_DEFAULT_ORIGIN					vr::TrackingUniverseSeated
