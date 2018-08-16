@@ -34,19 +34,17 @@ public:
 		vr::VRActionSetHandle_t ActionSet;
 
 	protected:
-		static bool GetDigital(vr::VRActionHandle_t action, bool fallback = false)
+		static bool GetDigital(vr::VRActionHandle_t action)
 		{
 			vr::InputDigitalActionData_t data = {};
-			if (vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data)) != vr::VRInputError_None)
-				return fallback;
+			vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data));
 			return data.bState;
 		}
 
-		static OVR::Vector2f GetAnalog(vr::VRActionHandle_t action, OVR::Vector2f fallback = OVR::Vector2f::Zero())
+		static OVR::Vector2f GetAnalog(vr::VRActionHandle_t action)
 		{
 			vr::InputAnalogActionData_t data = {};
-			if (vr::VRInput()->GetAnalogActionData(action, &data, sizeof(data)) != vr::VRInputError_None)
-				return fallback;
+			vr::VRInput()->GetAnalogActionData(action, &data, sizeof(data));
 			return OVR::Vector2f(data.x, data.y);
 		}
 
@@ -70,9 +68,6 @@ public:
 		vr::ETrackedControllerRole Role;
 
 	private:
-		bool WasTouched;
-		ovrTouch AxisToTouch(vr::VRControllerAxis_t axis);
-
 		vr::VRActionHandle_t m_Button_AX;
 		vr::VRActionHandle_t m_Button_BY;
 		vr::VRActionHandle_t m_Button_Thumb;
