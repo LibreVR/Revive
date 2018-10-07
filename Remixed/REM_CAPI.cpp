@@ -1134,3 +1134,13 @@ ovr_GetViewportStencil(
 	outMeshBuffer->UsedIndexCount = 0;
 	return ovrSuccess;
 }
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetFovStencil(
+	ovrSession session,
+	void* unkA,
+	void* unkB)
+{
+	// TODO: Seems like an undocumented, older version of viewport stencil
+	return ovrError_InvalidOperation;
+}

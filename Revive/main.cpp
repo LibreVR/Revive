@@ -8,10 +8,12 @@
 #include "Extras\OVR_CAPI_Util.h"
 #include "OVR_Version.h"
 
-typedef HMODULE(__stdcall* _LoadLibrary)(LPCWSTR lpFileName);
-typedef HANDLE(__stdcall* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
-typedef HRESULT(__stdcall* _CreateDXGIFactory)(REFIID riid, void **ppFactory);
+typedef FARPROC(WINAPI* _GetProcAddress)(HMODULE hModule, LPCSTR lpProcName);
+typedef HMODULE(WINAPI* _LoadLibrary)(LPCWSTR lpFileName);
+typedef HANDLE(WINAPI* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
+typedef HRESULT(WINAPI* _CreateDXGIFactory)(REFIID riid, void **ppFactory);
 
+_GetProcAddress TrueGetProcAddress;
 _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
 _CreateDXGIFactory DXGIFactory;
@@ -19,6 +21,18 @@ _CreateDXGIFactory DXGIFactory;
 HMODULE revModule;
 WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
+
+
+FARPROC WINAPI HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
+{
+	if (hModule == revModule)
+	{
+		OutputDebugStringA(lpProcName);
+		OutputDebugStringA("\n");
+	}
+
+	return TrueGetProcAddress(hModule, lpProcName);
+}
 
 HRESULT WINAPI HookDXGIFactory(REFIID riid, void **ppFactory)
 {
@@ -70,6 +84,9 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 			GetModuleFileName(revModule, revModuleName, MAX_PATH);
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 			MH_Initialize();
+#if 0
+			MH_CreateHook(GetProcAddress, HookGetProcAddress, (PVOID*)&TrueGetProcAddress);
+#endif
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
 			MH_CreateHookApi(L"dxgi.dll", "CreateDXGIFactory", HookDXGIFactory, (PVOID*)&DXGIFactory);
