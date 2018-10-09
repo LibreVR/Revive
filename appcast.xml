@@ -5,31 +5,28 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.4.2</title>
+			<title>Version 1.5.0</title>
 			<description>
 			<![CDATA[
-			<p>To use experimental Mixed Reality support through Remixed, simply start the Revive Dashboard from the start menu and start a game without having SteamVR running.</p>
-
-			<p>Input Scripting has been removed in favor of SteamVR Input, if you need to change the bindings please do so by installing the SteamVR Beta. This is optional, you're not required to use the SteamVR beta for this release.</p>
-
 			<h2>Changes</h2>
 
 			<ul>
-			    <li>Includes all bug fixes and changes from the beta releases including an update to Oculus SDK 1.26.</li>
+			    <li>Updated to Oculus SDK 1.30</li>
 			</ul>
 
 			<h2>Bug fixes</h2>
 
 			<ul>
-			    <li>Revive: Marvel United VR and Red Matter crash on startup (#1039 & #997)</li>
-			    <li>Dashboard: Oculus Touch Tutorial and Oculus First Contact don't start (#1036)</li>
+			    <li>Revive: Fixed thumbstick getting locked in position after release</li>
+			    <li>Revive: Fixed left index finger state being used for the right hand</li>
+			    <li>Revive: Reimplemented support for grip toggle settings (#1046)</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>27 July 2018</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.4.2/ReviveInstaller.exe"
+			<pubDate>10 October 2018</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.5.0/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.4.2.0"
+					   sparkle:version="1.5.0.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
