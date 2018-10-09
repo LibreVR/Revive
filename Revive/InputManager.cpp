@@ -442,12 +442,14 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		touches |= ovrTouch_RThumbUp;
 
 	// TODO: Should be handled with chords in SteamVR input
-	if (GetDigital(m_Button_HandTrigger) && !GetDigital(m_Touch_IndexTrigger))
+	// FIXME: Can't use IsReleased or IsPressed, because bChanged resets after every call to GetDigitalActionData
+	vr::InputDigitalActionData_t triggerData = {};
+	vr::VRInput()->GetDigitalActionData(m_Button_HandTrigger, &triggerData, sizeof(triggerData));
+	if (triggerData.bState && !GetDigital(m_Touch_IndexTrigger))
 		touches |= ovrTouch_RIndexPointing;
 
 	inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
 	inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
-
 
 	// FIXME: Can't use IsReleased or IsPressed, because bChanged resets after every call to GetDigitalActionData
 	vr::InputDigitalActionData_t recenterData = {};
@@ -468,9 +470,6 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 		if (settings->ToggleGrip == revGrip_Hybrid)
 		{
-			// FIXME: Can't use IsReleased or IsPressed, because bChanged resets after every call to GetDigitalActionData
-			vr::InputDigitalActionData_t triggerData = {};
-			vr::VRInput()->GetDigitalActionData(m_Button_HandTrigger, &triggerData, sizeof(triggerData));
 			if (triggerData.bChanged)
 			{
 				if (triggerData.bState)
@@ -493,7 +492,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		}
 		else if (settings->ToggleGrip == revGrip_Toggle)
 		{
-			if (IsPressed(m_Button_HandTrigger))
+			if (triggerData.bChanged && triggerData.bState)
 				WasGripped = !WasGripped;
 		}
 		else
