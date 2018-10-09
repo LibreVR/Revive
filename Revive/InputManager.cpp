@@ -468,22 +468,27 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 		if (settings->ToggleGrip == revGrip_Hybrid)
 		{
-			if (IsPressed(m_Button_HandTrigger))
+			// FIXME: Can't use IsReleased or IsPressed, because bChanged resets after every call to GetDigitalActionData
+			vr::InputDigitalActionData_t triggerData = {};
+			vr::VRInput()->GetDigitalActionData(m_Button_HandTrigger, &triggerData, sizeof(triggerData));
+			if (triggerData.bChanged)
 			{
-				// Only set the timestamp on the first grip toggle, we don't want to toggle twice
-				if (!WasGripped)
-					TimeGripped = ovr_GetTimeInSeconds();
+				if (triggerData.bState)
+				{
+					// Only set the timestamp on the first grip toggle, we don't want to toggle twice
+					if (!WasGripped)
+						TimeGripped = ovr_GetTimeInSeconds();
 
-				WasGripped = true;
-			}
+					WasGripped = true;
+				}
+				else
+				{
+					if (ovr_GetTimeInSeconds() - TimeGripped > settings->ToggleDelay)
+						WasGripped = false;
 
-			if (IsReleased(m_Button_HandTrigger))
-			{
-				if (ovr_GetTimeInSeconds() - TimeGripped > settings->ToggleDelay)
-					WasGripped = false;
-
-				// Next time we always want to release grip
-				TimeGripped = 0.0;
+					// Next time we always want to release grip
+					TimeGripped = 0.0;
+				}
 			}
 		}
 		else if (settings->ToggleGrip == revGrip_Toggle)
