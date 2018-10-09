@@ -1184,26 +1184,44 @@ ovr_EnableExtension(ovrSession session, ovrExtensions extension)
 	return ovrError_InvalidOperation;
 }
 
+typedef struct ovrViewportStencilDesc_ {
+	ovrFovStencilType StencilType;
+	ovrEyeType Eye;
+	ovrFovPort FovPort; /// Typically Fov obtained from ovrEyeRenderDesc
+	ovrQuatf HmdToEyeRotation; /// Typically HmdToEyePose.Orientation obtained from ovrEyeRenderDesc
+} ovrViewportStencilDesc;
+
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetViewportStencil(
 	ovrSession session,
 	const ovrViewportStencilDesc* viewportStencilDesc,
-	ovrViewportStencilMeshBuffer* outMeshBuffer)
+	ovrFovStencilMeshBuffer* outMeshBuffer)
 {
-	vr::HiddenAreaMesh_t mesh = vr::VRSystem()->GetHiddenAreaMesh((vr::EVREye)viewportStencilDesc->Eye, (vr::EHiddenAreaMeshType)viewportStencilDesc->StencilType);
-	if (outMeshBuffer->AllocVertexCount >= (int)mesh.unTriangleCount)
-		memcpy(outMeshBuffer->VertexBuffer, mesh.pVertexData, mesh.unTriangleCount * sizeof(ovrVector2f));
-	outMeshBuffer->UsedVertexCount = mesh.unTriangleCount;
-	outMeshBuffer->UsedIndexCount = 0;
-	return ovrSuccess;
+	ovrFovStencilDesc fovStencilDesc = {};
+	fovStencilDesc.StencilType = viewportStencilDesc->StencilType;
+	fovStencilDesc.StencilFlags = 0;
+	fovStencilDesc.Eye = viewportStencilDesc->Eye;
+	fovStencilDesc.FovPort = viewportStencilDesc->FovPort;
+	fovStencilDesc.HmdToEyeRotation = viewportStencilDesc->HmdToEyeRotation;
+	return ovr_GetFovStencil(session, &fovStencilDesc, outMeshBuffer);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetFovStencil(
 	ovrSession session,
-	void* unkA,
-	void* unkB)
+	const ovrFovStencilDesc* fovStencilDesc,
+	ovrFovStencilMeshBuffer* meshBuffer)
 {
-	// TODO: Seems like an undocumented, older version of viewport stencil
-	return ovrError_InvalidOperation;
+	vr::HiddenAreaMesh_t mesh = vr::VRSystem()->GetHiddenAreaMesh((vr::EVREye)fovStencilDesc->Eye, (vr::EHiddenAreaMeshType)fovStencilDesc->StencilType);
+
+	int& i = meshBuffer->UsedVertexCount;
+	for (i = 0; i < meshBuffer->AllocVertexCount && i < (int)mesh.unTriangleCount; i++)
+	{
+		if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
+			meshBuffer->VertexBuffer[i] = -REV::Vector2f(mesh.pVertexData[i]);
+		else
+			meshBuffer->VertexBuffer[i] = REV::Vector2f(mesh.pVertexData[i]);
+	}
+	meshBuffer->UsedIndexCount = 0;
+	return ovrSuccess;
 }

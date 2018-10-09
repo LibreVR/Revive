@@ -1114,33 +1114,51 @@ ovr_EnableExtension(ovrSession session, ovrExtensions extension)
 	return ovrError_InvalidOperation;
 }
 
+typedef struct ovrViewportStencilDesc_ {
+	ovrFovStencilType StencilType;
+	ovrEyeType Eye;
+	ovrFovPort FovPort; /// Typically Fov obtained from ovrEyeRenderDesc
+	ovrQuatf HmdToEyeRotation; /// Typically HmdToEyePose.Orientation obtained from ovrEyeRenderDesc
+} ovrViewportStencilDesc;
+
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetViewportStencil(
 	ovrSession session,
 	const ovrViewportStencilDesc* viewportStencilDesc,
-	ovrViewportStencilMeshBuffer* outMeshBuffer)
+	ovrFovStencilMeshBuffer* outMeshBuffer)
 {
-	if (viewportStencilDesc->StencilType != ovrViewportStencil_HiddenArea &&
-		viewportStencilDesc->StencilType != ovrViewportStencil_VisibleArea)
-		return ovrError_Unsupported;
-
-	HolographicCamera cam = session->Frames->GetPose().HolographicCamera();
-	HolographicCameraViewportParameters params = (viewportStencilDesc->Eye == ovrEye_Right) ?
-		cam.RightViewportParameters() : cam.LeftViewportParameters();
-	auto mesh = (viewportStencilDesc->StencilType == ovrViewportStencil_VisibleArea) ? params.VisibleAreaMesh() : params.HiddenAreaMesh();
-	if (outMeshBuffer->AllocVertexCount >= (int)mesh.size())
-		memcpy(outMeshBuffer->VertexBuffer, mesh.data(), mesh.size() * sizeof(Numerics::float2));
-	outMeshBuffer->UsedVertexCount = mesh.size();
-	outMeshBuffer->UsedIndexCount = 0;
-	return ovrSuccess;
+	ovrFovStencilDesc fovStencilDesc = {};
+	fovStencilDesc.StencilType = viewportStencilDesc->StencilType;
+	fovStencilDesc.StencilFlags = 0;
+	fovStencilDesc.Eye = viewportStencilDesc->Eye;
+	fovStencilDesc.FovPort = viewportStencilDesc->FovPort;
+	fovStencilDesc.HmdToEyeRotation = viewportStencilDesc->HmdToEyeRotation;
+	return ovr_GetFovStencil(session, &fovStencilDesc, outMeshBuffer);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetFovStencil(
 	ovrSession session,
-	void* unkA,
-	void* unkB)
+	const ovrFovStencilDesc* fovStencilDesc,
+	ovrFovStencilMeshBuffer* meshBuffer)
 {
-	// TODO: Seems like an undocumented, older version of viewport stencil
-	return ovrError_InvalidOperation;
+	if (fovStencilDesc->StencilType != ovrFovStencil_HiddenArea &&
+		fovStencilDesc->StencilType != ovrFovStencil_VisibleArea)
+		return ovrError_Unsupported;
+
+	HolographicCamera cam = session->Frames->GetPose().HolographicCamera();
+	HolographicCameraViewportParameters params = (fovStencilDesc->Eye == ovrEye_Right) ?
+		cam.RightViewportParameters() : cam.LeftViewportParameters();
+	auto mesh = (fovStencilDesc->StencilType == ovrFovStencil_VisibleArea) ? params.VisibleAreaMesh() : params.HiddenAreaMesh();
+
+	int& i = meshBuffer->UsedVertexCount;
+	for (i = 0; i < meshBuffer->AllocVertexCount && i < (int)mesh.size(); i++)
+	{
+		if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
+			meshBuffer->VertexBuffer[i] = -REM::Vector2f(mesh[i]);
+		else
+			meshBuffer->VertexBuffer[i] = REM::Vector2f(mesh[i]);
+	}
+	meshBuffer->UsedIndexCount = 0;
+	return ovrSuccess;
 }
