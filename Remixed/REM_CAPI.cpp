@@ -206,7 +206,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		return ovrError_RuntimeException;
 
 	{
-		auto factory = winrt::get_activation_factory<IHolographicSpaceStatics>();
+		auto factory = winrt::get_activation_factory<HolographicSpace>();
 		auto interop = factory.as<IHolographicSpaceInterop>();
 
 		HRESULT hr = interop->CreateForWindow(session->Window->GetWindowHandle(), winrt::guid_of<IHolographicSpace>(), (void**)&session->Space);
@@ -215,7 +215,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	}
 
 	{
-		auto factory = winrt::get_activation_factory<ISpatialInteractionManager>();
+		auto factory = winrt::get_activation_factory<SpatialInteractionManager>();
 		auto interop = factory.as<ISpatialInteractionManagerInterop>();
 
 		HRESULT hr = interop->GetForWindow(session->Window->GetWindowHandle(), winrt::guid_of<ISpatialInteractionManager>(), (void**)&session->Interaction);
