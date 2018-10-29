@@ -35,18 +35,6 @@
                     "name": "Oculus First Contact"
                 }
             }
-        },
-        {
-            "app_key": "revive.app.oculus-avatar-editor",
-            "arguments": "/base \"Support/oculus-avatar-editor/OVRAvatarEditor.exe\"",
-            "binary_path_windows": "Revive/ReviveInjector_x64.exe",
-            "image_path": "SupportAssets/oculus-avatar-editor/cover_landscape_image.jpg",
-            "launch_type": "binary",
-            "strings": {
-                "en_us": {
-                    "name": "Oculus Avatar Editor"
-                }
-            }
         }
     ]
 }
