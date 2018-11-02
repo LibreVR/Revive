@@ -70,10 +70,6 @@ Rectangle {
             coverURL: "SupportAssets/oculus-first-contact/cover_square_image.jpg"
             appKey: "oculus-first-contact"
         }
-        ListElement {
-            coverURL: "SupportAssets/oculus-avatar-editor/cover_square_image.jpg"
-            appKey: "oculus-avatar-editor"
-        }
     }
 
     SoundEffect {
