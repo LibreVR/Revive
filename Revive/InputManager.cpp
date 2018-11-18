@@ -390,7 +390,7 @@ InputManager::OculusTouch::~OculusTouch()
 
 ovrControllerType InputManager::OculusTouch::GetType()
 {
-	return ovrControllerType_Touch;
+	return (Role == vr::TrackedControllerRole_LeftHand) ? ovrControllerType_LTouch : ovrControllerType_RTouch;
 }
 
 bool InputManager::OculusTouch::IsConnected() const
