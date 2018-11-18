@@ -18,8 +18,9 @@ extern uint32_t g_MinorVersion;
 MICROPROFILE_DEFINE(WaitToBeginFrame, "Compositor", "WaitFrame", 0x00ff00);
 MICROPROFILE_DEFINE(BeginFrame, "Compositor", "BeginFrame", 0x00ff00);
 MICROPROFILE_DEFINE(EndFrame, "Compositor", "EndFrame", 0x00ff00);
+MICROPROFILE_DEFINE(BlitFovLayers, "Compositor", "BlitFovLayers", 0x00ff00);
 MICROPROFILE_DEFINE(SubmitFovLayer, "Compositor", "SubmitFovLayer", 0x00ff00);
-MICROPROFILE_DEFINE(SubmitSceneLayer, "Compositor", "SubmitSceneLayer", 0x00ff00);
+MICROPROFILE_DEFINE(WaitGetPoses, "Compositor", "WaitGetPoses", 0x00ff00);
 
 ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
 {
@@ -135,9 +136,6 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	if (layerCount == 0 || !layerPtrList)
 		return ovrError_InvalidParameter;
 
-	// Flush all pending draw calls.
-	Flush();
-
 	ovrLayerEyeFov baseLayer;
 	bool baseLayerFound = false;
 	std::vector<vr::VROverlayHandle_t> activeOverlays;
@@ -236,7 +234,10 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	// Flip the profiler.
 	MicroProfileFlip();
 
-	vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	{
+		MICROPROFILE_SCOPE(WaitGetPoses);
+		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	}
 
 	return rev_CompositorErrorToOvrError(error);
 }
@@ -307,7 +308,7 @@ ovrLayerEyeFov CompositorBase::ToFovLayer(ovrLayerEyeMatrix* matrix)
 
 void CompositorBase::BlitFovLayers(ovrLayerEyeFov* dstLayer, ovrLayerEyeFov* srcLayer)
 {
-	MICROPROFILE_SCOPE(SubmitFovLayer);
+	MICROPROFILE_SCOPE(BlitFovLayers);
 
 	ovrTextureSwapChain swapChain[ovrEye_Count] = {
 		srcLayer->ColorTexture[ovrEye_Left],
@@ -348,7 +349,7 @@ void CompositorBase::BlitFovLayers(ovrLayerEyeFov* dstLayer, ovrLayerEyeFov* src
 
 vr::VRCompositorError CompositorBase::SubmitFovLayer(ovrSession session, ovrLayerEyeFov* fovLayer)
 {
-	MICROPROFILE_SCOPE(SubmitSceneLayer);
+	MICROPROFILE_SCOPE(SubmitFovLayer);
 
 	ovrTextureSwapChain swapChain[ovrEye_Count] = {
 		fovLayer->ColorTexture[ovrEye_Left],
