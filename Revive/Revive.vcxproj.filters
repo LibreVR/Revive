@@ -134,9 +134,6 @@
     <ClCompile Include="TextureD3D.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
-    <ClCompile Include="xinput.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="microprofile.cpp">
       <Filter>Source Files\microprofile</Filter>
     </ClCompile>
@@ -183,9 +180,6 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="xinput.def">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="default.lua">
       <Filter>Resource Files</Filter>
     </None>
