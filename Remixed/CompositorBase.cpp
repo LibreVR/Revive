@@ -114,9 +114,6 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	if (layerCount == 0 || !layerPtrList)
 		return ovrError_InvalidParameter;
 
-	// Flush all pending draw calls.
-	Flush();
-
 	HolographicFrame frame = session->Frames->GetPendingFrame(frameIndex);
 	if (!frame)
 		return ovrSuccess_NotVisible;
