@@ -144,6 +144,9 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 		if (!layerPtrList[i])
 			continue;
 
+		if (session->Details->UseHack(SessionDetails::HACK_SKIP_SECOND_LAYER) && i == 1)
+			continue;
+
 		// TODO: Support ovrLayerType_Cylinder and ovrLayerType_Cube
 		if (layerPtrList[i]->Type == ovrLayerType_Quad)
 		{
