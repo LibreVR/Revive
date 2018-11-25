@@ -93,7 +93,7 @@ install:
   File /r "${BASE_DIR}\*.jpg"
   File /r "${BASE_DIR}\Qt*"
   
-  SetOutPath "$APPDATA\Revive\Input"
+  SetOutPath "$INSTDIR\Input"
   
   ; Application data
   File /r "${SRC_DIR}\Input\*.json"

@@ -52,7 +52,7 @@ InputManager::~InputManager()
 void InputManager::LoadActionManifest()
 {
 	CComHeapPtr<wchar_t> folder;
-	HRESULT hr = SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DEFAULT, NULL, &folder);
+	HRESULT hr = SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_DEFAULT, NULL, &folder);
 
 	if (SUCCEEDED(hr))
 	{

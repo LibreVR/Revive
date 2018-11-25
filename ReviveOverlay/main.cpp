@@ -41,16 +41,10 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 
 	// Open the log file and install our handler.
-	QString logPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-	logPath.append("/Revive");
+	QString logPath = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/Revive/";
 	if (QDir().mkpath(logPath)) {
-		g_LogFile = new QFile(logPath + "/ReviveOverlay.txt");
+		g_LogFile = new QFile(logPath + "ReviveOverlay.txt");
 		g_LogFile->open(QIODevice::WriteOnly | QIODevice::Truncate);
-
-		// Remove obsolete log files
-		QDir logDir(logPath);
-		logDir.remove("ReviveOverlay.log");
-		logDir.remove("ReviveInjector.log");
 	}
 	qInstallMessageHandler(myMessageOutput);
 
@@ -68,6 +62,21 @@ int main(int argc, char *argv[])
 		vr::VRApplications()->SetApplicationAutoLaunch(CReviveManifestController::AppKey, true);
 		vr::VR_Shutdown();
 		return 0;
+	}
+
+	// Check if we need to copy over input files
+	QString inputPath = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/Revive/Input/";
+	if (!QDir().exists(inputPath) && QDir().mkpath(inputPath))
+	{
+		QDir inputDir(QCoreApplication::applicationDirPath() + "/Input");
+		if (inputDir.exists())
+		{
+			QStringList names = inputDir.entryList(QStringList("*.json"));
+			QStringList files;
+			for (QString file : names)
+				files.append(inputDir.path() + "/" + file);
+			WindowsServices::CopyFiles(files, inputPath, names);
+		}
 	}
 
 	if (COpenVROverlayController::SharedInstance()->Init())

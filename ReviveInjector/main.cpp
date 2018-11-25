@@ -120,7 +120,7 @@ int wmain(int argc, wchar_t *argv[]) {
 	}
 
 	WCHAR LogPath[MAX_PATH];
-	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, LogPath)))
+	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, LogPath)))
 	{
 		wcsncat(LogPath, L"\\Revive", MAX_PATH);
 		
