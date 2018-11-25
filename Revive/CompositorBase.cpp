@@ -165,11 +165,13 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			}
 			activeOverlays.push_back(overlay);
 
-			// Set the layer rendering order.
+			// Set the layer rendering order and apply a bias between the layers.
 			vr::VROverlay()->SetOverlaySortOrder(overlay, i);
+			OVR::Posef pose = layer.QuadPoseCenter;
+			pose.Translation += pose.Rotate(OVR::Vector3f(0.0f, 0.0f, (float)i * REV_LAYER_BIAS));
 
 			// Transform the overlay.
-			vr::HmdMatrix34_t transform = REV::Matrix4f(layer.QuadPoseCenter);
+			vr::HmdMatrix34_t transform = REV::Matrix4f(pose);
 			vr::VROverlay()->SetOverlayWidthInMeters(overlay, layer.QuadSize.x);
 			if (layer.Header.Flags & ovrLayerFlag_HeadLocked)
 				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
