@@ -95,8 +95,6 @@ public:
 		vr::VRActionHandle_t m_Touch_Thumb;
 		vr::VRActionHandle_t m_Touch_ThumbRest;
 		vr::VRActionHandle_t m_Touch_IndexTrigger;
-		vr::VRActionHandle_t m_Touch_IndexPointing;
-		vr::VRActionHandle_t m_Touch_ThumbUp;
 
 		vr::VRActionHandle_t m_IndexTrigger;
 		vr::VRActionHandle_t m_HandTrigger;

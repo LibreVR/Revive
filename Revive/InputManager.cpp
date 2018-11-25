@@ -364,8 +364,6 @@ InputManager::OculusTouch::OculusTouch(vr::VRActionSetHandle_t actionSet, vr::ET
 	GET_HANDED_ACTION(&m_Touch_Thumb, Touch_RThumb, Touch_LThumb);
 	GET_HANDED_ACTION(&m_Touch_ThumbRest, Touch_RThumbRest, Touch_LThumbRest);
 	GET_HANDED_ACTION(&m_Touch_IndexTrigger, Touch_RIndexTrigger, Touch_LIndexTrigger);
-	GET_HANDED_ACTION(&m_Touch_IndexPointing, Touch_RIndexPointing, Touch_LIndexPointing);
-	GET_HANDED_ACTION(&m_Touch_ThumbUp, Touch_RThumbUp, Touch_LThumbUp);
 
 	GET_HANDED_ACTION(&m_IndexTrigger, RIndexTrigger, LIndexTrigger);
 	GET_HANDED_ACTION(&m_HandTrigger, RHandTrigger, LHandTrigger);
@@ -435,19 +433,6 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	if (GetDigital(m_Touch_IndexTrigger))
 		touches |= ovrTouch_RIndexTrigger;
 
-	if (GetDigital(m_Touch_IndexPointing))
-		touches |= ovrTouch_RIndexPointing;
-
-	if (GetDigital(m_Touch_ThumbUp))
-		touches |= ovrTouch_RThumbUp;
-
-	// TODO: Should be handled with chords in SteamVR input
-	// FIXME: Can't use IsReleased or IsPressed, because bChanged resets after every call to GetDigitalActionData
-	vr::InputDigitalActionData_t triggerData = {};
-	vr::VRInput()->GetDigitalActionData(m_Button_HandTrigger, &triggerData, sizeof(triggerData));
-	if (triggerData.bState && !GetDigital(m_Touch_IndexTrigger))
-		touches |= ovrTouch_RIndexPointing;
-
 	inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
 	inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
 
@@ -461,6 +446,10 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		else
 			m_Thumbstick_Center = OVR::Vector2f::Zero();
 	}
+
+	// FIXME: Can't use IsReleased or IsPressed, because bChanged resets after every call to GetDigitalActionData
+	vr::InputDigitalActionData_t triggerData = {};
+	vr::VRInput()->GetDigitalActionData(m_Button_HandTrigger, &triggerData, sizeof(triggerData));
 
 	// Read the input settings
 	float deadzone;
@@ -512,6 +501,17 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 	if (WasGripped)
 		inputState->HandTrigger[hand] = 1.0f;
+
+	// Derive gestures from touch flags
+	// TODO: Should be handled with chords in SteamVR input
+	if (inputState->HandTrigger[hand] > 0.5f)
+	{
+		if (!(touches & ovrTouch_RIndexTrigger))
+			touches |= ovrTouch_RIndexPointing;
+
+		if (!(touches & ~ovrTouch_RIndexTrigger))
+			touches |= ovrTouch_RThumbUp;
+	}
 
 	// We don't apply deadzones yet on triggers and grips
 	inputState->IndexTriggerNoDeadzone[hand] = inputState->IndexTrigger[hand];

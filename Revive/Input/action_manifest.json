@@ -146,26 +146,6 @@
       "type": "boolean"
     },
     {
-      "name": "/actions/touch/in/Touch_RIndexPointing",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_RThumbUp",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_LIndexPointing",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_LThumbUp",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
       "name": "/actions/touch/out/RVibration",
       "type": "vibration"
     },
