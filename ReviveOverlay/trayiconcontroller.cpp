@@ -38,6 +38,7 @@ bool CTrayIconController::Init()
 {
 	m_trayIcon = std::make_unique<QSystemTrayIcon>(QIcon(":/revive_white.ico"));
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
+	m_trayIconMenu.addAction("&Patch...", this, SLOT(patch()));
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
@@ -96,6 +97,36 @@ void CTrayIconController::inject()
 	QStringList args;
 	args.append(file);
 	QProcess::execute(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe", args);
+}
+
+void CTrayIconController::patch()
+{
+	QString file = openDialog();
+	if (file.isNull())
+		return;
+
+	DWORD type;
+	if (!GetBinaryType(qUtf16Printable(file), &type))
+		return;
+
+	QString dir = QCoreApplication::applicationDirPath();
+	QStringList files;
+	if (type == SCS_32BIT_BINARY)
+	{
+		files.append(dir + "/Revive/x86/LibRevive32_1.dll");
+		files.append(dir + "/Revive/x86/LibRevive32_1.dll");
+		files.append(dir + "/Revive/x86/openvr_api.dll");
+	}
+	if (type == SCS_64BIT_BINARY)
+	{
+		files.append(dir + "/Revive/x64/LibRevive64_1.dll");
+		files.append(dir + "/Revive/x64/LibRevive64_1.dll");
+		files.append(dir + "/Revive/x64/openvr_api.dll");
+	}
+	QStringList names = { "xinput1_3.dll", "xinput9_1_0.dll", "openvr_api.dll" };
+
+	QFileInfo info(file);
+	WindowsServices::CopyFiles(files, info.absolutePath(), names);
 }
 
 void CTrayIconController::showHelp()

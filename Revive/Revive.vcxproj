@@ -102,6 +102,7 @@
       <AdditionalDependencies>Ws2_32.lib;openvr_api.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -132,6 +133,7 @@
       <AdditionalDependencies>Ws2_32.lib;openvr_api.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -165,6 +167,7 @@
       <AdditionalLibraryDirectories>$(Externals)openvr\lib\win32</AdditionalLibraryDirectories>
       <AdditionalDependencies>Ws2_32.lib;openvr_api.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -198,6 +201,7 @@
       <AdditionalLibraryDirectories>$(Externals)openvr\lib\win64</AdditionalLibraryDirectories>
       <AdditionalDependencies>Ws2_32.lib;openvr_api.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
+      <ModuleDefinitionFile>xinput.def</ModuleDefinitionFile>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -262,6 +266,7 @@
     <ClCompile Include="TextureD3D.cpp" />
     <ClCompile Include="TextureGL.cpp" />
     <ClCompile Include="TextureVk.cpp" />
+    <ClCompile Include="xinput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CompositorShader.hlsl">
@@ -287,6 +292,7 @@
     <None Include="cpp.hint" />
     <None Include="default.lua" />
     <None Include="header.lua" />
+    <None Include="xinput.def" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc" />
