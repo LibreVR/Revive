@@ -216,6 +216,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 			memcpy(pLuid, &desc.AdapterLuid, sizeof(ovrGraphicsLuid));
 	}
 
+	// Check if the user has a valid seated pose, if not reset it
+	vr::HmdMatrix34_t origin = vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose();
+	if (REV::Matrix4f(origin).Distance(OVR::Matrix4f::Identity()) < FLT_EPSILON)
+		vr::VRSystem()->ResetSeatedZeroPose();
+
 	*pSession = &g_Sessions.back();
 	return ovrSuccess;
 }
