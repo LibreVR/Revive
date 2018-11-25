@@ -1,0 +1,195 @@
+{
+   "bindings" : {
+      "/actions/remote" : {
+         "sources" : []
+      },
+      "/actions/touch" : {
+         "chords" : [],
+         "haptics" : [
+            {
+               "output" : "/actions/touch/out/lvibration",
+               "path" : "/user/hand/left/output/haptic"
+            },
+            {
+               "output" : "/actions/touch/out/rvibration",
+               "path" : "/user/hand/right/output/haptic"
+            }
+         ],
+         "sources" : [
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_x"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/touch_x"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/left/input/a"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_y"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/touch_y"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/left/input/b"
+            },
+            {
+               "inputs" : {
+                  "pull" : {
+                     "output" : "/actions/touch/in/lhandtrigger"
+                  }
+               },
+               "mode" : "trigger",
+               "path" : "/user/hand/left/input/finger/middle"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_lindextrigger"
+                  },
+                  "pull" : {
+                     "output" : "/actions/touch/in/lindextrigger"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/touch_lindextrigger"
+                  }
+               },
+               "mode" : "trigger",
+               "path" : "/user/hand/left/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_rindextrigger"
+                  },
+                  "pull" : {
+                     "output" : "/actions/touch/in/rindextrigger"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/touch_rindextrigger"
+                  }
+               },
+               "mode" : "trigger",
+               "path" : "/user/hand/right/input/trigger"
+            },
+            {
+               "inputs" : {
+                  "pull" : {
+                     "output" : "/actions/touch/in/rhandtrigger"
+                  }
+               },
+               "mode" : "trigger",
+               "path" : "/user/hand/right/input/finger/middle"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_a"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/touch_a"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/right/input/a"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_b"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/touch_b"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/right/input/b"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_enter"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/touch_lthumbrest"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/left/input/trackpad"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_enter"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/touch_rthumbrest"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/right/input/trackpad"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_lthumb"
+                  },
+                  "position" : {
+                     "output" : "/actions/touch/in/lthumbstick"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/touch_lthumb"
+                  }
+               },
+               "mode" : "joystick",
+               "path" : "/user/hand/left/input/thumbstick"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_rthumb"
+                  },
+                  "position" : {
+                     "output" : "/actions/touch/in/rthumbstick"
+                  },
+                  "touch" : {
+                     "output" : "/actions/touch/in/touch_rthumb"
+                  }
+               },
+               "mode" : "joystick",
+               "path" : "/user/hand/right/input/thumbstick"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_rhandtrigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/right/input/grip"
+            },
+            {
+               "inputs" : {
+                  "click" : {
+                     "output" : "/actions/touch/in/button_lhandtrigger"
+                  }
+               },
+               "mode" : "button",
+               "path" : "/user/hand/left/input/grip"
+            }
+         ]
+      }
+   },
+   "controller_type" : "knuckles",
+   "description" : "",
+   "name" : "Revive for Knuckles",
+   "options" : {},
+   "simulated_actions" : []
+}
