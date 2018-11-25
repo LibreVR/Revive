@@ -37,11 +37,6 @@ public:
 		// AirMech: Command doesn't properly synchronize their threads and relies on actual API call
 		// timings to keep the game thread in sync with the render thread.
 		HACK_SLEEP_IN_SESSION_STATUS,
-
-		// Hack: Skip second layer.
-		// Dirt Rally displays a white layer behind the menu that doesn't show up on the Oculus Rift,
-		// skip it entirely.
-		HACK_SKIP_SECOND_LAYER,
 	};
 
 	SessionDetails();
