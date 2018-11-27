@@ -506,7 +506,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		if (!(touches & ovrTouch_RIndexTrigger))
 			touches |= ovrTouch_RIndexPointing;
 
-		if (!(touches & ~ovrTouch_RIndexTrigger))
+		if (!(touches & ~(ovrTouch_RIndexTrigger | ovrTouch_RIndexPointing)))
 			touches |= ovrTouch_RThumbUp;
 	}
 
