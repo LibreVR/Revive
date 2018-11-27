@@ -107,6 +107,9 @@ install:
   ; This is a workaround for QTBUG-40332
   RMDir /r "$INSTDIR\bearer"
 
+  ; Delete the Revive local data
+  RMDir /r "$LocalAppdata\Revive"
+
   ; Ensure all users have access to the manifest file
   AccessControl::GrantOnFile \
     "$INSTDIR\revive.vrmanifest" "(S-1-5-32-545)" "GenericRead + GenericWrite"
@@ -155,6 +158,9 @@ Section "Uninstall"
   Sleep 2000 ; give 2 seconds for the application to finish exiting
 
   RMDir /r "$INSTDIR"
+
+  ; Delete the Revive local data
+  RMDir /r "$LocalAppdata\Revive"
   
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
     
