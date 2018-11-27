@@ -433,9 +433,6 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	if (GetDigital(m_Touch_IndexTrigger))
 		touches |= ovrTouch_RIndexTrigger;
 
-	inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
-	inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
-
 	// FIXME: Can't use IsReleased or IsPressed, because bChanged resets after every call to GetDigitalActionData
 	vr::InputDigitalActionData_t recenterData = {};
 	vr::VRInput()->GetDigitalActionData(m_Recenter_Thumb, &recenterData, sizeof(recenterData));
@@ -521,6 +518,9 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	inputState->ThumbstickRaw[hand] = inputState->ThumbstickNoDeadzone[hand];
 	inputState->IndexTriggerRaw[hand] = inputState->IndexTriggerNoDeadzone[hand];
 	inputState->HandTriggerRaw[hand] = inputState->HandTriggerNoDeadzone[hand];
+
+	inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
+	inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
 
 	return true;
 }

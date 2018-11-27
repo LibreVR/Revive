@@ -37,22 +37,22 @@
     },
     {
       "name": "/actions/touch/in/Button_RIndexTrigger",
-      "requirement" : "suggested",
+      "requirement" : "optional",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_LIndexTrigger",
-      "requirement" : "suggested",
+      "requirement" : "optional",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_RHandTrigger",
-      "requirement" : "suggested",
+      "requirement" : "optional",
       "type": "boolean"
     },
     {
       "name": "/actions/touch/in/Button_LHandTrigger",
-      "requirement" : "suggested",
+      "requirement" : "optional",
       "type": "boolean"
     },
     {

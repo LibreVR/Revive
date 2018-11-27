@@ -1,4 +1,6 @@
 {
+   "alias_info" : {},
+   "app_key" : "revive.app.oculus-touch-tutorial",
    "bindings" : {
       "/actions/remote" : {
          "sources" : []
@@ -168,21 +170,21 @@
             },
             {
                "inputs" : {
-                  "click" : {
-                     "output" : "/actions/touch/in/button_rhandtrigger"
+                  "pull" : {
+                     "output" : "/actions/touch/in/lhandtrigger"
                   }
                },
-               "mode" : "button",
-               "path" : "/user/hand/right/input/grip"
+               "mode" : "trigger",
+               "path" : "/user/hand/left/input/grip"
             },
             {
                "inputs" : {
-                  "click" : {
-                     "output" : "/actions/touch/in/button_lhandtrigger"
+                  "pull" : {
+                     "output" : "/actions/touch/in/rhandtrigger"
                   }
                },
-               "mode" : "button",
-               "path" : "/user/hand/left/input/grip"
+               "mode" : "trigger",
+               "path" : "/user/hand/right/input/grip"
             }
          ]
       }
