@@ -55,7 +55,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	MicroProfileSetForceMetaCounters(true);
 	MicroProfileWebServerStart();
 
-	winrt::init_apartment(winrt::apartment_type::single_threaded);
+	try
+	{
+		// Ensure we have initialized the apartment model, pick single_threaded by default for safety
+		winrt::init_apartment(winrt::apartment_type::single_threaded);
+	}
+	catch (const winrt::hresult_error& hr)
+	{
+		// If the appartment type was already set to multi_threaded then we can continue as normal
+		if (hr.code() != RPC_E_CHANGED_MODE)
+			return ovrError_Initialize;
+	}
 
 	g_MinorVersion = params->RequestedMinorVersion;
 
