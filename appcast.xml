@@ -5,30 +5,22 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.6.0</title>
+			<title>Version 1.6.1</title>
 			<description>
 			<![CDATA[
-			<h2>Changes</h2>
-
-			<ul>
-			    <li>Updated to Oculus SDK 1.31</li>
-			    <li>Added input bindings for Knuckles based on ShadowBrain's community bindings</li>
-			</ul>
+			<p>To use experimental Mixed Reality support through Remixed, simply start the Revive Dashboard from the start menu and start a game without having SteamVR running.</p>
 
 			<h2>Bug fixes</h2>
 
 			<ul>
-			    <li>Revive: Fixed wireless adapter users encountering constant reprojection (#1079)</li>
-			    <li>Revive: Fixed Xbox controller input not working (#1064)</li>
-			    <li>Revive: Removed Oculus Avatar Editor, it no longer exists as a standalone app (#1097)</li>
-			    <li>Revive: Fixed invisible main menu in Dirt Rally when using motion smoothing (#1086)</li>
+			    <li>Remixed: Fixed EchoVR and Echo Combat crashing on startup (For Revive, disable Motion Smoothing)</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>23 October 2018</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.6.0/ReviveInstaller.exe"
+			<pubDate>4 December 2018</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.6.1/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.6.0.3"
+					   sparkle:version="1.6.1.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
