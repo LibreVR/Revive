@@ -9,6 +9,7 @@
   - GPU:
   - RAM: (amount and DDR#)
   - OS: 
+  - Vive / WMR (/ Odyssey) / Other device
 
 #### Versions and features
 *This issue is about:*
