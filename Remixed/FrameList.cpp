@@ -21,6 +21,7 @@ FrameList::FrameList(HolographicSpace space)
 	, m_next_index(0)
 	, m_submitted_index(0)
 {
+	// FIXME: Some games start with frame 1 and will crash on submit
 	BeginFrame(0);
 }
 
@@ -61,6 +62,9 @@ HolographicFrame FrameList::GetFrameAtTime(double absTime)
 	std::shared_lock<std::shared_mutex> lk(m_frame_mutex);
 	if (m_frames.empty())
 		return nullptr;
+
+	if (absTime <= 0.0)
+		return m_frames.back().second;
 
 	DateTime target(TimeSpan((int64_t)(absTime * 1.0e+7)));
 	for (auto it = m_frames.rbegin(); it != m_frames.rend(); it++)

@@ -347,7 +347,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 		return state;
 
 	SpatialLocator locator = SpatialLocator::GetDefault();
-	state.HeadPose.TimeInSeconds = absTime;
+	state.HeadPose.TimeInSeconds = 0.0f;
 	state.HeadPose.ThePose = OVR::Posef::Identity();
 	state.HandPoses[ovrHand_Left].ThePose = OVR::Posef::Identity();
 	state.HandPoses[ovrHand_Right].ThePose = OVR::Posef::Identity();
@@ -357,8 +357,12 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	if (!frame)
 		return state;
 
+	// Every time the tracking state is queried we should give increasingly more accurate results
+	frame.UpdateCurrentPrediction();
+
 	HolographicFramePrediction prediction = frame.CurrentPrediction();
 	PerceptionTimestamp timestamp = prediction.Timestamp();
+	state.HeadPose.TimeInSeconds = std::chrono::duration<double>(timestamp.TargetTime().time_since_epoch()).count();
 	SpatialLocation headset = locator.TryLocateAtTimestamp(timestamp, session->Tracking->CoordinateSystem());
 	if (headset)
 	{
