@@ -1217,13 +1217,17 @@ ovr_GetFovStencil(
 	const ovrFovStencilDesc* fovStencilDesc,
 	ovrFovStencilMeshBuffer* meshBuffer)
 {
+	// TODO: Implement support for visible rectangle
+	if (fovStencilDesc->StencilType >= vr::k_eHiddenAreaMesh_Max)
+		return ovrError_Unsupported;
+
 	vr::HiddenAreaMesh_t mesh = vr::VRSystem()->GetHiddenAreaMesh((vr::EVREye)fovStencilDesc->Eye, (vr::EHiddenAreaMeshType)fovStencilDesc->StencilType);
 
 	int& i = meshBuffer->UsedVertexCount;
 	for (i = 0; i < meshBuffer->AllocVertexCount && i < (int)mesh.unTriangleCount; i++)
 	{
 		if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
-			meshBuffer->VertexBuffer[i] = -REV::Vector2f(mesh.pVertexData[i]);
+			meshBuffer->VertexBuffer[i] = OVR::Vector2f(mesh.pVertexData[i].v[0], -mesh.pVertexData[i].v[1]);
 		else
 			meshBuffer->VertexBuffer[i] = REV::Vector2f(mesh.pVertexData[i]);
 	}
