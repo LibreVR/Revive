@@ -172,6 +172,9 @@ void CompositorD3D::RenderTextureSwapChain(IDirect3DSurface surface, ovrTextureS
 	ID3D11RasterizerState* ras_state;
 	m_pContext->RSGetState(&ras_state);
 
+	ID3D11RenderTargetView *render_targets[1] = { nullptr };
+	m_pContext->OMGetRenderTargets(1, render_targets, nullptr);
+
 	// Set the compositor shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
 	m_pContext->PSSetShader(m_CompositorShader.Get(), NULL, 0);
@@ -225,5 +228,6 @@ void CompositorD3D::RenderTextureSwapChain(IDirect3DSurface surface, ovrTextureS
 	// Restore the state objects
 	m_pContext->RSSetState(ras_state);
 	m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
+	m_pContext->OMSetRenderTargets(1, render_targets, nullptr);
 	m_pContext->IASetPrimitiveTopology(topology);
 }
