@@ -8,6 +8,7 @@
 #include <Windows.h>
 #include <openvr.h>
 #include <vector>
+#include <sstream>
 
 HMODULE VulkanLibrary;
 VkPhysicalDevice g_physicalDevice;
@@ -45,34 +46,26 @@ ovr_GetInstanceExtensionsVk(
 	if (!inoutExtensionNamesSize)
 		ovrError_InvalidParameter;
 
-	uint32_t size = *inoutExtensionNamesSize;
-	uint32_t required = vr::VRCompositor()->GetVulkanInstanceExtensionsRequired(extensionNames, *inoutExtensionNamesSize);
-
-	if (required <= size)
+	std::stringstream extensions;
+	uint32_t required = vr::VRCompositor()->GetVulkanInstanceExtensionsRequired(nullptr, 0);
+	if (required > 0)
 	{
-		strcpy(extensionNames + required, VK_KHR_SURFACE_EXTENSION_NAME);
-		extensionNames[required - 1] = ' ';
+		std::vector<char> openvrExtensions(required);
+		vr::VRCompositor()->GetVulkanInstanceExtensionsRequired(openvrExtensions.data(), required);
+		extensions << openvrExtensions.data() << ' ';
 	}
-	required += (uint32_t)strlen(VK_KHR_SURFACE_EXTENSION_NAME) + 1;
-	if (required <= size)
-	{
-		strcpy(extensionNames + required, VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-		extensionNames[required - 1] = ' ';
-	}
-	required += (uint32_t)strlen(VK_KHR_WIN32_SURFACE_EXTENSION_NAME) + 1;
 
 #ifdef DEBUG
-	if (required <= size)
-	{
-		strcpy(extensionNames + required, VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-		extensionNames[required - 1] = ' ';
-	}
-	required += (uint32_t)strlen(VK_EXT_DEBUG_UTILS_EXTENSION_NAME) + 1;
+	extensions << VK_EXT_DEBUG_UTILS_EXTENSION_NAME << ' ';
 #endif
+	extensions << VK_KHR_SURFACE_EXTENSION_NAME << ' ';
+	extensions << VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
 
-	*inoutExtensionNamesSize = required;
-
-	return (size < required) ? ovrError_InsufficientArraySize : ovrSuccess;
+	std::string result = extensions.str();
+	uint32_t size = *inoutExtensionNamesSize;
+	*inoutExtensionNamesSize = (uint32_t)result.size();
+	strncpy(extensionNames, result.c_str(), size);
+	return (result.size() < size) ? ovrError_InsufficientArraySize : ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
@@ -84,19 +77,22 @@ ovr_GetDeviceExtensionsVk(
 	if (!inoutExtensionNamesSize)
 		ovrError_InvalidParameter;
 
-	uint32_t size = *inoutExtensionNamesSize;
-	uint32_t required = vr::VRCompositor()->GetVulkanDeviceExtensionsRequired(g_physicalDevice, extensionNames, *inoutExtensionNamesSize);
-
-	if (required <= size)
+	std::stringstream extensions;
+	uint32_t required = vr::VRCompositor()->GetVulkanDeviceExtensionsRequired(g_physicalDevice, nullptr, 0);
+	if (required > 0)
 	{
-		strcpy(extensionNames + required, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-		extensionNames[required - 1] = ' ';
+		std::vector<char> openvrExtensions(required);
+		vr::VRCompositor()->GetVulkanDeviceExtensionsRequired(g_physicalDevice, openvrExtensions.data(), required);
+		extensions << openvrExtensions.data() << ' ';
 	}
-	required += (uint32_t)strlen(VK_KHR_SWAPCHAIN_EXTENSION_NAME) + 1;
 
-	*inoutExtensionNamesSize = required;
+	extensions << VK_KHR_SWAPCHAIN_EXTENSION_NAME;
 
-	return (size < required) ? ovrError_InsufficientArraySize : ovrSuccess;
+	std::string result = extensions.str();
+	uint32_t size = *inoutExtensionNamesSize;
+	*inoutExtensionNamesSize = (uint32_t)result.size();
+	strncpy(extensionNames, result.c_str(), size);
+	return (result.size() < size) ? ovrError_InsufficientArraySize : ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
