@@ -117,6 +117,8 @@ void CTrayIconController::patch()
 		files.append(dir + "/Revive/x86/openvr_api.dll");
 		files.append(dir + "/Revive/x86/LibRevive32_1.dll");
 		names.append("LibRevive32_1.dll");
+		files.append(dir + "/Revive/x86/LibRemixed32_1.dll");
+		names.append("LibRemixed32_1.dll");
 	}
 	if (type == SCS_64BIT_BINARY)
 	{
@@ -124,6 +126,8 @@ void CTrayIconController::patch()
 		files.append(dir + "/Revive/x64/openvr_api.dll");
 		files.append(dir + "/Revive/x64/LibRevive64_1.dll");
 		names.append("LibRevive64_1.dll");
+		files.append(dir + "/Revive/x64/LibRemixed64_1.dll");
+		names.append("LibRemixed64_1.dll");
 	}
 
 	QFileInfo info(file);

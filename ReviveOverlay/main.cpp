@@ -83,10 +83,10 @@ int main(int argc, char *argv[])
 	{
 		// If the dashboard was successfully created keep running in the background
 		a.setQuitOnLastWindowClosed(false);
-
-		if (!CTrayIconController::SharedInstance()->Init())
-			qDebug("Failed to initialize the tray icon");
 	}
+
+	if (!CTrayIconController::SharedInstance()->Init())
+		qDebug("Failed to initialize the tray icon");
 
 	if (!CReviveManifestController::SharedInstance()->Init())
 		qDebug("Failed to initialize the revive manifest");
