@@ -65,7 +65,7 @@ ovr_GetInstanceExtensionsVk(
 	uint32_t size = *inoutExtensionNamesSize;
 	*inoutExtensionNamesSize = (uint32_t)result.size();
 	strncpy(extensionNames, result.c_str(), size);
-	return (result.size() < size) ? ovrError_InsufficientArraySize : ovrSuccess;
+	return (result.size() < size) ? ovrSuccess : ovrError_InsufficientArraySize;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
@@ -92,7 +92,7 @@ ovr_GetDeviceExtensionsVk(
 	uint32_t size = *inoutExtensionNamesSize;
 	*inoutExtensionNamesSize = (uint32_t)result.size();
 	strncpy(extensionNames, result.c_str(), size);
-	return (result.size() < size) ? ovrError_InsufficientArraySize : ovrSuccess;
+	return (result.size() < size) ? ovrSuccess : ovrError_InsufficientArraySize;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
