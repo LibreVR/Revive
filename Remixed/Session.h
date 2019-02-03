@@ -27,5 +27,5 @@ struct ovrHmdStruct
 	std::unique_ptr<Win32Window> Window = nullptr;
 	std::unique_ptr<TrackingManager> Tracking = nullptr;
 
-	std::atomic_uint32_t ConnectedControllers = 0;
+	std::atomic_uint32_t ConnectedControllers = ovrControllerType_Touch;
 };
