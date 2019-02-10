@@ -18,6 +18,7 @@
 
 			<ul>
 			    <li>Remixed: Fixed iRacing mirror window being rendered into the headset (brads55)</li>
+    			    <li>Revive: Fixed Oculus Medium crashing on launch with AMD GPUs (#1167)</li>
 			</ul>
 			]]>
 			</description>
