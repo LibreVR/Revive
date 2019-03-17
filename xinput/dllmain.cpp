@@ -35,17 +35,17 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		if (IsSteamVRRunning())
 		{
 #if _WIN64
-			LoadLibrary(L"LibRemixed64_1.dll");
+			LoadLibrary(L"LibRevive64_1.dll");
 #else
-			LoadLibrary(L"LibRemixed32_1.dll");
+			LoadLibrary(L"LibRevive32_1.dll");
 #endif
 		}
 		else
 		{
 #if _WIN64
-			LoadLibrary(L"LibRevive64_1.dll");
+			LoadLibrary(L"LibRemixed64_1.dll");
 #else
-			LoadLibrary(L"LibRevive32_1.dll");
+			LoadLibrary(L"LibRemixed32_1.dll");
 #endif
 		}
 		break;
