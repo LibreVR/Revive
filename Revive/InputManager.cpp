@@ -27,10 +27,10 @@ InputManager::InputManager()
 	LoadActionManifest();
 
 	vr::VRActionSetHandle_t handle;
-	vr::EVRInputError err = vr::VRInput()->GetActionSetHandle("/actions/touch", &handle);
+	vr::EVRInputError err = vr::VRInput()->GetActionSetHandle("/actions/xbox", &handle);
 	if (err == vr::VRInputError_None)
 		m_InputDevices.push_back(new XboxGamepad(handle));
-	err = vr::VRInput()->GetActionSetHandle("/actions/touch", &handle);
+	err = vr::VRInput()->GetActionSetHandle("/actions/remote", &handle);
 	if (err == vr::VRInputError_None)
 		m_InputDevices.push_back(new OculusRemote(handle));
 	err = vr::VRInput()->GetActionSetHandle("/actions/touch", &handle);
