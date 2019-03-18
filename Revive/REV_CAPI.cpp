@@ -1234,3 +1234,52 @@ ovr_GetFovStencil(
 	meshBuffer->UsedIndexCount = 0;
 	return ovrSuccess;
 }
+
+struct ovrDesktopWindowDesc_;
+typedef struct ovrDesktopWindowDesc_ ovrDesktopWindowDesc;
+
+struct ovrHybridInputFocusState_;
+typedef struct ovrHybridInputFocusState_ ovrHybridInputFocusState;
+
+typedef uint32_t ovrDesktopWindowHandle;
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_InitDesktopWindow(
+	ovrSession session,
+	ovrDesktopWindowHandle* outWindowHandle)
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_ShowDesktopWindow(
+	ovrSession session,
+	const ovrDesktopWindowDesc* windowDesc)
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_HideDesktopWindow(
+	ovrSession session,
+	ovrDesktopWindowHandle windowHandle)
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetHybridInputFocus(
+	ovrSession session,
+	ovrControllerType controllerType,
+	ovrHybridInputFocusState* outState)
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_ShowAvatarHands(
+	ovrSession session,
+	ovrBool showHands)
+{
+	return ovrError_Unsupported;
+}
