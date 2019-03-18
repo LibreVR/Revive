@@ -135,21 +135,21 @@ int wmain(int argc, wchar_t *argv[]) {
 
 	LOG("Launched injector with: %ls\n", GetCommandLine());
 
-	bool remixed = !IsSteamVRRunning();
+	bool xr = !IsSteamVRRunning();
 	WCHAR path[MAX_PATH] = { 0 };
 	for (int i = 1; i < argc; i++)
 	{
-		if (wcscmp(argv[i], L"/remixed") == 0)
+		if (wcscmp(argv[i], L"/xr") == 0)
 		{
-			remixed = true;
+			xr = true;
 		}
 		else if (wcscmp(argv[i], L"/revive") == 0)
 		{
-			remixed = false;
+			xr = false;
 		}
 		else if (wcscmp(argv[i], L"/handle") == 0)
 		{
-			return OpenProcessAndInject(argv[++i], remixed);
+			return OpenProcessAndInject(argv[++i], xr);
 		}
 		else if (wcscmp(argv[i], L"/base") == 0)
 		{
@@ -171,5 +171,5 @@ int wmain(int argc, wchar_t *argv[]) {
 		}
 	}
 
-	return CreateProcessAndInject(path, remixed);
+	return CreateProcessAndInject(path, xr);
 }

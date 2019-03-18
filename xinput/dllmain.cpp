@@ -43,9 +43,9 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		else
 		{
 #if _WIN64
-			LoadLibrary(L"LibRemixed64_1.dll");
+			LoadLibrary(L"LibRXRRT64_1.dll");
 #else
-			LoadLibrary(L"LibRemixed32_1.dll");
+			LoadLibrary(L"LibRXRRT32_1.dll");
 #endif
 		}
 		break;

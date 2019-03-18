@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <Shlwapi.h>
 
-bool InjectLibRevive(HANDLE hProcess, bool remixed);
-bool InjectOpenVR(HANDLE hProcess);
+bool InjectLibRevive(HANDLE hProcess, bool xr);
+bool InjectOpenVR(HANDLE hProcess, bool xr);
 bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength);
 
-int CreateProcessAndInject(wchar_t *programPath, bool remixed)
+int CreateProcessAndInject(wchar_t *programPath, bool xr)
 {
 	LOG("Creating process: %ls\n", programPath);
 
@@ -77,8 +77,8 @@ int CreateProcessAndInject(wchar_t *programPath, bool remixed)
 	}
 #endif
 
-	if (!InjectOpenVR(pi.hProcess) ||
-		!InjectLibRevive(pi.hProcess, remixed)) {
+	if (!InjectOpenVR(pi.hProcess, xr) ||
+		!InjectLibRevive(pi.hProcess, xr)) {
 		ResumeThread(pi.hThread);
 		return -1;
 	}
@@ -88,7 +88,7 @@ int CreateProcessAndInject(wchar_t *programPath, bool remixed)
 	return 0;
 }
 
-int OpenProcessAndInject(wchar_t *processId, bool remixed)
+int OpenProcessAndInject(wchar_t *processId, bool xr)
 {
 	LOG("Injecting process handle: %ls\n", processId);
 
@@ -99,8 +99,8 @@ int OpenProcessAndInject(wchar_t *processId, bool remixed)
 		return -1;
 	}
 
-	if (!InjectOpenVR(hProcess) ||
-		!InjectLibRevive(hProcess, remixed)) {
+	if (!InjectOpenVR(hProcess, xr) ||
+		!InjectLibRevive(hProcess, xr)) {
 		return -1;
 	}
 
@@ -120,15 +120,15 @@ int GetLibraryPath(char *path, int length, const char *fileName)
 #endif
 }
 
-bool InjectLibRevive(HANDLE hProcess, bool remixed)
+bool InjectLibRevive(HANDLE hProcess, bool xr)
 {
 	char dllPath[MAX_PATH];
-	if (remixed)
+	if (xr)
 	{
 #if _WIN64
-		GetLibraryPath(dllPath, MAX_PATH, "LibRemixed64_1.dll");
+		GetLibraryPath(dllPath, MAX_PATH, "LibRXRRT64_1.dll");
 #else
-		GetLibraryPath(dllPath, MAX_PATH, "LibRemixed32_1.dll");
+		GetLibraryPath(dllPath, MAX_PATH, "LibRXRRT32_1.dll");
 #endif
 	}
 	else
@@ -142,10 +142,17 @@ bool InjectLibRevive(HANDLE hProcess, bool remixed)
 	return InjectDLL(hProcess, dllPath, MAX_PATH);
 }
 
-bool InjectOpenVR(HANDLE hProcess)
+bool InjectOpenVR(HANDLE hProcess, bool xr)
 {
 	char dllPath[MAX_PATH];
-	GetLibraryPath(dllPath, MAX_PATH, "openvr_api.dll");
+	if (xr)
+	{
+		GetLibraryPath(dllPath, MAX_PATH, "openxr_loader-0_90.dll");
+	}
+	else
+	{
+		GetLibraryPath(dllPath, MAX_PATH, "openvr_api.dll");
+	}
 	return InjectDLL(hProcess, dllPath, MAX_PATH);
 }
 

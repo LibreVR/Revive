@@ -16,6 +16,6 @@ extern FILE* g_LogFile;
 					printf(x, __VA_ARGS__); \
 					fflush(g_LogFile);
 
-int CreateProcessAndInject(wchar_t *programPath, bool remixed);
-int OpenProcessAndInject(wchar_t *processId, bool remixed);
+int CreateProcessAndInject(wchar_t *programPath, bool xr);
+int OpenProcessAndInject(wchar_t *processId, bool xr);
 int GetLibraryPath(char *path, int length, const char *fileName);
