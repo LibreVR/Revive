@@ -25,6 +25,7 @@ public:
 		bool IsReleased(ovrHandType hand = ovrHand_Left) const;
 		float GetAnalog(ovrHandType hand = ovrHand_Left) const;
 		ovrVector2f GetVector(ovrHandType hand = ovrHand_Left) const;
+		XrSpace CreateSpace(ovrHandType hand = ovrHand_Left) const;
 
 		operator XrAction() { return m_Action; }
 
@@ -44,6 +45,8 @@ public:
 		virtual ovrControllerType GetType() const = 0;
 		virtual bool IsConnected() const = 0;
 		virtual bool GetInputState(ovrSession session, ovrInputState* inputState) = 0;
+		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) = 0;
+		virtual void GetActionSpaces(std::vector<XrSpace>& outSpaces) { }
 
 		// Haptics
 		virtual void SetVibration(float frequency, float amplitude) { }
@@ -66,6 +69,8 @@ public:
 		virtual ovrControllerType GetType() const override;
 		virtual bool IsConnected() const override;
 		virtual bool GetInputState(ovrSession session, ovrInputState* inputState) override;
+		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) override;
+		virtual void GetActionSpaces(std::vector<XrSpace>& outSpaces) override;
 
 		virtual void SetVibration(float frequency, float amplitude) override;
 		virtual void SubmitVibration(const ovrHapticsBuffer* buffer) override { m_HapticsBuffer.AddSamples(buffer); }
@@ -91,6 +96,7 @@ public:
 		Action m_TrackpadClick;
 		Action m_TrackpadTouch;
 
+		Action m_Pose;
 		Action m_Vibration;
 		HapticsBuffer m_HapticsBuffer;
 		std::atomic_bool m_bHapticsRunning;
@@ -108,6 +114,7 @@ public:
 		virtual ovrControllerType GetType() const override { return ovrControllerType_Remote; }
 		virtual bool IsConnected() const override;
 		virtual bool GetInputState(ovrSession session, ovrInputState* inputState) override;
+		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) override { return XR_NULL_PATH; /* TODO */ }
 
 	private:
 		bool m_IsConnected;
@@ -132,6 +139,7 @@ public:
 		virtual ovrControllerType GetType() const override { return ovrControllerType_XBox; }
 		virtual bool IsConnected() const override { return true; }
 		virtual bool GetInputState(ovrSession session, ovrInputState* inputState) override;
+		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) override;
 		virtual void SetVibration(float frequency, float amplitude) override;
 
 	private:
@@ -153,6 +161,8 @@ public:
 		Action m_LIndexTrigger;
 		Action m_RThumbstick;
 		Action m_LThumbstick;
+		Action m_RVibration;
+		Action m_LVibration;
 	};
 
 	InputManager(ovrSession session);

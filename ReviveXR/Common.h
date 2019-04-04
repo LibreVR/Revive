@@ -32,3 +32,5 @@ extern XrResult g_LastResult;
 #define XR_TYPE(x) { XR_TYPE_##x, nullptr }
 
 ovrResult ResultToOvrResult(XrResult error);
+XrPath GetXrPath(const char* path);
+XrPath GetXrPath(std::string path);

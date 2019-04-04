@@ -2,6 +2,8 @@
 
 #include <openxr/openxr.h>
 
+extern XrInstance g_Instance;
+
 XrResult g_LastResult = XR_SUCCESS;
 
 ovrResult ResultToOvrResult(XrResult error)
@@ -60,4 +62,19 @@ ovrResult ResultToOvrResult(XrResult error)
 	case XR_ERROR_NAME_INVALID: return ovrError_InvalidParameter;
 	default: return ovrError_RuntimeException;
 	}
+}
+
+XrPath GetXrPath(const char* path)
+{
+	XrPath outPath;
+	XrResult rs = xrStringToPath(g_Instance, path, &outPath);
+	assert(XR_SUCCEEDED(rs));
+	if (XR_FAILED(rs))
+		return XR_NULL_PATH;
+	return outPath;
+}
+
+XrPath GetXrPath(std::string path)
+{
+	return GetXrPath(path.c_str());
 }
