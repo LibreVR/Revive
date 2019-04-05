@@ -597,6 +597,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		{
 			touches |= ovrTouch_RIndexTrigger;
 		}
+#endif
 
 		// Derive gestures from touch flags
 		if (inputState->HandTriggerNoDeadzone[i] > 0.5f)
@@ -607,7 +608,6 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 			if (!(touches & ~(ovrTouch_RIndexTrigger | ovrTouch_RIndexPointing)))
 				touches |= ovrTouch_RThumbUp;
 		}
-#endif
 
 		// Apply deadzones where needed
 		inputState->Thumbstick[i] = ApplyDeadzone(inputState->ThumbstickNoDeadzone[i], 0.24f);
