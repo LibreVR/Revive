@@ -54,7 +54,7 @@ public:
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { }
 
 	protected:
-		static ovrVector2f ApplyDeadzone(ovrVector2f axis, float deadZoneLow, float deadZoneHigh);
+		static ovrVector2f ApplyDeadzone(ovrVector2f axis, float deadZone);
 		static ovrButton TrackpadToDPad(ovrVector2f trackpad);
 
 		XrActionSet m_ActionSet;

@@ -380,15 +380,15 @@ XrSpace InputManager::Action::CreateSpace(ovrHandType hand) const
 
 /* Controller child-classes */
 
-ovrVector2f InputManager::InputDevice::ApplyDeadzone(ovrVector2f axis, float deadZoneLow, float deadZoneHigh)
+ovrVector2f InputManager::InputDevice::ApplyDeadzone(ovrVector2f axis, float deadZone)
 {
 	XR::Vector2f vector(axis);
 	float mag = vector.Length();
-	if (mag > deadZoneLow)
+	if (mag > deadZone)
 	{
 		// scale such that output magnitude is in the range[0, 1]
-		float legalRange = 1.0f - deadZoneHigh - deadZoneLow;
-		float normalizedMag = std::min(1.0f, (mag - deadZoneLow) / legalRange);
+		float legalRange = 1.0f - deadZone;
+		float normalizedMag = std::min(1.0f, (mag - deadZone) / legalRange);
 		float scale = normalizedMag / mag;
 		return vector * scale;
 	}
@@ -492,7 +492,11 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSugge
 		ADD_BINDING(m_Touch_IndexTrigger, prefixes[i] + "/input/trigger/touch");
 
 		ADD_BINDING(m_IndexTrigger, prefixes[i] + "/input/trigger/value");
+#if WMR_COMPAT_PROFILES_ENABLED
+		ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/grip/click");
+#else
 		ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/grip/value");
+#endif
 		ADD_BINDING(m_Thumbstick, prefixes[i] + "/input/thumbstick");
 
 #if WMR_COMPAT_PROFILES_ENABLED
@@ -501,7 +505,7 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSugge
 		ADD_BINDING(m_TrackpadTouch, prefixes[i] + "/input/trackpad/touch");
 #endif
 
-		ADD_BINDING(m_Pose, prefixes[i] + "/input/palm/pose");
+		ADD_BINDING(m_Pose, prefixes[i] + "/input/pointer/pose");
 		ADD_BINDING(m_Vibration, prefixes[i] + "/output/haptic");
 	}
 
@@ -564,9 +568,6 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		if (m_Touch_IndexTrigger.GetDigital(hand))
 			touches |= ovrTouch_RIndexTrigger;
 
-		if (m_Touch_IndexTrigger.GetDigital(hand))
-			touches |= ovrTouch_RIndexTrigger;
-
 		ovrButton dpad = TrackpadToDPad(m_Trackpad.GetVector(hand));
 		if (dpad == ovrButton_Up ||
 			(hand == ovrHand_Left && dpad == ovrButton_Right) ||
@@ -587,13 +588,18 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 				touches |= ovrTouch_A;
 		}
 
-		inputState->IndexTrigger[i] = m_IndexTrigger.GetAnalog(hand);
-		inputState->HandTrigger[i] = m_HandTrigger.GetAnalog(hand);
-		inputState->Thumbstick[i] = m_Thumbstick.GetVector(hand);
+		inputState->ThumbstickNoDeadzone[i] = m_Thumbstick.GetVector(hand);
+		inputState->IndexTriggerNoDeadzone[i] = m_IndexTrigger.GetAnalog(hand);
+		inputState->HandTriggerNoDeadzone[i] = m_HandTrigger.GetAnalog(hand);
+
+#if WMR_COMPAT_PROFILES_ENABLED
+		if (inputState->IndexTriggerNoDeadzone[i] > 0.1f)
+		{
+			touches |= ovrTouch_RIndexTrigger;
+		}
 
 		// Derive gestures from touch flags
-		// TODO: Should be handled with chords
-		if (inputState->HandTrigger[i] > 0.5f)
+		if (inputState->HandTriggerNoDeadzone[i] > 0.5f)
 		{
 			if (!(touches & ovrTouch_RIndexTrigger))
 				touches |= ovrTouch_RIndexPointing;
@@ -601,19 +607,20 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 			if (!(touches & ~(ovrTouch_RIndexTrigger | ovrTouch_RIndexPointing)))
 				touches |= ovrTouch_RThumbUp;
 		}
+#endif
 
-		// We don't apply deadzones
-		inputState->ThumbstickNoDeadzone[i] = inputState->Thumbstick[i];
-		inputState->IndexTriggerNoDeadzone[i] = inputState->IndexTrigger[i];
-		inputState->HandTriggerNoDeadzone[i] = inputState->HandTrigger[i];
+		// Apply deadzones where needed
+		inputState->Thumbstick[i] = ApplyDeadzone(inputState->ThumbstickNoDeadzone[i], 0.24f);
+		inputState->IndexTrigger[i] = inputState->IndexTriggerNoDeadzone[i];
+		inputState->HandTrigger[i] = inputState->HandTriggerNoDeadzone[i];
 
 		// We have no way to get raw values
 		inputState->ThumbstickRaw[i] = inputState->ThumbstickNoDeadzone[i];
 		inputState->IndexTriggerRaw[i] = inputState->IndexTriggerNoDeadzone[i];
 		inputState->HandTriggerRaw[i] = inputState->HandTriggerNoDeadzone[i];
 
-		inputState->Buttons |= buttons << (8 * i);
-		inputState->Touches |= touches << (8 * i);
+		inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
+		inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
 	}
 
 	return true;
@@ -797,7 +804,7 @@ bool InputManager::XboxGamepad::GetInputState(ovrSession session, ovrInputState*
 	{
 		ovrVector2f thumbstick = sticks[hand].GetVector();
 		inputState->IndexTrigger[hand] = triggers[hand].GetAnalog();
-		inputState->Thumbstick[hand] = ApplyDeadzone(thumbstick, deadzone[hand], deadzone[hand] / 2.0f);
+		inputState->Thumbstick[hand] = ApplyDeadzone(thumbstick, deadzone[hand]);
 		inputState->ThumbstickNoDeadzone[hand] = thumbstick;
 
 		// We don't apply deadzones yet on triggers and grips
