@@ -99,8 +99,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		CHK_OVR(ovr_BeginFrame(session, 0));
 	}
 
-	XrSwapchainCreateInfo createInfo = DescToCreateInfo(desc, TextureFormatToDXGIFormat(desc->Format));
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
+	swapChain->Desc = *desc;
+	XrSwapchainCreateInfo createInfo = DescToCreateInfo(desc, TextureFormatToDXGIFormat(desc->Format));
 	CHK_XR(xrCreateSwapchain(session->Session, &createInfo, &swapChain->Swapchain));
 
 	CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, 0, &swapChain->Length, nullptr));
