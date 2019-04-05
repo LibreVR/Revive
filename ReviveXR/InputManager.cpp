@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <vector>
 
-#define WMR_COMPAT_PROFILES_ENABLED 1
+#define WMR_COMPAT_PROFILES_ENABLED 0
 
 XrPath InputManager::s_SubActionPaths[ovrHand_Count] = { XR_NULL_PATH, XR_NULL_PATH };
 
@@ -568,6 +568,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		if (m_Touch_IndexTrigger.GetDigital(hand))
 			touches |= ovrTouch_RIndexTrigger;
 
+#if WMR_COMPAT_PROFILES_ENABLED
 		ovrButton dpad = TrackpadToDPad(m_Trackpad.GetVector(hand));
 		if (dpad == ovrButton_Up ||
 			(hand == ovrHand_Left && dpad == ovrButton_Right) ||
@@ -587,6 +588,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 			if (m_TrackpadTouch.GetDigital(hand))
 				touches |= ovrTouch_A;
 		}
+#endif
 
 		inputState->ThumbstickNoDeadzone[i] = m_Thumbstick.GetVector(hand);
 		inputState->IndexTriggerNoDeadzone[i] = m_IndexTrigger.GetAnalog(hand);
