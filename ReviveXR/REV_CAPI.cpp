@@ -754,19 +754,37 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		if (!layer)
 			continue;
 
+		ovrLayerType type = layer->Header.Type;
+
+		// Version 1.25 introduced a 128-byte reserved parameter, so on older versions the actual data
+		// falls within this reserved parameter and we need to move the pointer back into the actual data area.
+		// NOTE: Do not read the header after this operation as it will fall outside of the layer memory.
+		if (g_MinorVersion < 25)
+		{
+			layer = (ovrLayer_Union*)((char*)layer - sizeof(ovrLayerHeader::Reserved));
+		}
+
 		layerData.emplace_back();
 		XrCompositionLayerUnion& newLayer = layerData.back();
-		layers.push_back(&newLayer.Header);
 
-		if (layer->Header.Type == ovrLayerType_EyeFov || layer->Header.Type == ovrLayerType_EyeMatrix || layer->Header.Type == ovrLayerType_EyeFovDepth)
+		if (type == ovrLayerType_EyeFov || type == ovrLayerType_EyeMatrix || type == ovrLayerType_EyeFovDepth)
 		{
 			XrCompositionLayerProjection& projection = newLayer.Projection;
 			projection = XR_TYPE(COMPOSITION_LAYER_PROJECTION);
 
 			for (int i = 0; i < ovrEye_Count; i++)
 			{
+				ovrTextureSwapChain texture = layer->EyeFov.ColorTexture[i];
+				if (!texture)
+				{
+					if (i == ovrEye_Right)
+						texture = layer->EyeFov.ColorTexture[ovrEye_Left];
+					else
+						continue;
+				}
+
 				XrCompositionLayerProjectionView view = XR_TYPE(VIEW_CONFIGURATION_VIEW);
-				if (layer->Header.Type == ovrLayerType_EyeMatrix)
+				if (type == ovrLayerType_EyeMatrix)
 				{
 					// RenderPose is the first member that's differently aligned
 					view.pose = XR::Posef(layer->EyeMatrix.RenderPose[i]);
@@ -777,7 +795,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					view.pose = XR::Posef(layer->EyeFov.RenderPose[i]);
 					view.fov = XR::FovPort(layer->EyeFov.Fov[i]);
 				}
-				view.subImage.swapchain = layer->EyeFov.ColorTexture[i]->Swapchain;
+				view.subImage.swapchain = texture->Swapchain;
 				view.subImage.imageRect = XR::Recti(layer->EyeFov.Viewport[i]);
 				view.subImage.imageArrayIndex = 0;
 				views.push_back(view);
@@ -786,8 +804,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			projection.viewCount = ovrEye_Count;
 			projection.views = &views.back() - 1;
 		}
-		else if (layer->Header.Type == ovrLayerType_Quad)
+		else if (type == ovrLayerType_Quad)
 		{
+			if (!layer->Quad.ColorTexture)
+				continue;
+
 			XrCompositionLayerQuad& quad = newLayer.Quad;
 			quad = XR_TYPE(COMPOSITION_LAYER_QUAD);
 			quad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
@@ -802,6 +823,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		header.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
 		header.space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ?
 			session->StageSpace : session->LocalSpace;
+
+		layers.push_back(&newLayer.Header);
 	}
 
 	XrFrameEndInfo endInfo = XR_TYPE(FRAME_END_INFO);
