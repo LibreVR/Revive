@@ -24,12 +24,15 @@
 
 #define REV_DEFAULT_TIMEOUT 10000
 
-XrInstance g_Instance;
+XrInstance g_Instance = XR_NULL_HANDLE;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
+	if (g_Instance)
+		return ovrSuccess;
+
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetForceEnable(true);
 	MicroProfileSetEnableAllGroups(true);
@@ -62,6 +65,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
+	REV_TRACE(ovr_Shutdown);
+
 	for (ovrHmdStruct& session : g_Sessions)
 	{
 		xrDestroySession(session.Session);
