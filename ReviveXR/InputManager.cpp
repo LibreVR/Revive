@@ -10,60 +10,24 @@
 #include <algorithm>
 #include <vector>
 
-#define WMR_COMPAT_PROFILES_ENABLED 0
+#define WMR_COMPAT_PROFILES_ENABLED 1
 
 XrPath InputManager::s_SubActionPaths[ovrHand_Count] = { XR_NULL_PATH, XR_NULL_PATH };
 
-InputManager::InputManager(ovrSession session)
+InputManager::InputManager(XrSession session)
 	: ConnectedControllers(ovrControllerType_Touch | ovrControllerType_XBox)
 	, m_InputDevices()
 {
 	s_SubActionPaths[ovrHand_Left] = GetXrPath("/user/hand/left");
 	s_SubActionPaths[ovrHand_Right] = GetXrPath("/user/hand/right");
 
-	XrActionSet handle;
-	XrActionSetCreateInfo createInfo = XR_TYPE(ACTION_SET_CREATE_INFO);
-	XrActiveActionSet active = XR_TYPE(ACTIVE_ACTION_SET);
-	active.subactionPath = XR_NULL_PATH;
+	m_InputDevices.push_back(new OculusTouch(session));
+	m_InputDevices.push_back(new XboxGamepad(session));
+	m_InputDevices.push_back(new OculusRemote(session));
 
-	strcpy_s(createInfo.actionSetName, "touch");
-	strcpy_s(createInfo.localizedActionSetName, "Oculus Touch");
-	XrResult rs = xrCreateActionSet(session->Session, &createInfo, &handle);
-	m_ControllerPose = Action(handle, XR_INPUT_ACTION_TYPE_POSE, "pose", "Controller pose", true);
-	active.actionSet = handle;
-	if (XR_SUCCEEDED(rs))
+	for (const InputDevice* device : m_InputDevices)
 	{
-		m_InputDevices.push_back(new OculusTouch(handle));
-		active.subactionPath = s_SubActionPaths[ovrHand_Left];
-		m_ActionSets.push_back(active);
-		active.subactionPath = s_SubActionPaths[ovrHand_Right];
-		m_ActionSets.push_back(active);
-	}
-
-	strcpy_s(createInfo.actionSetName, "xbox");
-	strcpy_s(createInfo.localizedActionSetName, "Xbox Controller");
-	rs = xrCreateActionSet(session->Session, &createInfo, &handle);
-	active.actionSet = handle;
-	if (XR_SUCCEEDED(rs))
-	{
-		m_InputDevices.push_back(new XboxGamepad(handle));
-		active.subactionPath = XR_NULL_PATH;
-		m_ActionSets.push_back(active);
-	}
-
-	strcpy_s(createInfo.actionSetName, "remote");
-	strcpy_s(createInfo.localizedActionSetName, "Oculus Remote");
-	rs = xrCreateActionSet(session->Session, &createInfo, &handle);
-	active.actionSet = handle;
-	if (XR_SUCCEEDED(rs))
-	{
-		m_InputDevices.push_back(new OculusRemote(handle));
-		active.subactionPath = XR_NULL_PATH;
-		m_ActionSets.push_back(active);
-	}
-
-	for (InputDevice* device : m_InputDevices)
-	{
+		device->GetActiveSets(m_ActionSets);
 		device->GetActionSpaces(m_ActionSpaces);
 
 		std::vector<XrActionSuggestedBinding> bindings;
@@ -75,8 +39,7 @@ InputManager::InputManager(ovrSession session)
 		suggestedBinding.countSuggestedBindings = bindings.size();
 		suggestedBinding.suggestedBindings = bindings.data();
 		suggestedBinding.interactionProfile = profile;
-		assert(XR_SUCCEEDED(rs));
-		rs = xrSetInteractionProfileSuggestedBindings(session->Session, &suggestedBinding);
+		XrResult rs = xrSetInteractionProfileSuggestedBindings(session, &suggestedBinding);
 		assert(XR_SUCCEEDED(rs));
 	}
 }
@@ -89,12 +52,6 @@ InputManager::~InputManager()
 	for (XrSpace space : m_ActionSpaces)
 	{
 		XrResult rs = xrDestroySpace(space);
-		assert(XR_SUCCEEDED(rs));
-	}
-
-	for (XrActiveActionSet set : m_ActionSets)
-	{
-		XrResult rs = xrDestroyActionSet(set.actionSet);
 		assert(XR_SUCCEEDED(rs));
 	}
 }
@@ -299,8 +256,10 @@ ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType*
 
 /* Action child-class */
 
-InputManager::Action::Action(XrActionSet set, XrActionType type, const char* actionName, const char* localizedName, bool handedAction)
+InputManager::Action::Action(InputDevice* device, XrActionType type, const char* actionName, const char* localizedName, bool handedAction)
 	: m_IsHanded(handedAction)
+	, m_Action(XR_NULL_HANDLE)
+	, m_Spaces()
 {
 	XrActionCreateInfo createInfo = XR_TYPE(ACTION_CREATE_INFO);
 	createInfo.actionType = type;
@@ -311,20 +270,42 @@ InputManager::Action::Action(XrActionSet set, XrActionType type, const char* act
 		createInfo.countSubactionPaths = ovrHand_Count;
 		createInfo.subactionPaths = s_SubActionPaths;
 	}
-	XrResult rs = xrCreateAction(set, &createInfo, &m_Action);
+	XrResult rs = xrCreateAction((XrActionSet)*device, &createInfo, &m_Action);
 	assert(XR_SUCCEEDED(rs));
+
+	if (type == XR_INPUT_ACTION_TYPE_POSE)
+	{
+		XrActionSpaceCreateInfo spaceInfo = XR_TYPE(ACTION_SPACE_CREATE_INFO);
+		spaceInfo.poseInActionSpace = XR::Posef::Identity();
+		spaceInfo.subactionPath = m_IsHanded ? s_SubActionPaths[ovrHand_Left] : XR_NULL_PATH;
+		rs = xrCreateActionSpace(m_Action, &spaceInfo, &m_Spaces[ovrHand_Left]);
+		assert(XR_SUCCEEDED(rs));
+
+		if (m_IsHanded)
+		{
+			spaceInfo.subactionPath = s_SubActionPaths[ovrHand_Right];
+			rs = xrCreateActionSpace(m_Action, &spaceInfo, &m_Spaces[ovrHand_Right]);
+			assert(XR_SUCCEEDED(rs));
+		}
+	}
 }
 
 InputManager::Action::~Action()
 {
-	// TODO: Implement move contructor
-#if 0
 	if (m_Action)
 	{
 		XrResult rs = xrDestroyAction(m_Action);
 		assert(XR_SUCCEEDED(rs));
 	}
-#endif
+
+	for (int i = 0; i < ovrHand_Count; i++)
+	{
+		if (m_Spaces[i])
+		{
+			XrResult rs = xrDestroySpace(m_Spaces[i]);
+			assert(XR_SUCCEEDED(rs));
+		}
+	}
 }
 
 bool InputManager::Action::GetDigital(ovrHandType hand) const
@@ -367,18 +348,27 @@ ovrVector2f InputManager::Action::GetVector(ovrHandType hand) const
 	return XR::Vector2f(data.currentState);
 }
 
-XrSpace InputManager::Action::CreateSpace(ovrHandType hand) const
+XrSpace InputManager::Action::GetSpace(ovrHandType hand) const
 {
-	XrSpace space;
-	XrActionSpaceCreateInfo spaceInfo = XR_TYPE(ACTION_SPACE_CREATE_INFO);
-	spaceInfo.poseInActionSpace = XR::Posef::Identity();
-	spaceInfo.subactionPath = m_IsHanded ? s_SubActionPaths[hand] : XR_NULL_PATH;
-	XrResult rs = xrCreateActionSpace(m_Action, &spaceInfo, &space);
-	assert(XR_SUCCEEDED(rs));
-	return space;
+	return m_Spaces[hand];
 }
 
 /* Controller child-classes */
+
+InputManager::InputDevice::InputDevice(XrSession session, const char* actionSetName, const char* localizedName)
+{
+	XrActionSetCreateInfo createInfo = XR_TYPE(ACTION_SET_CREATE_INFO);
+	strcpy_s(createInfo.actionSetName, actionSetName);
+	strcpy_s(createInfo.localizedActionSetName, localizedName);
+	XrResult rs = xrCreateActionSet(session, &createInfo, &m_ActionSet);
+	assert(XR_SUCCEEDED(rs));
+}
+
+InputManager::InputDevice::~InputDevice()
+{
+	XrResult rs = xrDestroyActionSet(m_ActionSet);
+	assert(XR_SUCCEEDED(rs));
+}
 
 ovrVector2f InputManager::InputDevice::ApplyDeadzone(ovrVector2f axis, float deadZone)
 {
@@ -437,26 +427,26 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 	}
 }
 
-InputManager::OculusTouch::OculusTouch(XrActionSet actionSet)
-	: InputDevice(actionSet)
+InputManager::OculusTouch::OculusTouch(XrSession session)
+	: InputDevice(session, "touch", "Oculus Touch")
 	, m_bHapticsRunning(true)
-	, m_Button_Enter(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "enter-click", "Menu button")
-	, m_Button_AX(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "ax-click", "A/X pressed", true)
-	, m_Button_BY(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "by-click", "B/Y pressed", true)
-	, m_Button_Thumb(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "thumb-click", "Thumbstick pressed", true)
-	, m_Touch_AX(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "ax-touch", "A/X touched", true)
-	, m_Touch_BY(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "by-touch", "B/Y touched", true)
-	, m_Touch_Thumb(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "thumb-touch", "Thumbstick touched", true)
-	, m_Touch_ThumbRest(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "rest-touch", "Thumb rest touched", true)
-	, m_Touch_IndexTrigger(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "trigger-touch", "Trigger touched", true)
-	, m_IndexTrigger(actionSet, XR_INPUT_ACTION_TYPE_VECTOR1F, "trigger", "Trigger button", true)
-	, m_HandTrigger(actionSet, XR_INPUT_ACTION_TYPE_VECTOR1F, "grip", "Grip button", true)
-	, m_Thumbstick(actionSet, XR_INPUT_ACTION_TYPE_VECTOR2F, "thumbstick", "Thumbstick", true)
-	, m_Trackpad(actionSet, XR_INPUT_ACTION_TYPE_VECTOR2F, "trackpad", "Trackpad", true)
-	, m_TrackpadClick(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "trackpad-click", "Trackpad", true)
-	, m_TrackpadTouch(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "trackpad-touch", "Trackpad", true)
-	, m_Pose(actionSet, XR_INPUT_ACTION_TYPE_POSE, "pose", "Controller pose", true)
-	, m_Vibration(actionSet, XR_OUTPUT_ACTION_TYPE_VIBRATION, "vibration", "Vibration", true)
+	, m_Button_Enter(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "enter-click", "Menu button")
+	, m_Button_AX(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "ax-click", "A/X pressed", true)
+	, m_Button_BY(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "by-click", "B/Y pressed", true)
+	, m_Button_Thumb(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "thumb-click", "Thumbstick pressed", true)
+	, m_Touch_AX(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "ax-touch", "A/X touched", true)
+	, m_Touch_BY(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "by-touch", "B/Y touched", true)
+	, m_Touch_Thumb(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "thumb-touch", "Thumbstick touched", true)
+	, m_Touch_ThumbRest(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "rest-touch", "Thumb rest touched", true)
+	, m_Touch_IndexTrigger(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "trigger-touch", "Trigger touched", true)
+	, m_IndexTrigger(this, XR_INPUT_ACTION_TYPE_VECTOR1F, "trigger", "Trigger button", true)
+	, m_HandTrigger(this, XR_INPUT_ACTION_TYPE_VECTOR1F, "grip", "Grip button", true)
+	, m_Thumbstick(this, XR_INPUT_ACTION_TYPE_VECTOR2F, "thumbstick", "Thumbstick", true)
+	, m_Trackpad(this, XR_INPUT_ACTION_TYPE_VECTOR2F, "trackpad", "Trackpad", true)
+	, m_TrackpadClick(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "trackpad-click", "Trackpad", true)
+	, m_TrackpadTouch(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "trackpad-touch", "Trackpad", true)
+	, m_Pose(this, XR_INPUT_ACTION_TYPE_POSE, "pose", "Controller pose", true)
+	, m_Vibration(this, XR_OUTPUT_ACTION_TYPE_VIBRATION, "vibration", "Vibration", true)
 {
 	m_HapticsThread = std::thread(HapticsThread, this);
 }
@@ -467,7 +457,7 @@ InputManager::OculusTouch::~OculusTouch()
 	m_HapticsThread.join();
 }
 
-XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings)
+XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const
 {
 	std::string prefixes[ovrHand_Count] = { "/user/hand/left", "/user/hand/right" };
 
@@ -518,10 +508,20 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSugge
 #endif
 }
 
-void InputManager::OculusTouch::GetActionSpaces(std::vector<XrSpace>& outSpaces)
+void InputManager::OculusTouch::GetActionSpaces(std::vector<XrSpace>& outSpaces) const
 {
-	outSpaces.push_back(m_Pose.CreateSpace(ovrHand_Left));
-	outSpaces.push_back(m_Pose.CreateSpace(ovrHand_Right));
+	outSpaces.push_back(m_Pose.GetSpace(ovrHand_Left));
+	outSpaces.push_back(m_Pose.GetSpace(ovrHand_Right));
+}
+
+void InputManager::OculusTouch::GetActiveSets(std::vector<XrActiveActionSet>& outSets) const
+{
+	XrActiveActionSet active = XR_TYPE(ACTIVE_ACTION_SET);
+	active.actionSet = m_ActionSet;
+	active.subactionPath = s_SubActionPaths[ovrHand_Left];
+	outSets.push_back(active);
+	active.subactionPath = s_SubActionPaths[ovrHand_Right];
+	outSets.push_back(active);
 }
 
 ovrControllerType InputManager::OculusTouch::GetType() const
@@ -638,18 +638,18 @@ void InputManager::OculusTouch::SetVibration(float frequency, float amplitude)
 	assert(XR_SUCCEEDED(rs));
 }
 
-InputManager::OculusRemote::OculusRemote(XrActionSet actionSet)
-	: InputDevice(actionSet)
+InputManager::OculusRemote::OculusRemote(XrSession session)
+	: InputDevice(session, "remote", "Oculus Remote")
 	, m_IsConnected(false)
-	, m_Toggle_Connected(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "toggle-connect", "Connect the remote")
-	, m_Button_Up(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "up-click", "Up pressed")
-	, m_Button_Down(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "down-click", "Down pressed")
-	, m_Button_Left(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "left-click", "Left pressed")
-	, m_Button_Right(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "right-click", "Right pressed")
-	, m_Button_Enter(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "enter-click", "Select pressed")
-	, m_Button_Back(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "back-click", "Back pressed")
-	, m_Button_VolUp(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "vol-up", "Volume up")
-	, m_Button_VolDown(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "vol-down", "Volume down")
+	, m_Toggle_Connected(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "toggle-connect", "Connect the remote")
+	, m_Button_Up(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "up-click", "Up pressed")
+	, m_Button_Down(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "down-click", "Down pressed")
+	, m_Button_Left(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "left-click", "Left pressed")
+	, m_Button_Right(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "right-click", "Right pressed")
+	, m_Button_Enter(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "enter-click", "Select pressed")
+	, m_Button_Back(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "back-click", "Back pressed")
+	, m_Button_VolUp(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "vol-up", "Volume up")
+	, m_Button_VolDown(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "vol-down", "Volume down")
 {
 }
 
@@ -694,28 +694,35 @@ bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState
 	return true;
 }
 
-InputManager::XboxGamepad::XboxGamepad(XrActionSet actionSet)
-	: InputDevice(actionSet)
-	, m_Button_A(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "a-click", "A pressed")
-	, m_Button_B(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "b-click", "B pressed")
-	, m_Button_RThumb(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "rthumb-click", "Right thumbstick pressed")
-	, m_Button_RShoulder(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "rshoulder-click", "Right shoulder pressed")
-	, m_Button_X(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "x-click", "X pressed")
-	, m_Button_Y(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "y-click", "Y pressed")
-	, m_Button_LThumb(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "lthumb-click", "Left thumbstick pressed")
-	, m_Button_LShoulder(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "lshoulder-click", "Left shoulder pressed")
-	, m_Button_Up(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "up-click", "Up pressed")
-	, m_Button_Down(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "down-click", "Down pressed")
-	, m_Button_Left(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "left-click", "Left pressed")
-	, m_Button_Right(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "right-click", "Right pressed")
-	, m_Button_Enter(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "enter-click", "Select pressed")
-	, m_Button_Back(actionSet, XR_INPUT_ACTION_TYPE_BOOLEAN, "back-click", "Back pressed")
-	, m_RIndexTrigger(actionSet, XR_INPUT_ACTION_TYPE_VECTOR1F, "rtrigger", "Right trigger")
-	, m_LIndexTrigger(actionSet, XR_INPUT_ACTION_TYPE_VECTOR1F, "ltrigger", "Left trigger")
-	, m_RThumbstick(actionSet, XR_INPUT_ACTION_TYPE_VECTOR2F, "rthumb", "Right thumbstick")
-	, m_LThumbstick(actionSet, XR_INPUT_ACTION_TYPE_VECTOR2F, "lthumb", "Left thumbstick")
-	, m_RVibration(actionSet, XR_OUTPUT_ACTION_TYPE_VIBRATION, "rvibration", "Right vibration motor")
-	, m_LVibration(actionSet, XR_OUTPUT_ACTION_TYPE_VIBRATION, "lvibration", "Left vibration motor")
+void InputManager::OculusRemote::GetActiveSets(std::vector<XrActiveActionSet>& outSets) const
+{
+	XrActiveActionSet active = XR_TYPE(ACTIVE_ACTION_SET);
+	active.actionSet = m_ActionSet;
+	outSets.push_back(active);
+}
+
+InputManager::XboxGamepad::XboxGamepad(XrSession session)
+	: InputDevice(session, "xbox", "Xbox Controller")
+	, m_Button_A(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "a-click", "A pressed")
+	, m_Button_B(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "b-click", "B pressed")
+	, m_Button_RThumb(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "rthumb-click", "Right thumbstick pressed")
+	, m_Button_RShoulder(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "rshoulder-click", "Right shoulder pressed")
+	, m_Button_X(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "x-click", "X pressed")
+	, m_Button_Y(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "y-click", "Y pressed")
+	, m_Button_LThumb(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "lthumb-click", "Left thumbstick pressed")
+	, m_Button_LShoulder(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "lshoulder-click", "Left shoulder pressed")
+	, m_Button_Up(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "up-click", "Up pressed")
+	, m_Button_Down(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "down-click", "Down pressed")
+	, m_Button_Left(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "left-click", "Left pressed")
+	, m_Button_Right(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "right-click", "Right pressed")
+	, m_Button_Enter(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "enter-click", "Select pressed")
+	, m_Button_Back(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "back-click", "Back pressed")
+	, m_RIndexTrigger(this, XR_INPUT_ACTION_TYPE_VECTOR1F, "rtrigger", "Right trigger")
+	, m_LIndexTrigger(this, XR_INPUT_ACTION_TYPE_VECTOR1F, "ltrigger", "Left trigger")
+	, m_RThumbstick(this, XR_INPUT_ACTION_TYPE_VECTOR2F, "rthumb", "Right thumbstick")
+	, m_LThumbstick(this, XR_INPUT_ACTION_TYPE_VECTOR2F, "lthumb", "Left thumbstick")
+	, m_RVibration(this, XR_OUTPUT_ACTION_TYPE_VIBRATION, "rvibration", "Right vibration motor")
+	, m_LVibration(this, XR_OUTPUT_ACTION_TYPE_VIBRATION, "lvibration", "Left vibration motor")
 {
 }
 
@@ -723,7 +730,7 @@ InputManager::XboxGamepad::~XboxGamepad()
 {
 }
 
-XrPath InputManager::XboxGamepad::GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings)
+XrPath InputManager::XboxGamepad::GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const
 {
 #define ADD_BINDING(action, path) outBindings.push_back(XrActionSuggestedBinding{ action, GetXrPath(std::string("/user/gamepad") + path) })
 
@@ -799,13 +806,13 @@ bool InputManager::XboxGamepad::GetInputState(ovrSession session, ovrInputState*
 	if (m_Button_Back.GetDigital())
 		buttons |= ovrButton_Back;
 
-	Action triggers[] = { m_LIndexTrigger, m_RIndexTrigger };
-	Action sticks[] = { m_LThumbstick, m_RThumbstick };
+	const Action* triggers[] = { &m_LIndexTrigger, &m_RIndexTrigger };
+	const Action* sticks[] = { &m_LThumbstick, &m_RThumbstick };
 	float deadzone[] = { 0.24f, 0.265f };
 	for (int hand = 0; hand < ovrHand_Count; hand++)
 	{
-		ovrVector2f thumbstick = sticks[hand].GetVector();
-		inputState->IndexTrigger[hand] = triggers[hand].GetAnalog();
+		ovrVector2f thumbstick = sticks[hand]->GetVector();
+		inputState->IndexTrigger[hand] = triggers[hand]->GetAnalog();
 		inputState->Thumbstick[hand] = ApplyDeadzone(thumbstick, deadzone[hand]);
 		inputState->ThumbstickNoDeadzone[hand] = thumbstick;
 
@@ -830,4 +837,11 @@ void InputManager::XboxGamepad::SetVibration(float frequency, float amplitude)
 	vibration.duration = 2500000000UL;
 	XrResult rs = xrApplyHapticFeedback(frequency > 0.5 ? m_RVibration : m_LVibration, 0, nullptr, (XrHapticBaseHeader*)&vibration);
 	assert(XR_SUCCEEDED(rs));
+}
+
+void InputManager::XboxGamepad::GetActiveSets(std::vector<XrActiveActionSet>& outSets) const
+{
+	XrActiveActionSet active = XR_TYPE(ACTIVE_ACTION_SET);
+	active.actionSet = m_ActionSet;
+	outSets.push_back(active);
 }

@@ -89,7 +89,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->StageSpace));
 
 		// Initialize input
-		session->Input.reset(new InputManager(session));
+		session->Input.reset(new InputManager(session->Session));
 
 		XrSessionBeginInfo beginInfo = XR_TYPE(SESSION_BEGIN_INFO);
 		beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;

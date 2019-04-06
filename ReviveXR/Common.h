@@ -5,6 +5,7 @@
 
 #include <openxr/openxr.h>
 #include <assert.h>
+#include <string>
 
 #if 0
 #include <Windows.h>
