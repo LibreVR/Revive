@@ -15,8 +15,7 @@
 XrPath InputManager::s_SubActionPaths[ovrHand_Count] = { XR_NULL_PATH, XR_NULL_PATH };
 
 InputManager::InputManager(XrSession session)
-	: ConnectedControllers(ovrControllerType_Touch | ovrControllerType_XBox)
-	, m_InputDevices()
+	: m_InputDevices()
 {
 	s_SubActionPaths[ovrHand_Left] = GetXrPath("/user/hand/left");
 	s_SubActionPaths[ovrHand_Right] = GetXrPath("/user/hand/right");
@@ -48,12 +47,6 @@ InputManager::~InputManager()
 {
 	for (InputDevice* device : m_InputDevices)
 		delete device;
-
-	for (XrSpace space : m_ActionSpaces)
-	{
-		XrResult rs = xrDestroySpace(space);
-		assert(XR_SUCCEEDED(rs));
-	}
 }
 
 ovrResult InputManager::SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
@@ -83,16 +76,11 @@ ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType cont
 		ovrControllerType type = device->GetType();
 		if (device->IsConnected())
 		{
-			ConnectedControllers |= type;
 			if (controllerType & type)
 			{
-				if (device->GetInputState(session, inputState))
+				if (device->GetInputState(controllerType, inputState))
 					types |= type;
 			}
-		}
-		else
-		{
-			ConnectedControllers &= ~type;
 		}
 	}
 

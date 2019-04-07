@@ -448,7 +448,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 {
 	REV_TRACE(ovr_GetConnectedControllerTypes);
 
-	return session->Input->ConnectedControllers;
+	return ovrControllerType_Touch | ovrControllerType_XBox | ovrControllerType_Remote;
 }
 
 OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession session, ovrControllerType controllerType)
