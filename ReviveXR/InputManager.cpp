@@ -58,7 +58,7 @@ ovrResult InputManager::SetControllerVibration(ovrSession session, ovrController
 	for (InputDevice* device : m_InputDevices)
 	{
 		if (controllerType & device->GetType() && device->IsConnected())
-			device->SetVibration(frequency, amplitude);
+			device->SetVibration(controllerType, frequency, amplitude);
 	}
 
 	return ovrSuccess;
@@ -94,7 +94,7 @@ ovrResult InputManager::SubmitControllerVibration(ovrSession session, ovrControl
 	for (InputDevice* device : m_InputDevices)
 	{
 		if (controllerType & device->GetType() && device->IsConnected())
-			device->SubmitVibration(buffer);
+			device->SubmitVibration(controllerType, buffer);
 	}
 
 	return ovrSuccess;
@@ -107,7 +107,7 @@ ovrResult InputManager::GetControllerVibrationState(ovrSession session, ovrContr
 	for (InputDevice* device : m_InputDevices)
 	{
 		if (controllerType & device->GetType() && device->IsConnected())
-			device->GetVibrationState(outState);
+			device->GetVibrationState(controllerType & ovrControllerType_RTouch ? ovrHand_Right : ovrHand_Left, outState);
 	}
 
 	return ovrSuccess;
@@ -400,15 +400,18 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 
 	while (device->m_bHapticsRunning)
 	{
-		float amplitude = device->m_HapticsBuffer.GetSample();
-		if (amplitude > 0.0f)
+		for (int i = 0; i < ovrHand_Count; i++)
 		{
-			XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
-			vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
-			vibration.amplitude = amplitude;
-			vibration.duration = (XrDuration)std::chrono::nanoseconds(freq).count();
-			XrResult rs = xrApplyHapticFeedback(device->m_Vibration, ovrHand_Count, s_SubActionPaths, (XrHapticBaseHeader*)&vibration);
-			assert(XR_SUCCEEDED(rs));
+			float amplitude = device->m_HapticsBuffer[i].GetSample();
+			if (amplitude > 0.0f)
+			{
+				XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
+				vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+				vibration.amplitude = amplitude;
+				vibration.duration = (XrDuration)std::chrono::nanoseconds(freq).count();
+				XrResult rs = xrApplyHapticFeedback(device->m_Vibration, 1, &s_SubActionPaths[i], (XrHapticBaseHeader*)&vibration);
+				assert(XR_SUCCEEDED(rs));
+			}
 		}
 
 		std::this_thread::sleep_for(freq);
@@ -522,7 +525,7 @@ bool InputManager::OculusTouch::IsConnected() const
 	return true;
 }
 
-bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
+bool InputManager::OculusTouch::GetInputState(ovrControllerType controllerType, ovrInputState* inputState)
 {
 	if (m_Button_Enter.GetDigital())
 		inputState->Buttons |= ovrButton_Enter;
@@ -616,14 +619,28 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	return true;
 }
 
-void InputManager::OculusTouch::SetVibration(float frequency, float amplitude)
+void InputManager::OculusTouch::SetVibration(ovrControllerType controllerType, float frequency, float amplitude)
 {
+	std::vector<XrPath> subPaths;
+	if (controllerType & ovrControllerType_LTouch)
+		subPaths.push_back(s_SubActionPaths[ovrHand_Left]);
+	if (controllerType & ovrControllerType_RTouch)
+		subPaths.push_back(s_SubActionPaths[ovrHand_Right]);
+
 	XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
 	vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
 	vibration.amplitude = amplitude;
 	vibration.duration = 2500000000UL;
-	XrResult rs = xrApplyHapticFeedback(m_Vibration, 0, nullptr, (XrHapticBaseHeader*)&vibration);
+	XrResult rs = xrApplyHapticFeedback(m_Vibration, subPaths.size(), subPaths.empty() ? nullptr : subPaths.data(), (XrHapticBaseHeader*)&vibration);
 	assert(XR_SUCCEEDED(rs));
+}
+
+void InputManager::OculusTouch::SubmitVibration(ovrControllerType controllerType, const ovrHapticsBuffer* buffer)
+{
+	if (controllerType & ovrControllerType_LTouch)
+		m_HapticsBuffer[ovrHand_Left].AddSamples(buffer);
+	if (controllerType & ovrControllerType_RTouch)
+		m_HapticsBuffer[ovrHand_Right].AddSamples(buffer);
 }
 
 InputManager::OculusRemote::OculusRemote(XrSession session)
@@ -646,7 +663,7 @@ bool InputManager::OculusRemote::IsConnected() const
 	return m_IsConnected;
 }
 
-bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState* inputState)
+bool InputManager::OculusRemote::GetInputState(ovrControllerType controllerType, ovrInputState* inputState)
 {
 	unsigned int buttons;
 
@@ -748,7 +765,7 @@ XrPath InputManager::XboxGamepad::GetSuggestedBindings(std::vector<XrActionSugge
 	return GetXrPath("/interaction_profiles/microsoft/xbox_controller");
 }
 
-bool InputManager::XboxGamepad::GetInputState(ovrSession session, ovrInputState* inputState)
+bool InputManager::XboxGamepad::GetInputState(ovrControllerType controllerType, ovrInputState* inputState)
 {
 	unsigned int buttons = 0;
 
@@ -817,7 +834,7 @@ bool InputManager::XboxGamepad::GetInputState(ovrSession session, ovrInputState*
 	return true;
 }
 
-void InputManager::XboxGamepad::SetVibration(float frequency, float amplitude)
+void InputManager::XboxGamepad::SetVibration(ovrControllerType controllerType, float frequency, float amplitude)
 {
 	XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
 	vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
