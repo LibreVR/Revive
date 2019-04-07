@@ -818,6 +818,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			quad.pose = XR::Posef(layer->Quad.QuadPoseCenter);
 			quad.size = XR::Vector2f(layer->Quad.QuadSize);
 		}
+		else
+		{
+			continue;
+		}
 
 		XrCompositionLayerBaseHeader& header = newLayer.Header;
 		header.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
