@@ -124,8 +124,8 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		desc.DefaultEyeFov[i] = XR::FovPort(session->DefaultEyeFov[i]);
-		desc.MaxEyeFov[i] = XR::FovPort(session->DefaultEyeFov[i]);
+		desc.DefaultEyeFov[i] = XR::FovPort(session->DefaultEyeViews[i].fov);
+		desc.MaxEyeFov[i] = XR::FovPort(session->DefaultEyeViews[i].fov);
 		desc.Resolution.w += (int)session->ViewConfigs[i].recommendedImageRectWidth;
 		desc.Resolution.h = std::max(desc.Resolution.h, (int)session->ViewConfigs[i].recommendedImageRectHeight);
 	}
@@ -226,17 +226,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 		CHK_XR(xrBeginSession(fakeSession, &beginInfo));
 
+		for (int i = 0; i < ovrEye_Count; i++)
+			session->DefaultEyeViews[i] = XR_TYPE(VIEW);
+
 		uint32_t numViews;
 		XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
 		XrViewState viewState = XR_TYPE(VIEW_STATE);
-		XrView views[ovrEye_Count] = XR_TYPE(VIEW);
 		locateInfo.space = viewSpace;
-		XrResult rs = xrLocateViews(fakeSession, &locateInfo, &viewState, ovrEye_Count, &numViews, views);
+		XrResult rs = xrLocateViews(fakeSession, &locateInfo, &viewState, ovrEye_Count, &numViews, session->DefaultEyeViews);
 		assert(XR_SUCCEEDED(rs));
 		assert(numViews == ovrEye_Count);
-
-		for (int i = 0; i < ovrEye_Count; i++)
-			session->DefaultEyeFov[i] = views[i].fov;
 
 		CHK_XR(xrEndSession(fakeSession));
 		CHK_XR(xrDestroySession(fakeSession));
@@ -650,7 +649,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 {
 	REV_TRACE(ovr_GetRenderDesc);
 
-	if (!session || !session->Session)
+	if (!session)
 		return ovrEyeRenderDesc();
 
 	ovrEyeRenderDesc desc = { eyeType, fov };
@@ -666,22 +665,25 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 		desc.DistortedViewport.Size.h / (fov.UpTan + fov.DownTan)
 	);
 
-	uint32_t numViews;
-	XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
-	XrViewState viewState = XR_TYPE(VIEW_STATE);
-	XrView views[ovrEye_Count] = XR_TYPE(VIEW);
-	locateInfo.displayTime = session->FrameState.predictedDisplayTime;
-	locateInfo.space = session->ViewSpace;
-	XrResult rs = xrLocateViews(session->Session, &locateInfo, &viewState, ovrEye_Count, &numViews, views);
-	assert(XR_SUCCEEDED(rs));
-	assert(numViews == ovrEye_Count);
+	XR::Posef pose = session->DefaultEyeViews[eyeType].pose;
+	if (session->Session)
+	{
+		uint32_t numViews;
+		XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
+		XrViewState viewState = XR_TYPE(VIEW_STATE);
+		XrView views[ovrEye_Count] = XR_TYPE(VIEW);
+		locateInfo.displayTime = session->FrameState.predictedDisplayTime;
+		locateInfo.space = session->ViewSpace;
+		XrResult rs = xrLocateViews(session->Session, &locateInfo, &viewState, ovrEye_Count, &numViews, views);
+		assert(XR_SUCCEEDED(rs));
+		assert(numViews == ovrEye_Count);
 
-	// FIXME: WMR viewState flags are bugged
-	XR::Posef pose(views[eyeType].pose);
-	if (pose.Rotation.IsNormalized())
-		desc.HmdToEyePose = pose;
-	else
-		desc.HmdToEyePose = OVR::Posef::Identity();
+		// FIXME: WMR viewState flags are bugged
+		if (pose.Rotation.IsNormalized())
+			pose = views[eyeType].pose;
+	}
+
+	desc.HmdToEyePose = pose;
 	return desc;
 }
 

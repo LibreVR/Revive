@@ -34,7 +34,7 @@ struct ovrHmdStruct
 	XrSystemProperties SystemProperties;
 	XrReferenceSpaceType TrackingSpace;
 	XrViewConfigurationView ViewConfigs[ovrEye_Count];
-	XrFovf DefaultEyeFov[ovrEye_Count];
+	XrView DefaultEyeViews[ovrEye_Count];
 
 	// Session status
 	SessionStatusBits SessionStatus;
