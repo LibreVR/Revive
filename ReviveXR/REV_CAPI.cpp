@@ -1059,8 +1059,16 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 {
 	REV_TRACE(ovr_GetFloat);
 
-	if (strcmp(propertyName, "IPD") == 0)
-		return 0.064f;
+	if (session)
+	{
+		if (strcmp(propertyName, "IPD") == 0)
+			return XR::Vector3f(session->DefaultEyeViews[ovrEye_Left].pose.position).Distance(
+				XR::Vector3f(session->DefaultEyeViews[ovrEye_Right].pose.position)
+			);
+
+		if (strcmp(propertyName, "VsyncToNextVsync"))
+			return session->FrameState.predictedDisplayPeriod;
+	}
 
 	// Override defaults, we should always return a valid value for these
 	if (strcmp(propertyName, OVR_KEY_PLAYER_HEIGHT) == 0)
