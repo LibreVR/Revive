@@ -67,13 +67,32 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
 	REV_TRACE(ovr_Shutdown);
 
+	// End all sessions
+	std::vector<XrSession> ToDestroy;
 	for (ovrHmdStruct& session : g_Sessions)
 	{
-		xrDestroySession(session.Session);
+		if (session.Session)
+		{
+			XrResult rs = xrEndSession(session.Session);
+			assert(XR_SUCCEEDED(rs));
+
+			ToDestroy.push_back(session.Session);
+		}
 	}
 	g_Sessions.clear();
 
-	xrDestroyInstance(g_Instance);
+	// Destroy all sessions
+	for (XrSession& session : ToDestroy)
+	{
+		XrResult rs = xrDestroySession(session);
+		assert(XR_SUCCEEDED(rs));
+	}
+
+	// Destroy and reset the instance
+	XrResult rs = xrDestroyInstance(g_Instance);
+	assert(XR_SUCCEEDED(rs));
+	g_Instance = XR_NULL_HANDLE;
+
 	MicroProfileShutdown();
 }
 
@@ -249,19 +268,19 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 {
 	REV_TRACE(ovr_Destroy);
 
-	XrSession backup = session->Session;
-	if (backup)
+	XrSession handle = session->Session;
+	if (handle)
 	{
-		XrResult rs = xrEndSession(backup);
+		XrResult rs = xrEndSession(handle);
 		assert(XR_SUCCEEDED(rs));
 	}
 
 	// Delete the session from the list of sessions
 	g_Sessions.erase(std::find_if(g_Sessions.begin(), g_Sessions.end(), [session](ovrHmdStruct const& o) { return &o == session; }));
 
-	if (backup)
+	if (handle)
 	{
-		XrResult rs = xrDestroySession(backup);
+		XrResult rs = xrDestroySession(handle);
 		assert(XR_SUCCEEDED(rs));
 	}
 }
