@@ -295,26 +295,67 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	if (!sessionStatus)
 		return ovrError_InvalidParameter;
 
-	SessionStatusBits status = session->SessionStatus;
+	SessionStatusBits& status = session->SessionStatus;
+	XrEventDataBuffer event = XR_TYPE(EVENT_DATA_BUFFER);
+	while (xrPollEvent(session->Instance, &event) == XR_SUCCESS)
+	{
+		switch (event.type)
+		{
+		case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
+		{
+			const XrEventDataSessionStateChanged& stateChanged =
+				reinterpret_cast<XrEventDataSessionStateChanged&>(event);
+			if (stateChanged.session == session->Session)
+			{
+				if (stateChanged.state == XR_SESSION_STATE_VISIBLE)
+				{
+					status.IsVisible = true;
+					status.HasInputFocus = false;
+				}
+				else if (stateChanged.state == XR_SESSION_STATE_IDLE)
+					status.HmdPresent = true;
+				else if (stateChanged.state == XR_SESSION_STATE_READY)
+					status.HmdMounted = true;
+				else if (stateChanged.state == XR_SESSION_STATE_RUNNING)
+					status.IsVisible = false;
+				else if (stateChanged.state == XR_SESSION_STATE_FOCUSED)
+					status.HasInputFocus = true;
+				else if (stateChanged.state == XR_SESSION_STATE_STOPPING)
+					status.HmdMounted = false;
+				else if (stateChanged.state == XR_SESSION_STATE_LOSS_PENDING)
+					status.DisplayLost = true;
+				else if (stateChanged.state == XR_SESSION_STATE_EXITING)
+					status.ShouldQuit = true;
+			}
+			break;
+		}
+		case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
+		{
+			const XrEventDataInstanceLossPending& lossPending =
+				reinterpret_cast<XrEventDataInstanceLossPending&>(event);
+			status.ShouldQuit = true;
+			break;
+		}
+		case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
+		{
+			const XrEventDataReferenceSpaceChangePending& spaceChange =
+				reinterpret_cast<XrEventDataReferenceSpaceChangePending&>(event);
+			if (spaceChange.referenceSpaceType == XR_REFERENCE_SPACE_TYPE_LOCAL)
+				status.ShouldRecenter = true;
+			break;
+		}
+		}
+	}
 
-	// Detect if the application has focus, but only return false the first time the status is requested.
-	// If this is true from the first call then Airmech will assume the Health-and-Safety warning
-	// is still being displayed.
-	static bool first_call = true;
-	sessionStatus->IsVisible = !first_call;//status.IsVisible && !first_call;
-	first_call = false;
-
-	// Don't use the activity level while debugging, so I don't have to put on the HMD
+	sessionStatus->IsVisible = status.IsVisible;
 	sessionStatus->HmdPresent = status.HmdPresent;
 	sessionStatus->HmdMounted = status.HmdMounted;
-
-	// TODO: Detect if the display is lost, can this ever happen with OpenVR?
 	sessionStatus->DisplayLost = status.DisplayLost;
 	sessionStatus->ShouldQuit = status.ShouldQuit;
 	sessionStatus->ShouldRecenter = status.ShouldRecenter;
 	sessionStatus->HasInputFocus = status.HasInputFocus;
 	sessionStatus->OverlayPresent = status.OverlayPresent;
-	sessionStatus->DepthRequested = true;
+	sessionStatus->DepthRequested = false; // TODO: Detect depth layer extension
 
 	return ovrSuccess;
 }
@@ -323,7 +364,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 {
 	REV_TRACE(ovr_SetTrackingOriginType);
 
-	if (!session || !session->Session)
+	if (!session)
 		return ovrError_InvalidSession;
 
 	session->TrackingSpace = (XrReferenceSpaceType)(XR_REFERENCE_SPACE_TYPE_LOCAL + origin);
@@ -337,8 +378,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 	if (!session)
 		return ovrTrackingOrigin_EyeLevel;
 
-	// Both enums match exactly, so we can just cast them
-	return (ovrTrackingOrigin)session->TrackingSpace;
+	return (ovrTrackingOrigin)(session->TrackingSpace - XR_REFERENCE_SPACE_TYPE_LOCAL);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
@@ -348,16 +388,21 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
+	ovr_ClearShouldRecenterFlag(session);
 	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovrPosef originPose)
 {
-	// TODO: Implement through 
+	// TODO: Implement through poseInSpace
+	ovr_ClearShouldRecenterFlag(session);
 	return ovrSuccess;
 }
 
-OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session) { /* No such flag, do nothing */ }
+OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session)
+{
+	session->SessionStatus.ShouldRecenter = false;
+}
 
 OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker)
 {
