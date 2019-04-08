@@ -8,6 +8,7 @@
 #include "Session.h"
 #include "InputManager.h"
 #include "SwapChain.h"
+#include "Extensions.h"
 
 #define XR_USE_GRAPHICS_API_D3D11
 #include <d3d11.h>
@@ -27,6 +28,7 @@
 XrInstance g_Instance = XR_NULL_HANDLE;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
+Extensions g_Extensions;
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
@@ -41,19 +43,20 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 	g_MinorVersion = params->RequestedMinorVersion;
 
-	std::vector<const char*> extensions;
-	extensions.push_back(XR_KHR_WIN32_CONVERT_PERFORMANCE_COUNTER_TIME_EXTENSION_NAME);
-	extensions.push_back("XR_KHR_D3D11_enable");
-
-	XrInstanceCreateInfo createInfo = XR_TYPE(INSTANCE_CREATE_INFO);
-	createInfo.applicationInfo = { "Revive", REV_VERSION_INT, "Revive", REV_VERSION_INT, XR_CURRENT_API_VERSION };
-	createInfo.enabledExtensionCount = (uint32_t)extensions.size();
-	createInfo.enabledExtensionNames = extensions.data();
+	uint32_t size;
+	std::vector<XrExtensionProperties> properties;
+	CHK_XR(xrEnumerateInstanceExtensionProperties(nullptr, 0, &size, nullptr));
+	properties.resize(size);
+	for (XrExtensionProperties& props : properties)
+		props = XR_TYPE(EXTENSION_PROPERTIES);
+	CHK_XR(xrEnumerateInstanceExtensionProperties(nullptr, properties.size(), &size, properties.data()));
+	g_Extensions.InitExtensionList(properties);
 
 	MH_QueueDisableHook(LoadLibraryW);
 	MH_QueueDisableHook(OpenEventW);
 	MH_ApplyQueued();
 
+	XrInstanceCreateInfo createInfo = g_Extensions.GetInstanceCreateInfo();
 	CHK_XR(xrCreateInstance(&createInfo, &g_Instance));
 
 	MH_QueueEnableHook(LoadLibraryW);

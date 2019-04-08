@@ -66,6 +66,9 @@
     <ClInclude Include="XR_Math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Extensions.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -102,6 +105,9 @@
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="Swapchain.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="Extensions.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>
