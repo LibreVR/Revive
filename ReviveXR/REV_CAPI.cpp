@@ -813,8 +813,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	if (!session || !session->Session)
 		return ovrError_InvalidSession;
 
-	std::vector<XrCompositionLayerUnion> layerData;
 	std::vector<XrCompositionLayerBaseHeader*> layers;
+	std::vector<XrCompositionLayerUnion> layerData;
 	std::vector<XrCompositionLayerProjectionView> views;
 	std::vector<XrCompositionLayerDepthInfoKHR> viewDepth;
 	for (unsigned int i = 0; i < layerCount; i++)
@@ -842,18 +842,19 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			XrCompositionLayerProjection& projection = newLayer.Projection;
 			projection = XR_TYPE(COMPOSITION_LAYER_PROJECTION);
 
+			ovrTextureSwapChain texture = nullptr;
 			for (int i = 0; i < ovrEye_Count; i++)
 			{
-				ovrTextureSwapChain texture = layer->EyeFov.ColorTexture[i];
-				if (!texture)
-				{
-					if (i == ovrEye_Right)
-						texture = layer->EyeFov.ColorTexture[ovrEye_Left];
-					else
-						continue;
-				}
+				if (layer->EyeFov.ColorTexture[i])
+					texture = layer->EyeFov.ColorTexture[i];
 
-				XrCompositionLayerProjectionView view = XR_TYPE(VIEW_CONFIGURATION_VIEW);
+				if (!texture)
+					continue;
+
+				views.emplace_back();
+				XrCompositionLayerProjectionView& view = views.back();
+				view = XR_TYPE(VIEW_CONFIGURATION_VIEW);
+
 				if (type == ovrLayerType_EyeMatrix)
 				{
 					// RenderPose is the first member that's differently aligned
@@ -868,7 +869,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 
 				if (type == ovrLayerType_EyeFovDepth && g_Extensions.CompositionDepth)
 				{
-					XrCompositionLayerDepthInfoKHR depthInfo = XR_TYPE(COMPOSITION_LAYER_DEPTH_INFO_KHR);
+					viewDepth.emplace_back();
+					XrCompositionLayerDepthInfoKHR& depthInfo = viewDepth.back();
+					depthInfo = XR_TYPE(COMPOSITION_LAYER_DEPTH_INFO_KHR);
+
 					depthInfo.subImage.swapchain = layer->EyeFovDepth.DepthTexture[i]->Swapchain;
 					depthInfo.subImage.imageRect = XR::Recti(layer->EyeFovDepth.Viewport[i]);
 					depthInfo.subImage.imageArrayIndex = 0;
@@ -879,14 +883,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					depthInfo.nearZ = projDesc.Projection23 / (projDesc.Projection22 - 1.0f);
 					depthInfo.farZ = projDesc.Projection23 / (projDesc.Projection22 + 1.0f);
 
-					viewDepth.push_back(depthInfo);
 					view.next = &viewDepth.back();
 				}
 
 				view.subImage.swapchain = texture->Swapchain;
 				view.subImage.imageRect = XR::Recti(layer->EyeFov.Viewport[i]);
 				view.subImage.imageArrayIndex = 0;
-				views.push_back(view);
 			}
 
 			projection.viewCount = ovrEye_Count;
