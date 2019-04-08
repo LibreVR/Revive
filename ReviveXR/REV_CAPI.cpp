@@ -358,7 +358,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	sessionStatus->ShouldRecenter = status.ShouldRecenter;
 	sessionStatus->HasInputFocus = status.HasInputFocus;
 	sessionStatus->OverlayPresent = status.OverlayPresent;
-	sessionStatus->DepthRequested = false; // TODO: Detect depth layer extension
+	sessionStatus->DepthRequested = g_Extensions.CompositionDepth;
 
 	return ovrSuccess;
 }
@@ -816,6 +816,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	std::vector<XrCompositionLayerUnion> layerData;
 	std::vector<XrCompositionLayerBaseHeader*> layers;
 	std::vector<XrCompositionLayerProjectionView> views;
+	std::vector<XrCompositionLayerDepthInfoKHR> viewDepth;
 	for (unsigned int i = 0; i < layerCount; i++)
 	{
 		ovrLayer_Union* layer = (ovrLayer_Union*)layerPtrList[i];
@@ -864,6 +865,24 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					view.pose = XR::Posef(layer->EyeFov.RenderPose[i]);
 					view.fov = XR::FovPort(layer->EyeFov.Fov[i]);
 				}
+
+				if (type == ovrLayerType_EyeFovDepth && g_Extensions.CompositionDepth)
+				{
+					XrCompositionLayerDepthInfoKHR depthInfo = XR_TYPE(COMPOSITION_LAYER_DEPTH_INFO_KHR);
+					depthInfo.subImage.swapchain = layer->EyeFovDepth.DepthTexture[i]->Swapchain;
+					depthInfo.subImage.imageRect = XR::Recti(layer->EyeFovDepth.Viewport[i]);
+					depthInfo.subImage.imageArrayIndex = 0;
+
+					const ovrTimewarpProjectionDesc& projDesc = layer->EyeFovDepth.ProjectionDesc;
+					depthInfo.minDepth = 0.0f;
+					depthInfo.maxDepth = 1.0f;
+					depthInfo.nearZ = projDesc.Projection23 / (projDesc.Projection22 - 1.0f);
+					depthInfo.farZ = projDesc.Projection23 / (projDesc.Projection22 + 1.0f);
+
+					viewDepth.push_back(depthInfo);
+					view.next = &viewDepth.back();
+				}
+
 				view.subImage.swapchain = texture->Swapchain;
 				view.subImage.imageRect = XR::Recti(layer->EyeFov.Viewport[i]);
 				view.subImage.imageArrayIndex = 0;
