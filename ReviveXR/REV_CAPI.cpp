@@ -125,12 +125,9 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 {
 	REV_TRACE(ovr_GetHmdDesc);
 
-	ovrHmdDesc desc = {};
+	ovrHmdDesc desc = { ovrHmd_CV1 };
 	if (!session)
-	{
-		desc.Type = ovrHmd_CV1;
 		return desc;
-	}
 
 	XrInstanceProperties props = XR_TYPE(INSTANCE_PROPERTIES);
 	xrGetInstanceProperties(session->Instance, &props);
@@ -1120,7 +1117,7 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 			);
 
 		if (strcmp(propertyName, "VsyncToNextVsync"))
-			return session->FrameState.predictedDisplayPeriod;
+			return 1e9f / session->FrameState.predictedDisplayPeriod;
 	}
 
 	// Override defaults, we should always return a valid value for these

@@ -80,6 +80,11 @@ namespace XR {
 		{
 			return reinterpret_cast<const XrQuaternionf&>(*this);
 		}
+
+		static Quatf Identity()
+		{
+			return OVR::Quatf::Identity();
+		}
 	};
 
 	class Posef : public OVR::Posef
@@ -99,7 +104,8 @@ namespace XR {
 			return reinterpret_cast<const XrPosef&>(*this);
 		}
 
-		static Posef Identity() {
+		static Posef Identity()
+		{
 			return OVR::Posef::Identity();
 		}
 	};
