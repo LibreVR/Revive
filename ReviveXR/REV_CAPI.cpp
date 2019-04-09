@@ -802,6 +802,8 @@ union XrCompositionLayerUnion
 	XrCompositionLayerBaseHeader Header;
 	XrCompositionLayerProjection Projection;
 	XrCompositionLayerQuad Quad;
+	XrCompositionLayerCylinderKHR Cylinder;
+	XrCompositionLayerCubeKHR Cube;
 };
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
@@ -907,6 +909,34 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			quad.subImage.imageArrayIndex = 0;
 			quad.pose = XR::Posef(layer->Quad.QuadPoseCenter);
 			quad.size = XR::Vector2f(layer->Quad.QuadSize);
+		}
+		else if (type == ovrLayerType_Cylinder && g_Extensions.CompositionCylinder)
+		{
+			if (!layer->Cylinder.ColorTexture)
+				continue;
+
+			XrCompositionLayerCylinderKHR& cylinder = newLayer.Cylinder;
+			cylinder = XR_TYPE(COMPOSITION_LAYER_CYLINDER_KHR);
+			cylinder.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+			cylinder.subImage.swapchain = layer->Cylinder.ColorTexture->Swapchain;
+			cylinder.subImage.imageRect = XR::Recti(layer->Cylinder.Viewport);
+			cylinder.subImage.imageArrayIndex = 0;
+			cylinder.pose = XR::Posef(layer->Cylinder.CylinderPoseCenter);
+			cylinder.radius = layer->Cylinder.CylinderRadius;
+			cylinder.centralAngle = layer->Cylinder.CylinderAngle;
+			cylinder.aspectRatio = layer->Cylinder.CylinderAspectRatio;
+		}
+		else if (type == ovrLayerType_Cube && g_Extensions.CompositionCube)
+		{
+			if (!layer->Cube.CubeMapTexture)
+				continue;
+
+			XrCompositionLayerCubeKHR& cube = newLayer.Cube;
+			cube = XR_TYPE(COMPOSITION_LAYER_CUBE_KHR);
+			cube.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+			cube.swapchain = layer->Cube.CubeMapTexture->Swapchain;
+			cube.imageArrayIndex = 0;
+			cube.orientation = XR::Quatf(layer->Cube.Orientation);
 		}
 		else
 		{
