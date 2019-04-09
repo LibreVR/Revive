@@ -1228,7 +1228,13 @@ ovr_GetViewportStencil(
 	const ovrViewportStencilDesc* viewportStencilDesc,
 	ovrFovStencilMeshBuffer* outMeshBuffer)
 {
-	return ovrError_Unsupported;
+	ovrFovStencilDesc fovStencilDesc = {};
+	fovStencilDesc.StencilType = viewportStencilDesc->StencilType;
+	fovStencilDesc.StencilFlags = 0;
+	fovStencilDesc.Eye = viewportStencilDesc->Eye;
+	fovStencilDesc.FovPort = viewportStencilDesc->FovPort;
+	fovStencilDesc.HmdToEyeRotation = viewportStencilDesc->HmdToEyeRotation;
+	return ovr_GetFovStencil(session, &fovStencilDesc, outMeshBuffer);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
@@ -1237,7 +1243,35 @@ ovr_GetFovStencil(
 	const ovrFovStencilDesc* fovStencilDesc,
 	ovrFovStencilMeshBuffer* meshBuffer)
 {
-	return ovrError_Unsupported;
+	if (!g_Extensions.VisibilityMask || fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
+		return ovrError_Unsupported;
+
+	if (!session)
+		return ovrError_InvalidSession;
+
+	std::vector<uint32_t> indexBuffer;
+	indexBuffer.resize(meshBuffer->AllocIndexCount);
+
+	XrVisibilityMaskTypeKHR type = (XrVisibilityMaskTypeKHR)(fovStencilDesc->StencilType - 1);
+	XrVisibilityMaskKHR mask = XR_TYPE(VISIBILITY_MASK_KHR);
+	mask.vertexCount = meshBuffer->AllocVertexCount;
+	mask.vertices = (XrVector2f*)meshBuffer->VertexBuffer;
+	mask.indexCount = indexBuffer.size();
+	mask.indices = indexBuffer.data();
+	CHK_XR(xrGetVisibilityMaskKHR(session->Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, fovStencilDesc->Eye, type, &mask));
+	meshBuffer->UsedVertexCount = mask.vertexCount;
+	meshBuffer->UsedIndexCount = mask.indexCount;
+
+	if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
+	{
+		for (int i = 0; i < meshBuffer->AllocVertexCount; i++)
+			meshBuffer->VertexBuffer[i].y = 1.0f - meshBuffer->VertexBuffer[i].y;
+	}
+
+	for (int i = 0; i < meshBuffer->AllocIndexCount; i++)
+		meshBuffer->IndexBuffer[i] = (uint16_t)indexBuffer[i];
+
+	return ovrSuccess;
 }
 
 struct ovrDesktopWindowDesc_;
