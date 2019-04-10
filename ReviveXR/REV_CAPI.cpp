@@ -341,7 +341,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 			const XrEventDataReferenceSpaceChangePending& spaceChange =
 				reinterpret_cast<XrEventDataReferenceSpaceChangePending&>(event);
 			if (spaceChange.referenceSpaceType == XR_REFERENCE_SPACE_TYPE_LOCAL)
+			{
+				if (spaceChange.poseValid)
+					session->CalibratedOrigin = XR::Posef(session->CalibratedOrigin) * XR::Posef(spaceChange.poseInPreviousSpace);
 				status.ShouldRecenter = true;
+			}
 			break;
 		}
 		}
@@ -388,13 +392,28 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	ovr_ClearShouldRecenterFlag(session);
-	return ovrSuccess;
+	XrSpaceRelation relation = XR_TYPE(SPACE_RELATION);
+	CHK_XR(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->FrameState.predictedDisplayTime, &relation));
+	return ovr_SpecifyTrackingOrigin(session, XR::Posef(relation.pose));
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovrPosef originPose)
 {
-	// TODO: Implement through poseInSpace
+	if (!session)
+		return ovrError_InvalidSession;
+
+	float yaw;
+	OVR::Quatf(originPose.Orientation).GetYawPitchRoll(&yaw, nullptr, nullptr);
+	OVR::Posef newOrigin = OVR::Posef(session->CalibratedOrigin) * OVR::Posef(OVR::Quatf(OVR::Axis_Y, yaw), originPose.Position);
+	session->CalibratedOrigin = newOrigin.Normalized();
+
+	XrSpace oldSpace = session->LocalSpace;
+	XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
+	spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
+	spaceInfo.poseInReferenceSpace = XR::Posef(session->CalibratedOrigin);
+	CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->LocalSpace));
+	CHK_XR(xrDestroySpace(oldSpace));
+
 	ovr_ClearShouldRecenterFlag(session);
 	return ovrSuccess;
 }

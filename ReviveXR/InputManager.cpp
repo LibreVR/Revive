@@ -215,9 +215,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handRelation, absTime, outState->HandPoses[i]);
 	}
 
-	// TODO: Get the calibrated origin
-	outState->CalibratedOrigin.Orientation = OVR::Quatf::Identity();
-	outState->CalibratedOrigin.Position = OVR::Vector3f();
+	outState->CalibratedOrigin = session->CalibratedOrigin;
 }
 
 ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)

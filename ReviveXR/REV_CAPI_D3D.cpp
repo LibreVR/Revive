@@ -80,13 +80,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 		// Create reference spaces
 		XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
-		spaceInfo.poseInReferenceSpace = XR::Posef(XR::Posef::Identity());
+		spaceInfo.poseInReferenceSpace = XR::Posef::Identity();
 		spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
 		CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->ViewSpace));
 		spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
 		CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->LocalSpace));
 		spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
 		CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->StageSpace));
+		session->CalibratedOrigin = OVR::Posef::Identity();
 
 		// Initialize input
 		session->Input.reset(new InputManager(session->Session));

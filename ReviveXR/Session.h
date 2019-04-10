@@ -38,6 +38,7 @@ struct ovrHmdStruct
 
 	// Session status
 	SessionStatusBits SessionStatus;
+	ovrPosef CalibratedOrigin;
 
 	std::unique_ptr<InputManager> Input;
 };
