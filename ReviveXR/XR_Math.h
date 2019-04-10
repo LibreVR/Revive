@@ -22,6 +22,16 @@ namespace XR {
 			)
 		{ }
 
+		// Specialized flip constructor
+		Recti(const ovrRecti& s, bool flipped)
+			: OVR::Recti(
+				s.Pos.x,
+				flipped ? s.Size.h - s.Pos.y : s.Pos.y,
+				s.Size.w,
+				flipped ? -s.Size.h : s.Size.h
+			)
+		{ }
+
 		operator const XrRect2Di& () const
 		{
 			return reinterpret_cast<const XrRect2Di&>(*this);
