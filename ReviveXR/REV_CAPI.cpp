@@ -844,6 +844,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 
 		ovrLayerType type = layer->Header.Type;
 		bool upsideDown = layer->Header.Flags & ovrLayerFlag_TextureOriginAtBottomLeft;
+		bool headLocked = layer->Header.Flags & ovrLayerFlag_HeadLocked;
 
 		// Version 1.25 introduced a 128-byte reserved parameter, so on older versions the actual data
 		// falls within this reserved parameter and we need to move the pointer back into the actual data area.
@@ -968,8 +969,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 
 		XrCompositionLayerBaseHeader& header = newLayer.Header;
 		header.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
-		header.space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ?
-			session->StageSpace : session->LocalSpace;
+		if (headLocked)
+			header.space = session->ViewSpace;
+		else
+			header.space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ?
+				session->StageSpace : session->LocalSpace;
 
 		layers.push_back(&newLayer.Header);
 	}
