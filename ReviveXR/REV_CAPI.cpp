@@ -879,8 +879,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					const ovrTimewarpProjectionDesc& projDesc = layer->EyeFovDepth.ProjectionDesc;
 					depthInfo.minDepth = 0.0f;
 					depthInfo.maxDepth = 1.0f;
-					depthInfo.nearZ = projDesc.Projection23 / (projDesc.Projection22 - 1.0f);
-					depthInfo.farZ = projDesc.Projection23 / (projDesc.Projection22 + 1.0f);
+					depthInfo.nearZ = projDesc.Projection23 / projDesc.Projection22;
+					depthInfo.farZ = projDesc.Projection23 / (1.0f + projDesc.Projection22);
+
+					if (viewScaleDesc)
+					{
+						depthInfo.nearZ *= viewScaleDesc->HmdSpaceToWorldScaleInMeters;
+						depthInfo.farZ *= viewScaleDesc->HmdSpaceToWorldScaleInMeters;
+					}
 
 					view.next = &viewDepth.back();
 				}
