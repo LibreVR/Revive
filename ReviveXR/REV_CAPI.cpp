@@ -743,7 +743,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 		assert(numViews == ovrEye_Count);
 
 		// FIXME: WMR viewState flags are bugged
-		if (pose.Rotation.IsNormalized())
+		if (views[eyeType].pose.orientation.w != 0.0f)
 			pose = views[eyeType].pose;
 	}
 
