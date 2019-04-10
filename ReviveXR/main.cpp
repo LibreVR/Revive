@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <dxgi.h>
+#include <d3d11.h>
 #include <Shlwapi.h>
 #include <string>
 
@@ -12,6 +13,7 @@ typedef FARPROC(WINAPI* _GetProcAddress)(HMODULE hModule, LPCSTR lpProcName);
 typedef HMODULE(WINAPI* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(WINAPI* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
 
+PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN TrueCreateDevice;
 _GetProcAddress TrueGetProcAddress;
 _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
@@ -20,6 +22,15 @@ HMODULE revModule;
 WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
 
+HRESULT HookCreateDevice(IDXGIAdapter *pAdapter, D3D_DRIVER_TYPE DriverType, HMODULE Software,
+	UINT Flags, const D3D_FEATURE_LEVEL *pFeatureLevels, UINT FeatureLevels, UINT SDKVersion,
+	const DXGI_SWAP_CHAIN_DESC *pSwapChainDesc, IDXGISwapChain **ppSwapChain, ID3D11Device **ppDevice,
+	D3D_FEATURE_LEVEL *pFeatureLevel, ID3D11DeviceContext  **ppImmediateContext)
+{
+	// We need BGRA texture support for Mixed Reality
+	return TrueCreateDevice(pAdapter, DriverType, Software, Flags & ~D3D11_CREATE_DEVICE_SINGLETHREADED,
+		pFeatureLevels, FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
+}
 
 FARPROC WINAPI HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 {
@@ -72,6 +83,8 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 			GetModuleFileName(revModule, revModuleName, MAX_PATH);
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 			MH_Initialize();
+			// D3D11CreateDevice is just a wrapper for D3D11CreateDeviceAndSwapChain
+			MH_CreateHookApi(L"d3d11.dll", "D3D11CreateDeviceAndSwapChain", HookCreateDevice, (PVOID*)&TrueCreateDevice);
 #if 0
 			MH_CreateHook(GetProcAddress, HookGetProcAddress, (PVOID*)&TrueGetProcAddress);
 #endif
