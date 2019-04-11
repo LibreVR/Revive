@@ -575,7 +575,27 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDe
 {
 	REV_TRACE(ovr_TestBoundary);
 
-	return ovrError_Unsupported;
+	outTestResult->ClosestDistance = INFINITY;
+
+	std::vector<ovrPoseStatef> poses;
+	std::vector<ovrTrackedDeviceType> devices;
+	for (uint32_t i = 1; i & ovrTrackedDevice_All; i <<= 1)
+	{
+		if (i & deviceBitmask)
+			devices.push_back((ovrTrackedDeviceType)i);
+	}
+
+	poses.resize(devices.size());
+	CHK_OVR(ovr_GetDevicePoses(session, devices.data(), devices.size(), 0.0f, poses.data()));
+
+	for (size_t i = 0; i < devices.size(); i++)
+	{
+		ovrBoundaryTestResult result = { 0 };
+		ovrResult err = ovr_TestBoundaryPoint(session, &poses[i].ThePose.Position, boundaryType, &result);
+		if (OVR_SUCCESS(err) && result.ClosestDistance < outTestResult->ClosestDistance)
+			*outTestResult = result;
+	}
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundaryPoint(ovrSession session, const ovrVector3f* point,
@@ -583,7 +603,44 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundaryPoint(ovrSession session, const o
 {
 	REV_TRACE(ovr_TestBoundaryPoint);
 
-	return ovrError_Unsupported;
+	ovrBoundaryTestResult result = { 0 };
+
+	result.IsTriggering = ovrFalse;
+
+	ovrVector3f bounds;
+	CHK_OVR(ovr_GetBoundaryDimensions(session, singleBoundaryType, &bounds));
+
+	// Clamp the point to the AABB
+	OVR::Vector2f p(point->x, point->z);
+	OVR::Vector2f halfExtents(bounds.x / 2.0f, bounds.z / 2.0f);
+	OVR::Vector2f clamped = OVR::Vector2f::Min(OVR::Vector2f::Max(p, -halfExtents), halfExtents);
+
+	// If the point is inside the AABB, we need to do some extra work
+	if (clamped.Compare(p))
+	{
+		if (std::abs(p.x) > std::abs(p.y))
+			clamped.x = halfExtents.x * (p.x / std::abs(p.x));
+		else
+			clamped.y = halfExtents.y * (p.y / std::abs(p.y));
+	}
+
+	// We don't have a ceiling, use the height from the original point
+	result.ClosestPoint.x = clamped.x;
+	result.ClosestPoint.y = point->y;
+	result.ClosestPoint.z = clamped.y;
+
+	// Get the normal, closest distance is the length of this normal
+	OVR::Vector2f normal = p - clamped;
+	result.ClosestDistance = normal.Length();
+
+	// Normalize the normal
+	normal.Normalize();
+	result.ClosestPointNormal.x = normal.x;
+	result.ClosestPointNormal.y = 0.0f;
+	result.ClosestPointNormal.z = normal.y;
+
+	*outTestResult = result;
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetBoundaryLookAndFeel(ovrSession session, const ovrBoundaryLookAndFeel* lookAndFeel)
@@ -604,14 +661,41 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryGeometry(ovrSession session, ovrBo
 {
 	REV_TRACE(ovr_GetBoundaryGeometry);
 
-	return ovrError_Unsupported;
+	if (!session)
+		return ovrError_InvalidSession;
+
+	if (outFloorPoints)
+	{
+		ovrVector3f bounds;
+		CHK_OVR(ovr_GetBoundaryDimensions(session, boundaryType, &bounds));
+		for (int i = 0; i < 4; i++)
+		{
+			outFloorPoints[i] = (OVR::Vector3f(bounds) / 2.0f);
+			if (i % 2 == 0)
+				outFloorPoints[i].x *= -1.0f;
+			if (i / 2 == 0)
+				outFloorPoints[i].z *= -1.0f;
+		}
+	}
+	if (outFloorPointsCount)
+		*outFloorPointsCount = 4;
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryDimensions(ovrSession session, ovrBoundaryType boundaryType, ovrVector3f* outDimensions)
 {
 	REV_TRACE(ovr_GetBoundaryDimensions);
 
-	return ovrError_Unsupported;
+	if (!session)
+		return ovrError_InvalidSession;
+
+	XrExtent2Df bounds;
+	CHK_XR(xrGetReferenceSpaceBoundsRect(session->Session, XR_REFERENCE_SPACE_TYPE_STAGE, &bounds));
+
+	outDimensions->x = bounds.width;
+	outDimensions->y = 0.0f; // TODO: Find some good default height
+	outDimensions->z = bounds.height;
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryVisible(ovrSession session, ovrBool* outIsVisible)
