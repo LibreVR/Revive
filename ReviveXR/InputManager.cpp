@@ -226,7 +226,22 @@ ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType*
 	XrSpaceRelation relation = XR_TYPE(SPACE_RELATION);
 	for (int i = 0; i < deviceCount; i++)
 	{
-		if (i < m_ActionSpaces.size())
+		// Get the space for device types we recognize
+		XrSpace space = XR_NULL_HANDLE;
+		switch (deviceTypes[i])
+		{
+		case ovrTrackedDevice_HMD:
+			space = session->ViewSpace;
+			break;
+		case ovrTrackedDevice_LTouch:
+			space = m_ActionSpaces[ovrHand_Left];
+			break;
+		case ovrTrackedDevice_RTouch:
+			space = m_ActionSpaces[ovrHand_Right];
+			break;
+		}
+
+		if (space)
 		{
 			CHK_XR(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &relation));
 			SpaceRelationToPoseState(relation, absTime, outDevicePoses[i]);
