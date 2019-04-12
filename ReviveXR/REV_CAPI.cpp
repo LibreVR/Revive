@@ -1231,7 +1231,7 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 				XR::Vector3f(session->DefaultEyeViews[ovrEye_Right].pose.position)
 			);
 
-		if (strcmp(propertyName, "VsyncToNextVsync"))
+		if (strcmp(propertyName, "VsyncToNextVsync") == 0)
 			return 1e9f / session->FrameState.predictedDisplayPeriod;
 	}
 
