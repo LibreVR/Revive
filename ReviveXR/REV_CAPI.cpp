@@ -183,6 +183,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 	ovrSession session = &g_Sessions.back();
 	session->Instance = g_Instance;
+	session->TrackingSpace = XR_REFERENCE_SPACE_TYPE_LOCAL;
 
 	XrSystemGetInfo systemInfo = XR_TYPE(SYSTEM_GET_INFO);
 	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
