@@ -907,6 +907,11 @@ union XrCompositionLayerUnion
 	XrCompositionLayerCubeKHR Cube;
 };
 
+struct XrCompositionLayerProjectionViewStereo
+{
+	XrCompositionLayerProjectionView Views[ovrEye_Count];
+};
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
@@ -917,9 +922,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		return ovrError_InvalidSession;
 
 	std::vector<XrCompositionLayerBaseHeader*> layers;
-	std::vector<XrCompositionLayerUnion> layerData;
-	std::vector<XrCompositionLayerProjectionView> views;
-	std::vector<XrCompositionLayerDepthInfoKHR> viewDepth;
+	std::list<XrCompositionLayerUnion> layerData;
+	std::list<XrCompositionLayerProjectionViewStereo> viewData;
+	std::list<XrCompositionLayerDepthInfoKHR> depthData;
 	for (unsigned int i = 0; i < layerCount; i++)
 	{
 		ovrLayer_Union* layer = (ovrLayer_Union*)layerPtrList[i];
@@ -948,6 +953,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			projection = XR_TYPE(COMPOSITION_LAYER_PROJECTION);
 
 			ovrTextureSwapChain texture = nullptr;
+			viewData.emplace_back();
 			for (int i = 0; i < ovrEye_Count; i++)
 			{
 				if (layer->EyeFov.ColorTexture[i])
@@ -956,8 +962,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 				if (!texture)
 					continue;
 
-				views.emplace_back();
-				XrCompositionLayerProjectionView& view = views.back();
+				XrCompositionLayerProjectionView& view = viewData.back().Views[i];
 				view = XR_TYPE(VIEW_CONFIGURATION_VIEW);
 
 				if (type == ovrLayerType_EyeMatrix)
@@ -974,8 +979,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 
 				if (type == ovrLayerType_EyeFovDepth && g_Extensions.CompositionDepth)
 				{
-					viewDepth.emplace_back();
-					XrCompositionLayerDepthInfoKHR& depthInfo = viewDepth.back();
+					depthData.emplace_back();
+					XrCompositionLayerDepthInfoKHR& depthInfo = depthData.back();
 					depthInfo = XR_TYPE(COMPOSITION_LAYER_DEPTH_INFO_KHR);
 
 					depthInfo.subImage.swapchain = layer->EyeFovDepth.DepthTexture[i]->Swapchain;
@@ -994,7 +999,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 						depthInfo.farZ *= viewScaleDesc->HmdSpaceToWorldScaleInMeters;
 					}
 
-					view.next = &viewDepth.back();
+					view.next = &depthData.back();
 				}
 
 				view.subImage.swapchain = texture->Swapchain;
@@ -1003,7 +1008,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			}
 
 			projection.viewCount = ovrEye_Count;
-			projection.views = &views.back() - 1;
+			projection.views = reinterpret_cast<XrCompositionLayerProjectionView*>(&viewData.back());
 		}
 		else if (type == ovrLayerType_Quad)
 		{
