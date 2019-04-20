@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <Shlwapi.h>
 
-bool InjectLibRevive(HANDLE hProcess, bool xr);
-bool InjectOpenVR(HANDLE hProcess, bool xr);
-bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength);
+bool InjectLibRevive(HANDLE hProcess, HANDLE hThread, bool xr);
+bool InjectOpenVR(HANDLE hProcess, HANDLE hThread, bool xr);
+bool InjectDLL(HANDLE hProcess, HANDLE hThread, const char *dllPath, int dllPathLength);
 
 int CreateProcessAndInject(wchar_t *programPath, bool xr)
 {
@@ -77,8 +77,8 @@ int CreateProcessAndInject(wchar_t *programPath, bool xr)
 	}
 #endif
 
-	if (!InjectOpenVR(pi.hProcess, xr) ||
-		!InjectLibRevive(pi.hProcess, xr)) {
+	if (!InjectOpenVR(pi.hProcess, pi.hThread, xr) ||
+		!InjectLibRevive(pi.hProcess, pi.hThread, xr)) {
 		ResumeThread(pi.hThread);
 		return -1;
 	}
@@ -99,8 +99,8 @@ int OpenProcessAndInject(wchar_t *processId, bool xr)
 		return -1;
 	}
 
-	if (!InjectOpenVR(hProcess, xr) ||
-		!InjectLibRevive(hProcess, xr)) {
+	if (!InjectOpenVR(hProcess, INVALID_HANDLE_VALUE, xr) ||
+		!InjectLibRevive(hProcess, INVALID_HANDLE_VALUE, xr)) {
 		return -1;
 	}
 
@@ -120,7 +120,7 @@ int GetLibraryPath(char *path, int length, const char *fileName)
 #endif
 }
 
-bool InjectLibRevive(HANDLE hProcess, bool xr)
+bool InjectLibRevive(HANDLE hProcess, HANDLE hThread, bool xr)
 {
 	char dllPath[MAX_PATH];
 	if (xr)
@@ -139,10 +139,10 @@ bool InjectLibRevive(HANDLE hProcess, bool xr)
 		GetLibraryPath(dllPath, MAX_PATH, "LibRevive32_1.dll");
 #endif
 	}
-	return InjectDLL(hProcess, dllPath, MAX_PATH);
+	return InjectDLL(hProcess, hThread, dllPath, MAX_PATH);
 }
 
-bool InjectOpenVR(HANDLE hProcess, bool xr)
+bool InjectOpenVR(HANDLE hProcess, HANDLE hThread, bool xr)
 {
 	char dllPath[MAX_PATH];
 	if (xr)
@@ -153,10 +153,10 @@ bool InjectOpenVR(HANDLE hProcess, bool xr)
 	{
 		GetLibraryPath(dllPath, MAX_PATH, "openvr_api.dll");
 	}
-	return InjectDLL(hProcess, dllPath, MAX_PATH);
+	return InjectDLL(hProcess, hThread, dllPath, MAX_PATH);
 }
 
-bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength)
+bool InjectDLL(HANDLE hProcess, HANDLE hThread, const char *dllPath, int dllPathLength)
 {
 	LOG("Injecting DLL: %s\n", dllPath);
 
@@ -183,7 +183,17 @@ bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength)
 		return false;
 	}
 
-	HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)loadLibraryAddr, loadLibraryArg, NULL, NULL);
+	if (hThread != INVALID_HANDLE_VALUE)
+	{
+		if (QueueUserAPC((PAPCFUNC)loadLibraryAddr, hThread, (ULONG_PTR)loadLibraryArg))
+		{
+			LOG("Queued user APC succesfully, Revive will be loaded when the thread enters an alertable state\n");
+			return true;
+		}
+		LOG("Failed to queue user APC, falling back to a remote thread\n");
+	}
+
+	hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)loadLibraryAddr, loadLibraryArg, NULL, NULL);
 	if (hThread == INVALID_HANDLE_VALUE)
 	{
 		LOG("Failed to create remote thread in process\n");
@@ -195,11 +205,13 @@ bool InjectDLL(HANDLE hProcess, const char *dllPath, int dllPathLength)
 		LOG("Failed to wait for LoadLibrary to exit\n");
 		return false;
 	}
+
 	DWORD loadLibraryReturnValue;
 	GetExitCodeThread(hThread, &loadLibraryReturnValue);
 	if (loadLibraryReturnValue == NULL) {
 		LOG("LoadLibrary failed to return module handle\n");
 		return false;
 	}
+
 	return true;
 }
