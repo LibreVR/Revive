@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <vector>
 
-#define WMR_COMPAT_PROFILES_ENABLED 1
+#define WMR_COMPAT_PROFILES_ENABLED 0
 
 XrPath InputManager::s_SubActionPaths[ovrHand_Count] = { XR_NULL_PATH, XR_NULL_PATH };
 
