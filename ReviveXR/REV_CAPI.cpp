@@ -1075,6 +1075,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	endInfo.layers = layers.data();
 	CHK_XR(xrEndFrame(session->Session, &endInfo));
 
+	MicroProfileFlip();
+
 	if (frameIndex > 0)
 		session->NextFrame = frameIndex + 1;
 	else
