@@ -310,6 +310,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 			{
 				if (stateChanged.state == XR_SESSION_STATE_VISIBLE)
 				{
+					status.HmdMounted = true;
 					status.IsVisible = true;
 					status.HasInputFocus = false;
 				}
