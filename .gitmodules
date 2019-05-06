@@ -13,3 +13,6 @@
 [submodule "Vulkan"]
 	path = Externals/Vulkan
 	url = https://github.com/KhronosGroup/Vulkan-Docs.git
+[submodule "Externals/openxr"]
+	path = Externals/openxr
+	url = https://github.com/Armada651/OpenXR-SDK.git
