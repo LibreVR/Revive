@@ -797,6 +797,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyMirrorTexture(ovrSession session, ovrMirror
 	if (!mirrorTexture)
 		return;
 
+	ovr_DestroyTextureSwapChain(session, mirrorTexture->Dummy);
 	delete mirrorTexture;
 }
 

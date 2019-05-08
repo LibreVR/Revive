@@ -165,7 +165,22 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureDX(ovrSession session,
 	if (!d3dPtr || !desc || !out_MirrorTexture)
 		return ovrError_InvalidParameter;
 
-	return ovrError_Unsupported;
+	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData();
+	mirrorTexture->Desc = *desc;
+	*out_MirrorTexture = mirrorTexture;
+
+	ovrTextureSwapChainDesc swapDesc;
+	swapDesc.Type = ovrTexture_2D;
+	swapDesc.Format = desc->Format;
+	swapDesc.ArraySize = 1;
+	swapDesc.Width = desc->Width;
+	swapDesc.Height = desc->Height;
+	swapDesc.MipLevels = 1;
+	swapDesc.SampleCount = 1;
+	swapDesc.StaticImage = ovrTrue;
+	swapDesc.MiscFlags = desc->MiscFlags;
+	swapDesc.BindFlags = 0;
+	return ovr_CreateTextureSwapChainDX(session, d3dPtr, &swapDesc, &mirrorTexture->Dummy);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateMirrorTextureWithOptionsDX(ovrSession session,
@@ -189,5 +204,5 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetMirrorTextureBufferDX(ovrSession session,
 	if (!mirrorTexture || !out_Buffer)
 		return ovrError_InvalidParameter;
 
-	return ovrError_Unsupported;
+	return ovr_GetTextureSwapChainBufferDX(session, mirrorTexture->Dummy, 0, iid, out_Buffer);
 }
