@@ -431,10 +431,9 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 	ovrTrackingState state = { 0 };
 
-	if (!session)
-		return state;
+	if (session && session->Input)
+		session->Input->GetTrackingState(session, &state, absTime);
 
-	session->Input->GetTrackingState(session, &state, absTime);
 	return state;
 }
 
@@ -507,7 +506,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 {
 	REV_TRACE(ovr_GetInputState);
 
-	if (!session)
+	if (!session || !session->Input)
 		return ovrError_InvalidSession;
 
 	if (!inputState)
