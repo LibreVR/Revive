@@ -976,7 +976,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 				else
 				{
 					view.pose = XR::Posef(layer->EyeFov.RenderPose[i]);
-					view.fov = XR::FovPort(layer->EyeFov.Fov[i]);
+
+					// The Climb specifies an invalid fov in the first frame
+					XR::FovPort Fov(layer->EyeFov.Fov[i]);
+					if (Fov.GetMaxSideTan() > 0.0f)
+						view.fov = Fov;
+					else
+						view.fov = session->DefaultEyeViews[i].fov;
 				}
 
 				if (type == ovrLayerType_EyeFovDepth && g_Extensions.CompositionDepth)
