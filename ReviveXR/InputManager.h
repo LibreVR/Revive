@@ -98,10 +98,6 @@ public:
 		Action m_HandTrigger;
 		Action m_Thumbstick;
 
-		Action m_Trackpad;
-		Action m_TrackpadClick;
-		Action m_TrackpadTouch;
-
 		Action m_Pose;
 		Action m_Vibration;
 		std::atomic_bool m_bHapticsRunning;

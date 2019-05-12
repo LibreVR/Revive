@@ -10,8 +10,6 @@
 #include <algorithm>
 #include <vector>
 
-#define WMR_COMPAT_PROFILES_ENABLED 0
-
 XrPath InputManager::s_SubActionPaths[ovrHand_Count] = { XR_NULL_PATH, XR_NULL_PATH };
 
 InputManager::InputManager(XrSession session)
@@ -446,9 +444,6 @@ InputManager::OculusTouch::OculusTouch(XrSession session)
 	, m_IndexTrigger(this, XR_INPUT_ACTION_TYPE_VECTOR1F, "trigger", "Trigger button", true)
 	, m_HandTrigger(this, XR_INPUT_ACTION_TYPE_VECTOR1F, "grip", "Grip button", true)
 	, m_Thumbstick(this, XR_INPUT_ACTION_TYPE_VECTOR2F, "thumbstick", "Thumbstick", true)
-	, m_Trackpad(this, XR_INPUT_ACTION_TYPE_VECTOR2F, "trackpad", "Trackpad", true)
-	, m_TrackpadClick(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "trackpad-click", "Trackpad clicked", true)
-	, m_TrackpadTouch(this, XR_INPUT_ACTION_TYPE_BOOLEAN, "trackpad-touch", "Trackpad touched", true)
 	, m_Pose(this, XR_INPUT_ACTION_TYPE_POSE, "pose", "Controller pose", true)
 	, m_Vibration(this, XR_OUTPUT_ACTION_TYPE_VIBRATION, "vibration", "Vibration", true)
 {
@@ -486,18 +481,8 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSugge
 		ADD_BINDING(m_Touch_IndexTrigger, prefixes[i] + "/input/trigger/touch");
 
 		ADD_BINDING(m_IndexTrigger, prefixes[i] + "/input/trigger/value");
-#if WMR_COMPAT_PROFILES_ENABLED
-		ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/grip/click");
-#else
 		ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/grip/value");
-#endif
 		ADD_BINDING(m_Thumbstick, prefixes[i] + "/input/thumbstick");
-
-#if WMR_COMPAT_PROFILES_ENABLED
-		ADD_BINDING(m_Trackpad, prefixes[i] + "/input/trackpad");
-		ADD_BINDING(m_TrackpadClick, prefixes[i] + "/input/trackpad/click");
-		ADD_BINDING(m_TrackpadTouch, prefixes[i] + "/input/trackpad/touch");
-#endif
 
 		ADD_BINDING(m_Pose, prefixes[i] + "/input/pointer/pose");
 		ADD_BINDING(m_Vibration, prefixes[i] + "/output/haptic");
@@ -505,11 +490,7 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSugge
 
 #undef ADD_BINDING
 
-#if WMR_COMPAT_PROFILES_ENABLED
-	return GetXrPath("/interaction_profiles/microsoft/motion_controller");
-#else
 	return GetXrPath("/interaction_profiles/oculus/touch_controller");
-#endif
 }
 
 void InputManager::OculusTouch::GetActionSpaces(std::vector<XrSpace>& outSpaces) const
@@ -572,38 +553,9 @@ bool InputManager::OculusTouch::GetInputState(ovrControllerType controllerType, 
 		if (m_Touch_IndexTrigger.GetDigital(hand))
 			touches |= ovrTouch_RIndexTrigger;
 
-#if WMR_COMPAT_PROFILES_ENABLED
-		ovrButton dpad = TrackpadToDPad(m_Trackpad.GetVector(hand));
-		if (dpad == ovrButton_Up ||
-			(hand == ovrHand_Left && dpad == ovrButton_Right) ||
-			(hand == ovrHand_Right && dpad == ovrButton_Left))
-		{
-			if (m_TrackpadClick.GetDigital(hand))
-				buttons |= ovrButton_B;
-
-			if (m_TrackpadTouch.GetDigital(hand))
-				touches |= ovrTouch_B;
-		}
-		else
-		{
-			if (m_TrackpadClick.GetDigital(hand))
-				buttons |= ovrButton_A;
-
-			if (m_TrackpadTouch.GetDigital(hand))
-				touches |= ovrTouch_A;
-		}
-#endif
-
 		inputState->ThumbstickNoDeadzone[i] = m_Thumbstick.GetVector(hand);
 		inputState->IndexTriggerNoDeadzone[i] = m_IndexTrigger.GetAnalog(hand);
 		inputState->HandTriggerNoDeadzone[i] = m_HandTrigger.GetAnalog(hand);
-
-#if WMR_COMPAT_PROFILES_ENABLED
-		if (inputState->IndexTriggerNoDeadzone[i] > 0.1f)
-		{
-			touches |= ovrTouch_RIndexTrigger;
-		}
-#endif
 
 		// Derive gestures from touch flags
 		if (inputState->HandTriggerNoDeadzone[i] > 0.5f)
