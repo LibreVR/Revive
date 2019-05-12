@@ -538,14 +538,14 @@ OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession sess
 {
 	REV_TRACE(ovr_GetTouchHapticsDesc);
 
-	return session->Input->GetTouchHapticsDesc(controllerType);
+	return InputManager::GetTouchHapticsDesc(controllerType);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
 {
 	REV_TRACE(ovr_SetControllerVibration);
 
-	if (!session)
+	if (!session || !session->Input)
 		return ovrError_InvalidSession;
 
 	return session->Input->SetControllerVibration(session, controllerType, frequency, amplitude);
@@ -555,7 +555,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitControllerVibration(ovrSession session,
 {
 	REV_TRACE(ovr_SubmitControllerVibration);
 
-	if (!session)
+	if (!session || !session->Input)
 		return ovrError_InvalidSession;
 
 	return session->Input->SubmitControllerVibration(session, controllerType, buffer);
@@ -565,7 +565,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetControllerVibrationState(ovrSession sessio
 {
 	REV_TRACE(ovr_GetControllerVibrationState);
 
-	if (!session)
+	if (!session || !session->Input)
 		return ovrError_InvalidSession;
 
 	return session->Input->GetControllerVibrationState(session, controllerType, outState);
