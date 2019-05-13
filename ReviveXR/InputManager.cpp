@@ -592,11 +592,19 @@ void InputManager::OculusTouch::SetVibration(ovrControllerType controllerType, f
 	if (controllerType & ovrControllerType_RTouch)
 		subPaths.push_back(s_SubActionPaths[ovrHand_Right]);
 
-	XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
-	vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
-	vibration.amplitude = amplitude;
-	vibration.duration = 2500000000UL;
-	XrResult rs = xrApplyHapticFeedback(m_Vibration, subPaths.size(), subPaths.empty() ? nullptr : subPaths.data(), (XrHapticBaseHeader*)&vibration);
+	XrResult rs;
+	if (frequency > 0.0f)
+	{
+		XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
+		vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+		vibration.amplitude = amplitude;
+		vibration.duration = 2500000000UL;
+		rs = xrApplyHapticFeedback(m_Vibration, subPaths.size(), subPaths.empty() ? nullptr : subPaths.data(), (XrHapticBaseHeader*)&vibration);
+	}
+	else
+	{
+		rs = xrStopHapticFeedback(m_Vibration, subPaths.size(), subPaths.empty() ? nullptr : subPaths.data());
+	}
 	assert(XR_SUCCEEDED(rs));
 }
 
