@@ -934,8 +934,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			continue;
 
 		ovrLayerType type = layer->Header.Type;
-		bool upsideDown = layer->Header.Flags & ovrLayerFlag_TextureOriginAtBottomLeft;
-		bool headLocked = layer->Header.Flags & ovrLayerFlag_HeadLocked;
+		const bool upsideDown = layer->Header.Flags & ovrLayerFlag_TextureOriginAtBottomLeft;
+		const bool headLocked = layer->Header.Flags & ovrLayerFlag_HeadLocked;
 
 		// Version 1.25 introduced a 128-byte reserved parameter, so on older versions the actual data
 		// falls within this reserved parameter and we need to move the pointer back into the actual data area.
@@ -955,13 +955,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 
 			ovrTextureSwapChain texture = nullptr;
 			viewData.emplace_back();
-			for (int i = 0; i < ovrEye_Count; i++)
+			int i;
+			for (i = 0; i < ovrEye_Count; i++)
 			{
 				if (layer->EyeFov.ColorTexture[i])
 					texture = layer->EyeFov.ColorTexture[i];
 
 				if (!texture)
-					continue;
+					break;
 
 				XrCompositionLayerProjectionView& view = viewData.back().Views[i];
 				view = XR_TYPE(VIEW_CONFIGURATION_VIEW);
@@ -981,7 +982,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					if (Fov.GetMaxSideTan() > 0.0f)
 						view.fov = Fov;
 					else
-						view.fov = session->DefaultEyeViews[i].fov;
+						break;
 				}
 
 				if (type == ovrLayerType_EyeFovDepth && g_Extensions.CompositionDepth)
@@ -1013,6 +1014,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 				view.subImage.imageRect = XR::Recti(layer->EyeFov.Viewport[i], upsideDown);
 				view.subImage.imageArrayIndex = 0;
 			}
+
+			// Verify all views were initialized without errors
+			if (i < ovrEye_Count)
+				continue;
 
 			projection.viewCount = ovrEye_Count;
 			projection.views = reinterpret_cast<XrCompositionLayerProjectionView*>(&viewData.back());
