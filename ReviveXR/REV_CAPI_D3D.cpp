@@ -5,6 +5,9 @@
 #include "InputManager.h"
 #include "XR_Math.h"
 
+#include <vector>
+#include <algorithm>
+
 #define XR_USE_GRAPHICS_API_D3D11
 #include <d3d11.h>
 #include <openxr/openxr_platform.h>
@@ -100,9 +103,22 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		CHK_OVR(ovr_BeginFrame(session, 0));
 	}
 
+	// Enumerate formats
+	uint32_t formatCount = 0;
+	xrEnumerateSwapchainFormats(session->Session, 0, &formatCount, nullptr);
+	std::vector<int64_t> formats;
+	formats.resize(formatCount);
+	xrEnumerateSwapchainFormats(session->Session, formats.size(), &formatCount, formats.data());
+	assert(formats.size() == formatCount);
+
+	// Check if the format is supported
+	int64_t format = TextureFormatToDXGIFormat(desc->Format);
+	if (std::find(formats.begin(), formats.end(), format) == formats.end())
+		format = formats[0];
+
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
 	swapChain->Desc = *desc;
-	XrSwapchainCreateInfo createInfo = DescToCreateInfo(desc, TextureFormatToDXGIFormat(desc->Format));
+	XrSwapchainCreateInfo createInfo = DescToCreateInfo(desc, format);
 	CHK_XR(xrCreateSwapchain(session->Session, &createInfo, &swapChain->Swapchain));
 
 	CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, 0, &swapChain->Length, nullptr));

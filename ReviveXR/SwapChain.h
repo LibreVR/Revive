@@ -20,4 +20,4 @@ struct ovrMirrorTextureData
 	ovrTextureSwapChain Dummy;
 };
 
-XrSwapchainCreateInfo DescToCreateInfo(const ovrTextureSwapChainDesc* desc, uint32_t format);
+XrSwapchainCreateInfo DescToCreateInfo(const ovrTextureSwapChainDesc* desc, int64_t format);

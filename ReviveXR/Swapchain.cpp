@@ -4,7 +4,7 @@
 #include <openxr/openxr.h>
 #include <assert.h>
 
-XrSwapchainCreateInfo DescToCreateInfo(const ovrTextureSwapChainDesc* desc, uint32_t format)
+XrSwapchainCreateInfo DescToCreateInfo(const ovrTextureSwapChainDesc* desc, int64_t format)
 {
 	XrSwapchainCreateInfo createInfo = XR_TYPE(SWAPCHAIN_CREATE_INFO);
 
