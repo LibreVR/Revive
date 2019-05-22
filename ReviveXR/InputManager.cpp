@@ -182,7 +182,8 @@ unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceRelation& relat
 
 	outPoseState.TimeInSeconds = time;
 
-	return (relation.relationFlags >> 6) & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked);
+	return (relation.relationFlags >> 6) & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked) |
+		(relation.relationFlags << 2) & (ovrStatus_OrientationValid | ovrStatus_PositionValid);
 }
 
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)

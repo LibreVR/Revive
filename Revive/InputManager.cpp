@@ -175,6 +175,7 @@ unsigned int InputManager::TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePo
 
 	if (pose.bPoseIsValid)
 	{
+		result = ovrStatus_OrientationValid | ovrStatus_PositionValid;
 		if (pose.bDeviceIsConnected)
 			result |= ovrStatus_OrientationTracked;
 		if (pose.eTrackingResult != vr::TrackingResult_Calibrating_OutOfRange &&

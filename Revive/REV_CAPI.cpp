@@ -1283,3 +1283,27 @@ ovr_ShowAvatarHands(
 {
 	return ovrError_Unsupported;
 }
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_ShowKeyboard()
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_EnableHybridRaycast()
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetHmdColorDesc()
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_QueryDistortion()
+{
+	return ovrError_Unsupported;
+}
