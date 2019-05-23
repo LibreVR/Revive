@@ -361,7 +361,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	sessionStatus->ShouldRecenter = status.ShouldRecenter;
 	sessionStatus->HasInputFocus = status.HasInputFocus;
 	sessionStatus->OverlayPresent = status.OverlayPresent;
+#if 0 // TODO: Re-enable once we figure out why this crashes Arktika.1
 	sessionStatus->DepthRequested = g_Extensions.CompositionDepth;
+#endif
 
 	return ovrSuccess;
 }
