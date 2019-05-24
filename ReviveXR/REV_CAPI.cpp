@@ -143,8 +143,12 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		desc.DefaultEyeFov[i] = XR::FovPort(session->DefaultEyeViews[i].fov);
-		desc.MaxEyeFov[i] = XR::FovPort(session->DefaultEyeViews[i].fov);
+		// Compensate for the 3-DOF eye pose on pre-1.17
+		if (g_MinorVersion < 17)
+			desc.DefaultEyeFov[i] = OVR::FovPort::Uncant(XR::FovPort(session->DefaultEyeViews[i].fov), XR::Quatf(session->DefaultEyeViews[i].pose.orientation));
+		else
+			desc.DefaultEyeFov[i] = XR::FovPort(session->DefaultEyeViews[i].fov);
+		desc.MaxEyeFov[i] = desc.DefaultEyeFov[i];
 		desc.Resolution.w += (int)session->ViewConfigs[i].recommendedImageRectWidth;
 		desc.Resolution.h = std::max(desc.Resolution.h, (int)session->ViewConfigs[i].recommendedImageRectHeight);
 	}
