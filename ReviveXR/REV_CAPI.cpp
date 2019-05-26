@@ -403,6 +403,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 
 	XrSpaceRelation relation = XR_TYPE(SPACE_RELATION);
 	CHK_XR(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->FrameState.predictedDisplayTime, &relation));
+
+	if (!(relation.relationFlags & XR_SPACE_RELATION_ORIENTATION_VALID_BIT | XR_SPACE_RELATION_POSITION_VALID_BIT))
+		return ovrError_InvalidHeadsetOrientation;
+
 	return ovr_SpecifyTrackingOrigin(session, XR::Posef(relation.pose));
 }
 
@@ -411,6 +415,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovr
 	if (!session)
 		return ovrError_InvalidSession;
 
+	// Get a leveled head pose
 	float yaw;
 	OVR::Quatf(originPose.Orientation).GetYawPitchRoll(&yaw, nullptr, nullptr);
 	OVR::Posef newOrigin = OVR::Posef(session->CalibratedOrigin) * OVR::Posef(OVR::Quatf(OVR::Axis_Y, yaw), originPose.Position);
@@ -483,19 +488,24 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 			OVR::Posef(OVR::Quatf(OVR::Axis_Y, OVR::DegreeToRad(0.0f)), OVR::Vector3f(-0.2f, 0.0f, -2.0f)),
 			OVR::Posef(OVR::Quatf(OVR::Axis_Y, OVR::DegreeToRad(180.0f)), OVR::Vector3f(0.2f, 0.0f, 2.0f))
 		};
+		OVR::Posef trackerPose = poses[trackerPoseIndex];
 
 		XrSpaceRelation relation = XR_TYPE(SPACE_RELATION);
-		if (XR_FAILED(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->FrameState.predictedDisplayTime, &relation)))
-			return tracker;
+		if (XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->FrameState.predictedDisplayTime, &relation)))
+		{
+			// Create a leveled head pose
+			if (relation.relationFlags & XR_SPACE_RELATION_ORIENTATION_VALID_BIT)
+			{
+				float yaw;
+				XR::Posef headPose(relation.pose);
+				headPose.Rotation.GetYawPitchRoll(&yaw, nullptr, nullptr);
+				headPose.Rotation = OVR::Quatf(OVR::Axis_Y, yaw);
+				trackerPose = headPose * trackerPose;
+			}
+		}
 
-		// Create a leveled head pose
-		float yaw;
-		XR::Posef headPose(relation.pose);
-		headPose.Rotation.GetYawPitchRoll(&yaw, nullptr, nullptr);
-		headPose.Rotation = OVR::Quatf(OVR::Axis_Y, yaw);
-
-		tracker.Pose = headPose * poses[trackerPoseIndex];
-		tracker.LeveledPose = tracker.Pose;
+		tracker.Pose = trackerPose;
+		tracker.LeveledPose = trackerPose;
 		tracker.TrackerFlags = ovrTracker_Connected | ovrTracker_PoseTracked;
 	}
 
