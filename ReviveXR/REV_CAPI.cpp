@@ -224,8 +224,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		}
 
 		HRESULT hr = D3D11CreateDevice(pAdapter.Get(),
-			D3D_DRIVER_TYPE_UNKNOWN, 0,
-			D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+			D3D_DRIVER_TYPE_UNKNOWN, 0, 0,
 			NULL, 0, D3D11_SDK_VERSION,
 			&pDevice, nullptr, nullptr);
 		assert(SUCCEEDED(hr));
