@@ -13,7 +13,14 @@
 #include <d3d11.h>
 #include <openxr/openxr_platform.h>
 
-extern LPVOID TargetCreateDevice;
+typedef HRESULT(WINAPI* _CreateRenderTargetView)(
+	ID3D11Device						*pDevice,
+	ID3D11Resource                      *pResource,
+	const D3D11_RENDER_TARGET_VIEW_DESC *pDesc,
+	ID3D11RenderTargetView              **ppSRView
+	);
+
+_CreateRenderTargetView TrueCreateRenderTargetView;
 
 // {EBA3BA6A-76A2-4A9B-B150-681FC1020EDE}
 static const GUID RXR_RTV_DESC =
@@ -78,6 +85,23 @@ D3D11_RTV_DIMENSION DescToViewDimension(const ovrTextureSwapChainDesc* desc)
 	}
 }
 
+HRESULT WINAPI HookCreateRenderTargetView(
+	ID3D11Device						*pDevice,
+	ID3D11Resource                      *pResource,
+	const D3D11_RENDER_TARGET_VIEW_DESC *pDesc,
+	ID3D11RenderTargetView              **ppSRView
+)
+{
+	D3D11_RENDER_TARGET_VIEW_DESC desc;
+	UINT size = (UINT)sizeof(desc);
+	if (!pDesc && SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
+	{
+		return TrueCreateRenderTargetView(pDevice, pResource, &desc, ppSRView);
+	}
+
+	return TrueCreateRenderTargetView(pDevice, pResource, pDesc, ppSRView);
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
                                                             IUnknown* d3dPtr,
                                                             const ovrTextureSwapChainDesc* desc,
@@ -93,12 +117,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	if (!session->Session)
 	{
-		MH_DisableHook(TargetCreateDevice);
-
 		ID3D11Device* pDevice = nullptr;
 		HRESULT hr = d3dPtr->QueryInterface(&pDevice);
 		if (FAILED(hr))
 			return ovrError_InvalidParameter;
+
+		// Install a hook on CreateRenderTargetView so we can ensure NULL descriptors keep working on typeless formats
+		// This fixes Echo Arena.
+		MH_CreateHookVirtualEx(pDevice, 9, HookCreateRenderTargetView, (PVOID*)&TrueCreateRenderTargetView, &session->HookedFunction);
+		MH_EnableHook(session->HookedFunction);
 
 		XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
 		graphicsBinding.device = pDevice;
@@ -128,8 +155,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 		CHK_OVR(ovr_WaitToBeginFrame(session, 0));
 		CHK_OVR(ovr_BeginFrame(session, 0));
-
-		MH_EnableHook(TargetCreateDevice);
 	}
 
 	// Enumerate formats

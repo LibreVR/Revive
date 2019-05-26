@@ -9,66 +9,17 @@
 #include "OVR_CAPI.h"
 #include "OVR_Version.h"
 
-// {EBA3BA6A-76A2-4A9B-B150-681FC1020EDE}
-static const GUID RXR_RTV_DESC =
-{ 0xeba3ba6a, 0x76a2, 0x4a9b,{ 0xb1, 0x50, 0x68, 0x1f, 0xc1, 0x2, 0xe, 0xde } };
-
 typedef FARPROC(WINAPI* _GetProcAddress)(HMODULE hModule, LPCSTR lpProcName);
 typedef HMODULE(WINAPI* _LoadLibrary)(LPCWSTR lpFileName);
 typedef HANDLE(WINAPI* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
-typedef HRESULT(WINAPI* _CreateRenderTargetView)(
-	ID3D11Device						*pDevice,
-	ID3D11Resource                      *pResource,
-	const D3D11_RENDER_TARGET_VIEW_DESC *pDesc,
-	ID3D11RenderTargetView              **ppSRView
-	);
 
 _GetProcAddress TrueGetProcAddress;
 _LoadLibrary TrueLoadLibrary;
 _OpenEvent TrueOpenEvent;
-_CreateRenderTargetView TrueCreateRenderTargetView;
-PFN_D3D11_CREATE_DEVICE_AND_SWAP_CHAIN TrueCreateDevice;
 
 HMODULE revModule;
 WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
-
-LPVOID TargetCreateDevice;
-
-HRESULT WINAPI HookCreateRenderTargetView(
-	ID3D11Device						*pDevice,
-	ID3D11Resource                      *pResource,
-	const D3D11_RENDER_TARGET_VIEW_DESC *pDesc,
-	ID3D11RenderTargetView              **ppSRView
-)
-{
-	D3D11_RENDER_TARGET_VIEW_DESC desc;
-	UINT size = (UINT)sizeof(desc);
-	if (!pDesc && SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
-	{
-		return TrueCreateRenderTargetView(pDevice, pResource, &desc, ppSRView);
-	}
-
-	return TrueCreateRenderTargetView(pDevice, pResource, pDesc, ppSRView);
-}
-
-HRESULT HookCreateDevice(IDXGIAdapter *pAdapter, D3D_DRIVER_TYPE DriverType, HMODULE Software,
-	UINT Flags, const D3D_FEATURE_LEVEL *pFeatureLevels, UINT FeatureLevels, UINT SDKVersion,
-	const DXGI_SWAP_CHAIN_DESC *pSwapChainDesc, IDXGISwapChain **ppSwapChain, ID3D11Device **ppDevice,
-	D3D_FEATURE_LEVEL *pFeatureLevel, ID3D11DeviceContext  **ppImmediateContext)
-{
-	HRESULT hr = TrueCreateDevice(pAdapter, DriverType, Software, Flags,
-		pFeatureLevels, FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
-
-	static LPVOID target = nullptr;
-	if (target)
-		MH_RemoveHook(target);
-
-	MH_CreateHookVirtualEx(*ppDevice, 9, HookCreateRenderTargetView, (PVOID*)&TrueCreateRenderTargetView, &target);
-	MH_EnableHook(target);
-
-	return hr;
-}
 
 FARPROC WINAPI HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 {
@@ -120,8 +71,6 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 #if 0
 			MH_CreateHook(GetProcAddress, HookGetProcAddress, (PVOID*)&TrueGetProcAddress);
 #endif
-			// D3D11CreateDevice is just a wrapper for D3D11CreateDeviceAndSwapChain
-			MH_CreateHookApiEx(L"d3d11.dll", "D3D11CreateDeviceAndSwapChain", HookCreateDevice, (PVOID*)&TrueCreateDevice, &TargetCreateDevice);
 			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
 			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
 			MH_EnableHook(MH_ALL_HOOKS);

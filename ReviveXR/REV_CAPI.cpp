@@ -30,8 +30,6 @@ uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
 Extensions g_Extensions;
 
-extern LPVOID TargetCreateDevice;
-
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
 	if (g_Instance)
@@ -74,23 +72,13 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 
 	// End all sessions
 	std::vector<XrSession> ToDestroy;
-	for (ovrHmdStruct& session : g_Sessions)
+	auto it = g_Sessions.begin();
+	while (it != g_Sessions.end())
 	{
-		if (session.Session)
-		{
-			XrResult rs = xrEndSession(session.Session);
-			assert(XR_SUCCEEDED(rs));
-
-			ToDestroy.push_back(session.Session);
-		}
-	}
-	g_Sessions.clear();
-
-	// Destroy all sessions
-	for (XrSession& session : ToDestroy)
-	{
-		XrResult rs = xrDestroySession(session);
-		assert(XR_SUCCEEDED(rs));
+		// After years of work I have perfected my most unmaintainable line of
+		// code. It's very important that the iterator is incremented after the
+		// pointer is taken but before ovr_Destroy() is called or we *will* crash.
+		ovr_Destroy(&*it++);
 	}
 
 	// Destroy and reset the instance
@@ -209,8 +197,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	if (pLuid)
 		memcpy(pLuid, &graphicsReq.adapterLuid, sizeof(ovrGraphicsLuid));
 
-	MH_DisableHook(TargetCreateDevice);
-
 	// Create a temporary session to retrieve the headset field-of-view
 	Microsoft::WRL::ComPtr<IDXGIFactory1> pFactory = NULL;
 	if (SUCCEEDED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory)))
@@ -269,8 +255,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		CHK_XR(xrDestroySession(fakeSession));
 	}
 
-	MH_EnableHook(TargetCreateDevice);
-
 	*pSession = session;
 	return ovrSuccess;
 }
@@ -285,6 +269,9 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 		XrResult rs = xrEndSession(handle);
 		assert(XR_SUCCEEDED(rs));
 	}
+
+	if (session->HookedFunction)
+		MH_RemoveHook(session->HookedFunction);
 
 	// Delete the session from the list of sessions
 	g_Sessions.erase(std::find_if(g_Sessions.begin(), g_Sessions.end(), [session](ovrHmdStruct const& o) { return &o == session; }));
