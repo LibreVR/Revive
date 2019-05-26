@@ -142,7 +142,7 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 		desc.Resolution.w += (int)session->ViewConfigs[i].recommendedImageRectWidth;
 		desc.Resolution.h = std::max(desc.Resolution.h, (int)session->ViewConfigs[i].recommendedImageRectHeight);
 	}
-	desc.DisplayRefreshRate = 90.0f;
+	desc.DisplayRefreshRate = session->FrameState.predictedDisplayPeriod > 0 ? 1e9f / session->FrameState.predictedDisplayPeriod : 90.0f;
 	return desc;
 }
 
@@ -1253,7 +1253,7 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 			);
 
 		if (strcmp(propertyName, "VsyncToNextVsync") == 0)
-			return 1e9f / session->FrameState.predictedDisplayPeriod;
+			return session->FrameState.predictedDisplayPeriod / 1e9f;
 	}
 
 	// Override defaults, we should always return a valid value for these

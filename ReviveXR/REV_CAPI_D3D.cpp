@@ -29,7 +29,7 @@ static const GUID RXR_RTV_DESC =
 DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format)
 {
 	// TODO: sRGB support
-	// TODO: Typeless formats are unsupported, we may need to introduce a typeless staging texture
+	// OpenXR always uses typeless formats
 	switch (format)
 	{
 		case OVR_FORMAT_UNKNOWN:              return DXGI_FORMAT_UNKNOWN;
