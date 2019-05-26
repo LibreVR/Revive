@@ -3,7 +3,7 @@
 	url = https://github.com/ValveSoftware/openvr.git
 [submodule "minhook"]
 	path = Externals/minhook
-	url = https://github.com/TsudaKageyu/minhook.git
+	url = https://github.com/Armada651/minhook.git
 [submodule "WinSparkle"]
 	path = Externals/WinSparkle
 	url = https://github.com/LibreVR/ext-win-sparkle.git

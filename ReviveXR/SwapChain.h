@@ -7,6 +7,7 @@
 
 struct ovrTextureSwapChainData
 {
+	int64_t Format;
 	ovrTextureSwapChainDesc Desc;
 	XrSwapchain Swapchain;
 	XrSwapchainImageBaseHeader* Images;

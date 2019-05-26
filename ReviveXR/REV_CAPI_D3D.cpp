@@ -4,6 +4,7 @@
 #include "SwapChain.h"
 #include "InputManager.h"
 #include "XR_Math.h"
+#include "MinHook.h"
 
 #include <vector>
 #include <algorithm>
@@ -11,6 +12,12 @@
 #define XR_USE_GRAPHICS_API_D3D11
 #include <d3d11.h>
 #include <openxr/openxr_platform.h>
+
+extern LPVOID TargetCreateDevice;
+
+// {EBA3BA6A-76A2-4A9B-B150-681FC1020EDE}
+static const GUID RXR_RTV_DESC =
+{ 0xeba3ba6a, 0x76a2, 0x4a9b,{ 0xb1, 0x50, 0x68, 0x1f, 0xc1, 0x2, 0xe, 0xde } };
 
 DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format)
 {
@@ -53,6 +60,24 @@ DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format)
 	}
 }
 
+D3D11_RTV_DIMENSION DescToViewDimension(const ovrTextureSwapChainDesc* desc)
+{
+	if (desc->ArraySize > 1)
+	{
+		if (desc->SampleCount > 1)
+			return D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY;
+		else
+			return D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+	}
+	else
+	{
+		if (desc->SampleCount > 1)
+			return D3D11_RTV_DIMENSION_TEXTURE2DMS;
+		else
+			return D3D11_RTV_DIMENSION_TEXTURE2D;
+	}
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
                                                             IUnknown* d3dPtr,
                                                             const ovrTextureSwapChainDesc* desc,
@@ -68,6 +93,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	if (!session->Session)
 	{
+		MH_DisableHook(TargetCreateDevice);
+
 		ID3D11Device* pDevice = nullptr;
 		HRESULT hr = d3dPtr->QueryInterface(&pDevice);
 		if (FAILED(hr))
@@ -101,6 +128,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 		CHK_OVR(ovr_WaitToBeginFrame(session, 0));
 		CHK_OVR(ovr_BeginFrame(session, 0));
+
+		MH_EnableHook(TargetCreateDevice);
 	}
 
 	// Enumerate formats
@@ -111,14 +140,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	xrEnumerateSwapchainFormats(session->Session, formats.size(), &formatCount, formats.data());
 	assert(formats.size() == formatCount);
 
-	// Check if the format is supported
-	int64_t format = TextureFormatToDXGIFormat(desc->Format);
-	if (std::find(formats.begin(), formats.end(), format) == formats.end())
-		format = formats[0];
-
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
+
+	// Check if the format is supported
+	swapChain->Format = TextureFormatToDXGIFormat(desc->Format);
+	if (std::find(formats.begin(), formats.end(), swapChain->Format) == formats.end())
+		swapChain->Format = formats[0];
+
 	swapChain->Desc = *desc;
-	XrSwapchainCreateInfo createInfo = DescToCreateInfo(desc, format);
+	XrSwapchainCreateInfo createInfo = DescToCreateInfo(desc, swapChain->Format);
 	CHK_XR(xrCreateSwapchain(session->Session, &createInfo, &swapChain->Swapchain));
 
 	CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, 0, &swapChain->Length, nullptr));
@@ -161,7 +191,25 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
 
 	XrSwapchainImageD3D11KHR image = ((XrSwapchainImageD3D11KHR*)chain->Images)[index];
 
-	HRESULT hr = image.texture->QueryInterface(iid, out_Buffer);
+	D3D11_RENDER_TARGET_VIEW_DESC desc;
+	desc.Format = (DXGI_FORMAT)chain->Format;
+	desc.ViewDimension = DescToViewDimension(&chain->Desc);
+	if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY)
+	{
+		desc.Texture2DMSArray.FirstArraySlice = 0;
+		desc.Texture2DMSArray.ArraySize = chain->Desc.ArraySize;
+	}
+	else
+	{
+		desc.Texture2DArray.MipSlice = 0;
+		desc.Texture2DArray.FirstArraySlice = 0;
+		desc.Texture2DArray.ArraySize = chain->Desc.ArraySize;
+	}
+	HRESULT hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D11_RENDER_TARGET_VIEW_DESC), &desc);
+	if (FAILED(hr))
+		return ovrError_RuntimeException;
+
+	hr = image.texture->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_InvalidParameter;
 

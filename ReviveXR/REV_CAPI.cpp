@@ -30,6 +30,8 @@ uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
 Extensions g_Extensions;
 
+extern LPVOID TargetCreateDevice;
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
 	if (g_Instance)
@@ -207,6 +209,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	if (pLuid)
 		memcpy(pLuid, &graphicsReq.adapterLuid, sizeof(ovrGraphicsLuid));
 
+	MH_DisableHook(TargetCreateDevice);
+
 	// Create a temporary session to retrieve the headset field-of-view
 	Microsoft::WRL::ComPtr<IDXGIFactory1> pFactory = NULL;
 	if (SUCCEEDED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory)))
@@ -264,6 +268,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		CHK_XR(xrEndSession(fakeSession));
 		CHK_XR(xrDestroySession(fakeSession));
 	}
+
+	MH_EnableHook(TargetCreateDevice);
 
 	*pSession = session;
 	return ovrSuccess;
