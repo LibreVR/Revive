@@ -153,14 +153,23 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	return 2;
+	// Pre-1.37 applications need virtual sensors to avoid a loss of tracking being detected
+	return g_MinorVersion < 37 ? 3 : 0;
 }
 
 OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsigned int trackerDescIndex)
 {
 	REV_TRACE(ovr_GetTrackerDesc);
 
-	return ovrTrackerDesc();
+	ovrTrackerDesc desc = { 0 };
+	if (trackerDescIndex < ovr_GetTrackerCount(session))
+	{
+		desc.FrustumHFovInRadians = OVR::DegreeToRad(100.0f);
+		desc.FrustumVFovInRadians = OVR::DegreeToRad(70.0f);
+		desc.FrustumNearZInMeters = 0.4f;
+		desc.FrustumFarZInMeters = 2.5;
+	}
+	return desc;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid* pLuid)
@@ -468,9 +477,29 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 	if (!session)
 		return tracker;
 
-	tracker.LeveledPose = OVR::Posef::Identity();
-	tracker.Pose = OVR::Posef::Identity();
-	tracker.TrackerFlags = ovrTracker_Connected;
+	if (trackerPoseIndex < ovr_GetTrackerCount(session))
+	{
+		const OVR::Posef poses[] = {
+			OVR::Posef(OVR::Quatf(OVR::Axis_Y, OVR::DegreeToRad(90.0f)), OVR::Vector3f(-2.0f, 0.0f, 0.2f)),
+			OVR::Posef(OVR::Quatf(OVR::Axis_Y, OVR::DegreeToRad(0.0f)), OVR::Vector3f(-0.2f, 0.0f, -2.0f)),
+			OVR::Posef(OVR::Quatf(OVR::Axis_Y, OVR::DegreeToRad(180.0f)), OVR::Vector3f(0.2f, 0.0f, 2.0f))
+		};
+
+		XrSpaceRelation relation = XR_TYPE(SPACE_RELATION);
+		if (XR_FAILED(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->FrameState.predictedDisplayTime, &relation)))
+			return tracker;
+
+		// Create a leveled head pose
+		float yaw;
+		XR::Posef headPose(relation.pose);
+		headPose.Rotation.GetYawPitchRoll(&yaw, nullptr, nullptr);
+		headPose.Rotation = OVR::Quatf(OVR::Axis_Y, yaw);
+
+		tracker.Pose = headPose * poses[trackerPoseIndex];
+		tracker.LeveledPose = tracker.Pose;
+		tracker.TrackerFlags = ovrTracker_Connected | ovrTracker_PoseTracked;
+	}
+
 	return tracker;
 }
 
