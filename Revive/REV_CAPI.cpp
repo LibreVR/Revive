@@ -151,7 +151,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 		return ovrError_InvalidSession;
 
 	if (session->Details->UseHack(SessionDetails::HACK_SPOOF_SENSORS))
-		return 2;
+		return 3;
 
 	return (unsigned int)session->Details->TrackerCount;
 }
@@ -361,10 +361,33 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 
 	if (session->Details->UseHack(SessionDetails::HACK_SPOOF_SENSORS))
 	{
-		tracker.LeveledPose = OVR::Posef::Identity();
-		tracker.Pose = OVR::Posef::Identity();
-		tracker.TrackerFlags = ovrTracker_Connected;
-		return tracker;
+		if (trackerPoseIndex < ovr_GetTrackerCount(session))
+		{
+			const OVR::Posef poses[] = {
+				OVR::Posef(OVR::Quatf(OVR::Axis_Y, OVR::DegreeToRad(90.0f)), OVR::Vector3f(-2.0f, 0.0f, 0.2f)),
+				OVR::Posef(OVR::Quatf(OVR::Axis_Y, OVR::DegreeToRad(0.0f)), OVR::Vector3f(-0.2f, 0.0f, -2.0f)),
+				OVR::Posef(OVR::Quatf(OVR::Axis_Y, OVR::DegreeToRad(180.0f)), OVR::Vector3f(0.2f, 0.0f, 2.0f))
+			};
+			OVR::Posef trackerPose = poses[trackerPoseIndex];
+
+			vr::TrackedDevicePose_t pose;
+			vr::VRCompositor()->GetLastPoseForTrackedDeviceIndex(vr::k_unTrackedDeviceIndex_Hmd, &pose, nullptr);
+
+			// Create a leveled head pose
+			if (pose.bPoseIsValid)
+			{
+				float yaw;
+				REV::Matrix4f matrix(pose.mDeviceToAbsoluteTracking);
+				OVR::Quatf headOrientation(matrix);
+				headOrientation.GetYawPitchRoll(&yaw, nullptr, nullptr);
+				headOrientation = OVR::Quatf(OVR::Axis_Y, yaw);
+				trackerPose = OVR::Posef(headOrientation, matrix.GetTranslation()) * trackerPose;
+			}
+
+			tracker.Pose = trackerPose;
+			tracker.LeveledPose = trackerPose;
+			tracker.TrackerFlags = ovrTracker_Connected | ovrTracker_PoseTracked;
+		}
 	}
 
 	// Get the index for this tracker.

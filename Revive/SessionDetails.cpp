@@ -153,13 +153,12 @@ void SessionDetails::UpdateTrackerDesc()
 		// Fill the descriptor.
 		std::shared_ptr<ovrTrackerDesc> desc = std::make_shared<ovrTrackerDesc>();
 
-		if (spoofSensors) 
+		if (spoofSensors)
 		{
-			// Get the tracking frustum
-			desc->FrustumHFovInRadians = (float)OVR::DegreeToRad(180.0);
-			desc->FrustumVFovInRadians = (float)OVR::DegreeToRad(180.0);
-			desc->FrustumNearZInMeters = 1;
-			desc->FrustumFarZInMeters = 10;
+			desc->FrustumHFovInRadians = OVR::DegreeToRad(100.0f);
+			desc->FrustumVFovInRadians = OVR::DegreeToRad(70.0f);
+			desc->FrustumNearZInMeters = 0.4f;
+			desc->FrustumFarZInMeters = 2.5;
 		}
 		else 
 		{
@@ -172,6 +171,7 @@ void SessionDetails::UpdateTrackerDesc()
 			float bottom = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewBottomDegrees_Float);
 			desc->FrustumHFovInRadians = (float)OVR::DegreeToRad(left + right);
 			desc->FrustumVFovInRadians = (float)OVR::DegreeToRad(top + bottom);
+
 			// Get the tracking frustum.
 			desc->FrustumNearZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
 			desc->FrustumFarZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
