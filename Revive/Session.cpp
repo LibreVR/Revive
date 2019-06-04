@@ -101,6 +101,8 @@ ovrHmdStruct::ovrHmdStruct()
 {
 	// Get the default universe origin from the settings
 	TrackingOrigin = (vr::ETrackingUniverseOrigin)Settings->Get<int>(REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN);
+	if (Details->UseHack(SessionDetails::HACK_STRICT_POSES))
+		vr::VRCompositor()->SetTrackingSpace(TrackingOrigin);
 
 	SessionStatusBits status = {};
 	status.HmdPresent = vr::VR_IsHmdPresent();

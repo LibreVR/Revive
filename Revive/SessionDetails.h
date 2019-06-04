@@ -37,6 +37,11 @@ public:
 		// AirMech: Command doesn't properly synchronize their threads and relies on actual API call
 		// timings to keep the game thread in sync with the render thread.
 		HACK_SLEEP_IN_SESSION_STATUS,
+
+		// Hack: Only uses poses from the compositor for rendering.
+		// Some driver don't support pose submission therefore we can't use predicted poses for rendering
+		// that did not come from the compositor.
+		HACK_STRICT_POSES,
 	};
 
 	SessionDetails();

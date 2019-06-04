@@ -279,6 +279,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 
 	// Both enums match exactly, so we can just cast them
 	session->TrackingOrigin = (vr::ETrackingUniverseOrigin)origin;
+	if (session->Details->UseHack(SessionDetails::HACK_STRICT_POSES))
+		vr::VRCompositor()->SetTrackingSpace(session->TrackingOrigin);
 	return ovrSuccess;
 }
 

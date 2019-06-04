@@ -228,7 +228,10 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	// Get the device poses
 	vr::ETrackingUniverseOrigin origin = session->TrackingOrigin;
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(origin, relTime, poses, vr::k_unMaxTrackedDeviceCount);
+	if (absTime > 0.0f && session->Details->UseHack(SessionDetails::HACK_STRICT_POSES))
+		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+	else
+		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(origin, relTime, poses, vr::k_unMaxTrackedDeviceCount);
 
 	// Convert the head pose
 	outState->HeadPose = TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], m_LastPoses[vr::k_unTrackedDeviceIndex_Hmd], absTime);

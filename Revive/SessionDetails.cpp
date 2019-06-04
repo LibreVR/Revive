@@ -8,10 +8,10 @@
 #include <memory>
 
 SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
-	{ "drt.exe", nullptr, HACK_WAIT_IN_TRACKING_STATE, false }, // TODO: Fix this hack
 	{ "ultrawings.exe", nullptr, HACK_FAKE_PRODUCT_NAME, true },
-	{ nullptr, "holographic", HACK_SPOOF_SENSORS, true },
-	{ "AirMech.exe", nullptr, HACK_SLEEP_IN_SESSION_STATUS, true }
+	{ "AirMech.exe", nullptr, HACK_SLEEP_IN_SESSION_STATUS, true },
+	{ nullptr, "lighthouse", HACK_SPOOF_SENSORS, false },
+	{ nullptr, "lighthouse", HACK_STRICT_POSES, false }
 };
 
 SessionDetails::SessionDetails()
@@ -33,7 +33,14 @@ SessionDetails::SessionDetails()
 	{
 		if ((!hack.m_filename || _stricmp(filename, hack.m_filename) == 0) &&
 			(!hack.m_driver || strcmp(driver.data(), hack.m_driver) == 0))
+		{
+			if (hack.m_usehack)
+				m_hacks.emplace(hack.m_hack, hack);
+		}
+		else if (!hack.m_usehack)
+		{
 			m_hacks.emplace(hack.m_hack, hack);
+		}
 	}
 
 	UpdateHmdDesc();
@@ -46,10 +53,7 @@ SessionDetails::~SessionDetails()
 
 bool SessionDetails::UseHack(Hack hack)
 {
-	auto it = m_hacks.find(hack);
-	if (it == m_hacks.end())
-		return false;
-	return it->second.m_usehack;
+	return m_hacks.find(hack) != m_hacks.end();
 }
 
 void SessionDetails::UpdateHmdDesc()

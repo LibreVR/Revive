@@ -390,7 +390,8 @@ vr::VRCompositorError CompositorBase::SubmitFovLayer(ovrSession session, ovrLaye
 
 		// Add the pose data to the eye texture
 		REV::Matrix4f pose(fovLayer->RenderPose[i]);
-		if (session->TrackingOrigin == vr::TrackingUniverseSeated)
+		const bool strictPoses = session->Details->UseHack(SessionDetails::HACK_STRICT_POSES);
+		if (!strictPoses && session->TrackingOrigin == vr::TrackingUniverseSeated)
 		{
 			REV::Matrix4f offset(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
 			texture.mDeviceToAbsoluteTracking = REV::Matrix4f(offset * pose);
@@ -400,7 +401,7 @@ vr::VRCompositorError CompositorBase::SubmitFovLayer(ovrSession session, ovrLaye
 			texture.mDeviceToAbsoluteTracking = pose;
 		}
 
-		err = vr::VRCompositor()->Submit((vr::EVREye)i, (vr::Texture_t*)&texture, &bounds, vr::Submit_TextureWithPose);
+		err = vr::VRCompositor()->Submit((vr::EVREye)i, (vr::Texture_t*)&texture, &bounds, strictPoses ? vr::Submit_Default : vr::Submit_TextureWithPose);
 		if (err != vr::VRCompositorError_None)
 			break;
 	}
