@@ -201,10 +201,6 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	assert(XR_SUCCEEDED(rs));
 	outState->StatusFlags = SpaceRelationToPoseState(relation, absTime, outState->HeadPose);
 
-	// Apply a default neck-to-eye model to move the head pose to the center of the head on the top of the neck
-	OVR::Vector3f neckOffset = OVR::Quatf(outState->HeadPose.ThePose.Orientation) * OVR::Vector3f(0.0f, OVR_DEFAULT_NECK_TO_EYE_VERTICAL, -OVR_DEFAULT_NECK_TO_EYE_HORIZONTAL);
-	outState->HeadPose.ThePose.Position = OVR::Vector3f(outState->HeadPose.ThePose.Position) + neckOffset;
-
 	// Convert the hand poses
 	for (int i = 0; i < ovrHand_Count; i++)
 	{

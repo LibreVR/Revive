@@ -889,9 +889,6 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 			pose = views[eyeType].pose;
 	}
 
-	// Counter-act the default neck-to-eye model
-	desc.HmdToEyePose.Position.y -= OVR_DEFAULT_NECK_TO_EYE_VERTICAL;
-	desc.HmdToEyePose.Position.z += OVR_DEFAULT_NECK_TO_EYE_HORIZONTAL;
 	desc.HmdToEyePose = pose;
 	return desc;
 }
