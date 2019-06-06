@@ -150,9 +150,6 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	if (session->Details->UseHack(SessionDetails::HACK_SPOOF_SENSORS))
-		return 3;
-
 	return (unsigned int)session->Details->TrackerCount;
 }
 
@@ -388,6 +385,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 			tracker.LeveledPose = trackerPose;
 			tracker.TrackerFlags = ovrTracker_Connected | ovrTracker_PoseTracked;
 		}
+		return tracker;
 	}
 
 	// Get the index for this tracker.

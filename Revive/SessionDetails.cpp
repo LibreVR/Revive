@@ -143,7 +143,7 @@ void SessionDetails::UpdateTrackerDesc()
 {
 	const bool spoofSensors = UseHack(SessionDetails::HACK_SPOOF_SENSORS);
 	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount];
-	uint32_t count = 2;
+	uint32_t count = 3;
 
 	if (!spoofSensors)
 		count = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
@@ -158,7 +158,7 @@ void SessionDetails::UpdateTrackerDesc()
 			desc->FrustumHFovInRadians = OVR::DegreeToRad(100.0f);
 			desc->FrustumVFovInRadians = OVR::DegreeToRad(70.0f);
 			desc->FrustumNearZInMeters = 0.4f;
-			desc->FrustumFarZInMeters = 2.5;
+			desc->FrustumFarZInMeters = 2.5f;
 		}
 		else 
 		{
