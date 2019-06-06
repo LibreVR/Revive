@@ -117,8 +117,11 @@
                   "pull" : {
                      "output" : "/actions/touch/in/lindextrigger"
                   },
-                  "click" : {
+                  "touch" : {
                      "output" : "/actions/touch/in/touch_lindextrigger"
+                  },
+                  "click" : {
+                     "output" : "/actions/touch/in/button_lindextrigger"
                   }
                },
                "mode" : "trigger",
@@ -186,8 +189,11 @@
                   "pull" : {
                      "output" : "/actions/touch/in/rindextrigger"
                   },
-                  "click" : {
+                  "touch" : {
                      "output" : "/actions/touch/in/touch_rindextrigger"
+                  },
+                  "click" : {
+                     "output" : "/actions/touch/in/button_rindextrigger"
                   }
                },
                "mode" : "trigger",

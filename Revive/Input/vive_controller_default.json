@@ -130,6 +130,9 @@
                "inputs" : {
                   "pull" : {
                      "output" : "/actions/touch/in/lindextrigger"
+                  },
+                  "click" : {
+                     "output" : "/actions/touch/in/button_lindextrigger"
                   }
                },
                "mode" : "trigger",
@@ -208,6 +211,9 @@
                "inputs" : {
                   "pull" : {
                      "output" : "/actions/touch/in/rindextrigger"
+                  },
+                  "click" : {
+                     "output" : "/actions/touch/in/button_rindextrigger"
                   }
                },
                "mode" : "trigger",
