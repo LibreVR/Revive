@@ -1,4 +1,4 @@
-# Revive/Remixed Report Template
+# Revive Report Template
 *Please fill out this template/form to the best of your abilities to give us enough info to look into your issue.*
 ### Description of the issue
 *Please provide us with a detailed description of the issue*
