@@ -1330,3 +1330,9 @@ ovr_QueryDistortion()
 {
 	return ovrError_Unsupported;
 }
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_SetClientColorDesc()
+{
+	return ovrError_Unsupported;
+}

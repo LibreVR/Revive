@@ -21,15 +21,25 @@ HMODULE revModule;
 WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
 
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_Unsupported()
+{
+	return ovrError_Unsupported;
+}
+
 FARPROC WINAPI HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 {
-	if (hModule == revModule)
+	FARPROC proc = TrueGetProcAddress(hModule, lpProcName);
+
+	if (hModule == revModule && !proc)
 	{
+		OutputDebugStringA("Unsupported: ");
 		OutputDebugStringA(lpProcName);
 		OutputDebugStringA("\n");
+		return (FARPROC)ovr_Unsupported;
 	}
 
-	return TrueGetProcAddress(hModule, lpProcName);
+	return proc;
 }
 
 HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
