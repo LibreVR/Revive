@@ -5,27 +5,21 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.6.3</title>
+			<title>Version 1.6.4</title>
 			<description>
 			<![CDATA[
-			<h2>Changes</h2>
-
-			<ul>
-			    <li>Added support for Remixed to the patching feature</li>
-			</ul>
-
 			<h2>Bug fixes</h2>
 
 			<ul>
-			    <li>Remixed: Fixed iRacing mirror window being rendered into the headset (brads55)</li>
-    			    <li>Revive: Fixed Oculus Medium crashing on launch with AMD GPUs (#1167)</li>
+			    <li>Fixed Revive refusing to load when SteamVR is running when using the patching function</li>
+			    <li>Revive: Fixed Remote and Xbox controller bindings not being used</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>3 February 2019</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.6.3/ReviveInstaller.exe"
+			<pubDate>17 March 2019</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.6.4/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.6.3.0"
+					   sparkle:version="1.6.4.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
