@@ -15,7 +15,7 @@ This is a compatibility layer between the Oculus SDK and OpenVR. It allows you t
 5. Put on the headset, open the dashboard and click the new Revive tab.
 6. If you run into any problems, read the known issues below or refer to the [wiki](https://github.com/LibreVR/Revive/wiki).
 
-If you want to adjust the advanced settings in Revive you should download [OpenVR-AdvancedSettings](https://github.com/matzman666/OpenVR-AdvancedSettings) which includes a settings menu for Revive.
+If you want to adjust the advanced settings in Revive you should download [OpenVR-AdvancedSettings](https://github.com/OpenVR-Advanced-Settings/OpenVR-AdvancedSettings) which includes a settings menu for Revive.
 
 # Known Issues
 
