@@ -115,14 +115,14 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 {
 	REV_TRACE(ovr_GetHmdDesc);
 
-	ovrHmdDesc desc = { ovrHmd_CV1 };
+	ovrHmdDesc desc = { g_MinorVersion < 38 ? ovrHmd_CV1 : ovrHmd_RiftS };
 	if (!session)
 		return desc;
 
 	XrInstanceProperties props = XR_TYPE(INSTANCE_PROPERTIES);
 	xrGetInstanceProperties(session->Instance, &props);
 
-	strcpy_s(desc.ProductName, 64, "Oculus Rift");
+	strcpy_s(desc.ProductName, 64, "Oculus Rift S");
 	strcpy_s(desc.Manufacturer, 64, props.runtimeName);
 
 	if (session->SystemProperties.trackingProperties.orientationTracking)
