@@ -33,6 +33,7 @@ int CreateProcessAndInject(wchar_t *programPath, bool xr)
 
 	// Remove filename
 	wchar_t* file = wcsrchr(workingDir, L'\\');
+	const bool useAPC = !wcscmp(L"Quill", file + 1);
 	if (file)
 		*file = L'\0';
 
@@ -77,8 +78,9 @@ int CreateProcessAndInject(wchar_t *programPath, bool xr)
 	}
 #endif
 
-	if (!InjectOpenVR(pi.hProcess, pi.hThread, xr) ||
-		!InjectLibRevive(pi.hProcess, pi.hThread, xr)) {
+	HANDLE hThread = useAPC ? pi.hThread : INVALID_HANDLE_VALUE;
+	if (!InjectOpenVR(pi.hProcess, hThread, xr) ||
+		!InjectLibRevive(pi.hProcess, hThread, xr)) {
 		ResumeThread(pi.hThread);
 		return -1;
 	}
