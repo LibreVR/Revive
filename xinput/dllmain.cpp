@@ -6,6 +6,7 @@ typedef void (VR_CALLTYPE* VR_ShutdownInternalPtr)(void);
 
 bool IsSteamVRRunning()
 {
+#if 0
 	HMODULE openvr = LoadLibrary(L"openvr_api.dll");
 	if (!openvr)
 		return false;
@@ -21,6 +22,9 @@ bool IsSteamVRRunning()
 
 	FreeLibrary(openvr);
 	return err == vr::VRInitError_None;
+#else
+	return true;
+#endif
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,
