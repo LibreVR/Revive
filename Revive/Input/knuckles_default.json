@@ -185,13 +185,31 @@
                },
                "mode" : "trigger",
                "path" : "/user/hand/right/input/grip"
+            },
+            {
+                "path": "/user/hand/left/input/grip",
+                "mode": "grab",
+                "inputs": {
+                    "grab": {
+                        "output": "/actions/touch/in/button_lhandtrigger"
+                    }
+                }
+            },
+            {
+                "path": "/user/hand/right/input/grip",
+                "mode": "grab",
+                "inputs": {
+                    "grab": {
+                        "output": "/actions/touch/in/button_rhandtrigger"
+                    }
+                }
             }
          ]
       }
    },
    "controller_type" : "knuckles",
    "description" : "",
-   "name" : "Revive for Knuckles",
+   "name" : "Revive for Index",
    "options" : {},
    "simulated_actions" : []
 }
