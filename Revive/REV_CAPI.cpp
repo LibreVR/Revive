@@ -1234,27 +1234,54 @@ ovr_GetViewportStencil(
 	return ovr_GetFovStencil(session, &fovStencilDesc, outMeshBuffer);
 }
 
+static const vr::HmdVector2_t VisibleRectangle[] = {
+	{ 0.0f, 0.0f },
+	{ 1.0f, 0.0f },
+	{ 1.0f, 1.0f },
+	{ 0.0f, 1.0f }
+};
+
+static const uint16_t VisibleRectangleIndices[] = {
+	0, 1, 2, 0, 2, 3
+};
+
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetFovStencil(
 	ovrSession session,
 	const ovrFovStencilDesc* fovStencilDesc,
 	ovrFovStencilMeshBuffer* meshBuffer)
 {
-	// TODO: Implement support for visible rectangle
-	if (fovStencilDesc->StencilType >= vr::k_eHiddenAreaMesh_Max)
-		return ovrError_Unsupported;
-
-	vr::HiddenAreaMesh_t mesh = vr::VRSystem()->GetHiddenAreaMesh((vr::EVREye)fovStencilDesc->Eye, (vr::EHiddenAreaMeshType)fovStencilDesc->StencilType);
-
-	int& i = meshBuffer->UsedVertexCount;
-	for (i = 0; i < meshBuffer->AllocVertexCount && i < (int)mesh.unTriangleCount; i++)
+	if (fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
 	{
-		if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
-			meshBuffer->VertexBuffer[i] = OVR::Vector2f(mesh.pVertexData[i].v[0], -mesh.pVertexData[i].v[1]);
-		else
-			meshBuffer->VertexBuffer[i] = REV::Vector2f(mesh.pVertexData[i]);
+		meshBuffer->UsedVertexCount = sizeof(VisibleRectangle) / sizeof(vr::HmdVector2_t);
+		meshBuffer->UsedIndexCount = sizeof(VisibleRectangleIndices) / sizeof(uint16_t);
+
+		if (meshBuffer->AllocVertexCount >= meshBuffer->UsedVertexCount)
+			memcpy(meshBuffer->VertexBuffer, VisibleRectangle, sizeof(VisibleRectangle));
+		if (meshBuffer->AllocIndexCount >= meshBuffer->UsedIndexCount)
+			memcpy(meshBuffer->IndexBuffer, VisibleRectangleIndices, sizeof(VisibleRectangleIndices));
+		return ovrSuccess;
 	}
-	meshBuffer->UsedIndexCount = 0;
+
+	int i;
+	vr::HiddenAreaMesh_t mesh = vr::VRSystem()->GetHiddenAreaMesh((vr::EVREye)fovStencilDesc->Eye, (vr::EHiddenAreaMeshType)fovStencilDesc->StencilType);
+	for (i = 0; i < (int)mesh.unTriangleCount * 3; i++)
+	{
+		if (i < meshBuffer->AllocVertexCount)
+		{
+			if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
+				meshBuffer->VertexBuffer[i] = OVR::Vector2f(mesh.pVertexData[i].v[0], 1.0f - mesh.pVertexData[i].v[1]);
+			else
+				meshBuffer->VertexBuffer[i] = REV::Vector2f(mesh.pVertexData[i]);
+		}
+
+		if (i < meshBuffer->AllocIndexCount)
+		{
+			meshBuffer->IndexBuffer[i] = i;
+		}
+	}
+	meshBuffer->UsedVertexCount = i;
+	meshBuffer->UsedIndexCount = i;
 	return ovrSuccess;
 }
 
