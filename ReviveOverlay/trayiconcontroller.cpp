@@ -94,6 +94,10 @@ void CTrayIconController::quit()
 
 void CTrayIconController::openxr(bool checked)
 {
+	m_trayIcon->showMessage("ReviveXR enabled",
+		"OpenXR 0.9 support is experimental still has known issues, use it wisely.",
+		QSystemTrayIcon::Warning);
+
 	CReviveManifestController::SharedInstance()->EnableOpenXR(checked);
 }
 
