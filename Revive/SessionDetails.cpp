@@ -13,7 +13,7 @@ SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
 	{ "ultrawings.exe", nullptr, HACK_FAKE_PRODUCT_NAME, true },
 	{ "AirMech.exe", nullptr, HACK_SLEEP_IN_SESSION_STATUS, true },
 	{ nullptr, "lighthouse", HACK_SPOOF_SENSORS, false },
-	{ nullptr, nullptr, HACK_STRICT_POSES, true }
+	{ nullptr, "lighthouse", HACK_STRICT_POSES, false }
 };
 
 SessionDetails::SessionDetails()
