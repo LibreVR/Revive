@@ -44,15 +44,6 @@
             },
             {
                "inputs" : {
-                  "pull" : {
-                     "output" : "/actions/touch/in/lhandtrigger"
-                  }
-               },
-               "mode" : "trigger",
-               "path" : "/user/hand/left/input/finger/middle"
-            },
-            {
-               "inputs" : {
                   "click" : {
                      "output" : "/actions/touch/in/button_lindextrigger"
                   },
@@ -80,15 +71,6 @@
                },
                "mode" : "trigger",
                "path" : "/user/hand/right/input/trigger"
-            },
-            {
-               "inputs" : {
-                  "pull" : {
-                     "output" : "/actions/touch/in/rhandtrigger"
-                  }
-               },
-               "mode" : "trigger",
-               "path" : "/user/hand/right/input/finger/middle"
             },
             {
                "inputs" : {
