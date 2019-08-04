@@ -402,11 +402,13 @@ ovrControllerType InputManager::OculusTouch::GetType()
 
 bool InputManager::OculusTouch::IsConnected() const
 {
-	// Check if a Vive controller is available
-	uint32_t controllerCount = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, nullptr, 0);
+	// Check if a role is assigned and connected
+	vr::TrackedDeviceIndex_t index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(Role);
 
-	// If only one controller is available, the Oculus Remote is connected
-	return controllerCount > 1;
+	if (index == vr::k_unTrackedDeviceIndexInvalid)
+		return false;
+
+	return vr::VRSystem()->IsTrackedDeviceConnected(index);
 }
 
 bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
@@ -554,11 +556,20 @@ InputManager::OculusRemote::OculusRemote(vr::VRActionSetHandle_t actionSet)
 
 bool InputManager::OculusRemote::IsConnected() const
 {
-	// Check if a Vive controller is available
-	uint32_t controllerCount = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_Controller, nullptr, 0);
+	// Check if both roles are assigned and connected
+	vr::TrackedDeviceIndex_t indices[] = {
+		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
+		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand),
+	};
 
-	// If only one controller is available, the Oculus Remote is connected
-	return controllerCount == 1;
+	// If we're missing one of the roles, the remote is used
+	for (vr::TrackedDeviceIndex_t index : indices)
+	{
+		if (index == vr::k_unTrackedDeviceIndexInvalid ||
+			vr::VRSystem()->IsTrackedDeviceConnected(index))
+			return true;
+	}
+	return false;
 }
 
 bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState* inputState)
