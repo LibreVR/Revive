@@ -340,9 +340,9 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 	{
 		vr::TrackedDeviceIndex_t touch = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(device->Role);
 
-		uint16_t duration = (uint16_t)((float)freq.count() * device->m_Haptics.GetSample());
-		if (duration > 0)
-			vr::VRSystem()->TriggerHapticPulse(touch, 0, duration);
+		float sample = (device->m_Haptics.GetSample() + device->m_Haptics.GetSample()) / 2.0f;
+		if (sample > 0.0f)
+			vr::VRSystem()->TriggerHapticPulse(touch, 0, (uint16_t)(freq.count() * sample));
 
 		std::this_thread::sleep_for(freq);
 	}

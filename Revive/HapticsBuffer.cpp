@@ -34,7 +34,7 @@ void HapticsBuffer::SetConstant(float frequency, float amplitude)
 	m_Amplitude = amplitude;
 	m_Frequency = frequency;
 	m_ConstantMutex.unlock();
-	m_ConstantTimeout = (uint16_t)(REV_HAPTICS_SAMPLE_RATE * 2.5);
+	m_ConstantTimeout = (uint16_t)(REV_HAPTICS_SAMPLE_RATE * 5);
 }
 
 float HapticsBuffer::GetSample()
