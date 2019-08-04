@@ -378,6 +378,10 @@ InputManager::OculusTouch::OculusTouch(vr::VRActionSetHandle_t actionSet, vr::ET
 	GET_HANDED_ACTION(&m_Button_IndexTrigger, Button_RIndexTrigger, Button_LIndexTrigger);
 	GET_HANDED_ACTION(&m_Button_HandTrigger, Button_RHandTrigger, Button_LHandTrigger);
 
+#undef GET_HANDED_ACTION
+#define GET_HANDED_ACTION(x, r, l) vr::VRInput()->GetActionHandle( \
+	role == vr::TrackedControllerRole_RightHand ? "/actions/touch/out/" #r : "/actions/touch/out/" #l, x)
+
 	GET_HANDED_ACTION(&m_Vibration, RVibration, LVibration);
 
 #undef GET_HANDED_ACTION
