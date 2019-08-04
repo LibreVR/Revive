@@ -115,6 +115,7 @@ CReviveManifestController::CReviveManifestController()
 	, m_supportFile(QCoreApplication::applicationDirPath() + "/support.vrmanifest")
 	, m_defaultsFile(QString(vr::VR_RuntimePath()) + "/resources/settings/default.vrsettings")
 	, m_bLibraryFound(false)
+	, m_OpenXREnabled(false)
 {
 	m_supportArgs["revive.app.oculus-dreamdeck-nux"] = R"(/base Support\oculus-dreamdeck-nux\Dreamdeck\Binaries\Win64\Dreamdeck-Win64-Shipping.exe -vr -dreamdeck=NUX)";
 	m_supportArgs["revive.app.oculus-touch-tutorial"] = R"(/base Support\oculus-touch-tutorial\WindowsNoEditor\TouchNUX\Binaries\Win64\TouchNUX-Win64-Shipping.exe -gamemode=nux)";
@@ -347,7 +348,10 @@ bool CReviveManifestController::LaunchSupportApp(const QString& appKey)
 	if (!m_supportArgs.contains(appKey))
 		return false;
 
-	return LaunchInjector(m_supportArgs[appKey]);
+	QString args = m_supportArgs[appKey];
+	if (m_OpenXREnabled)
+		args = "/xr " + args;
+	return LaunchInjector(args);
 }
 
 bool CReviveManifestController::launchApplication(const QString &canonicalName)
@@ -355,7 +359,7 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
 
-	if (vr::VRApplications())
+	if (!m_OpenXREnabled && vr::VRApplications())
 	{
 		vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(qPrintable(appKey));
 		if (error == vr::VRApplicationError_None)

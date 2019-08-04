@@ -32,6 +32,7 @@ public slots:
 	void quit();
 
 protected slots:
+	void openxr(bool checked);
 	void inject();
 	void patch();
 	void show();

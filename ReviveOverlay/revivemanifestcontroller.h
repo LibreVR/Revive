@@ -28,6 +28,8 @@ public:
 	CReviveManifestController();
 	virtual ~CReviveManifestController();
 
+	void EnableOpenXR(bool enabled) { m_OpenXREnabled = enabled; }
+
 	bool Init();
 	bool IsLibraryFound() { return m_bLibraryFound; }
 	QString GetLibraryURL() { return m_strLibraryURL; }
@@ -66,6 +68,7 @@ private:
 	QString m_strLibraryPath;
 	QString m_strBaseURL;
 	QString m_strBasePath;
+	bool m_OpenXREnabled;
 };
 
 #endif // REVIVEMANIFESTCONTROLLER_H

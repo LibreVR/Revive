@@ -1,5 +1,6 @@
 #include "trayiconcontroller.h"
 #include "openvroverlaycontroller.h"
+#include "revivemanifestcontroller.h"
 
 #include <windowsservices.h>
 #include <qt_windows.h>
@@ -38,10 +39,12 @@ CTrayIconController::~CTrayIconController()
 bool CTrayIconController::Init()
 {
 	m_trayIcon = std::make_unique<QSystemTrayIcon>(QIcon(":/revive_white.ico"));
+	m_trayIconMenu.addAction("Enable OpenXR support", this, SLOT(openxr()))->setCheckable(true);
+	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
 	m_trayIconMenu.addAction("&Patch...", this, SLOT(patch()));
-	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addSeparator();
+	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
 	m_trayIconMenu.addAction("Check for &updates", win_sparkle_check_update_with_ui);
 	m_trayIconMenu.addAction("&Quit", this, SLOT(quit()));
@@ -87,6 +90,11 @@ void CTrayIconController::quit()
 		return;
 	m_trayIcon->setVisible(false);
 	QCoreApplication::quit();
+}
+
+void CTrayIconController::openxr(bool checked)
+{
+	CReviveManifestController::SharedInstance()->EnableOpenXR(checked);
 }
 
 void CTrayIconController::inject()
