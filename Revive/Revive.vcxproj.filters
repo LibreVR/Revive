@@ -177,13 +177,25 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="default.lua">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="header.lua">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="cpp.hint" />
+    <None Include="Input\action_manifest.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Input\gamepad_default.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Input\holographic_controller_default.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Input\knuckles_default.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Input\oculus_touch_default.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Input\vive_controller_default.json">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc">

@@ -284,8 +284,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
-    <None Include="default.lua" />
-    <None Include="header.lua" />
+    <None Include="Input\action_manifest.json" />
+    <None Include="Input\gamepad_default.json" />
+    <None Include="Input\holographic_controller_default.json" />
+    <None Include="Input\knuckles_default.json" />
+    <None Include="Input\oculus_touch_default.json" />
+    <None Include="Input\vive_controller_default.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc" />
