@@ -12,6 +12,7 @@
 #include <QIcon>
 #include <QProcess>
 #include <QUrl>
+#include <QMessageBox>
 
 CTrayIconController *s_pSharedTrayController = NULL;
 
@@ -101,6 +102,13 @@ void CTrayIconController::inject()
 
 void CTrayIconController::patch()
 {
+	QMessageBox::warning(nullptr,
+		"This isn't the option you're looking for",
+		"Patching will lock the game to always use Revive.\n"
+		"It is only needed for Oculus-only games on Steam.\n\n"
+		"Do not try to use this feature for any other reason.\n"
+		);
+
 	QString file = openDialog();
 	if (file.isNull())
 		return;
