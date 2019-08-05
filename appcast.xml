@@ -5,21 +5,35 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.6.4</title>
+			<title>Version 1.7.2</title>
 			<description>
 			<![CDATA[
-			<h2>Bug fixes</h2>
+			<h3>Changes</h3>
 
 			<ul>
-			    <li>Fixed Revive refusing to load when SteamVR is running when using the patching function</li>
-			    <li>Revive: Fixed Remote and Xbox controller bindings not being used</li>
+			    <li>Updated to Oculus SDK 1.39</li>
+			    <li>Changed the grip binding for index controllers to use the force sensors (you can rebind this if you prefer the old setting)</li>
+			    <li>The `pixelsPerDisplayPixel` parameter is now ignored, increases resolution in some titles</li>
+			    <li>Some small tweaks to the haptics</li>
+			</ul>
+
+			<h3>Bug fixes</h3>
+
+			<ul>
+			    <li>Revive: Fixed not being able to rebind the grip on Index controllers (requires resetting your bindings)</li>
+			    <li>Revive: Fixed controllers not being detected as connected if they're not tracked</li>
+			    <li>Revive: Disable "strict poses" hack on Index, original canting issue can't be reproduced</li>
+			    <li>Revive: Fixed crash when starting an application from the dashboard without SteamVR running</li>
+			    <li>Revive: Fixed crash when launching a patched game while SteamVR is running</li>
+			    <li>Revive: Fixed crash when attempting to start Quill</li>
+			    <li>Revive: Fixed crash when attempting to start Defector or Journey of the Gods</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>17 March 2019</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.6.4/ReviveInstaller.exe"
+			<pubDate>5 August 2019</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.7.2/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.6.4.0"
+					   sparkle:version="1.7.2.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
