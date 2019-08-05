@@ -152,7 +152,7 @@
             },
             {
                "inputs" : {
-                  "pull" : {
+                  "force" : {
                      "output" : "/actions/touch/in/lhandtrigger"
                   }
                },
@@ -161,7 +161,7 @@
             },
             {
                "inputs" : {
-                  "pull" : {
+                  "force" : {
                      "output" : "/actions/touch/in/rhandtrigger"
                   }
                },
