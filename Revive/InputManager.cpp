@@ -57,7 +57,7 @@ void InputManager::LoadActionManifest()
 	if (SUCCEEDED(hr))
 	{
 		char path[MAX_PATH];
-		WideCharToMultiByte(CP_ACP, 0, folder, -1, path, MAX_PATH, nullptr, nullptr);
+		WideCharToMultiByte(CP_UTF8, 0, folder, -1, path, MAX_PATH, nullptr, nullptr);
 		strcat(path, "\\Revive\\Input\\action_manifest.json");
 		vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(path);
 		if (err == vr::VRInputError_None)
