@@ -775,8 +775,8 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	// Grow the recommended size to account for the overlapping fov
 	// TODO: Add a setting to ignore pixelsPerDisplayPixel
 	vr::VRTextureBounds_t bounds = CompositorBase::FovPortToTextureBounds(desc->Fov, fov);
-	size.w = int((size.w * pixelsPerDisplayPixel) / (bounds.uMax - bounds.uMin));
-	size.h = int((size.h * pixelsPerDisplayPixel) / (bounds.vMax - bounds.vMin));
+	size.w = int(size.w / (bounds.uMax - bounds.uMin));
+	size.h = int(size.h / (bounds.vMax - bounds.vMin));
 
 	return size;
 }
