@@ -1270,9 +1270,9 @@ ovr_GetFovStencil(
 		if (i < meshBuffer->AllocVertexCount)
 		{
 			if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
-				meshBuffer->VertexBuffer[i] = OVR::Vector2f(mesh.pVertexData[i].v[0], 1.0f - mesh.pVertexData[i].v[1]);
-			else
 				meshBuffer->VertexBuffer[i] = REV::Vector2f(mesh.pVertexData[i]);
+			else
+				meshBuffer->VertexBuffer[i] = OVR::Vector2f(mesh.pVertexData[i].v[0], 1.0f - mesh.pVertexData[i].v[1]);
 		}
 
 		if (i < meshBuffer->AllocIndexCount)
