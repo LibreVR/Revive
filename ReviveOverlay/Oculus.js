@@ -43,7 +43,7 @@ function generateManifest(manifest) {
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
-            var regEx = /<title id=\"pageTitle\">(.*?) \| Oculus<\/title>/i;
+            var regEx = /<title id=\"pageTitle\">(.*?) on Oculus Rift \| Oculus<\/title>/i;
             var title = manifest["canonicalName"];
 
             // If the request was successful we can parse the response
