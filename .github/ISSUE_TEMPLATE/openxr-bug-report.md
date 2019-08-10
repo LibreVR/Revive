@@ -2,7 +2,7 @@
 name: OpenXR bug report
 about: Create a report to help improve experimental OpenXR support
 title: ''
-labels: reviveXR
+labels: openxr
 assignees: ''
 
 ---
