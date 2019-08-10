@@ -1267,7 +1267,7 @@ ovr_GetFovStencil(
 	vr::HiddenAreaMesh_t mesh = vr::VRSystem()->GetHiddenAreaMesh((vr::EVREye)fovStencilDesc->Eye, (vr::EHiddenAreaMeshType)fovStencilDesc->StencilType);
 	for (i = 0; i < (int)mesh.unTriangleCount * 3; i++)
 	{
-		if (i < meshBuffer->AllocVertexCount)
+		if (meshBuffer->VertexBuffer && i < meshBuffer->AllocVertexCount)
 		{
 			if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
 				meshBuffer->VertexBuffer[i] = REV::Vector2f(mesh.pVertexData[i]);
@@ -1275,7 +1275,7 @@ ovr_GetFovStencil(
 				meshBuffer->VertexBuffer[i] = OVR::Vector2f(mesh.pVertexData[i].v[0], 1.0f - mesh.pVertexData[i].v[1]);
 		}
 
-		if (i < meshBuffer->AllocIndexCount)
+		if (meshBuffer->IndexBuffer && i < meshBuffer->AllocIndexCount)
 		{
 			meshBuffer->IndexBuffer[i] = i;
 		}
