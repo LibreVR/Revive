@@ -5,21 +5,19 @@
 
 ### Technical Information
 *Tell us your specs and versions*
-  - CPU:
-  - GPU:
-  - RAM: (amount and DDR#)
+  - Headset: 
   - OS: 
-  - Vive / WMR (/ Odyssey) / Other device
+  - GPU: 
+  - CPU: 
 
-#### Versions and features
-*This issue is about:*
-  - Revive / Remixed / Injector or Patcher
-  - SteamVR version (unless Remixed):
-  - Revive installation version:
+#### Versions
+*This issue is about version:*
+  - Revive:
+  - SteamVR:
 
 #### What is the last working version before this issue first came up?
-  - Revive installation:
-  - SteamVR (unless remixed):
+  - Revive:
+  - SteamVR:
 
 ### What apps/games are you trying to run?
   - 
