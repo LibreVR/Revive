@@ -23,11 +23,10 @@ A clear and concise description of what you expected to happen.
 **Environment (please complete the following information):**
  - App: [e.g. First Contact]
  - OS: [e.g. Win10]
- - Headset: [e.g. Vive, Index]
+ - Headset: [e.g. Odyssey]
 
 **Versions (please complete the following information):**
  - Revive:
- - SteamVR:
 
 **Additional context**
 Add any other context about the problem here.
