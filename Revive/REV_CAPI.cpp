@@ -917,7 +917,7 @@ typedef struct OVR_ALIGNAS(4) ovrPerfStats1_
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats* outStats)
 {
 	REV_TRACE(ovr_GetPerfStats);
-
+#if 0
 	ovrPerfStatsPerCompositorFrame FrameStats[ovrMaxProvidedFrameStats];
 
 	// TODO: Implement performance scale heuristics
@@ -1002,7 +1002,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 		if (g_MinorVersion >= 14)
 			out->VisibleProcessId = vr::VRCompositor()->GetCurrentSceneFocusProcess();
 	}
-
+#endif
 	return ovrSuccess;
 }
 
