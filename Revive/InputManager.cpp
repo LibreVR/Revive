@@ -501,17 +501,25 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		}
 	}
 
-	OVR::Vector2f thumbstick = GetAnalog(m_Thumbstick) - m_Thumbstick_Center;
-	inputState->IndexTrigger[hand] = GetAnalog(m_IndexTrigger).x;
-	inputState->HandTrigger[hand] = sqrt(GetAnalog(m_HandTrigger).x);
-	inputState->Thumbstick[hand] = ApplyDeadzone(thumbstick, deadzone, deadzone / 2.0f);
-	inputState->ThumbstickNoDeadzone[hand] = thumbstick;
+	inputState->IndexTriggerRaw[hand] = GetAnalog(m_IndexTrigger).x;
+	inputState->HandTriggerRaw[hand] = GetAnalog(m_HandTrigger).x;
+	inputState->ThumbstickRaw[hand] = GetAnalog(m_Thumbstick) - m_Thumbstick_Center;
 
 	if (GetDigital(m_Button_IndexTrigger))
-		inputState->IndexTrigger[hand] = 1.0f;
+		inputState->IndexTriggerRaw[hand] = 1.0f;
 
 	if (WasGripped)
-		inputState->HandTrigger[hand] = 1.0f;
+		inputState->HandTriggerRaw[hand] = 1.0f;
+
+	// We have no way to get unfiltered values, so these are the same
+	inputState->IndexTriggerNoDeadzone[hand] = inputState->IndexTriggerRaw[hand];
+	inputState->HandTriggerNoDeadzone[hand] = inputState->HandTriggerRaw[hand];
+	inputState->ThumbstickNoDeadzone[hand] = inputState->ThumbstickRaw[hand];
+
+	// We don't apply deadzones yet on triggers and grips
+	inputState->IndexTrigger[hand] = inputState->IndexTriggerNoDeadzone[hand];
+	inputState->HandTrigger[hand] = inputState->HandTriggerNoDeadzone[hand];
+	inputState->Thumbstick[hand] = ApplyDeadzone(inputState->ThumbstickNoDeadzone[hand], deadzone, deadzone / 2.0f);
 
 	// Derive gestures from touch flags
 	// TODO: Should be handled with chords in SteamVR input
@@ -523,15 +531,6 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 		if (!(touches & ~(ovrTouch_RIndexTrigger | ovrTouch_RIndexPointing)))
 			touches |= ovrTouch_RThumbUp;
 	}
-
-	// We don't apply deadzones yet on triggers and grips
-	inputState->IndexTriggerNoDeadzone[hand] = inputState->IndexTrigger[hand];
-	inputState->HandTriggerNoDeadzone[hand] = inputState->HandTrigger[hand];
-
-	// We have no way to get raw values
-	inputState->ThumbstickRaw[hand] = inputState->ThumbstickNoDeadzone[hand];
-	inputState->IndexTriggerRaw[hand] = inputState->IndexTriggerNoDeadzone[hand];
-	inputState->HandTriggerRaw[hand] = inputState->HandTriggerNoDeadzone[hand];
 
 	inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
 	inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
