@@ -13,7 +13,6 @@
 			<ul>
 			    <li>Revive: Fixed stuttering in Raccoon Lagoon, Vader Immortal and Defector</li>
 			    <li>Revive: Fixed crash when launching Dance Central</li>
-			    <li>Revive: Reduced tracking latency in Defector</li>
 			    <li>ReviveXR: Fixed non-functional "enable OpenXR support" tray icon option</li>
 			</ul>
 			]]>
@@ -21,7 +20,7 @@
 			<pubDate>11 August 2019</pubDate>
 			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.7.3/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.7.3.3"
+					   sparkle:version="1.7.3.5"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>

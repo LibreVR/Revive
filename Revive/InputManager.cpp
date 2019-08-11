@@ -21,10 +21,6 @@ InputManager::InputManager()
 	for (ovrPoseStatef& pose : m_LastPoses)
 		pose.ThePose = OVR::Posef::Identity();
 
-	// TODO: This might change if a new HMD is connected (unlikely)
-	m_fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
-	m_fFrameDuration = 1.0f / vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
-
 	LoadActionManifest();
 
 	vr::VRActionSetHandle_t handle;
@@ -229,11 +225,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	if (absTime > 0.0f && session->Details->UseHack(SessionDetails::HACK_STRICT_POSES))
 	{
-		float nextFrame = m_fFrameDuration + vr::VRCompositor()->GetFrameTimeRemaining() + m_fVsyncToPhotons;
-		if (relTime > nextFrame)
-			vr::VRCompositor()->GetLastPoses(nullptr, 0, poses, vr::k_unMaxTrackedDeviceCount);
-		else
-			vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 	}
 	else
 	{
