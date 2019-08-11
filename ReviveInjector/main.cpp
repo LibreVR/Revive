@@ -112,12 +112,17 @@ int wmain(int argc, wchar_t *argv[]) {
 	LOG("Launched injector with: %ls\n", GetCommandLine());
 
 	bool xr = false;
+	bool apc = false;
 	WCHAR path[MAX_PATH] = { 0 };
 	for (int i = 1; i < argc; i++)
 	{
 		if (wcscmp(argv[i], L"/xr") == 0)
 		{
 			xr = true;
+		}
+		else if (wcscmp(argv[i], L"/apc") == 0)
+		{
+			apc = true;
 		}
 		else if (wcscmp(argv[i], L"/handle") == 0)
 		{
@@ -143,5 +148,5 @@ int wmain(int argc, wchar_t *argv[]) {
 		}
 	}
 
-	return CreateProcessAndInject(path, xr);
+	return CreateProcessAndInject(path, xr, apc);
 }

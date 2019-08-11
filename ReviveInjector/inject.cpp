@@ -9,7 +9,7 @@ bool InjectLibRevive(HANDLE hProcess, HANDLE hThread, bool xr);
 bool InjectOpenVR(HANDLE hProcess, HANDLE hThread, bool xr);
 bool InjectDLL(HANDLE hProcess, HANDLE hThread, const char *dllPath, int dllPathLength);
 
-int CreateProcessAndInject(wchar_t *programPath, bool xr)
+int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc)
 {
 	LOG("Creating process: %ls\n", programPath);
 
@@ -33,7 +33,6 @@ int CreateProcessAndInject(wchar_t *programPath, bool xr)
 
 	// Remove filename
 	wchar_t* file = wcsrchr(workingDir, L'\\');
-	const bool useAPC = !wcscmp(L"Quill", file + 1);
 	if (file)
 		*file = L'\0';
 
@@ -78,7 +77,7 @@ int CreateProcessAndInject(wchar_t *programPath, bool xr)
 	}
 #endif
 
-	HANDLE hThread = useAPC ? pi.hThread : INVALID_HANDLE_VALUE;
+	HANDLE hThread = apc ? pi.hThread : INVALID_HANDLE_VALUE;
 	if (!InjectOpenVR(pi.hProcess, hThread, xr) ||
 		!InjectLibRevive(pi.hProcess, hThread, xr)) {
 		ResumeThread(pi.hThread);

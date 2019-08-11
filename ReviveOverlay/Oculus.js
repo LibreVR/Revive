@@ -26,6 +26,11 @@ function generateManifest(manifest) {
     // TODO: Move this to the injector
     launch = launch.replace(/\//g, '\\');
 
+    // Some games need APC injection
+    var apc = "";
+    if (manifest["canonicalName"] == "oculus-quill")
+        apc = "/apc ";
+
     var parameters = "";
     if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None" && manifest["launchParameters"] != null)
         parameters = " " + manifest["launchParameters"];
@@ -58,7 +63,7 @@ function generateManifest(manifest) {
             var revive = {
                 "launch_type" : "binary",
                 "binary_path_windows" : "Revive/ReviveInjector_x64.exe",
-                "arguments" : "/library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
+                "arguments" : apc + "/library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
 
                 "image_path" : Revive.BasePath + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
 
