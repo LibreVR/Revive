@@ -504,7 +504,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 	OVR::Vector2f thumbstick = GetAnalog(m_Thumbstick) - m_Thumbstick_Center;
 	inputState->IndexTrigger[hand] = GetAnalog(m_IndexTrigger).x;
-	inputState->HandTrigger[hand] = GetAnalog(m_HandTrigger).x;
+	inputState->HandTrigger[hand] = sqrt(GetAnalog(m_HandTrigger).x);
 	inputState->Thumbstick[hand] = ApplyDeadzone(thumbstick, deadzone, deadzone / 2.0f);
 	inputState->ThumbstickNoDeadzone[hand] = thumbstick;
 
