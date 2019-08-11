@@ -10,6 +10,8 @@
         <file>SupportAssets/oculus-first-contact/cover_square_image.jpg</file>
         <file>SupportAssets/oculus-touch-tutorial/cover_landscape_image.jpg</file>
         <file>SupportAssets/oculus-touch-tutorial/cover_square_image.jpg</file>
+        <file>SupportAssets/oculus-worlds/cover_landscape_image.jpg</file>
+        <file>SupportAssets/oculus-worlds/cover_square_image.jpg</file>
         <file>revive_white.ico</file>
     </qresource>
 </RCC>
