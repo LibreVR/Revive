@@ -23,6 +23,7 @@ InputManager::InputManager()
 
 	// TODO: This might change if a new HMD is connected (unlikely)
 	m_fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
+	m_fFrameDuration = 1.0f / vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
 
 	LoadActionManifest();
 
@@ -222,16 +223,25 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	float relTime = 0.0f;
 	if (absTime > 0.0f)
 		relTime = float(absTime - ovr_GetTimeInSeconds());
-	if (relTime > 0.0f)
-		relTime += m_fVsyncToPhotons;
 
 	// Get the device poses
 	vr::ETrackingUniverseOrigin origin = session->TrackingOrigin;
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	if (absTime > 0.0f && session->Details->UseHack(SessionDetails::HACK_STRICT_POSES))
-		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+	{
+		float nextFrame = m_fFrameDuration + vr::VRCompositor()->GetFrameTimeRemaining();
+		if (relTime > nextFrame)
+			vr::VRCompositor()->GetLastPoses(nullptr, 0, poses, vr::k_unMaxTrackedDeviceCount);
+		else
+			vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+	}
 	else
+	{
+		if (relTime > 0.0f)
+			relTime += m_fVsyncToPhotons;
+
 		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(origin, relTime, poses, vr::k_unMaxTrackedDeviceCount);
+	}
 
 	// Convert the head pose
 	outState->HeadPose = TrackedDevicePoseToOVRPose(poses[vr::k_unTrackedDeviceIndex_Hmd], m_LastPoses[vr::k_unTrackedDeviceIndex_Hmd], absTime);
