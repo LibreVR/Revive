@@ -7,8 +7,6 @@
 #include <vector>
 #include <memory>
 
-extern uint32_t g_MinorVersion;
-
 SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
 	{ "ultrawings.exe", nullptr, HACK_FAKE_PRODUCT_NAME, true },
 	{ "AirMech.exe", nullptr, HACK_SLEEP_IN_SESSION_STATUS, true },
@@ -106,6 +104,11 @@ void SessionDetails::UpdateHmdDesc()
 		eyeFov.DownTan *= -1.0f;
 
 		eyeDesc->Eye = (ovrEyeType)eye;
+		eyeDesc->Fov = eyeFov;
+
+		eyeDesc->DistortedViewport = OVR::Recti(eye == ovrEye_Left ? 0 : size.w, 0, size.w, size.h);
+		eyeDesc->PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
+			size.h * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
 
 		if (UseHack(HACK_RECONSTRUCT_EYE_MATRIX))
 		{
@@ -118,16 +121,6 @@ void SessionDetails::UpdateHmdDesc()
 			REV::Matrix4f HmdToEyeMatrix = (REV::Matrix4f)vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)eye);
 			eyeDesc->HmdToEyePose = OVR::Posef(OVR::Quatf(HmdToEyeMatrix), HmdToEyeMatrix.GetTranslation());
 		}
-
-		// Compensate for the 3-DOF eye pose on pre-1.17
-		if (g_MinorVersion < 17)
-			eyeDesc->Fov = OVR::FovPort::Uncant(eyeFov, eyeDesc->HmdToEyePose.Orientation);
-		else
-			eyeDesc->Fov = eyeFov;
-
-		eyeDesc->DistortedViewport = OVR::Recti(eye == ovrEye_Left ? 0 : size.w, 0, size.w, size.h);
-		eyeDesc->PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
-			size.h * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
 
 		// Swap in the new copy
 		RenderDesc[eye].swap(eyeDesc);
