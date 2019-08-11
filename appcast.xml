@@ -12,7 +12,7 @@
 
 			<ul>
 			    <li>Revive: Fixed stuttering in Raccoon Lagoon, Vader Immortal and Defector</li>
-			    <ul><li>Defector still has a latency issue, will be fixed in 1.7.4 soon</li></ul>
+			    <ul><li>Defector still has a latency issue, will be fixed in 1.8.0 soon</li></ul>
 			    <li>Revive: Fixed crash when launching Dance Central</li>
 			    <li>ReviveXR: Fixed non-functional "enable OpenXR support" tray icon option</li>
 			</ul>
