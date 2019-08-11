@@ -16,7 +16,7 @@ Rectangle {
         nameFilters: ["*.json"]
         showDirs: false
         onCountChanged: {
-            coverModel.remove(3, coverModel.count - 3);
+            coverModel.remove(4, coverModel.count - 4);
             for (var i = 0; i < manifestsModel.count; i++)
                 Oculus.loadManifest(manifestsModel.get(i, "fileURL"));
         }
@@ -58,6 +58,10 @@ Rectangle {
     ListModel {
         id: coverModel
 
+        ListElement {
+            coverURL: "SupportAssets/oculus-worlds/cover_square_image.jpg"
+            appKey: "oculus-worlds"
+        }
         ListElement {
             coverURL: "SupportAssets/oculus-dreamdeck-nux/cover_square_image.jpg"
             appKey: "oculus-dreamdeck-nux"

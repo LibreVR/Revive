@@ -35,6 +35,18 @@
                     "name": "Oculus First Contact"
                 }
             }
+        },
+        {
+            "app_key": "revive.app.oculus-worlds",
+            "arguments": "/base \"Support/oculus-worlds/Home2/Binaries/Win64/Home2-Win64-Shipping.exe\"",
+            "binary_path_windows": "Revive/ReviveInjector_x64.exe",
+            "image_path": "SupportAssets/oculus-worlds/cover_landscape_image.jpg",
+            "launch_type": "binary",
+            "strings": {
+                "en_us": {
+                    "name": "Oculus Home"
+                }
+            }
         }
     ]
 }
