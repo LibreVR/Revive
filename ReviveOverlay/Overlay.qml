@@ -248,7 +248,7 @@ Rectangle {
             height: 100
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            source: OpenVR.URL + "tools/bin/content/vrmonitor/icons/icon_loading.gif"
+            source: OpenVR.URL + "content/vrmonitor/icons/icon_loading.gif"
         }
     }
 
