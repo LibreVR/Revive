@@ -16,7 +16,7 @@ Rectangle {
         nameFilters: ["*.json"]
         showDirs: false
         onCountChanged: {
-            coverModel.remove(4, coverModel.count - 4);
+            coverModel.remove(3, coverModel.count - 3);
             for (var i = 0; i < manifestsModel.count; i++)
                 Oculus.loadManifest(manifestsModel.get(i, "fileURL"));
         }
