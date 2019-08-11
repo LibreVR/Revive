@@ -335,7 +335,10 @@ bool CReviveManifestController::LaunchInjector(const QString& args)
 	// Launch the injector with the arguments
 	QProcess injector;
 	injector.setProgram(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe");
-	injector.setNativeArguments(args);
+	if (m_OpenXREnabled)
+		injector.setNativeArguments("/xr " + args);
+	else
+		injector.setNativeArguments(args);
 	injector.start();
 
 	if (!injector.waitForFinished())
@@ -348,10 +351,7 @@ bool CReviveManifestController::LaunchSupportApp(const QString& appKey)
 	if (!m_supportArgs.contains(appKey))
 		return false;
 
-	QString args = m_supportArgs[appKey];
-	if (m_OpenXREnabled)
-		args = "/xr " + args;
-	return LaunchInjector(args);
+	return LaunchInjector(m_supportArgs[appKey]);
 }
 
 bool CReviveManifestController::launchApplication(const QString &canonicalName)

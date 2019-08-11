@@ -39,7 +39,9 @@ CTrayIconController::~CTrayIconController()
 bool CTrayIconController::Init()
 {
 	m_trayIcon = std::make_unique<QSystemTrayIcon>(QIcon(":/revive_white.ico"));
-	m_trayIconMenu.addAction("Enable OpenXR support", this, SLOT(openxr()))->setCheckable(true);
+	QAction* action = m_trayIconMenu.addAction("Enable OpenXR support");
+	action->setCheckable(true);
+	QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(openxr(bool)));
 	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
 	m_trayIconMenu.addAction("&Patch...", this, SLOT(patch()));
