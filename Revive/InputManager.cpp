@@ -229,7 +229,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	if (absTime > 0.0f && session->Details->UseHack(SessionDetails::HACK_STRICT_POSES))
 	{
-		float nextFrame = m_fFrameDuration + vr::VRCompositor()->GetFrameTimeRemaining();
+		float nextFrame = m_fFrameDuration + vr::VRCompositor()->GetFrameTimeRemaining() + m_fVsyncToPhotons;
 		if (relTime > nextFrame)
 			vr::VRCompositor()->GetLastPoses(nullptr, 0, poses, vr::k_unMaxTrackedDeviceCount);
 		else
@@ -237,9 +237,6 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	}
 	else
 	{
-		if (relTime > 0.0f)
-			relTime += m_fVsyncToPhotons;
-
 		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(origin, relTime, poses, vr::k_unMaxTrackedDeviceCount);
 	}
 
