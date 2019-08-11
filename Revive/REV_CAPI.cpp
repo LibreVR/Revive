@@ -922,7 +922,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 
 	// TODO: Implement performance scale heuristics
 	float AdaptiveGpuPerformanceScale = 1.0f;
-	bool AnyFrameStatsDropped = (session->FrameIndex - session->StatsIndex) > ovrMaxProvidedFrameStats;
+	ovrBool AnyFrameStatsDropped = (session->FrameIndex - session->StatsIndex) > ovrMaxProvidedFrameStats;
+	ovrBool ReprojectionEnabled = false;
 	int FrameStatsCount = AnyFrameStatsDropped ? ovrMaxProvidedFrameStats : int(session->FrameIndex - session->StatsIndex);
 	session->StatsIndex = session->FrameIndex;
 
@@ -958,26 +959,28 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 
 		stats.HmdVsyncIndex = TotalStats.m_nNumFramePresents;
 		stats.AppFrameIndex = (int)session->FrameIndex;
-		stats.AppDroppedFrameCount = TotalStats.m_nNumDroppedFrames;
-		// TODO: Improve latency handling with sensor timestamps and latency markers
+		stats.AppDroppedFrameCount = TotalStats.m_nNumDroppedFrames + TotalStats.m_nNumReprojectedFrames;
+		// TODO: Improve latency stats with sensor timestamps and latency markers
 		stats.AppMotionToPhotonLatency = fFrameDuration + fVsyncToPhotons;
-		stats.AppQueueAheadTime = -TimingStats[i].m_flNewPosesReadyMs / 1000.0f;
+		stats.AppQueueAheadTime = VR_COMPOSITOR_ADDITIONAL_PREDICTED_FRAMES(TimingStats[i]) / fDisplayFrequency;
 		stats.AppCpuElapsedTime = TimingStats[i].m_flClientFrameIntervalMs / 1000.0f;
 		stats.AppGpuElapsedTime = TimingStats[i].m_flPreSubmitGpuMs / 1000.0f;
 
-		stats.CompositorFrameIndex = TimingStats[i].m_nFrameIndex;
-		stats.CompositorDroppedFrameCount = (TotalStats.m_nNumDroppedFrames + TotalStats.m_nNumDroppedFramesLoading);
-		stats.CompositorLatency = fVsyncToPhotons; // OpenVR doesn't have timewarp
+		stats.CompositorFrameIndex = TimingStats[i].m_nNumFramePresents;
+		stats.CompositorDroppedFrameCount = 0;
+		stats.CompositorLatency = fVsyncToPhotons;
 		stats.CompositorCpuElapsedTime = TimingStats[i].m_flCompositorRenderCpuMs / 1000.0f;
 		stats.CompositorGpuElapsedTime = TimingStats[i].m_flCompositorRenderGpuMs / 1000.0f;
 		stats.CompositorCpuStartToGpuEndElapsedTime = (TimingStats[i].m_flCompositorUpdateEndMs - TimingStats[i].m_flCompositorRenderStartMs) / 1000.0f;
 		stats.CompositorGpuEndToVsyncElapsedTime = TimingStats[i].m_flCompositorIdleCpuMs / 1000.0f;
 
-		// TODO: Asynchronous Spacewap is not supported in OpenVR
-		stats.AswIsActive = ovrFalse;
+		stats.AswIsActive = TimingStats[i].m_nReprojectionFlags & vr::VRCompositor_ReprojectionMotion;
 		stats.AswActivatedToggleCount = 0;
-		stats.AswPresentedFrameCount = 0;
-		stats.AswFailedFrameCount = 0;
+		stats.AswPresentedFrameCount = TotalStats.m_nNumReprojectedFrames;
+		stats.AswFailedFrameCount = TotalStats.m_nNumDroppedFrames;
+
+		if (TimingStats[i].m_nReprojectionFlags & vr::VRCompositor_ReprojectionAsync)
+			ReprojectionEnabled = ovrTrue;
 	}
 
 	// We need to make sure we don't write outside of the bounds of the struct in older version of the runtime
@@ -997,7 +1000,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 		out->AdaptiveGpuPerformanceScale = AdaptiveGpuPerformanceScale;
 		out->AnyFrameStatsDropped = AnyFrameStatsDropped;
 		out->FrameStatsCount = FrameStatsCount;
-		out->AswIsAvailable = ovrFalse;
+		out->AswIsAvailable = ReprojectionEnabled;
 
 		if (g_MinorVersion >= 14)
 			out->VisibleProcessId = vr::VRCompositor()->GetCurrentSceneFocusProcess();
