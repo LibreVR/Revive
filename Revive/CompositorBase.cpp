@@ -202,6 +202,15 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			else
 				BlitFovLayers(&baseLayer, &layer);
 			baseLayerFound = true;
+
+			// Even though we don't actually support this layer we should still cycle its swapchain.
+			if (layerPtrList[i]->Type == ovrLayerType_EyeFovDepth)
+			{
+				ovrLayerEyeFovDepth layer = ToLayer<ovrLayerEyeFovDepth>(layerPtrList[i]);
+				layer.DepthTexture[ovrEye_Left]->Submit();
+				if (layer.DepthTexture[ovrEye_Left] != layer.DepthTexture[ovrEye_Right])
+					layer.DepthTexture[ovrEye_Right]->Submit();
+			}
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeMatrix)
 		{
