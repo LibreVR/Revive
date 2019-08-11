@@ -113,7 +113,6 @@ CReviveManifestController::CReviveManifestController()
 	, m_appFile(QCoreApplication::applicationDirPath() + "/app.vrmanifest")
 	, m_manifestFile(QCoreApplication::applicationDirPath() + "/revive.vrmanifest")
 	, m_supportFile(QCoreApplication::applicationDirPath() + "/support.vrmanifest")
-	, m_defaultsFile(QString(vr::VR_RuntimePath()) + "/resources/settings/default.vrsettings")
 	, m_bLibraryFound(false)
 	, m_OpenXREnabled(false)
 {
@@ -138,10 +137,6 @@ bool CReviveManifestController::Init()
 
 		bSuccess = SaveDocument();
 	}
-
-	// Attempt to set the Revive defaults in the runtime.
-	if (!SetDefaults())
-		qDebug("Failed to set runtime default values, Revive will fall back to internal defaults");
 
 #ifndef DEBUG
 	// Add application and support manifest
@@ -245,57 +240,6 @@ bool CReviveManifestController::SaveDocument()
 	m_manifestFile.close();
 
 	AddApplicationManifest(m_manifestFile);
-
-	return true;
-}
-
-bool CReviveManifestController::SetDefaults()
-{
-	if (!m_defaultsFile.open(QIODevice::ReadOnly))
-	{
-		qWarning("Couldn't open defaults file for reading");
-		return false;
-	}
-
-	QJsonDocument doc = QJsonDocument::fromJson(m_defaultsFile.readAll());
-	QJsonObject defaults = doc.object();
-	m_defaultsFile.close();
-
-	QJsonObject revive;
-
-	// Set the Oculus keys that have defaults
-	revive[OVR_KEY_GENDER] = OVR_DEFAULT_GENDER;
-	revive[OVR_KEY_PLAYER_HEIGHT] = REV_ROUND(OVR_DEFAULT_PLAYER_HEIGHT);
-	revive[OVR_KEY_EYE_HEIGHT] = REV_ROUND(OVR_DEFAULT_EYE_HEIGHT);
-	revive[OVR_KEY_NECK_TO_EYE_DISTANCE "[0]"] = REV_ROUND(OVR_DEFAULT_NECK_TO_EYE_HORIZONTAL);
-	revive[OVR_KEY_NECK_TO_EYE_DISTANCE "[1]"] = REV_ROUND(OVR_DEFAULT_NECK_TO_EYE_VERTICAL);
-
-	// Set the defaults for Revive keys
-	revive[REV_KEY_DEFAULT_ORIGIN] = REV_DEFAULT_ORIGIN;
-	revive[REV_KEY_PIXELS_PER_DISPLAY] = REV_ROUND(REV_DEFAULT_PIXELS_PER_DISPLAY);
-	revive[REV_KEY_THUMB_DEADZONE] = REV_ROUND(REV_DEFAULT_THUMB_DEADZONE);
-	revive[REV_KEY_TOGGLE_GRIP] = REV_DEFAULT_TOGGLE_GRIP;
-	revive[REV_KEY_TRIGGER_GRIP] = REV_DEFAULT_TRIGGER_GRIP;
-	revive[REV_KEY_TOGGLE_DELAY] = REV_DEFAULT_TOGGLE_DELAY;
-	revive[REV_KEY_TOUCH_PITCH] = REV_ROUND(REV_DEFAULT_TOUCH_PITCH);
-	revive[REV_KEY_TOUCH_YAW] = REV_ROUND(REV_DEFAULT_TOUCH_YAW);
-	revive[REV_KEY_TOUCH_ROLL] = REV_ROUND(REV_DEFAULT_TOUCH_ROLL);
-	revive[REV_KEY_TOUCH_X] = REV_ROUND(REV_DEFAULT_TOUCH_X);
-	revive[REV_KEY_TOUCH_Y] = REV_ROUND(REV_DEFAULT_TOUCH_Y);
-	revive[REV_KEY_TOUCH_Z] = REV_ROUND(REV_DEFAULT_TOUCH_Z);
-	revive[REV_KEY_IGNORE_ACTIVITYLEVEL] = REV_DEFAULT_IGNORE_ACTIVITYLEVEL;
-
-	defaults[REV_SETTINGS_SECTION] = revive;
-	doc.setObject(defaults);
-
-	if (!m_defaultsFile.open(QIODevice::WriteOnly))
-	{
-		qWarning("Couldn't open defaults file for writing");
-		return false;
-	}
-
-	m_defaultsFile.write(doc.toJson());
-	m_defaultsFile.close();
 
 	return true;
 }

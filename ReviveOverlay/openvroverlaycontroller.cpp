@@ -175,7 +175,7 @@ bool COpenVROverlayController::Init()
 		vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, 3.0f );
 		vr::VROverlay()->SetOverlayAlpha( m_ulOverlayHandle, 0.9f );
 		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, VROverlayInputMethod_Mouse );
-		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_SendVRScrollEvents, true );
+		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_SendVRDiscreteScrollEvents, true );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_AcceptsGamepadEvents, true );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_ShowGamepadFocus, true );
 		UpdateThumbnail();
@@ -339,7 +339,7 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 			}
 			break;
 
-		case vr::VREvent_Scroll:
+		case vr::VREvent_ScrollDiscrete:
 			{
 				// Wheel speed is defined in 1/8 of a degree
 				QPoint ptNewWheel( vrEvent.data.scroll.xdelta * 360.0f * 8.0f, vrEvent.data.scroll.ydelta * 360.0f * 8.0f );
@@ -480,7 +480,14 @@ bool COpenVROverlayController::ConnectToVRRuntime()
 
 	m_strVRDriver = GetTrackedDeviceString(pVRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
 	m_strVRDisplay = GetTrackedDeviceString(pVRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
-	m_strRuntimeURL = QUrl::fromLocalFile(vr::VR_RuntimePath()).url();
+
+	uint32_t size = 0;
+	std::vector<char> buffer;
+	buffer.resize(1);
+	VR_GetRuntimePath(buffer.data(), size, &size);
+	buffer.resize(size);
+	if (VR_GetRuntimePath(buffer.data(), size, &size))
+		m_strRuntimeURL = QUrl::fromLocalFile(buffer.data()).url();
 	if (!m_strRuntimeURL.endsWith('/'))
 		m_strRuntimeURL.append('/');
 	emit RuntimeChanged();
