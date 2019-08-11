@@ -398,16 +398,17 @@ vr::VRCompositorError CompositorBase::SubmitFovLayer(ovrSession session, ovrLaye
 		vr::VRTextureWithPose_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
 
 		// Add the pose data to the eye texture
+		OVR::Matrix4f hmdToEye(desc->HmdToEyePose);
 		REV::Matrix4f pose(fovLayer->RenderPose[i]);
 		const bool strictPoses = session->Details->UseHack(SessionDetails::HACK_STRICT_POSES);
 		if (!strictPoses && session->TrackingOrigin == vr::TrackingUniverseSeated)
 		{
 			REV::Matrix4f offset(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
-			texture.mDeviceToAbsoluteTracking = REV::Matrix4f(offset * pose);
+			texture.mDeviceToAbsoluteTracking = REV::Matrix4f(offset * (pose * hmdToEye.Inverted()));
 		}
 		else
 		{
-			texture.mDeviceToAbsoluteTracking = pose;
+			texture.mDeviceToAbsoluteTracking = REV::Matrix4f(pose * hmdToEye.Inverted());
 		}
 
 		err = vr::VRCompositor()->Submit((vr::EVREye)i, (vr::Texture_t*)&texture, &bounds, strictPoses ? vr::Submit_Default : vr::Submit_TextureWithPose);
