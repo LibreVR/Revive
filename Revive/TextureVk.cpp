@@ -24,17 +24,14 @@ TextureVk::~TextureVk()
 	vkDestroyImage(m_device, m_image, nullptr);
 }
 
-vr::VRTextureWithPose_t TextureVk::ToVRTexture()
+void TextureVk::ToVRTexture(vr::Texture_t& texture)
 {
 	// Update the texture data
 	m_data.m_pQueue = *m_pQueue;
 	// FIXME: We don't know what family the queue is from
-
-	vr::VRTextureWithPose_t texture = {};
 	texture.eColorSpace = vr::ColorSpace_Auto;
 	texture.eType = vr::TextureType_Vulkan;
 	texture.handle = &m_data;
-	return texture;
 }
 
 VkFormat TextureVk::TextureFormatToVkFormat(ovrTextureFormat format)

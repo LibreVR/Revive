@@ -14,15 +14,13 @@ TextureGL::~TextureGL()
 	glDeleteTextures(1, &Texture);
 }
 
-vr::VRTextureWithPose_t TextureGL::ToVRTexture()
+void TextureGL::ToVRTexture(vr::Texture_t& texture)
 {
-	vr::VRTextureWithPose_t texture = {};
 	texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format
 	texture.eType = vr::TextureType_OpenGL;
 #pragma warning( disable : 4312 )
 	texture.handle = (void*)Texture;
 #pragma warning( default : 4312 )
-	return texture;
 }
 
 GLenum TextureGL::TextureFormatToInternalFormat(ovrTextureFormat format)

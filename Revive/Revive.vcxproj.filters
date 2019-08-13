@@ -164,6 +164,9 @@
     <ClCompile Include="..\Externals\glad\src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Externals\LibOVR\Shim\OVR_StereoProjection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CompositorShader.hlsl">

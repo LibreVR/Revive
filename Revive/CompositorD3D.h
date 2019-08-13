@@ -19,7 +19,7 @@ public:
 	virtual void Flush() { if (m_pContext) m_pContext->Flush(); };
 	virtual TextureBase* CreateTexture();
 
-	virtual void RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad);
+	virtual void RenderTextureSwapChain(vr::EVREye eye, TextureBase* src, TextureBase* dst, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad);
 	virtual void RenderMirrorTexture(ovrMirrorTexture mirrorTexture);
 
 protected:

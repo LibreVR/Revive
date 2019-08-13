@@ -13,7 +13,7 @@ public:
 	TextureBase() { }
 	virtual ~TextureBase() { };
 
-	virtual vr::VRTextureWithPose_t ToVRTexture() = 0;
+	virtual void ToVRTexture(vr::Texture_t& out) = 0;
 	virtual bool Init(ovrTextureType type, int width, int height, int mipLevels, int arraySize,
 		ovrTextureFormat format, unsigned int miscFlags, unsigned int bindFlags) = 0;
 };
@@ -29,7 +29,12 @@ struct ovrTextureSwapChainData
 
 	bool Full() { return (CurrentIndex + 1) % Length == SubmitIndex; }
 	void Commit() { CurrentIndex++; CurrentIndex %= Length; };
-	void Submit() { SubmitIndex = CurrentIndex; };
+	TextureBase* Submit()
+	{
+		TextureBase* tex = Textures[SubmitIndex].get();
+		SubmitIndex = CurrentIndex;
+		return tex;
+	};
 
 	ovrTextureSwapChainData(ovrTextureSwapChainDesc desc);
 	~ovrTextureSwapChainData();

@@ -13,7 +13,7 @@ public:
 	TextureD3D(ID3D12CommandQueue* pQueue);
 	virtual ~TextureD3D();
 
-	virtual vr::VRTextureWithPose_t ToVRTexture();
+	virtual void ToVRTexture(vr::Texture_t& texture);
 	virtual bool Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
 

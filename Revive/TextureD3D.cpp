@@ -26,9 +26,8 @@ TextureD3D::~TextureD3D()
 {
 }
 
-vr::VRTextureWithPose_t TextureD3D::ToVRTexture()
+void TextureD3D::ToVRTexture(vr::Texture_t& texture)
 {
-	vr::VRTextureWithPose_t texture = {};
 	texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format
 
 	if (m_pDevice12)
@@ -41,7 +40,6 @@ vr::VRTextureWithPose_t TextureD3D::ToVRTexture()
 		texture.eType = vr::TextureType_DirectX;
 		texture.handle = m_pTexture.Get();
 	}
-	return texture;
 }
 
 DXGI_FORMAT TextureD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, bool typeless)

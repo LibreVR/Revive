@@ -162,14 +162,11 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_pContext->IASetPrimitiveTopology(topology);
 }
 
-void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain swapChain, ovrTextureSwapChain sceneChain, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
+void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, TextureBase* src, TextureBase* dst, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
 {
 	// TODO: Support compositing layers in DX12
 	if (!m_pDevice)
 		return;
-
-	TextureD3D* texture = (TextureD3D*)swapChain->Textures[swapChain->SubmitIndex].get();
-	TextureD3D* scene = (TextureD3D*)sceneChain->Textures[sceneChain->SubmitIndex].get();
 
 	// Get the current state objects
 	Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
@@ -186,7 +183,7 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 	// Set the compositor shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
 	m_pContext->PSSetShader(m_CompositorShader.Get(), NULL, 0);
-	ID3D11ShaderResourceView* resource = texture->Resource();
+	ID3D11ShaderResourceView* resource = ((TextureD3D*)src)->Resource();
 	m_pContext->PSSetShaderResources(0, 1, &resource);
 
 	// Update the vertex buffer
@@ -204,7 +201,7 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, ovrTextureSwapChain s
 	// Prepare the render target
 	D3D11_VIEWPORT vp = { (float)viewport.Pos.x, (float)viewport.Pos.y, (float)viewport.Size.w, (float)viewport.Size.h, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	m_pContext->RSSetViewports(1, &vp);
-	ID3D11RenderTargetView* target = scene->Target();
+	ID3D11RenderTargetView* target = ((TextureD3D*)dst)->Target();
 	m_pContext->OMSetRenderTargets(1, &target, nullptr);
 	m_pContext->OMSetBlendState(m_BlendState.Get(), nullptr, -1);
 	m_pContext->RSSetState(nullptr);

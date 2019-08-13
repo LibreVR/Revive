@@ -22,6 +22,14 @@ MICROPROFILE_DEFINE(BlitLayers, "Compositor", "BlitLayers", 0x00ff00);
 MICROPROFILE_DEFINE(SubmitLayer, "Compositor", "SubmitLayer", 0x00ff00);
 MICROPROFILE_DEFINE(WaitGetPoses, "Compositor", "WaitGetPoses", 0x00ff00);
 
+const char* swapNames[] = {
+	"SwapChain Left", "SwapChain Right"
+};
+
+const char* submitNames[] = {
+	"Submit Left", "Submit Right"
+};
+
 ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
 {
 	switch (error)
@@ -147,41 +155,35 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			// This is necessary because the position of the layer may change in the array,
 			// which would otherwise cause flickering between overlays.
 			// TODO: Support multiple overlays using the same texture.
-			vr::VROverlayHandle_t overlay = layer.ColorTexture->Overlay;
-			if (overlay == vr::k_ulOverlayHandleInvalid)
-			{
-				overlay = CreateOverlay();
-				layer.ColorTexture->Overlay = overlay;
-
-				vr::VRTextureWithPose_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
-				vr::VROverlay()->SetOverlayTexture(chain->Overlay, &texture);
-			}
-			activeOverlays.push_back(overlay);
+			if (chain->Overlay == vr::k_ulOverlayHandleInvalid)
+				chain->Overlay = CreateOverlay();
+			activeOverlays.push_back(chain->Overlay);
 
 			// Set the layer rendering order and apply a bias between the layers.
-			vr::VROverlay()->SetOverlaySortOrder(overlay, i);
+			vr::VROverlay()->SetOverlaySortOrder(chain->Overlay, i);
 			OVR::Posef pose = layer.QuadPoseCenter;
 			pose.Translation += pose.Rotate(OVR::Vector3f(0.0f, 0.0f, (float)i * REV_LAYER_BIAS));
 
 			// Transform the overlay.
 			vr::HmdMatrix34_t transform = REV::Matrix4f(pose);
-			vr::VROverlay()->SetOverlayWidthInMeters(overlay, layer.QuadSize.x);
+			vr::VROverlay()->SetOverlayWidthInMeters(chain->Overlay, layer.QuadSize.x);
 			if (layer.Header.Flags & ovrLayerFlag_HeadLocked)
-				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
+				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(chain->Overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
 			else
-				vr::VROverlay()->SetOverlayTransformAbsolute(overlay, session->TrackingOrigin, &transform);
+				vr::VROverlay()->SetOverlayTransformAbsolute(chain->Overlay, session->TrackingOrigin, &transform);
 
 			// Set the texture and show the overlay.
 			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.Viewport, layer.ColorTexture, layer.Header.Flags);
-			vr::Texture_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
-			vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
+			vr::VROverlay()->SetOverlayTextureBounds(chain->Overlay, &bounds);
 
 			// Show the overlay, unfortunately we have no control over the order in which
 			// overlays are drawn.
 			// TODO: Support ovrLayerFlag_HighQuality for overlays with anisotropic sampling.
 			// TODO: Handle overlay errors.
-			vr::VROverlay()->ShowOverlay(overlay);
-			chain->Submit();
+			vr::Texture_t texture;
+			chain->Submit()->ToVRTexture(texture);
+			vr::VROverlay()->SetOverlayTexture(chain->Overlay, &texture);
+			vr::VROverlay()->ShowOverlay(chain->Overlay);
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov ||
 			layerPtrList[i]->Type == ovrLayerType_EyeFovDepth ||
@@ -278,21 +280,27 @@ void CompositorBase::BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHe
 	const ovrLayer_Union& dst = ToUnion(dstLayer);
 	const ovrLayer_Union& src = ToUnion(srcLayer);
 
-	ovrTextureSwapChain swapChain[ovrEye_Count] = {
-		src.EyeFov.ColorTexture[ovrEye_Left],
-		src.EyeFov.ColorTexture[ovrEye_Right]
-	};
-
-	// If the right eye isn't set use the left eye for both
-	if (!swapChain[ovrEye_Right])
-		swapChain[ovrEye_Right] = swapChain[ovrEye_Left];
-
-	MICROPROFILE_META_CPU("SwapChain Right", swapChain[ovrEye_Right]->Identifier);
-	MICROPROFILE_META_CPU("SwapChain Left", swapChain[ovrEye_Left]->Identifier);
-
 	// Render the scene layer
+	TextureBase* srcTex = nullptr;
+	TextureBase* dstTex = nullptr;
+	ovrTextureSwapChain srcChain = nullptr;
+	ovrTextureSwapChain dstChain = nullptr;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
+		if (src.EyeFov.ColorTexture[i])
+		{
+			srcChain = src.EyeFov.ColorTexture[i];
+			MICROPROFILE_META_CPU(swapNames[i], srcChain->Identifier);
+			MICROPROFILE_META_CPU(submitNames[i], srcChain->SubmitIndex);
+			srcTex = srcChain->Submit();
+		}
+
+		if (dst.EyeFov.ColorTexture[i])
+		{
+			dstChain = dst.EyeFov.ColorTexture[i];
+			dstTex = dstChain->Textures[dstChain->SubmitIndex].get();
+		}
+
 		// Get the scene fov
 		ovrFovPort srcFov = srcLayer->Type == ovrLayerType_EyeMatrix ?
 			REV::Matrix4f(src.EyeMatrix.Matrix[i]).ToFovPort() : src.EyeFov.Fov[i];
@@ -307,15 +315,11 @@ void CompositorBase::BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHe
 		quad.v[3] = srcFov.DownTan / -dstFov.DownTan;
 
 		// Calculate the texture bounds
-		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(src.EyeFov.Viewport[i], swapChain[i], srcLayer->Flags);
+		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(src.EyeFov.Viewport[i], srcChain, srcLayer->Flags);
 
 		// Composit the layer
-		RenderTextureSwapChain((vr::EVREye)i, swapChain[i], dst.EyeFov.ColorTexture[i], dst.EyeFov.Viewport[i], bounds, quad);
+		RenderTextureSwapChain((vr::EVREye)i, srcTex, dstTex, dst.EyeFov.Viewport[i], bounds, quad);
 	}
-
-	swapChain[ovrEye_Left]->Submit();
-	if (swapChain[ovrEye_Left] != swapChain[ovrEye_Right])
-		swapChain[ovrEye_Right]->Submit();
 }
 
 vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrLayerHeader* baseLayer)
@@ -324,29 +328,26 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 
 	const ovrLayer_Union& layer = ToUnion(baseLayer);
 
-	ovrTextureSwapChain swapChain[ovrEye_Count] = {
-		layer.EyeFov.ColorTexture[ovrEye_Left],
-		layer.EyeFov.ColorTexture[ovrEye_Right]
-	};
-
-	// If the right eye isn't set use the left eye for both
-	if (!swapChain[ovrEye_Right])
-		swapChain[ovrEye_Right] = swapChain[ovrEye_Left];
-
-	MICROPROFILE_META_CPU("SwapChain Right", swapChain[ovrEye_Right]->Identifier);
-	MICROPROFILE_META_CPU("Right Submit", swapChain[ovrEye_Right]->SubmitIndex);
-	MICROPROFILE_META_CPU("SwapChain Left", swapChain[ovrEye_Left]->Identifier);
-	MICROPROFILE_META_CPU("Left Submit", swapChain[ovrEye_Left]->SubmitIndex);
-
 	// Submit the scene layer.
 	vr::VRCompositorError err;
+	vr::Texture_t depthTexture;
+	vr::VRTextureWithPoseAndDepth_t texture;
+	ovrTextureSwapChain colorChain = nullptr;
+	ovrTextureSwapChain depthChain = nullptr;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
+		if (layer.EyeFov.ColorTexture[i])
+		{
+			colorChain = layer.EyeFov.ColorTexture[i];
+			MICROPROFILE_META_CPU(swapNames[i], colorChain->Identifier);
+			MICROPROFILE_META_CPU(submitNames[i], colorChain->SubmitIndex);
+			colorChain->Submit()->ToVRTexture(texture);
+		}
+
 		ovrFovPort fov = baseLayer->Type == ovrLayerType_EyeMatrix ?
 			REV::Matrix4f(layer.EyeMatrix.Matrix[i]).ToFovPort() : layer.EyeFov.Fov[i];
 
-		ovrTextureSwapChain chain = swapChain[i];
-		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.EyeFov.Viewport[i], swapChain[i], baseLayer->Flags);
+		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.EyeFov.Viewport[i], colorChain, baseLayer->Flags);
 
 		// Get the descriptor for this eye
 		rcu_ptr<ovrEyeRenderDesc> desc = session->Details->RenderDesc[i];
@@ -360,32 +361,45 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		bounds.vMin += fovBounds.vMin * bounds.vMax;
 		bounds.vMax *= fovBounds.vMax;
 
-		vr::VRTextureWithPose_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
+		unsigned int submitFlags = vr::Submit_Default;
 
 		// Add the pose data to the eye texture
-		const bool strictPoses = session->Details->UseHack(SessionDetails::HACK_STRICT_POSES);
-		OVR::Matrix4f hmdToEye(desc->HmdToEyePose);
-		REV::Matrix4f pose = baseLayer->Type == ovrLayerType_EyeMatrix ?
-			REV::Matrix4f(layer.EyeMatrix.RenderPose[i]) : REV::Matrix4f(layer.EyeFov.RenderPose[i]);
-		if (!strictPoses && session->TrackingOrigin == vr::TrackingUniverseSeated)
+		if (!session->Details->UseHack(SessionDetails::HACK_STRICT_POSES))
 		{
-			REV::Matrix4f offset(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
-			texture.mDeviceToAbsoluteTracking = REV::Matrix4f(offset * (pose * hmdToEye.Inverted()));
-		}
-		else
-		{
-			texture.mDeviceToAbsoluteTracking = REV::Matrix4f(pose * hmdToEye.Inverted());
+			OVR::Matrix4f hmdToEye(desc->HmdToEyePose);
+			REV::Matrix4f pose = baseLayer->Type == ovrLayerType_EyeMatrix ?
+				REV::Matrix4f(layer.EyeMatrix.RenderPose[i]) : REV::Matrix4f(layer.EyeFov.RenderPose[i]);
+			if (session->TrackingOrigin == vr::TrackingUniverseSeated)
+			{
+				REV::Matrix4f offset(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
+				texture.mDeviceToAbsoluteTracking = REV::Matrix4f(offset * (pose * hmdToEye.Inverted()));
+			}
+			else
+			{
+				texture.mDeviceToAbsoluteTracking = REV::Matrix4f(pose * hmdToEye.Inverted());
+			}
+			submitFlags |= vr::Submit_TextureWithPose;
 		}
 
-		err = vr::VRCompositor()->Submit((vr::EVREye)i, (vr::Texture_t*)&texture, &bounds, strictPoses ? vr::Submit_Default : vr::Submit_TextureWithPose);
+		// Add the depth data if present in the layer
+		if (baseLayer->Type == ovrLayerType_EyeFovDepth)
+		{
+			if (layer.EyeFovDepth.DepthTexture[i])
+			{
+				depthChain = layer.EyeFovDepth.DepthTexture[i];
+				depthChain->Submit()->ToVRTexture(depthTexture);
+			}
+
+			texture.depth.handle = depthTexture.handle;
+			texture.depth.mProjection = REV::Matrix4f::FromProjectionDesc(layer.EyeFovDepth.ProjectionDesc, fov);
+			texture.depth.vRange = REV::Vector2f(0.0f, 1.0f);
+			submitFlags |= vr::Submit_TextureWithDepth;
+		}
+
+		err = vr::VRCompositor()->Submit((vr::EVREye)i, (vr::Texture_t*)&texture, &bounds, (vr::EVRSubmitFlags)submitFlags);
 		if (err != vr::VRCompositorError_None)
 			break;
 	}
-
-	swapChain[ovrEye_Left]->Submit();
-	if (swapChain[ovrEye_Left] != swapChain[ovrEye_Right])
-		swapChain[ovrEye_Right]->Submit();
-
 	return err;
 }
 
