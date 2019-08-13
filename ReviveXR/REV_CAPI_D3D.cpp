@@ -135,6 +135,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		createInfo.systemId = session->System;
 		CHK_XR(xrCreateSession(session->Instance, &createInfo, &session->Session));
 
+		// Attach it to the InputManager
+		session->Input->AttachSession(session->Session);
+
 		// Create reference spaces
 		XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
 		spaceInfo.poseInReferenceSpace = XR::Posef::Identity();

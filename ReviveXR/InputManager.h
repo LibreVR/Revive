@@ -172,13 +172,14 @@ public:
 	InputManager(XrInstance instance);
 	~InputManager();
 
+	ovrResult AttachSession(XrSession session);
+
 	static ovrTouchHapticsDesc GetTouchHapticsDesc(ovrControllerType controllerType);
 	ovrResult SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude);
 	ovrResult GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState);
 	ovrResult SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer);
 	ovrResult GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState);
 
-	ovrResult AttachSession(ovrSession);
 	void GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime);
 	ovrResult GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses);
 

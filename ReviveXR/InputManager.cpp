@@ -822,18 +822,18 @@ void InputManager::XboxGamepad::GetActiveSets(std::vector<XrActiveActionSet>& ou
 	outSets.push_back(XrActiveActionSet{ m_ActionSet });
 }
 
-ovrResult InputManager::AttachSession(ovrSession session)
+ovrResult InputManager::AttachSession(XrSession session)
 {
 	std::vector<XrActionSet> actionSets;
 	for (InputDevice* device : m_InputDevices)
 	{
-		device->GetActionSpaces(session->Session, m_ActionSpaces);
+		device->GetActionSpaces(session, m_ActionSpaces);
 		actionSets.push_back(*device);
 	}
 
 	XrSessionActionSetsAttachInfo attachInfo = XR_TYPE(SESSION_ACTION_SETS_ATTACH_INFO);
 	attachInfo.countActionSets = (uint32_t)actionSets.size();
 	attachInfo.actionSets = actionSets.data();
-	CHK_XR(xrAttachSessionActionSets(session->Session, &attachInfo));
+	CHK_XR(xrAttachSessionActionSets(session, &attachInfo));
 	return ovrSuccess;
 }

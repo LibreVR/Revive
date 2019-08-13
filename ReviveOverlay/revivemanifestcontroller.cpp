@@ -17,7 +17,7 @@
 
 CReviveManifestController *s_pSharedRevController = NULL;
 const char* CReviveManifestController::AppKey = "revive.dashboard.overlay";
-const char* CReviveManifestController::AppPrefix = "revive.app.";
+const char* CReviveManifestController::AppPrefix = "revive.software.";
 
 CReviveManifestController *CReviveManifestController::SharedInstance()
 {
