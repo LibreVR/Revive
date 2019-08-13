@@ -18,8 +18,8 @@ extern uint32_t g_MinorVersion;
 MICROPROFILE_DEFINE(WaitToBeginFrame, "Compositor", "WaitFrame", 0x00ff00);
 MICROPROFILE_DEFINE(BeginFrame, "Compositor", "BeginFrame", 0x00ff00);
 MICROPROFILE_DEFINE(EndFrame, "Compositor", "EndFrame", 0x00ff00);
-MICROPROFILE_DEFINE(BlitFovLayers, "Compositor", "BlitFovLayers", 0x00ff00);
-MICROPROFILE_DEFINE(SubmitFovLayer, "Compositor", "SubmitFovLayer", 0x00ff00);
+MICROPROFILE_DEFINE(BlitLayers, "Compositor", "BlitLayers", 0x00ff00);
+MICROPROFILE_DEFINE(SubmitLayer, "Compositor", "SubmitLayer", 0x00ff00);
 MICROPROFILE_DEFINE(WaitGetPoses, "Compositor", "WaitGetPoses", 0x00ff00);
 
 ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
@@ -113,20 +113,14 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 	return ovrSuccess;
 }
 
-template<typename T>
-T CompositorBase::ToLayer(const ovrLayerHeader* layerPtr)
+const ovrLayer_Union& CompositorBase::ToUnion(const ovrLayerHeader* layerPtr)
 {
-	T layer = {};
-	layer.Header.Type = layerPtr->Type;
-	layer.Header.Flags = layerPtr->Flags;
-
 	// Version 1.25 introduced a 128-byte reserved parameter, so on older versions the actual data
-	// falls within this reserved parameter and needs to be copied into the actual data area.
+	// falls within this reserved parameter so the pointer needs to be moved back.
 	if (g_MinorVersion < 25)
-		memcpy((uint8_t*)&layer + sizeof(ovrLayerHeader), layerPtr->Reserved, sizeof(T) - sizeof(ovrLayerHeader));
+		return *(ovrLayer_Union*)((uint8_t*)layerPtr - sizeof(ovrLayerHeader));
 	else
-		layer = *(T*)layerPtr;
-	return layer;
+		return *(ovrLayer_Union*)layerPtr;
 }
 
 ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
@@ -136,8 +130,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	if (layerCount == 0 || !layerPtrList)
 		return ovrError_InvalidParameter;
 
-	ovrLayerEyeFov baseLayer;
-	bool baseLayerFound = false;
+	const ovrLayerHeader* baseLayer = nullptr;
 	std::vector<vr::VROverlayHandle_t> activeOverlays;
 	for (uint32_t i = 0; i < layerCount; i++)
 	{
@@ -147,7 +140,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 		// TODO: Support ovrLayerType_Cylinder and ovrLayerType_Cube
 		if (layerPtrList[i]->Type == ovrLayerType_Quad)
 		{
-			ovrLayerQuad layer = ToLayer<ovrLayerQuad>(layerPtrList[i]);
+			const ovrLayerQuad& layer = ToUnion(layerPtrList[i]).Quad;
 			ovrTextureSwapChain chain = layer.ColorTexture;
 
 			// Every overlay is associated with a swapchain.
@@ -192,36 +185,14 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov ||
 			layerPtrList[i]->Type == ovrLayerType_EyeFovDepth ||
-			layerPtrList[i]->Type == ovrLayerType_EyeFovMultires)
+			layerPtrList[i]->Type == ovrLayerType_EyeFovMultires ||
+			layerPtrList[i]->Type == ovrLayerType_EyeMatrix)
 		{
-			ovrLayerEyeFov layer = ToLayer<ovrLayerEyeFov>(layerPtrList[i]);
-
 			// We can only submit one eye layer, so once we have a base layer we blit the others.
-			if (!baseLayerFound)
-				baseLayer = layer;
+			if (!baseLayer)
+				baseLayer = layerPtrList[i];
 			else
-				BlitFovLayers(&baseLayer, &layer);
-			baseLayerFound = true;
-
-			// Even though we don't actually support this layer we should still cycle its swapchain.
-			if (layerPtrList[i]->Type == ovrLayerType_EyeFovDepth)
-			{
-				ovrLayerEyeFovDepth layer = ToLayer<ovrLayerEyeFovDepth>(layerPtrList[i]);
-				layer.DepthTexture[ovrEye_Left]->Submit();
-				if (layer.DepthTexture[ovrEye_Left] != layer.DepthTexture[ovrEye_Right])
-					layer.DepthTexture[ovrEye_Right]->Submit();
-			}
-		}
-		else if (layerPtrList[i]->Type == ovrLayerType_EyeMatrix)
-		{
-			ovrLayerEyeFov layer = ToFovLayer((ovrLayerEyeMatrix*)layerPtrList[i]);
-
-			// We can only submit one eye layer, so once we have a base layer we blit the others.
-			if (!baseLayerFound)
-				baseLayer = layer;
-			else
-				BlitFovLayers(&baseLayer, &layer);
-			baseLayerFound = true;
+				BlitLayers(baseLayer, layerPtrList[i]);
 		}
 	}
 
@@ -236,8 +207,8 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	m_ActiveOverlays = activeOverlays;
 
 	vr::EVRCompositorError error = vr::VRCompositorError_None;
-	if (baseLayerFound)
-		error = SubmitFovLayer(session, &baseLayer);
+	if (baseLayer)
+		error = SubmitLayer(session, baseLayer);
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
@@ -300,30 +271,16 @@ vr::VRTextureBounds_t CompositorBase::ViewportToTextureBounds(ovrRecti viewport,
 	return bounds;
 }
 
-ovrLayerEyeFov CompositorBase::ToFovLayer(ovrLayerEyeMatrix* matrix)
+void CompositorBase::BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHeader* srcLayer)
 {
-	ovrLayerEyeFov layer = { ovrLayerType_EyeFov };
-	layer.Header.Flags = matrix->Header.Flags;
-	layer.SensorSampleTime = matrix->SensorSampleTime;
+	MICROPROFILE_SCOPE(BlitLayers);
 
-	for (int i = 0; i < ovrEye_Count; i++)
-	{
-		layer.Fov[i] = REV::Matrix4f(matrix->Matrix[i]).ToFovPort();
-		layer.ColorTexture[i] = matrix->ColorTexture[i];
-		layer.Viewport[i] = matrix->Viewport[i];
-		layer.RenderPose[i] = matrix->RenderPose[i];
-	}
-
-	return layer;
-}
-
-void CompositorBase::BlitFovLayers(ovrLayerEyeFov* dstLayer, ovrLayerEyeFov* srcLayer)
-{
-	MICROPROFILE_SCOPE(BlitFovLayers);
+	const ovrLayer_Union& dst = ToUnion(dstLayer);
+	const ovrLayer_Union& src = ToUnion(srcLayer);
 
 	ovrTextureSwapChain swapChain[ovrEye_Count] = {
-		srcLayer->ColorTexture[ovrEye_Left],
-		srcLayer->ColorTexture[ovrEye_Right]
+		src.EyeFov.ColorTexture[ovrEye_Left],
+		src.EyeFov.ColorTexture[ovrEye_Right]
 	};
 
 	// If the right eye isn't set use the left eye for both
@@ -337,20 +294,23 @@ void CompositorBase::BlitFovLayers(ovrLayerEyeFov* dstLayer, ovrLayerEyeFov* src
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		// Get the scene fov
-		ovrFovPort sceneFov = dstLayer->Fov[i];
+		ovrFovPort srcFov = srcLayer->Type == ovrLayerType_EyeMatrix ?
+			REV::Matrix4f(src.EyeMatrix.Matrix[i]).ToFovPort() : src.EyeFov.Fov[i];
+		ovrFovPort dstFov = dstLayer->Type == ovrLayerType_EyeMatrix ?
+			REV::Matrix4f(dst.EyeMatrix.Matrix[i]).ToFovPort() : dst.EyeFov.Fov[i];
 
 		// Calculate the fov quad
 		vr::HmdVector4_t quad;
-		quad.v[0] = srcLayer->Fov[i].LeftTan / -sceneFov.LeftTan;
-		quad.v[1] = srcLayer->Fov[i].RightTan / sceneFov.RightTan;
-		quad.v[2] = srcLayer->Fov[i].UpTan / sceneFov.UpTan;
-		quad.v[3] = srcLayer->Fov[i].DownTan / -sceneFov.DownTan;
+		quad.v[0] = srcFov.LeftTan / -dstFov.LeftTan;
+		quad.v[1] = srcFov.RightTan / dstFov.RightTan;
+		quad.v[2] = srcFov.UpTan / dstFov.UpTan;
+		quad.v[3] = srcFov.DownTan / -dstFov.DownTan;
 
 		// Calculate the texture bounds
-		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(srcLayer->Viewport[i], swapChain[i], srcLayer->Header.Flags);
+		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(src.EyeFov.Viewport[i], swapChain[i], srcLayer->Flags);
 
 		// Composit the layer
-		RenderTextureSwapChain((vr::EVREye)i, swapChain[i], dstLayer->ColorTexture[i], dstLayer->Viewport[i], bounds, quad);
+		RenderTextureSwapChain((vr::EVREye)i, swapChain[i], dst.EyeFov.ColorTexture[i], dst.EyeFov.Viewport[i], bounds, quad);
 	}
 
 	swapChain[ovrEye_Left]->Submit();
@@ -358,13 +318,15 @@ void CompositorBase::BlitFovLayers(ovrLayerEyeFov* dstLayer, ovrLayerEyeFov* src
 		swapChain[ovrEye_Right]->Submit();
 }
 
-vr::VRCompositorError CompositorBase::SubmitFovLayer(ovrSession session, ovrLayerEyeFov* fovLayer)
+vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrLayerHeader* baseLayer)
 {
-	MICROPROFILE_SCOPE(SubmitFovLayer);
+	MICROPROFILE_SCOPE(SubmitLayer);
+
+	const ovrLayer_Union& layer = ToUnion(baseLayer);
 
 	ovrTextureSwapChain swapChain[ovrEye_Count] = {
-		fovLayer->ColorTexture[ovrEye_Left],
-		fovLayer->ColorTexture[ovrEye_Right]
+		layer.EyeFov.ColorTexture[ovrEye_Left],
+		layer.EyeFov.ColorTexture[ovrEye_Right]
 	};
 
 	// If the right eye isn't set use the left eye for both
@@ -380,14 +342,17 @@ vr::VRCompositorError CompositorBase::SubmitFovLayer(ovrSession session, ovrLaye
 	vr::VRCompositorError err;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
+		ovrFovPort fov = baseLayer->Type == ovrLayerType_EyeMatrix ?
+			REV::Matrix4f(layer.EyeMatrix.Matrix[i]).ToFovPort() : layer.EyeFov.Fov[i];
+
 		ovrTextureSwapChain chain = swapChain[i];
-		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(fovLayer->Viewport[i], swapChain[i], fovLayer->Header.Flags);
+		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.EyeFov.Viewport[i], swapChain[i], baseLayer->Flags);
 
 		// Get the descriptor for this eye
 		rcu_ptr<ovrEyeRenderDesc> desc = session->Details->RenderDesc[i];
 
 		// Shrink the bounds to account for the overlapping fov
-		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fovLayer->Fov[i]);
+		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fov);
 
 		// Combine the fov bounds with the viewport bounds
 		bounds.uMin += fovBounds.uMin * bounds.uMax;
@@ -398,9 +363,10 @@ vr::VRCompositorError CompositorBase::SubmitFovLayer(ovrSession session, ovrLaye
 		vr::VRTextureWithPose_t texture = chain->Textures[chain->SubmitIndex]->ToVRTexture();
 
 		// Add the pose data to the eye texture
-		OVR::Matrix4f hmdToEye(desc->HmdToEyePose);
-		REV::Matrix4f pose(fovLayer->RenderPose[i]);
 		const bool strictPoses = session->Details->UseHack(SessionDetails::HACK_STRICT_POSES);
+		OVR::Matrix4f hmdToEye(desc->HmdToEyePose);
+		REV::Matrix4f pose = baseLayer->Type == ovrLayerType_EyeMatrix ?
+			REV::Matrix4f(layer.EyeMatrix.RenderPose[i]) : REV::Matrix4f(layer.EyeFov.RenderPose[i]);
 		if (!strictPoses && session->TrackingOrigin == vr::TrackingUniverseSeated)
 		{
 			REV::Matrix4f offset(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());

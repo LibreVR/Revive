@@ -38,12 +38,10 @@ protected:
 	vr::VROverlayHandle_t CreateOverlay();
 	vr::VRTextureBounds_t ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
 
-	template<typename T>
-	T ToLayer(const ovrLayerHeader* layerPtr);
-	ovrLayerEyeFov ToFovLayer(ovrLayerEyeMatrix* matrix);
+	const ovrLayer_Union& ToUnion(const ovrLayerHeader* layerPtr);
 
-	void BlitFovLayers(ovrLayerEyeFov* dstLayer, ovrLayerEyeFov* srcLayer);
-	vr::VRCompositorError SubmitFovLayer(ovrSession session, ovrLayerEyeFov* fovLayer);
+	void BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHeader* srcLayer);
+	vr::VRCompositorError SubmitLayer(ovrSession session, const ovrLayerHeader* baseLayer);
 
 private:
 	// Overlays
