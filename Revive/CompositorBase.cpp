@@ -379,21 +379,21 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 				texture.mDeviceToAbsoluteTracking = REV::Matrix4f(pose * hmdToEye.Inverted());
 			}
 			submitFlags |= vr::Submit_TextureWithPose;
-		}
 
-		// Add the depth data if present in the layer
-		if (baseLayer->Type == ovrLayerType_EyeFovDepth)
-		{
-			if (layer.EyeFovDepth.DepthTexture[i])
+			// Add the depth data if present in the layer
+			if (baseLayer->Type == ovrLayerType_EyeFovDepth)
 			{
-				depthChain = layer.EyeFovDepth.DepthTexture[i];
-				depthChain->Submit()->ToVRTexture(depthTexture);
-			}
+				if (layer.EyeFovDepth.DepthTexture[i])
+				{
+					depthChain = layer.EyeFovDepth.DepthTexture[i];
+					depthChain->Submit()->ToVRTexture(depthTexture);
+				}
 
-			texture.depth.handle = depthTexture.handle;
-			texture.depth.mProjection = REV::Matrix4f::FromProjectionDesc(layer.EyeFovDepth.ProjectionDesc, fov);
-			texture.depth.vRange = REV::Vector2f(0.0f, 1.0f);
-			submitFlags |= vr::Submit_TextureWithDepth;
+				texture.depth.handle = depthTexture.handle;
+				texture.depth.mProjection = REV::Matrix4f::FromProjectionDesc(layer.EyeFovDepth.ProjectionDesc, fov);
+				texture.depth.vRange = REV::Vector2f(0.0f, 1.0f);
+				submitFlags |= vr::Submit_TextureWithDepth;
+			}
 		}
 
 		err = vr::VRCompositor()->Submit((vr::EVREye)i, (vr::Texture_t*)&texture, &bounds, (vr::EVRSubmitFlags)submitFlags);
