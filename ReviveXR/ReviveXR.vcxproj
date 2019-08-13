@@ -61,8 +61,8 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(Externals)openxr\src\loader\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Ws2_32.lib;openxr_loader-0_90.lib;opengl32.lib;d3d11.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(Externals)openxr\src\loader\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Ws2_32.lib;openxr_loader-1_0.lib;opengl32.lib;d3d11.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -78,6 +78,9 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PostBuildEvent>
+      <Command>copy /Y "$(Externals)openxr\src\loader\$(Configuration)"  "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -93,8 +96,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(Externals)openxr\src\loader\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Ws2_32.lib;openxr_loader-0_90.lib;opengl32.lib;d3d11.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(Externals)openxr\src\loader\$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Ws2_32.lib;openxr_loader-1_0.lib;opengl32.lib;d3d11.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
     </Link>
     <FxCompile>
@@ -109,6 +112,9 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PostBuildEvent>
+      <Command>copy /Y "$(Externals)openxr\src\loader\$(Configuration)"  "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\microprofile\microprofile.h" />

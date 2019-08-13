@@ -12,19 +12,15 @@ ovrResult ResultToOvrResult(XrResult error)
 	{
 	case XR_SUCCESS: return ovrSuccess;
 	case XR_TIMEOUT_EXPIRED: return ovrError_Timeout;
-	case XR_SESSION_VISIBILITY_UNAVAILABLE: return ovrSuccess_NotVisible;
 	case XR_SESSION_LOSS_PENDING: return ovrSuccess;
 	case XR_EVENT_UNAVAILABLE: return ovrSuccess;
-	case XR_STATE_UNAVAILABLE: return ovrSuccess;
-	case XR_STATE_TYPE_UNAVAILABLE: return ovrSuccess;
 	case XR_SPACE_BOUNDS_UNAVAILABLE: return ovrSuccess_BoundaryInvalid;
 	case XR_SESSION_NOT_FOCUSED: return ovrSuccess_NotVisible;
 	case XR_FRAME_DISCARDED: return ovrSuccess_NotVisible;
 	case XR_ERROR_VALIDATION_FAILURE: return ovrError_InvalidParameter;
 	case XR_ERROR_RUNTIME_FAILURE: return ovrError_RuntimeException;
 	case XR_ERROR_OUT_OF_MEMORY: return ovrError_MemoryAllocationFailure;
-	case XR_ERROR_RUNTIME_VERSION_INCOMPATIBLE: return ovrError_LibVersion;
-	case XR_ERROR_DRIVER_INCOMPATIBLE: return ovrError_ServiceVersion;
+	case XR_ERROR_API_VERSION_UNSUPPORTED: return ovrError_ServiceVersion;
 	case XR_ERROR_INITIALIZATION_FAILED: return ovrError_Initialize;
 	case XR_ERROR_FUNCTION_UNSUPPORTED: return ovrError_Unsupported;
 	case XR_ERROR_FEATURE_UNSUPPORTED: return ovrError_Unsupported;
@@ -40,11 +36,15 @@ ovrResult ResultToOvrResult(XrResult error)
 	case XR_ERROR_PATH_INVALID: return ovrError_InvalidParameter;
 	case XR_ERROR_PATH_COUNT_EXCEEDED: return ovrError_InvalidParameter;
 	case XR_ERROR_PATH_FORMAT_INVALID: return ovrError_InvalidParameter;
+	case XR_ERROR_PATH_UNSUPPORTED: return ovrError_InvalidParameter;
 	case XR_ERROR_LAYER_INVALID: return ovrError_InvalidParameter;
 	case XR_ERROR_LAYER_LIMIT_EXCEEDED: return ovrError_InvalidParameter;
 	case XR_ERROR_SWAPCHAIN_RECT_INVALID: return ovrError_InvalidParameter;
 	case XR_ERROR_SWAPCHAIN_FORMAT_UNSUPPORTED: return ovrError_InvalidParameter;
 	case XR_ERROR_ACTION_TYPE_MISMATCH: return ovrError_InvalidParameter;
+	case XR_ERROR_SESSION_NOT_READY: return ovrError_RuntimeException;
+	case XR_ERROR_SESSION_NOT_STOPPING: return ovrError_RuntimeException;
+	case XR_ERROR_TIME_INVALID: return ovrError_InvalidParameter;
 	case XR_ERROR_REFERENCE_SPACE_UNSUPPORTED: return ovrError_InvalidParameter;
 	case XR_ERROR_FILE_ACCESS_ERROR: return ovrError_RuntimeException;
 	case XR_ERROR_FILE_CONTENTS_INVALID: return ovrError_RuntimeException;
@@ -57,9 +57,12 @@ ovrResult ResultToOvrResult(XrResult error)
 	case XR_ERROR_INDEX_OUT_OF_RANGE: return ovrError_InvalidParameter;
 	case XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED: return ovrError_InvalidParameter;
 	case XR_ERROR_ENVIRONMENT_BLEND_MODE_UNSUPPORTED: return ovrError_InvalidParameter;
-	case XR_ERROR_BINDINGS_DUPLICATED: return ovrError_InvalidParameter;
 	case XR_ERROR_NAME_DUPLICATED: return ovrError_InvalidParameter;
 	case XR_ERROR_NAME_INVALID: return ovrError_InvalidParameter;
+	case XR_ERROR_ACTIONSET_NOT_ATTACHED: return ovrError_InvalidParameter;
+	case XR_ERROR_ACTIONSETS_ALREADY_ATTACHED: return ovrError_InvalidParameter;
+	case XR_ERROR_LOCALIZED_NAME_DUPLICATED: return ovrError_InvalidParameter;
+	case XR_ERROR_LOCALIZED_NAME_INVALID: return ovrError_InvalidParameter;
 	default: return ovrError_RuntimeException;
 	}
 }

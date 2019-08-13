@@ -15,4 +15,4 @@
 	url = https://github.com/KhronosGroup/Vulkan-Docs.git
 [submodule "Externals/openxr"]
 	path = Externals/openxr
-	url = https://github.com/Armada651/OpenXR-SDK.git
+	url = https://github.com/KhronosGroup/OpenXR-SDK.git

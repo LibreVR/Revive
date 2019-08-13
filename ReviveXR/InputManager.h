@@ -16,23 +16,24 @@ public:
 	class InputDevice
 	{
 	public:
-		InputDevice(XrSession session, const char* actionSetName, const char* localizedName);
+		InputDevice(XrInstance instance, const char* actionSetName, const char* localizedName);
 		virtual ~InputDevice();
 
 		// Input
 		virtual ovrControllerType GetType() const = 0;
 		virtual bool IsConnected() const = 0;
-		virtual bool GetInputState(ovrControllerType controllerType, ovrInputState* inputState) = 0;
+		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) = 0;
 
 		// Bindings
 		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const { return XR_NULL_PATH; }
-		virtual void GetActionSpaces(std::vector<XrSpace>& outSpaces) const { }
+		virtual void GetActionSpaces(XrSession session, std::vector<XrSpace>& outSpaces) const { }
 		virtual void GetActiveSets(std::vector<XrActiveActionSet>& outSets) const { }
 
 		// Haptics
-		virtual void SetVibration(ovrControllerType controllerType, float frequency, float amplitude) { }
+		virtual ovrResult SetVibration(XrSession session, ovrControllerType controllerType, float frequency, float amplitude) { return ovrSuccess; }
 		virtual void SubmitVibration(ovrControllerType controllerType, const ovrHapticsBuffer* buffer) { }
 		virtual void GetVibrationState(ovrHandType hand, ovrHapticsPlaybackState* outState) { }
+		virtual void StartHaptics(XrSession session) { }
 
 		operator XrActionSet() const { return m_ActionSet; }
 
@@ -50,37 +51,37 @@ public:
 		Action(InputDevice* device, XrActionType type, const char* actionName, const char* localizedName, bool handedAction = false);
 		~Action();
 
-		bool GetDigital(ovrHandType hand = ovrHand_Left) const;
-		bool IsPressed(ovrHandType hand = ovrHand_Left) const;
-		bool IsReleased(ovrHandType hand = ovrHand_Left) const;
-		float GetAnalog(ovrHandType hand = ovrHand_Left) const;
-		ovrVector2f GetVector(ovrHandType hand = ovrHand_Left) const;
-		XrSpace GetSpace(ovrHandType hand = ovrHand_Left) const;
+		bool GetDigital(XrSession session, ovrHandType hand = ovrHand_Left) const;
+		bool IsPressed(XrSession session, ovrHandType hand = ovrHand_Left) const;
+		bool IsReleased(XrSession session, ovrHandType hand = ovrHand_Left) const;
+		float GetAnalog(XrSession session, ovrHandType hand = ovrHand_Left) const;
+		ovrVector2f GetVector(XrSession session, ovrHandType hand = ovrHand_Left) const;
+		XrSpace CreateSpace(XrSession session, ovrHandType hand = ovrHand_Left) const;
 
 		operator XrAction() const { return m_Action; }
 
 	private:
 		bool m_IsHanded;
 		XrAction m_Action;
-		XrSpace m_Spaces[ovrHand_Count];
 	};
 
 	class OculusTouch : public InputDevice
 	{
 	public:
-		OculusTouch(XrSession session);
+		OculusTouch(XrInstance instance);
 		virtual ~OculusTouch();
 
 		virtual ovrControllerType GetType() const override;
 		virtual bool IsConnected() const override;
-		virtual bool GetInputState(ovrControllerType controllerType, ovrInputState* inputState) override;
+		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
 		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const override;
-		virtual void GetActionSpaces(std::vector<XrSpace>& outSpaces) const override;
+		virtual void GetActionSpaces(XrSession session, std::vector<XrSpace>& outSpaces) const override;
 		virtual void GetActiveSets(std::vector<XrActiveActionSet>& outSets) const override;
 
-		virtual void SetVibration(ovrControllerType controllerType, float frequency, float amplitude) override;
+		virtual ovrResult SetVibration(XrSession session, ovrControllerType controllerType, float frequency, float amplitude) override;
 		virtual void SubmitVibration(ovrControllerType controllerType, const ovrHapticsBuffer* buffer) override;
 		virtual void GetVibrationState(ovrHandType hand, ovrHapticsPlaybackState* outState) override { *outState = m_HapticsBuffer[hand].GetState(); }
+		virtual void StartHaptics(XrSession session) override;
 
 	private:
 		Action m_Button_AX;
@@ -104,18 +105,18 @@ public:
 		HapticsBuffer m_HapticsBuffer[ovrHand_Count];
 
 		std::thread m_HapticsThread;
-		static void HapticsThread(OculusTouch* device);
+		static void HapticsThread(XrSession session, OculusTouch* device);
 	};
 
 	class OculusRemote : public InputDevice
 	{
 	public:
-		OculusRemote(XrSession session);
+		OculusRemote(XrInstance instance);
 		virtual ~OculusRemote() { }
 
 		virtual ovrControllerType GetType() const override { return ovrControllerType_Remote; }
 		virtual bool IsConnected() const override;
-		virtual bool GetInputState(ovrControllerType controllerType, ovrInputState* inputState) override;
+		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
 		virtual void GetActiveSets(std::vector<XrActiveActionSet>& outSets) const override;
 
 	private:
@@ -135,15 +136,15 @@ public:
 	class XboxGamepad : public InputDevice
 	{
 	public:
-		XboxGamepad(XrSession session);
+		XboxGamepad(XrInstance instance);
 		virtual ~XboxGamepad();
 
 		virtual ovrControllerType GetType() const override { return ovrControllerType_XBox; }
 		virtual bool IsConnected() const override { return true; }
-		virtual bool GetInputState(ovrControllerType controllerType, ovrInputState* inputState) override;
+		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
 		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const override;
 		virtual void GetActiveSets(std::vector<XrActiveActionSet>& outSets) const override;
-		virtual void SetVibration(ovrControllerType controllerType, float frequency, float amplitude) override;
+		virtual ovrResult SetVibration(XrSession session, ovrControllerType controllerType, float frequency, float amplitude) override;
 
 	private:
 		Action m_Button_A;
@@ -168,7 +169,7 @@ public:
 		Action m_LVibration;
 	};
 
-	InputManager(XrSession session);
+	InputManager(XrInstance instance);
 	~InputManager();
 
 	static ovrTouchHapticsDesc GetTouchHapticsDesc(ovrControllerType controllerType);
@@ -177,6 +178,7 @@ public:
 	ovrResult SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer);
 	ovrResult GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState);
 
+	ovrResult AttachSession(ovrSession);
 	void GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime);
 	ovrResult GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses);
 
@@ -189,6 +191,6 @@ protected:
 	std::vector<XrActiveActionSet> m_ActionSets;
 
 	static XrTime AbsTimeToXrTime(XrInstance instance, double absTime);
-	static unsigned int SpaceRelationToPoseState(const XrSpaceRelation& relation, double time, ovrPoseStatef& outPoseState);
+	static unsigned int SpaceRelationToPoseState(const XrSpaceLocation& location, double time, ovrPoseStatef& outPoseState);
 };
 

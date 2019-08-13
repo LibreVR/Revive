@@ -146,9 +146,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->StageSpace));
 		session->CalibratedOrigin = OVR::Posef::Identity();
 
-		// Initialize input
-		session->Input.reset(new InputManager(session->Session));
-
 		XrSessionBeginInfo beginInfo = XR_TYPE(SESSION_BEGIN_INFO);
 		beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 		CHK_XR(xrBeginSession(session->Session, &beginInfo));
@@ -162,7 +159,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	xrEnumerateSwapchainFormats(session->Session, 0, &formatCount, nullptr);
 	std::vector<int64_t> formats;
 	formats.resize(formatCount);
-	xrEnumerateSwapchainFormats(session->Session, formats.size(), &formatCount, formats.data());
+	xrEnumerateSwapchainFormats(session->Session, (uint32_t)formats.size(), &formatCount, formats.data());
 	assert(formats.size() == formatCount);
 
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();

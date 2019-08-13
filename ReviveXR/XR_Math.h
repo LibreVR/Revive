@@ -54,6 +54,11 @@ namespace XR {
 		{
 			return reinterpret_cast<const XrVector2f&>(*this);
 		}
+
+		operator const XrExtent2Df& () const
+		{
+			return reinterpret_cast<const XrExtent2Df&>(*this);
+		}
 	};
 
 	class Vector3f : public OVR::Vector3f

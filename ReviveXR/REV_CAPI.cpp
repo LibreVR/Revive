@@ -49,7 +49,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	properties.resize(size);
 	for (XrExtensionProperties& props : properties)
 		props = XR_TYPE(EXTENSION_PROPERTIES);
-	CHK_XR(xrEnumerateInstanceExtensionProperties(nullptr, properties.size(), &size, properties.data()));
+	CHK_XR(xrEnumerateInstanceExtensionProperties(nullptr, (uint32_t)properties.size(), &size, properties.data()));
 	g_Extensions.InitExtensionList(properties);
 
 	MH_QueueDisableHook(LoadLibraryW);
@@ -188,6 +188,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	session->Instance = g_Instance;
 	session->TrackingSpace = XR_REFERENCE_SPACE_TYPE_LOCAL;
 
+	// Initialize input
+	session->Input.reset(new InputManager(session->Instance));
+
 	XrSystemGetInfo systemInfo = XR_TYPE(SYSTEM_GET_INFO);
 	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 	CHK_XR(xrGetSystem(session->Instance, &systemInfo, &session->System));
@@ -323,7 +326,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 					status.HmdPresent = true;
 				else if (stateChanged.state == XR_SESSION_STATE_READY)
 					status.HmdMounted = true;
-				else if (stateChanged.state == XR_SESSION_STATE_RUNNING)
+				else if (stateChanged.state == XR_SESSION_STATE_SYNCHRONIZED)
 					status.IsVisible = false;
 				else if (stateChanged.state == XR_SESSION_STATE_FOCUSED)
 					status.HasInputFocus = true;
@@ -401,10 +404,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	XrSpaceRelation relation = XR_TYPE(SPACE_RELATION);
+	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
 	CHK_XR(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->FrameState.predictedDisplayTime, &relation));
 
-	if (!(relation.relationFlags & XR_SPACE_RELATION_ORIENTATION_VALID_BIT | XR_SPACE_RELATION_POSITION_VALID_BIT))
+	if (!(relation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
 		return ovrError_InvalidHeadsetOrientation;
 
 	return ovr_SpecifyTrackingOrigin(session, XR::Posef(relation.pose));
@@ -490,11 +493,11 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 		};
 		OVR::Posef trackerPose = poses[trackerPoseIndex];
 
-		XrSpaceRelation relation = XR_TYPE(SPACE_RELATION);
+		XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
 		if (XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->FrameState.predictedDisplayTime, &relation)))
 		{
 			// Create a leveled head pose
-			if (relation.relationFlags & XR_SPACE_RELATION_ORIENTATION_VALID_BIT)
+			if (relation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
 			{
 				float yaw;
 				XR::Posef headPose(relation.pose);
@@ -624,7 +627,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_TestBoundary(ovrSession session, ovrTrackedDe
 	}
 
 	poses.resize(devices.size());
-	CHK_OVR(ovr_GetDevicePoses(session, devices.data(), devices.size(), 0.0f, poses.data()));
+	CHK_OVR(ovr_GetDevicePoses(session, devices.data(), (uint32_t)devices.size(), 0.0f, poses.data()));
 
 	for (size_t i = 0; i < devices.size(); i++)
 	{
@@ -1435,30 +1438,54 @@ ovr_GetViewportStencil(
 	return ovr_GetFovStencil(session, &fovStencilDesc, outMeshBuffer);
 }
 
+static const XrVector2f VisibleRectangle[] = {
+	{ 0.0f, 0.0f },
+	{ 1.0f, 0.0f },
+	{ 1.0f, 1.0f },
+	{ 0.0f, 1.0f }
+};
+
+static const uint16_t VisibleRectangleIndices[] = {
+	0, 1, 2, 0, 2, 3
+};
+
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetFovStencil(
 	ovrSession session,
 	const ovrFovStencilDesc* fovStencilDesc,
 	ovrFovStencilMeshBuffer* meshBuffer)
 {
-	if (!g_Extensions.VisibilityMask || fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
+	if (!g_Extensions.VisibilityMask)
 		return ovrError_Unsupported;
 
 	if (!session)
 		return ovrError_InvalidSession;
 
-	std::vector<uint32_t> indexBuffer;
-	indexBuffer.resize(meshBuffer->AllocIndexCount);
+	if (fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
+	{
+		meshBuffer->UsedVertexCount = sizeof(VisibleRectangle) / sizeof(XrVector2f);
+		meshBuffer->UsedIndexCount = sizeof(VisibleRectangleIndices) / sizeof(uint16_t);
 
-	XrVisibilityMaskTypeKHR type = (XrVisibilityMaskTypeKHR)(fovStencilDesc->StencilType - 1);
+		if (meshBuffer->AllocVertexCount >= meshBuffer->UsedVertexCount)
+			memcpy(meshBuffer->VertexBuffer, VisibleRectangle, sizeof(VisibleRectangle));
+		if (meshBuffer->AllocIndexCount >= meshBuffer->UsedIndexCount)
+			memcpy(meshBuffer->IndexBuffer, VisibleRectangleIndices, sizeof(VisibleRectangleIndices));
+		return ovrSuccess;
+	}
+
+	std::vector<uint32_t> indexBuffer;
+	if (meshBuffer->AllocIndexCount > 0)
+		indexBuffer.resize(meshBuffer->AllocIndexCount);
+
+	XrVisibilityMaskTypeKHR type = (XrVisibilityMaskTypeKHR)(fovStencilDesc->StencilType + 1);
 	XrVisibilityMaskKHR mask = XR_TYPE(VISIBILITY_MASK_KHR);
-	mask.vertexCount = meshBuffer->AllocVertexCount;
+	mask.vertexCapacityInput = meshBuffer->AllocVertexCount;
 	mask.vertices = (XrVector2f*)meshBuffer->VertexBuffer;
-	mask.indexCount = indexBuffer.size();
-	mask.indices = indexBuffer.data();
+	mask.indexCapacityInput = meshBuffer->AllocIndexCount;
+	mask.indices = meshBuffer->IndexBuffer ? indexBuffer.data() : nullptr;
 	CHK_XR(xrGetVisibilityMaskKHR(session->Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, fovStencilDesc->Eye, type, &mask));
-	meshBuffer->UsedVertexCount = mask.vertexCount;
-	meshBuffer->UsedIndexCount = mask.indexCount;
+	meshBuffer->UsedVertexCount = mask.vertexCountOutput;
+	meshBuffer->UsedIndexCount = mask.indexCountOutput;
 
 	if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
 	{
@@ -1466,8 +1493,11 @@ ovr_GetFovStencil(
 			meshBuffer->VertexBuffer[i].y = 1.0f - meshBuffer->VertexBuffer[i].y;
 	}
 
-	for (int i = 0; i < meshBuffer->AllocIndexCount; i++)
-		meshBuffer->IndexBuffer[i] = (uint16_t)indexBuffer[i];
+	if (meshBuffer->IndexBuffer)
+	{
+		for (int i = 0; i < meshBuffer->AllocIndexCount; i++)
+			meshBuffer->IndexBuffer[i] = (uint16_t)indexBuffer[i];
+	}
 
 	return ovrSuccess;
 }
