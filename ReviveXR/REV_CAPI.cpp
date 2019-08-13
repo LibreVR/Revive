@@ -1487,7 +1487,7 @@ ovr_GetFovStencil(
 	meshBuffer->UsedVertexCount = mask.vertexCountOutput;
 	meshBuffer->UsedIndexCount = mask.indexCountOutput;
 
-	if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
+	if (meshBuffer->VertexBuffer && fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
 	{
 		for (int i = 0; i < meshBuffer->AllocVertexCount; i++)
 			meshBuffer->VertexBuffer[i].y = 1.0f - meshBuffer->VertexBuffer[i].y;
