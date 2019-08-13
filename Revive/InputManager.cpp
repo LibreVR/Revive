@@ -48,17 +48,22 @@ InputManager::~InputManager()
 
 void InputManager::LoadActionManifest()
 {
-	CComHeapPtr<wchar_t> folder;
-	HRESULT hr = SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_DEFAULT, NULL, &folder);
-
-	if (SUCCEEDED(hr))
+	std::vector<char> pathVec;
+	DWORD pathSize = MAX_PATH;
+	LSTATUS status = RegGetValueA(HKEY_CURRENT_USER, "Software\\Revive", "", RRF_RT_REG_SZ, NULL, NULL, &pathSize);
+	if (status == ERROR_SUCCESS)
 	{
-		char path[MAX_PATH];
-		WideCharToMultiByte(CP_UTF8, 0, folder, -1, path, MAX_PATH, nullptr, nullptr);
-		strcat(path, "\\Revive\\Input\\action_manifest.json");
-		vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(path);
-		if (err == vr::VRInputError_None)
-			return;
+		pathVec.resize(pathSize);
+		status = RegGetValueA(HKEY_CURRENT_USER, "Software\\Revive", "", RRF_RT_REG_SZ, NULL, pathVec.data(), &pathSize);
+
+		if (status == ERROR_SUCCESS)
+		{
+			std::string path(pathVec.data());
+			path += "\\Input\\action_manifest.json";
+			vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(path.c_str());
+			if (err == vr::VRInputError_None)
+				return;
+		}
 	}
 
 	vr::VROverlay()->ShowMessageOverlay("Failed to load action manifest, input will not function correctly!", "Action manifest error", "Continue");

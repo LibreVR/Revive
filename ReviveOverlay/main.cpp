@@ -64,21 +64,6 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	// Check if we need to copy over input files
-	QString inputPath = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/Revive/Input/";
-	if (!QDir().exists(inputPath) && QDir().mkpath(inputPath))
-	{
-		QDir inputDir(QCoreApplication::applicationDirPath() + "/Input");
-		if (inputDir.exists())
-		{
-			QStringList names = inputDir.entryList(QStringList("*.json"));
-			QStringList files;
-			for (QString file : names)
-				files.append(inputDir.path() + "/" + file);
-			WindowsServices::CopyFiles(files, inputPath, names);
-		}
-	}
-
 	if (COpenVROverlayController::SharedInstance()->Init())
 	{
 		// If the dashboard was successfully created keep running in the background
