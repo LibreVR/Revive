@@ -292,7 +292,7 @@ void CompositorBase::BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHe
 	ovrTextureSwapChain dstChain = nullptr;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		if (src.EyeFov.ColorTexture[i])
+		if (src.EyeFov.ColorTexture[i] && src.EyeFov.ColorTexture[i] != srcChain)
 		{
 			srcChain = src.EyeFov.ColorTexture[i];
 			MICROPROFILE_META_CPU(swapNames[i], srcChain->Identifier);
@@ -341,7 +341,7 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 	ovrTextureSwapChain depthChain = nullptr;
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		if (layer.EyeFov.ColorTexture[i])
+		if (layer.EyeFov.ColorTexture[i] && layer.EyeFov.ColorTexture[i] != colorChain)
 		{
 			colorChain = layer.EyeFov.ColorTexture[i];
 			MICROPROFILE_META_CPU(swapNames[i], colorChain->Identifier);
@@ -388,7 +388,7 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 			// Add the depth data if present in the layer
 			if (baseLayer->Type == ovrLayerType_EyeFovDepth)
 			{
-				if (layer.EyeFovDepth.DepthTexture[i])
+				if (layer.EyeFovDepth.DepthTexture[i] && layer.EyeFovDepth.DepthTexture[i] != depthChain)
 				{
 					depthChain = layer.EyeFovDepth.DepthTexture[i];
 					depthChain->Submit()->ToVRTexture(depthTexture);
