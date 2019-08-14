@@ -157,7 +157,14 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			// which would otherwise cause flickering between overlays.
 			// TODO: Support multiple overlays using the same texture.
 			if (chain->Overlay == vr::k_ulOverlayHandleInvalid)
+			{
 				chain->Overlay = CreateOverlay();
+
+				// Submit for the first time
+				vr::Texture_t texture;
+				chain->Submit()->ToVRTexture(texture);
+				vr::VROverlay()->SetOverlayTexture(chain->Overlay, &texture);
+			}
 			activeOverlays.push_back(chain->Overlay);
 
 			// Set the layer rendering order and apply a bias between the layers.
@@ -181,9 +188,6 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			// overlays are drawn.
 			// TODO: Support ovrLayerFlag_HighQuality for overlays with anisotropic sampling.
 			// TODO: Handle overlay errors.
-			vr::Texture_t texture;
-			chain->Submit()->ToVRTexture(texture);
-			vr::VROverlay()->SetOverlayTexture(chain->Overlay, &texture);
 			vr::VROverlay()->ShowOverlay(chain->Overlay);
 		}
 		else if (layerPtrList[i]->Type == ovrLayerType_EyeFov ||
