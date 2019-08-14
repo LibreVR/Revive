@@ -415,7 +415,7 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 			submitFlags |= vr::Submit_TextureWithDepth;
 		}
 
-		err = vr::VRCompositor()->Submit((vr::EVREye)i, (vr::Texture_t*)&texture, &bounds, (vr::EVRSubmitFlags)submitFlags);
+		err = vr::VRCompositor()->Submit((vr::EVREye)i, &texture.Color, &bounds, (vr::EVRSubmitFlags)submitFlags);
 		if (err != vr::VRCompositorError_None)
 			break;
 	}
