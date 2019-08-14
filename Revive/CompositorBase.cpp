@@ -127,7 +127,7 @@ const ovrLayer_Union& CompositorBase::ToUnion(const ovrLayerHeader* layerPtr)
 	// Version 1.25 introduced a 128-byte reserved parameter, so on older versions the actual data
 	// falls within this reserved parameter so the pointer needs to be moved back.
 	if (g_MinorVersion < 25)
-		return *(ovrLayer_Union*)((uint8_t*)layerPtr - sizeof(ovrLayerHeader));
+		return *(ovrLayer_Union*)((uint8_t*)layerPtr - sizeof(ovrLayerHeader::Reserved));
 	else
 		return *(ovrLayer_Union*)layerPtr;
 }
