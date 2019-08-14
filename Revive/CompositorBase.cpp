@@ -14,7 +14,6 @@
 extern uint32_t g_MinorVersion;
 
 #define REV_LAYER_BIAS 0.0001f
-#define ENABLE_DEPTH_SUBMIT 0
 
 MICROPROFILE_DEFINE(WaitToBeginFrame, "Compositor", "WaitFrame", 0x00ff00);
 MICROPROFILE_DEFINE(BeginFrame, "Compositor", "BeginFrame", 0x00ff00);
@@ -408,14 +407,12 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 				depthChain->Submit()->ToVRTexture(depthTexture);
 			}
 
-#if ENABLE_DEPTH_SUBMIT
 			vr::VRTextureDepthInfo_t& depthInfo = submitFlags & vr::Submit_TextureWithPose ?
 				texture.PoseDepth.depth : texture.Depth.depth;
 			depthInfo.handle = depthTexture.handle;
 			depthInfo.mProjection = REV::Matrix4f::FromProjectionDesc(layer.EyeFovDepth.ProjectionDesc, fov);
 			depthInfo.vRange = REV::Vector2f(0.0f, 1.0f);
 			submitFlags |= vr::Submit_TextureWithDepth;
-#endif
 		}
 
 		err = vr::VRCompositor()->Submit((vr::EVREye)i, (vr::Texture_t*)&texture, &bounds, (vr::EVRSubmitFlags)submitFlags);

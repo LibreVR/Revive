@@ -89,12 +89,24 @@ namespace REV {
 			Matrix4f projection;
 			OVR::ScaleAndOffset2D scaleAndOffset = OVR::CreateNDCScaleAndOffsetFromFov(fov);
 			projection.M[0][0] = scaleAndOffset.Scale.x;
+			projection.M[0][1] = 0.0f;
 			projection.M[0][2] = desc.Projection32 * scaleAndOffset.Offset.x;
+			projection.M[0][3] = 0.0f;
+
+			projection.M[1][0] = 0.0f;
 			projection.M[1][1] = scaleAndOffset.Scale.y;
 			projection.M[1][2] = desc.Projection32 * -scaleAndOffset.Offset.y;
+			projection.M[1][3] = 0.0f;
+
+			projection.M[2][0] = 0.0f;
+			projection.M[2][1] = 0.0f;
 			projection.M[2][2] = desc.Projection22;
 			projection.M[2][3] = desc.Projection23;
+
+			projection.M[3][0] = 0.0f;
+			projection.M[3][1] = 0.0f;
 			projection.M[3][2] = desc.Projection32;
+			projection.M[3][3] = 0.0f;
 			return projection;
 		}
 #endif
