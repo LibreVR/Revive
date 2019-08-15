@@ -54,9 +54,6 @@
     <ClInclude Include="TextureGL.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
-    <ClInclude Include="Settings.h">
-      <Filter>Header Files\LibRevive</Filter>
-    </ClInclude>
     <ClInclude Include="..\microprofile\microprofile.h">
       <Filter>Header Files\microprofile</Filter>
     </ClInclude>
@@ -80,9 +77,6 @@
     </ClInclude>
     <ClInclude Include="REV_Math.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SettingsManager.h">
-      <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
     <ClInclude Include="CompositorVk.h">
       <Filter>Header Files\LibRevive</Filter>
@@ -156,9 +150,6 @@
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="TextureVk.cpp">
-      <Filter>Source Files\LibRevive</Filter>
-    </ClCompile>
-    <ClCompile Include="SettingsManager.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="..\Externals\glad\src\glad.c">

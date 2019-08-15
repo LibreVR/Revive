@@ -1,7 +1,6 @@
 #include "CompositorBase.h"
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
-#include "Settings.h"
 #include "Session.h"
 #include "SessionDetails.h"
 #include "microprofile.h"

@@ -43,7 +43,6 @@ struct ovrHmdStruct
 	std::unique_ptr<CompositorBase> Compositor;
 	std::unique_ptr<InputManager> Input;
 	std::unique_ptr<SessionDetails> Details;
-	std::unique_ptr<SettingsManager> Settings;
 
 	ovrHmdStruct();
 	~ovrHmdStruct();

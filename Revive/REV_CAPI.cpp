@@ -7,8 +7,6 @@
 #include "CompositorBase.h"
 #include "SessionDetails.h"
 #include "InputManager.h"
-#include "Settings.h"
-#include "SettingsManager.h"
 #include "rcu_ptr.h"
 
 #include <dxgi1_2.h>

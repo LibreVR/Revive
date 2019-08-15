@@ -1,8 +1,6 @@
 #include "InputManager.h"
 #include "Session.h"
 #include "SessionDetails.h"
-#include "Settings.h"
-#include "SettingsManager.h"
 #include "CompositorBase.h"
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
@@ -247,7 +245,6 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	outState->StatusFlags = TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
 
 	// Convert the hand poses
-	rcu_ptr<InputSettings> settings = session->Settings->Input;
 	vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
 		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 	for (int i = 0; i < ovrHand_Count; i++)
@@ -259,9 +256,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 			continue;
 		}
 
-		vr::TrackedDevicePose_t pose;
-		vr::VRSystem()->ApplyTransform(&pose, &poses[deviceIndex], &settings->TouchOffset[i]);
-		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(pose, m_LastPoses[deviceIndex], absTime);
+		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(poses[deviceIndex], m_LastPoses[deviceIndex], absTime);
 		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
 	}
 
@@ -360,8 +355,6 @@ void InputManager::OculusTouch::HapticsThread(OculusTouch* device)
 InputManager::OculusTouch::OculusTouch(vr::VRActionSetHandle_t actionSet, vr::ETrackedControllerRole role)
 	: InputDevice(actionSet)
 	, Role(role)
-	, WasGripped(false)
-	, TimeGripped(0.0)
 	, m_bHapticsRunning(true)
 {
 	vr::VRInput()->GetActionHandle("/actions/touch/in/Button_Enter", &m_Button_Enter);
@@ -386,12 +379,6 @@ InputManager::OculusTouch::OculusTouch(vr::VRActionSetHandle_t actionSet, vr::ET
 
 	GET_HANDED_ACTION(&m_Button_IndexTrigger, Button_RIndexTrigger, Button_LIndexTrigger);
 	GET_HANDED_ACTION(&m_Button_HandTrigger, Button_RHandTrigger, Button_LHandTrigger);
-
-#undef GET_HANDED_ACTION
-#define GET_HANDED_ACTION(x, r, l) vr::VRInput()->GetActionHandle( \
-	role == vr::TrackedControllerRole_RightHand ? "/actions/touch/out/" #r : "/actions/touch/out/" #l, x)
-
-	GET_HANDED_ACTION(&m_Vibration, RVibration, LVibration);
 
 #undef GET_HANDED_ACTION
 
@@ -468,49 +455,6 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 			m_Thumbstick_Center = OVR::Vector2f::Zero();
 	}
 
-	// FIXME: Can't use IsReleased or IsPressed, because bChanged resets after every call to GetDigitalActionData
-	vr::InputDigitalActionData_t triggerData = {};
-	vr::VRInput()->GetDigitalActionData(m_Button_HandTrigger, &triggerData, sizeof(triggerData), vr::k_ulInvalidInputValueHandle);
-
-	// Read the input settings
-	float deadzone;
-	{
-		rcu_ptr<InputSettings> settings = session->Settings->Input;
-		deadzone = settings->Deadzone;
-
-		if (settings->ToggleGrip == revGrip_Hybrid)
-		{
-			if (triggerData.bChanged)
-			{
-				if (triggerData.bState)
-				{
-					// Only set the timestamp on the first grip toggle, we don't want to toggle twice
-					if (!WasGripped)
-						TimeGripped = ovr_GetTimeInSeconds();
-
-					WasGripped = true;
-				}
-				else
-				{
-					if (ovr_GetTimeInSeconds() - TimeGripped > settings->ToggleDelay)
-						WasGripped = false;
-
-					// Next time we always want to release grip
-					TimeGripped = 0.0;
-				}
-			}
-		}
-		else if (settings->ToggleGrip == revGrip_Toggle)
-		{
-			if (triggerData.bChanged && triggerData.bState)
-				WasGripped = !WasGripped;
-		}
-		else
-		{
-			WasGripped = GetDigital(m_Button_HandTrigger);
-		}
-	}
-
 	inputState->IndexTriggerRaw[hand] = GetAnalog(m_IndexTrigger).x;
 	inputState->HandTriggerRaw[hand] = GetAnalog(m_HandTrigger).x;
 	inputState->ThumbstickRaw[hand] = GetAnalog(m_Thumbstick) - m_Thumbstick_Center;
@@ -518,7 +462,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	if (GetDigital(m_Button_IndexTrigger))
 		inputState->IndexTriggerRaw[hand] = 1.0f;
 
-	if (WasGripped)
+	if (GetDigital(m_Button_HandTrigger))
 		inputState->HandTriggerRaw[hand] = 1.0f;
 
 	// We have no way to get unfiltered values, so these are the same
@@ -529,7 +473,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	// We don't apply deadzones yet on triggers and grips
 	inputState->IndexTrigger[hand] = inputState->IndexTriggerNoDeadzone[hand];
 	inputState->HandTrigger[hand] = inputState->HandTriggerNoDeadzone[hand];
-	inputState->Thumbstick[hand] = ApplyDeadzone(inputState->ThumbstickNoDeadzone[hand], deadzone, deadzone / 2.0f);
+	inputState->Thumbstick[hand] = ApplyDeadzone(inputState->ThumbstickNoDeadzone[hand], 0.3f, 0.15f);
 
 	// Derive gestures from touch flags
 	// TODO: Should be handled with chords in SteamVR input

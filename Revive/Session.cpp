@@ -2,8 +2,6 @@
 #include "CompositorBase.h"
 #include "SessionDetails.h"
 #include "InputManager.h"
-#include "SettingsManager.h"
-#include "Settings.h"
 
 #include <Windows.h>
 
@@ -97,12 +95,10 @@ ovrHmdStruct::ovrHmdStruct()
 	, Compositor(nullptr)
 	, Input(new InputManager())
 	, Details(new SessionDetails())
-	, Settings(new SettingsManager())
 {
-	// Get the default universe origin from the settings
-	TrackingOrigin = (vr::ETrackingUniverseOrigin)Settings->Get<int>(REV_KEY_DEFAULT_ORIGIN, REV_DEFAULT_ORIGIN);
+	// Oculus games expect a seated tracking space by default
 	if (Details->UseHack(SessionDetails::HACK_STRICT_POSES))
-		vr::VRCompositor()->SetTrackingSpace(TrackingOrigin);
+		vr::VRCompositor()->SetTrackingSpace(vr::TrackingUniverseSeated);
 
 	SessionStatusBits status = {};
 	status.HmdPresent = vr::VR_IsHmdPresent();

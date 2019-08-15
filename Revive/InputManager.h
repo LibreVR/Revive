@@ -82,9 +82,6 @@ public:
 		vr::ETrackedControllerRole Role;
 
 	private:
-		bool WasGripped;
-		double TimeGripped;
-
 		vr::VRActionHandle_t m_Button_AX;
 		vr::VRActionHandle_t m_Button_BY;
 		vr::VRActionHandle_t m_Button_Thumb;
@@ -106,7 +103,6 @@ public:
 		vr::VRActionHandle_t m_Button_IndexTrigger;
 		vr::VRActionHandle_t m_Button_HandTrigger;
 
-		vr::VRActionHandle_t m_Vibration;
 		HapticsBuffer m_Haptics;
 		std::atomic_bool m_bHapticsRunning;
 

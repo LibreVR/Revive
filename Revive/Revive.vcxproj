@@ -231,8 +231,6 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Assert.h" />
-    <ClInclude Include="Settings.h" />
-    <ClInclude Include="SettingsManager.h" />
     <ClInclude Include="TextureBase.h" />
     <ClInclude Include="TextureD3D.h" />
     <ClInclude Include="TextureGL.h" />
@@ -257,7 +255,6 @@
     <ClCompile Include="REV_CAPI_D3D.cpp" />
     <ClCompile Include="REV_CAPI_GL.cpp" />
     <ClCompile Include="Session.cpp" />
-    <ClCompile Include="SettingsManager.cpp" />
     <ClCompile Include="TextureBase.cpp" />
     <ClCompile Include="TextureD3D.cpp" />
     <ClCompile Include="TextureGL.cpp" />
