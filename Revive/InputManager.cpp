@@ -83,22 +83,6 @@ void InputManager::UpdateConnectedControllers()
 	ConnectedControllers = types;
 }
 
-void InputManager::UpdateInputState()
-{
-	UpdateConnectedControllers();
-
-	std::vector<vr::VRActiveActionSet_t> sets;
-	for (InputDevice* device : m_InputDevices)
-	{
-		vr::VRActiveActionSet_t set;
-		set.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
-		set.ulActionSet = device->ActionSet;
-		sets.push_back(set);
-	}
-
-	vr::VRInput()->UpdateActionState(sets.data(), sizeof(vr::VRActiveActionSet_t), (uint32_t)sets.size());
-}
-
 ovrResult InputManager::SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
 {
 	// Clamp the input
@@ -117,6 +101,21 @@ ovrResult InputManager::SetControllerVibration(ovrSession session, ovrController
 ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
 	memset(inputState, 0, sizeof(ovrInputState));
+
+	std::vector<vr::VRActiveActionSet_t> sets;
+	for (InputDevice* device : m_InputDevices)
+	{
+		vr::VRActiveActionSet_t set;
+		set.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
+		set.ulActionSet = device->ActionSet;
+		set.ulSecondaryActionSet = vr::k_ulInvalidActionSetHandle;
+		set.nPriority = 0;
+		sets.push_back(set);
+	}
+
+	vr::EVRInputError err = vr::VRInput()->UpdateActionState(sets.data(), sizeof(vr::VRActiveActionSet_t), (uint32_t)sets.size());
+	if (err != vr::VRInputError_None)
+		return ovrError_RuntimeException;
 
 	uint32_t types = 0;
 	for (InputDevice* device : m_InputDevices)

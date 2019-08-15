@@ -79,8 +79,6 @@ void SessionThreadFunc(ovrSession session)
 #endif
 		}
 
-		session->Input->UpdateInputState();
-
 		std::this_thread::sleep_for(freq);
 	}
 }
