@@ -356,28 +356,30 @@ InputManager::OculusTouch::OculusTouch(vr::VRActionSetHandle_t actionSet, vr::ET
 	, Role(role)
 	, m_bHapticsRunning(true)
 {
+	/** Returns a handle for any path in the input system. E.g. /user/hand/right */
+	vr::VRInput()->GetInputSourceHandle(role == vr::TrackedControllerRole_RightHand ? "/user/hand/right" : "/user/hand/left", &Handle);
 	vr::VRInput()->GetActionHandle("/actions/touch/in/Button_Enter", &m_Button_Enter);
 
-#define GET_HANDED_ACTION(x, r, l) vr::VRInput()->GetActionHandle( \
-	role == vr::TrackedControllerRole_RightHand ? "/actions/touch/in/" #r : "/actions/touch/in/" #l, x)
+#define GET_TOUCH_ACTION(x) vr::VRInput()->GetActionHandle( \
+	"/actions/touch/in/" #x, &m_##x)
 
-	GET_HANDED_ACTION(&m_Button_AX, Button_A, Button_X);
-	GET_HANDED_ACTION(&m_Button_BY, Button_B, Button_Y);
-	GET_HANDED_ACTION(&m_Button_Thumb, Button_RThumb, Button_LThumb);
+	GET_TOUCH_ACTION(Button_AX);
+	GET_TOUCH_ACTION(Button_BY);
+	GET_TOUCH_ACTION(Button_Thumb);
 
-	GET_HANDED_ACTION(&m_Touch_AX, Touch_A, Touch_X);
-	GET_HANDED_ACTION(&m_Touch_BY, Touch_B, Touch_Y);
-	GET_HANDED_ACTION(&m_Touch_Thumb, Touch_RThumb, Touch_LThumb);
-	GET_HANDED_ACTION(&m_Touch_ThumbRest, Touch_RThumbRest, Touch_LThumbRest);
-	GET_HANDED_ACTION(&m_Touch_IndexTrigger, Touch_RIndexTrigger, Touch_LIndexTrigger);
+	GET_TOUCH_ACTION(Touch_AX);
+	GET_TOUCH_ACTION(Touch_BY);
+	GET_TOUCH_ACTION(Touch_Thumb);
+	GET_TOUCH_ACTION(Touch_ThumbRest);
+	GET_TOUCH_ACTION(Touch_IndexTrigger);
 
-	GET_HANDED_ACTION(&m_IndexTrigger, RIndexTrigger, LIndexTrigger);
-	GET_HANDED_ACTION(&m_HandTrigger, RHandTrigger, LHandTrigger);
-	GET_HANDED_ACTION(&m_Thumbstick, RThumbstick, LThumbstick);
-	GET_HANDED_ACTION(&m_Recenter_Thumb, Recenter_RThumb, Recenter_LThumb);
+	GET_TOUCH_ACTION(IndexTrigger);
+	GET_TOUCH_ACTION(HandTrigger);
+	GET_TOUCH_ACTION(Thumbstick);
+	GET_TOUCH_ACTION(Recenter_Thumb);
 
-	GET_HANDED_ACTION(&m_Button_IndexTrigger, Button_RIndexTrigger, Button_LIndexTrigger);
-	GET_HANDED_ACTION(&m_Button_HandTrigger, Button_RHandTrigger, Button_LHandTrigger);
+	GET_TOUCH_ACTION(Button_IndexTrigger);
+	GET_TOUCH_ACTION(Button_HandTrigger);
 
 #undef GET_HANDED_ACTION
 

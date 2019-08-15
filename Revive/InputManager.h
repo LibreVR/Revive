@@ -18,7 +18,7 @@ public:
 	{
 	public:
 		InputDevice(vr::VRActionSetHandle_t actionSet)
-			: ActionSet(actionSet) { }
+			: ActionSet(actionSet), Handle(vr::k_ulInvalidInputValueHandle) { }
 		virtual ~InputDevice() { }
 
 		// Input
@@ -32,33 +32,34 @@ public:
 		virtual void GetVibrationState(ovrHapticsPlaybackState* outState) { }
 
 		vr::VRActionSetHandle_t ActionSet;
+		vr::VRInputValueHandle_t Handle;
 
 	protected:
-		static bool GetDigital(vr::VRActionHandle_t action)
+		bool GetDigital(vr::VRActionHandle_t action)
 		{
 			vr::InputDigitalActionData_t data = {};
-			vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data), vr::k_ulInvalidInputValueHandle);
+			vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data), Handle);
 			return data.bState;
 		}
 
-		static bool IsPressed(vr::VRActionHandle_t action)
+		bool IsPressed(vr::VRActionHandle_t action)
 		{
 			vr::InputDigitalActionData_t data = {};
-			vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data), vr::k_ulInvalidInputValueHandle);
+			vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data), Handle);
 			return data.bChanged && data.bState;
 		}
 
-		static bool IsReleased(vr::VRActionHandle_t action)
+		bool IsReleased(vr::VRActionHandle_t action)
 		{
 			vr::InputDigitalActionData_t data = {};
-			vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data), vr::k_ulInvalidInputValueHandle);
+			vr::VRInput()->GetDigitalActionData(action, &data, sizeof(data), Handle);
 			return data.bChanged && !data.bState;
 		}
 
-		static OVR::Vector2f GetAnalog(vr::VRActionHandle_t action)
+		OVR::Vector2f GetAnalog(vr::VRActionHandle_t action)
 		{
 			vr::InputAnalogActionData_t data = {};
-			vr::VRInput()->GetAnalogActionData(action, &data, sizeof(data), vr::k_ulInvalidInputValueHandle);
+			vr::VRInput()->GetAnalogActionData(action, &data, sizeof(data), Handle);
 			return OVR::Vector2f(data.x, data.y);
 		}
 

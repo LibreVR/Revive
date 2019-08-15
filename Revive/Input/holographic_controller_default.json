@@ -1,283 +1,284 @@
 {
-   "bindings" : {
-      "/actions/remote" : {
-         "sources" : [
-            {
-               "inputs" : {
-                  "click" : {
-                     "output" : "/actions/remote/in/button_enter"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/left/input/trigger"
-            },
-            {
-               "inputs" : {
-                  "click" : {
-                     "output" : "/actions/remote/in/button_enter"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/right/input/trigger"
-            },
-            {
-               "inputs" : {
-                  "click" : {
-                     "output" : "/actions/remote/in/button_back"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/left/input/grip"
-            },
-            {
-               "inputs" : {
-                  "click" : {
-                     "output" : "/actions/remote/in/button_back"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/right/input/grip"
-            },
-            {
-               "inputs" : {
-                  "east" : {
-                     "output" : "/actions/remote/in/button_right"
-                  },
-                  "north" : {
-                     "output" : "/actions/remote/in/button_up"
-                  },
-                  "south" : {
-                     "output" : "/actions/remote/in/button_down"
-                  },
-                  "west" : {
-                     "output" : "/actions/remote/in/button_left"
-                  }
-               },
-               "mode" : "dpad_click",
-               "parameters" : {
-                  "overlap_pct" : "0"
-               },
-               "path" : "/user/hand/left/input/trackpad"
-            },
-            {
-               "inputs" : {
-                  "east" : {
-                     "output" : "/actions/remote/in/button_right"
-                  },
-                  "north" : {
-                     "output" : "/actions/remote/in/button_up"
-                  },
-                  "south" : {
-                     "output" : "/actions/remote/in/button_down"
-                  },
-                  "west" : {
-                     "output" : "/actions/remote/in/button_left"
-                  }
-               },
-               "mode" : "dpad_click",
-               "parameters" : {
-                  "overlap_pct" : "0"
-               },
-               "path" : "/user/hand/right/input/trackpad"
-            },
-            {
-               "inputs" : {
-                  "click" : {
-                     "output" : "/actions/remote/in/button_enter"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/left/input/application_menu"
-            },
-            {
-               "inputs" : {
-                  "click" : {
-                     "output" : "/actions/remote/in/button_enter"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/right/input/application_menu"
+  "action_manifest_version": 2,
+  "controller_type": "holographic_controller",
+  "description": "",
+  "name": "Revive for Mixed Reality",
+  "bindings": {
+    "/actions/remote": {
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/remote/in/button_enter"
             }
-         ]
-      },
-      "/actions/touch" : {
-         "haptics" : [
-            {
-               "output" : "/actions/touch/out/lvibration",
-               "path" : "/user/hand/left/output/haptic"
-            },
-            {
-               "output" : "/actions/touch/out/rvibration",
-               "path" : "/user/hand/right/output/haptic"
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/remote/in/button_enter"
             }
-         ],
-         "sources" : [
-            {
-               "inputs" : {
-                  "pull" : {
-                     "output" : "/actions/touch/in/lindextrigger"
-                  },
-                  "touch" : {
-                     "output" : "/actions/touch/in/touch_lindextrigger"
-                  },
-                  "click" : {
-                     "output" : "/actions/touch/in/button_lindextrigger"
-                  }
-               },
-               "mode" : "trigger",
-               "path" : "/user/hand/left/input/trigger"
-            },
-            {
-               "inputs" : {
-                  "east" : {
-                     "output" : "/actions/touch/in/button_y"
-                  },
-                  "north" : {
-                     "output" : "/actions/touch/in/button_lthumb"
-                  },
-                  "south" : {
-                     "output" : "/actions/touch/in/button_x"
-                  },
-                  "west" : {
-                     "output" : "/actions/touch/in/button_lthumb"
-                  }
-               },
-               "mode" : "dpad_click",
-               "parameters" : {
-                  "overlap_pct" : "0"
-               },
-               "path" : "/user/hand/left/input/trackpad"
-            },
-            {
-               "inputs" : {
-                  "click" : {
-                     "output" : "/actions/touch/in/button_lhandtrigger"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/left/input/grip"
-            },
-            {
-               "inputs" : {
-                  "click" : {
-                     "output" : "/actions/touch/in/button_enter"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/left/input/application_menu"
-            },
-            {
-               "inputs" : {
-                  "east" : {
-                     "output" : "/actions/touch/in/touch_y"
-                  },
-                  "north" : {
-                     "output" : "/actions/touch/in/touch_lthumb"
-                  },
-                  "south" : {
-                     "output" : "/actions/touch/in/touch_x"
-                  },
-                  "west" : {
-                     "output" : "/actions/touch/in/touch_lthumb"
-                  }
-               },
-               "mode" : "dpad_touch",
-               "path" : "/user/hand/left/input/trackpad"
-            },
-            {
-               "inputs" : {
-                  "pull" : {
-                     "output" : "/actions/touch/in/rindextrigger"
-                  },
-                  "touch" : {
-                     "output" : "/actions/touch/in/touch_rindextrigger"
-                  },
-                  "click" : {
-                     "output" : "/actions/touch/in/button_rindextrigger"
-                  }
-               },
-               "mode" : "trigger",
-               "path" : "/user/hand/right/input/trigger"
-            },
-            {
-               "inputs" : {
-                  "east" : {
-                     "output" : "/actions/touch/in/button_rthumb"
-                  },
-                  "north" : {
-                     "output" : "/actions/touch/in/button_rthumb"
-                  },
-                  "south" : {
-                     "output" : "/actions/touch/in/button_a"
-                  },
-                  "west" : {
-                     "output" : "/actions/touch/in/button_b"
-                  }
-               },
-               "mode" : "dpad_click",
-               "parameters" : {
-                  "overlap_pct" : "0"
-               },
-               "path" : "/user/hand/right/input/trackpad"
-            },
-            {
-               "inputs" : {
-                  "east" : {
-                     "output" : "/actions/touch/in/touch_rthumb"
-                  },
-                  "north" : {
-                     "output" : "/actions/touch/in/touch_rthumb"
-                  },
-                  "south" : {
-                     "output" : "/actions/touch/in/touch_a"
-                  },
-                  "west" : {
-                     "output" : "/actions/touch/in/touch_b"
-                  }
-               },
-               "mode" : "dpad_touch",
-               "path" : "/user/hand/right/input/trackpad"
-            },
-            {
-               "inputs" : {
-                  "click" : {
-                     "output" : "/actions/touch/in/button_rhandtrigger"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/right/input/grip"
-            },
-            {
-               "inputs" : {
-                  "click" : {
-                     "output" : "/actions/touch/in/button_enter"
-                  }
-               },
-               "mode" : "button",
-               "path" : "/user/hand/right/input/application_menu"
-            },
-            {
-               "inputs" : {
-                  "position" : {
-                     "output" : "/actions/touch/in/lthumbstick"
-                  }
-               },
-               "mode" : "joystick",
-               "path" : "/user/hand/left/input/joystick"
-            },
-            {
-               "inputs" : {
-                  "position" : {
-                     "output" : "/actions/touch/in/rthumbstick"
-                  }
-               },
-               "mode" : "joystick",
-               "path" : "/user/hand/right/input/joystick"
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/remote/in/button_back"
             }
-         ]
-      }
-   },
-   "controller_type" : "holographic_controller",
-   "description" : "",
-   "name" : "Revive for Mixed Reality"
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/remote/in/button_back"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/grip"
+        },
+        {
+          "inputs": {
+            "east": {
+              "output": "/actions/remote/in/button_right"
+            },
+            "north": {
+              "output": "/actions/remote/in/button_up"
+            },
+            "south": {
+              "output": "/actions/remote/in/button_down"
+            },
+            "west": {
+              "output": "/actions/remote/in/button_left"
+            }
+          },
+          "mode": "dpad_click",
+          "parameters": {
+            "overlap_pct": "0"
+          },
+          "path": "/user/hand/left/input/trackpad"
+        },
+        {
+          "inputs": {
+            "east": {
+              "output": "/actions/remote/in/button_right"
+            },
+            "north": {
+              "output": "/actions/remote/in/button_up"
+            },
+            "south": {
+              "output": "/actions/remote/in/button_down"
+            },
+            "west": {
+              "output": "/actions/remote/in/button_left"
+            }
+          },
+          "mode": "dpad_click",
+          "parameters": {
+            "overlap_pct": "0"
+          },
+          "path": "/user/hand/right/input/trackpad"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/remote/in/button_enter"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/application_menu"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/remote/in/button_enter"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/application_menu"
+        }
+      ]
+    },
+    "/actions/touch": {
+      "haptics": [
+        {
+          "output": "/actions/touch/out/vibration",
+          "path": "/user/hand/left/output/haptic"
+        },
+        {
+          "output": "/actions/touch/out/vibration",
+          "path": "/user/hand/right/output/haptic"
+        }
+      ],
+      "sources": [
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/touch/in/indextrigger"
+            },
+            "touch": {
+              "output": "/actions/touch/in/touch_indextrigger"
+            },
+            "click": {
+              "output": "/actions/touch/in/button_indextrigger"
+            }
+          },
+          "mode": "trigger",
+          "path": "/user/hand/left/input/trigger"
+        },
+        {
+          "inputs": {
+            "east": {
+              "output": "/actions/touch/in/button_by"
+            },
+            "north": {
+              "output": "/actions/touch/in/button_thumb"
+            },
+            "south": {
+              "output": "/actions/touch/in/button_ax"
+            },
+            "west": {
+              "output": "/actions/touch/in/button_thumb"
+            }
+          },
+          "mode": "dpad_click",
+          "parameters": {
+            "overlap_pct": "0"
+          },
+          "path": "/user/hand/left/input/trackpad"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_handtrigger"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_enter"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/application_menu"
+        },
+        {
+          "inputs": {
+            "east": {
+              "output": "/actions/touch/in/touch_by"
+            },
+            "north": {
+              "output": "/actions/touch/in/touch_thumb"
+            },
+            "south": {
+              "output": "/actions/touch/in/touch_ax"
+            },
+            "west": {
+              "output": "/actions/touch/in/touch_thumb"
+            }
+          },
+          "mode": "dpad_touch",
+          "path": "/user/hand/left/input/trackpad"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/touch/in/indextrigger"
+            },
+            "touch": {
+              "output": "/actions/touch/in/touch_indextrigger"
+            },
+            "click": {
+              "output": "/actions/touch/in/button_indextrigger"
+            }
+          },
+          "mode": "trigger",
+          "path": "/user/hand/right/input/trigger"
+        },
+        {
+          "inputs": {
+            "east": {
+              "output": "/actions/touch/in/button_thumb"
+            },
+            "north": {
+              "output": "/actions/touch/in/button_thumb"
+            },
+            "south": {
+              "output": "/actions/touch/in/button_ax"
+            },
+            "west": {
+              "output": "/actions/touch/in/button_by"
+            }
+          },
+          "mode": "dpad_click",
+          "parameters": {
+            "overlap_pct": "0"
+          },
+          "path": "/user/hand/right/input/trackpad"
+        },
+        {
+          "inputs": {
+            "east": {
+              "output": "/actions/touch/in/touch_thumb"
+            },
+            "north": {
+              "output": "/actions/touch/in/touch_thumb"
+            },
+            "south": {
+              "output": "/actions/touch/in/touch_ax"
+            },
+            "west": {
+              "output": "/actions/touch/in/touch_by"
+            }
+          },
+          "mode": "dpad_touch",
+          "path": "/user/hand/right/input/trackpad"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_handtrigger"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_enter"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/application_menu"
+        },
+        {
+          "inputs": {
+            "position": {
+              "output": "/actions/touch/in/thumbstick"
+            }
+          },
+          "mode": "joystick",
+          "path": "/user/hand/left/input/joystick"
+        },
+        {
+          "inputs": {
+            "position": {
+              "output": "/actions/touch/in/thumbstick"
+            }
+          },
+          "mode": "joystick",
+          "path": "/user/hand/right/input/joystick"
+        }
+      ]
+    }
+  }
 }

@@ -1,32 +1,41 @@
 {
+  "version": 2,
+  "minimum_required_version": 2,
+  "default_bindings": [
+    {
+      "controller_type": "vive_controller",
+      "binding_url": "vive_controller_default.json"
+    },
+    {
+      "controller_type": "holographic_controller",
+      "binding_url": "holographic_controller_default.json"
+    },
+    {
+      "controller_type": "gamepad",
+      "binding_url": "gamepad_default.json"
+    },
+    {
+      "controller_type": "knuckles",
+      "binding_url": "knuckles_default.json"
+    },
+    {
+      "controller_type": "oculus_touch",
+      "binding_url": "oculus_touch_default.json"
+    }
+  ],
   "actions": [
     {
-      "name": "/actions/touch/in/Button_A",
+      "name": "/actions/touch/in/Button_AX",
       "requirement": "suggested",
       "type": "boolean"
     },
     {
-      "name": "/actions/touch/in/Button_B",
+      "name": "/actions/touch/in/Button_BY",
       "requirement": "suggested",
       "type": "boolean"
     },
     {
-      "name": "/actions/touch/in/Button_RThumb",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Button_X",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Button_Y",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Button_LThumb",
+      "name": "/actions/touch/in/Button_Thumb",
       "requirement": "suggested",
       "type": "boolean"
     },
@@ -36,122 +45,64 @@
       "type": "boolean"
     },
     {
-      "name": "/actions/touch/in/Button_RIndexTrigger",
-      "requirement" : "optional",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Button_LIndexTrigger",
-      "requirement" : "optional",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Button_RHandTrigger",
-      "requirement" : "optional",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Button_LHandTrigger",
-      "requirement" : "optional",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/RIndexTrigger",
-      "requirement" : "suggested",
-      "type": "vector1"
-    },
-    {
-      "name": "/actions/touch/in/LIndexTrigger",
-      "requirement" : "suggested",
-      "type": "vector1"
-    },
-    {
-      "name": "/actions/touch/in/RHandTrigger",
-      "requirement" : "suggested",
-      "type": "vector1"
-    },
-    {
-      "name": "/actions/touch/in/LHandTrigger",
-      "requirement" : "suggested",
-      "type": "vector1"
-    },
-    {
-      "name": "/actions/touch/in/RThumbstick",
-      "requirement" : "suggested",
-      "type": "vector2"
-    },
-    {
-      "name": "/actions/touch/in/LThumbstick",
-      "requirement" : "suggested",
-      "type": "vector2"
-    },
-    {
-      "name": "/actions/touch/in/Recenter_RThumb",
-      "requirement" : "optional",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Recenter_LThumb",
-      "requirement" : "optional",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_A",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_B",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_RThumb",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_RThumbRest",
+      "name": "/actions/touch/in/Button_IndexTrigger",
       "requirement": "optional",
       "type": "boolean"
     },
     {
-      "name": "/actions/touch/in/Touch_RIndexTrigger",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_X",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_Y",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_LThumb",
-      "requirement": "suggested",
-      "type": "boolean"
-    },
-    {
-      "name": "/actions/touch/in/Touch_LThumbRest",
+      "name": "/actions/touch/in/Button_HandTrigger",
       "requirement": "optional",
       "type": "boolean"
     },
     {
-      "name": "/actions/touch/in/Touch_LIndexTrigger",
+      "name": "/actions/touch/in/IndexTrigger",
+      "requirement": "suggested",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/touch/in/HandTrigger",
+      "requirement": "suggested",
+      "type": "vector1"
+    },
+    {
+      "name": "/actions/touch/in/Thumbstick",
+      "requirement": "suggested",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/touch/in/Recenter_Thumb",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_AX",
       "requirement": "suggested",
       "type": "boolean"
     },
     {
-      "name": "/actions/touch/out/RVibration",
-      "type": "vibration"
+      "name": "/actions/touch/in/Touch_BY",
+      "requirement": "suggested",
+      "type": "boolean"
     },
     {
-      "name": "/actions/touch/out/LVibration",
-      "type": "vibration"
+      "name": "/actions/touch/in/Touch_Thumb",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_ThumbRest",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/Touch_IndexTrigger",
+      "requirement": "suggested",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/touch/in/pose",
+      "requirement": "mandatory",
+      "type": "pose"
     },
     {
       "name": "/actions/xbox/in/Button_A",
@@ -225,28 +176,23 @@
     },
     {
       "name": "/actions/xbox/in/RIndexTrigger",
-      "requirement" : "optional",
+      "requirement": "optional",
       "type": "vector1"
     },
     {
       "name": "/actions/xbox/in/LIndexTrigger",
-      "requirement" : "optional",
+      "requirement": "optional",
       "type": "vector1"
     },
     {
       "name": "/actions/xbox/in/RThumbstick",
-      "requirement" : "optional",
+      "requirement": "optional",
       "type": "vector2"
     },
     {
       "name": "/actions/xbox/in/LThumbstick",
-      "requirement" : "optional",
-      "type": "vector2"
-    },
-    {
-      "name": "/actions/xbox/out/Vibration",
       "requirement": "optional",
-      "type": "vibration"
+      "type": "vector2"
     },
     {
       "name": "/actions/remote/in/Button_Up",
@@ -297,7 +243,7 @@
   "action_sets": [
     {
       "name": "/actions/touch",
-      "usage": "leftright"
+      "usage": "single"
     },
     {
       "name": "/actions/remote",
@@ -312,26 +258,60 @@
       "usage": "hidden"
     }
   ],
-  "default_bindings": [
+  "localization": [
     {
-      "controller_type": "vive_controller",
-      "binding_url": "vive_controller_default.json"
-    },
-    {
-      "controller_type": "holographic_controller",
-      "binding_url": "holographic_controller_default.json"
-    },
-    {
-      "controller_type": "gamepad",
-      "binding_url": "gamepad_default.json"
-    },
-    {
-      "binding_url" : "knuckles_default.json",
-      "controller_type" : "knuckles"
-    },
-    {
-      "binding_url" : "oculus_touch_default.json",
-      "controller_type" : "oculus_touch"
+      "language_tag": "en_us",
+
+      "/actions/touch": "Oculus Touch",
+      "/actions/remote": "Oculus Remote",
+      "/actions/xbox": "Xbox",
+      "/actions/system": "System",
+
+      "/actions/touch/in/Button_AX": "A/X press",
+      "/actions/touch/in/Button_BY": "B/Y press",
+      "/actions/touch/in/Button_Thumb": "Thumbstick press",
+      "/actions/touch/in/Button_Enter": "Menu button",
+      "/actions/touch/in/Button_IndexTrigger": "Trigger press",
+      "/actions/touch/in/Button_HandTrigger": "Grip press",
+      "/actions/touch/in/IndexTrigger": "Trigger value",
+      "/actions/touch/in/HandTrigger": "Grip value",
+      "/actions/touch/in/Thumbstick": "Stick value",
+      "/actions/touch/in/Recenter_Thumb": "Recenter stick",
+      "/actions/touch/in/Touch_AX": "A/X touch",
+      "/actions/touch/in/Touch_BY": "B/Y touch",
+      "/actions/touch/in/Touch_Thumb": "Stick touch",
+      "/actions/touch/in/Touch_ThumbRest": "Thumbrest touch",
+      "/actions/touch/in/Touch_IndexTrigger": "Trigger touch",
+
+      "/actions/xbox/in/Button_A": "A",
+      "/actions/xbox/in/Button_B": "B",
+      "/actions/xbox/in/Button_RThumb": "Right stick",
+      "/actions/xbox/in/Button_RShoulder": "Right bumper",
+      "/actions/xbox/in/Button_X": "X",
+      "/actions/xbox/in/Button_Y": "Y",
+      "/actions/xbox/in/Button_LThumb": "Left stick",
+      "/actions/xbox/in/Button_LShoulder": "Left bumper",
+      "/actions/xbox/in/Button_Up": "Up",
+      "/actions/xbox/in/Button_Down": "Down",
+      "/actions/xbox/in/Button_Left": "Left",
+      "/actions/xbox/in/Button_Right": "Right",
+      "/actions/xbox/in/Button_Enter": "Start",
+      "/actions/xbox/in/Button_Back": "Back",
+      "/actions/xbox/in/RIndexTrigger": "Right trigger",
+      "/actions/xbox/in/LIndexTrigger": "Left trigger",
+      "/actions/xbox/in/RThumbstick": "Right stick",
+      "/actions/xbox/in/LThumbstick": "Left stick",
+
+      "/actions/remote/in/Button_Up": "Up button",
+      "/actions/remote/in/Button_Down": "Down button",
+      "/actions/remote/in/Button_Left": "Left button",
+      "/actions/remote/in/Button_Right": "Right button",
+      "/actions/remote/in/Button_Enter": "Menu button",
+      "/actions/remote/in/Button_Back": "Back button",
+      "/actions/remote/in/Button_VolUp": "Volume up button",
+      "/actions/remote/in/Button_VolDown": "Volume down button",
+
+      "/actions/system/in/Button_Home": "Home button"
     }
   ]
 }
