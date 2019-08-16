@@ -61,7 +61,7 @@
     },
     {
       "name": "/actions/touch/in/HandTrigger",
-      "requirement": "suggested",
+      "requirement": "optional",
       "type": "vector1"
     },
     {
@@ -269,7 +269,7 @@
 
       "/actions/touch/in/Button_AX": "A/X press",
       "/actions/touch/in/Button_BY": "B/Y press",
-      "/actions/touch/in/Button_Thumb": "Thumbstick press",
+      "/actions/touch/in/Button_Thumb": "Stick press",
       "/actions/touch/in/Button_Enter": "Menu button",
       "/actions/touch/in/Button_IndexTrigger": "Trigger press",
       "/actions/touch/in/Button_HandTrigger": "Grip press",
