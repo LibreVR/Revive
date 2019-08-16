@@ -98,10 +98,8 @@ ovrResult InputManager::SetControllerVibration(ovrSession session, ovrController
 	return ovrSuccess;
 }
 
-ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
+ovrResult InputManager::UpdateInputState()
 {
-	memset(inputState, 0, sizeof(ovrInputState));
-
 	std::vector<vr::VRActiveActionSet_t> sets;
 	for (InputDevice* device : m_InputDevices)
 	{
@@ -116,6 +114,11 @@ ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType cont
 	vr::EVRInputError err = vr::VRInput()->UpdateActionState(sets.data(), sizeof(vr::VRActiveActionSet_t), (uint32_t)sets.size());
 	if (err != vr::VRInputError_None)
 		return ovrError_RuntimeException;
+}
+
+ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
+{
+	memset(inputState, 0, sizeof(ovrInputState));
 
 	uint32_t types = 0;
 	for (InputDevice* device : m_InputDevices)

@@ -172,7 +172,9 @@ public:
 	void LoadActionManifest();
 	void UpdateConnectedControllers();
 	ovrTouchHapticsDesc GetTouchHapticsDesc(ovrControllerType controllerType);
+
 	ovrResult SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude);
+	ovrResult UpdateInputState();
 	ovrResult GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState);
 	ovrResult SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer);
 	ovrResult GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState);

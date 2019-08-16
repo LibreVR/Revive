@@ -3,6 +3,7 @@
 #include "REV_Math.h"
 #include "Session.h"
 #include "SessionDetails.h"
+#include "InputManager.h"
 #include "microprofile.h"
 #include "rcu_ptr.h"
 
@@ -121,6 +122,7 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 	MICROPROFILE_SCOPE(BeginFrame);
 
 	session->FrameIndex = frameIndex;
+	session->Input->UpdateInputState();
 	return ovrSuccess;
 }
 
