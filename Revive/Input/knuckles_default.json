@@ -8,14 +8,14 @@
       "sources": []
     },
     "/actions/touch": {
-      "haptics": [
+      "poses": [
         {
-          "output": "/actions/touch/out/vibration",
-          "path": "/user/hand/left/output/haptic"
+          "path": "/user/hand/left/pose/handgrip",
+          "output": "/actions/touch/in/pose"
         },
         {
-          "output": "/actions/touch/out/vibration",
-          "path": "/user/hand/right/output/haptic"
+          "path": "/user/hand/right/pose/handgrip",
+          "output": "/actions/touch/in/pose"
         }
       ],
       "sources": [

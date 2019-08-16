@@ -122,8 +122,7 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 	MICROPROFILE_SCOPE(BeginFrame);
 
 	session->FrameIndex = frameIndex;
-	session->Input->UpdateInputState();
-	return ovrSuccess;
+	return session->Input->UpdateInputState();
 }
 
 const ovrLayer_Union& CompositorBase::ToUnion(const ovrLayerHeader* layerPtr)

@@ -15,8 +15,11 @@
 InputManager::InputManager()
 	: m_InputDevices()
 	, m_LastPoses()
+	, m_LastHandPose()
 {
 	for (ovrPoseStatef& pose : m_LastPoses)
+		pose.ThePose = OVR::Posef::Identity();
+	for (ovrPoseStatef& pose : m_LastHandPose)
 		pose.ThePose = OVR::Posef::Identity();
 
 	LoadActionManifest();
@@ -34,6 +37,10 @@ InputManager::InputManager()
 		m_InputDevices.push_back(new OculusTouch(handle, vr::TrackedControllerRole_LeftHand));
 		m_InputDevices.push_back(new OculusTouch(handle, vr::TrackedControllerRole_RightHand));
 	}
+
+	vr::VRInput()->GetActionHandle("/actions/touch/in/Pose", &m_ActionPose);
+	vr::VRInput()->GetInputSourceHandle("/user/hand/left", &m_Hands[ovrHand_Left]);
+	vr::VRInput()->GetInputSourceHandle("/user/hand/right", &m_Hands[ovrHand_Right]);
 
 	UpdateConnectedControllers();
 }
@@ -247,19 +254,21 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	outState->StatusFlags = TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
 
 	// Convert the hand poses
-	vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
-		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 	for (int i = 0; i < ovrHand_Count; i++)
 	{
-		vr::TrackedDeviceIndex_t deviceIndex = hands[i];
-		if (deviceIndex == vr::k_unTrackedDeviceIndexInvalid)
+		vr::InputPoseActionData_t handPose;
+		vr::EVRInputError err = vr::VRInput()->GetPoseActionDataRelativeToNow(m_ActionPose, origin, relTime, &handPose, sizeof(vr::InputPoseActionData_t), m_Hands[i]);
+		if (err != vr::VRInputError_None)
 		{
 			outState->HandPoses[i].ThePose = OVR::Posef::Identity();
 			continue;
 		}
 
-		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(poses[deviceIndex], m_LastPoses[deviceIndex], absTime);
-		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(poses[deviceIndex]);
+		vr::TrackedDevicePose_t pose;
+		vr::HmdMatrix34_t offset = REV::Matrix4f(OVR::Matrix4f::RotationX(-MATH_FLOAT_PIOVER4));
+		vr::VRSystem()->ApplyTransform(&pose, &handPose.pose, &offset);
+		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(pose, m_LastHandPose[i], absTime);
+		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(handPose.pose);
 	}
 
 	// TODO: Calibrate the origin ourselves instead of relying on OpenVR.

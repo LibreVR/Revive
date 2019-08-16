@@ -100,8 +100,8 @@
       "type": "boolean"
     },
     {
-      "name": "/actions/touch/in/pose",
-      "requirement": "mandatory",
+      "name": "/actions/touch/in/Pose",
+      "requirement": "suggested",
       "type": "pose"
     },
     {
@@ -282,6 +282,7 @@
       "/actions/touch/in/Touch_Thumb": "Stick touch",
       "/actions/touch/in/Touch_ThumbRest": "Thumbrest touch",
       "/actions/touch/in/Touch_IndexTrigger": "Trigger touch",
+      "/actions/touch/in/Pose": "Pose",
 
       "/actions/xbox/in/Button_A": "A",
       "/actions/xbox/in/Button_B": "B",

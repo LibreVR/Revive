@@ -187,6 +187,9 @@ protected:
 
 private:
 	ovrPoseStatef m_LastPoses[vr::k_unMaxTrackedDeviceCount];
+	ovrPoseStatef m_LastHandPose[ovrHand_Count];
+	vr::VRInputValueHandle_t m_Hands[ovrHand_Count];
+	vr::VRActionHandle_t m_ActionPose;
 
 	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 	ovrPoseStatef TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, ovrPoseStatef& lastPose, double time);
