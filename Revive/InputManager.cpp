@@ -400,16 +400,12 @@ ovrControllerType InputManager::OculusTouch::GetType()
 bool InputManager::OculusTouch::IsConnected() const
 {
 	// Check if a role is assigned and connected
-#if 0
 	vr::TrackedDeviceIndex_t index = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(Role);
 
 	if (index == vr::k_unTrackedDeviceIndexInvalid)
 		return false;
 
 	return vr::VRSystem()->IsTrackedDeviceConnected(index);
-#else
-	return true;
-#endif
 }
 
 bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState* inputState)
@@ -513,7 +509,6 @@ InputManager::OculusRemote::OculusRemote(vr::VRActionSetHandle_t actionSet)
 
 bool InputManager::OculusRemote::IsConnected() const
 {
-#if 0
 	// Check if both roles are assigned and connected
 	vr::TrackedDeviceIndex_t indices[] = {
 		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
@@ -524,11 +519,9 @@ bool InputManager::OculusRemote::IsConnected() const
 	for (vr::TrackedDeviceIndex_t index : indices)
 	{
 		if (index == vr::k_unTrackedDeviceIndexInvalid ||
-			vr::VRSystem()->IsTrackedDeviceConnected(index))
+			!vr::VRSystem()->IsTrackedDeviceConnected(index))
 			return true;
 	}
-#endif
-	return false;
 }
 
 bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState* inputState)
