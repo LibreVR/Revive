@@ -101,7 +101,7 @@
     },
     {
       "name": "/actions/touch/in/Pose",
-      "requirement": "suggested",
+      "requirement": "mandatory",
       "type": "pose"
     },
     {
