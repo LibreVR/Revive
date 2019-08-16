@@ -474,9 +474,9 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	if (GetDigital(m_Button_HandTrigger))
 		inputState->HandTriggerRaw[hand] = 1.0f;
 
-	// We have no way to get unfiltered values, so these are the same
+	// We only do some filtering on the grip
 	inputState->IndexTriggerNoDeadzone[hand] = inputState->IndexTriggerRaw[hand];
-	inputState->HandTriggerNoDeadzone[hand] = inputState->HandTriggerRaw[hand];
+	inputState->HandTriggerNoDeadzone[hand] = sqrt(inputState->HandTriggerRaw[hand]);
 	inputState->ThumbstickNoDeadzone[hand] = inputState->ThumbstickRaw[hand];
 
 	// We don't apply deadzones yet on triggers and grips
