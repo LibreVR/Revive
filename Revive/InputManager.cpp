@@ -119,8 +119,7 @@ ovrResult InputManager::UpdateInputState()
 	}
 
 	vr::EVRInputError err = vr::VRInput()->UpdateActionState(sets.data(), sizeof(vr::VRActiveActionSet_t), (uint32_t)sets.size());
-	if (err != vr::VRInputError_None)
-		return ovrError_RuntimeException;
+	return err == vr::VRInputError_None ? ovrSuccess : ovrError_RuntimeException;
 }
 
 ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
