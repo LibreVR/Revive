@@ -5,24 +5,33 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.7.3</title>
+			<title>Version 1.8.0</title>
 			<description>
 			<![CDATA[
+			<h3>Changes</h3>
+
+			<ul>
+			    <li>Revive: Major overhaul of SteamVR Input support</li>
+			    <ul><li>Controller pose can now be customized in SteamVR as well</li></ul>
+			    <li>Revive: Updated OpenVR to version 1.6.10</li>
+			    <li>Revive: Removed support for the Revive tab in the old versions of OpenVR-AdvancedSettings</li>
+			    <li>Dashboard: Added Oculus Home to the list of default apps</li>
+			    <li>ReviveXR: Update OpenXR support to 1.0 (experimental <i>and</i> untested)</li>
+			</ul>
+
 			<h3>Bug fixes</h3>
 
 			<ul>
-			    <li>Revive: Fixed stuttering in Raccoon Lagoon, Vader Immortal and Defector</li>
-			    <ul><li>Defector still has a latency issue, will be fixed in 1.8.0 soon</li></ul>
-			    <li>Revive: Small tweak to the grip values so less force is needed to grab objects</li>
-			    <li>Revive: Fixed crash when launching Dance Central</li>
-			    <li>ReviveXR: Fixed non-functional "enable OpenXR support" tray icon option</li>
+			    <li>Revive: Fixed stuttering in The Climb, The Unspoken and Wilson's Heart</li>
+			    <li>Revive: Re-enabled pose submission to reduce latency in Defector and other apps</li>
+			    <li>Revive: Small tweaks to display time prediction to improve tracking</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>11 August 2019</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.7.3/ReviveInstaller.exe"
+			<pubDate>15 August 2019</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.8.0/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.7.3.5"
+					   sparkle:version="1.8.0.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
