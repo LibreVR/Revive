@@ -3,7 +3,6 @@
 #include "openvroverlaycontroller.h"
 #include "openvr.h"
 #include "OVR_CAPI_Keys.h"
-#include "Settings.h"
 #include <qt_windows.h>
 
 #include <QCoreApplication>
