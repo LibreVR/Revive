@@ -10,7 +10,7 @@
 			<![CDATA[
 			<h3>Changes</h3>
 
-			<p>Hotfix was released to fix issues with the menu button and incorrect app registration.</p>
+			<p>Hotfix was released to fix issues with the menu button and change the default grip binding.</p>
 
 			<ul>
 			    <li>Revive: Major overhaul of SteamVR Input support</li>
@@ -33,7 +33,7 @@
 			<pubDate>15 August 2019</pubDate>
 			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.8.0/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.8.0.2"
+					   sparkle:version="1.8.0.3"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>

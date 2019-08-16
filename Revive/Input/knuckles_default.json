@@ -152,22 +152,22 @@
           "path": "/user/hand/right/input/thumbstick"
         },
         {
+          "path": "/user/hand/left/input/grip",
+          "mode": "trigger",
           "inputs": {
-            "force": {
+            "pull": {
               "output": "/actions/touch/in/handtrigger"
             }
-          },
-          "mode": "force_sensor",
-          "path": "/user/hand/left/input/grip"
+          }
         },
         {
+          "path": "/user/hand/right/input/grip",
+          "mode": "trigger",
           "inputs": {
-            "force": {
+            "pull": {
               "output": "/actions/touch/in/handtrigger"
             }
-          },
-          "mode": "force_sensor",
-          "path": "/user/hand/right/input/grip"
+          }
         }
       ]
     }
