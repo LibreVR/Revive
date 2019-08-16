@@ -370,11 +370,11 @@ InputManager::OculusTouch::OculusTouch(vr::VRActionSetHandle_t actionSet, vr::ET
 {
 	/** Returns a handle for any path in the input system. E.g. /user/hand/right */
 	vr::VRInput()->GetInputSourceHandle(role == vr::TrackedControllerRole_RightHand ? "/user/hand/right" : "/user/hand/left", &Handle);
-	vr::VRInput()->GetActionHandle("/actions/touch/in/Button_Enter", &m_Button_Enter);
 
 #define GET_TOUCH_ACTION(x) vr::VRInput()->GetActionHandle( \
 	"/actions/touch/in/" #x, &m_##x)
 
+	GET_TOUCH_ACTION(Button_Enter);
 	GET_TOUCH_ACTION(Button_AX);
 	GET_TOUCH_ACTION(Button_BY);
 	GET_TOUCH_ACTION(Button_Thumb);
@@ -424,10 +424,10 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 {
 	ovrHandType hand = (Role == vr::TrackedControllerRole_LeftHand) ? ovrHand_Left : ovrHand_Right;
 
-	if (GetDigital(m_Button_Enter))
-		inputState->Buttons |= ovrButton_Enter;
-
 	unsigned int buttons = 0, touches = 0;
+
+	if (GetDigital(m_Button_Enter))
+		buttons |= ovrButton_Enter;
 
 	if (GetDigital(m_Button_AX))
 		buttons |= ovrButton_A;
@@ -534,11 +534,12 @@ bool InputManager::OculusRemote::IsConnected() const
 			!vr::VRSystem()->IsTrackedDeviceConnected(index))
 			return true;
 	}
+	return false;
 }
 
 bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState* inputState)
 {
-	unsigned int buttons;
+	unsigned int buttons = 0;
 
 	if (GetDigital(m_Button_Up))
 		buttons |= ovrButton_Up;
