@@ -87,6 +87,7 @@ ovrHmdStruct::ovrHmdStruct()
 	: Running(true)
 	, SessionStatus()
 	, StringBuffer()
+	, TrackingOrigin(vr::TrackingUniverseSeated)
 	, FrameIndex(0)
 	, StatsIndex(0)
 	, BaseStats()
@@ -96,7 +97,7 @@ ovrHmdStruct::ovrHmdStruct()
 {
 	// Oculus games expect a seated tracking space by default
 	if (Details->UseHack(SessionDetails::HACK_STRICT_POSES))
-		vr::VRCompositor()->SetTrackingSpace(vr::TrackingUniverseSeated);
+		vr::VRCompositor()->SetTrackingSpace(TrackingOrigin);
 
 	SessionStatusBits status = {};
 	status.HmdPresent = vr::VR_IsHmdPresent();
