@@ -253,19 +253,29 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	outState->StatusFlags = TrackedDevicePoseToOVRStatusFlags(poses[vr::k_unTrackedDeviceIndex_Hmd]);
 
 	// Convert the hand poses
+	vr::TrackedDeviceIndex_t hands[] = { vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand),
+		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 	for (int i = 0; i < ovrHand_Count; i++)
 	{
 		vr::InputPoseActionData_t handPose;
 		vr::EVRInputError err = vr::VRInput()->GetPoseActionDataRelativeToNow(m_ActionPose, origin, relTime, &handPose, sizeof(vr::InputPoseActionData_t), m_Hands[i]);
-		if (err != vr::VRInputError_None)
+		if (err != vr::VRInputError_None || hands[i] == vr::k_unTrackedDeviceIndexInvalid)
 		{
 			outState->HandPoses[i].ThePose = OVR::Posef::Identity();
 			continue;
 		}
 
+		// Apply a 45-degree offset to better fit the Oculus Touch pose
 		vr::TrackedDevicePose_t pose;
 		vr::HmdMatrix34_t offset = REV::Matrix4f(OVR::Matrix4f::RotationX(-MATH_FLOAT_PIOVER4));
 		vr::VRSystem()->ApplyTransform(&pose, &handPose.pose, &offset);
+
+		// Velocity data from SteamVR Input is in the wrong tracking space
+		vr::TrackedDevicePose_t rawPose;
+		vr::VRSystem()->ApplyTransform(&rawPose, &poses[hands[i]], &offset);
+		pose.vAngularVelocity = rawPose.vAngularVelocity;
+		pose.vVelocity = rawPose.vVelocity;
+
 		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(pose, m_LastHandPose[i], absTime);
 		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(handPose.pose);
 	}
