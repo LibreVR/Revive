@@ -1,12 +1,3 @@
-/* 
-Note: The files should be arranged as follows:
-   ReviveInjector_x64.exe
-   ReviveInjector_x86.exe
-   x86\openvr_api.dll
-   x86\LibRevive32_1.dll
-   x64\openvr_api.dll
-   x64\LibRevive64_1.dll
-*/
 #pragma once
 
 #include <stdio.h>
@@ -18,4 +9,4 @@ extern FILE* g_LogFile;
 
 unsigned int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc);
 int OpenProcessAndInject(wchar_t *processId, bool xr);
-int GetLibraryPath(char *path, int length, const char *fileName);
+int GetAbsolutePath(char *path, int length, const char *fileName);

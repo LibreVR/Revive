@@ -105,16 +105,12 @@ int OpenProcessAndInject(wchar_t *processId, bool xr)
 	return 0;
 }
 
-int GetLibraryPath(char *path, int length, const char *fileName)
+int GetAbsolutePath(char *path, int length, const char *fileName)
 {
 	char cwd[MAX_PATH];
 	GetModuleFileNameA(NULL, cwd, MAX_PATH);
 	PathRemoveFileSpecA(cwd);
-#if _WIN64
-	return snprintf(path, length, "%s\\x64\\%s", cwd, fileName);
-#else
-	return snprintf(path, length, "%s\\x86\\%s", cwd, fileName);
-#endif
+	return snprintf(path, length, "%s\\%s", cwd, fileName);
 }
 
 bool InjectLibRevive(HANDLE hProcess, HANDLE hThread, bool xr)
@@ -123,17 +119,17 @@ bool InjectLibRevive(HANDLE hProcess, HANDLE hThread, bool xr)
 	if (xr)
 	{
 #if _WIN64
-		GetLibraryPath(dllPath, MAX_PATH, "LibRXRRT64_1.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "LibRXRRT64_1.dll");
 #else
-		GetLibraryPath(dllPath, MAX_PATH, "LibRXRRT32_1.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "LibRXRRT32_1.dll");
 #endif
 	}
 	else
 	{
 #if _WIN64
-		GetLibraryPath(dllPath, MAX_PATH, "LibRevive64_1.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "LibRevive64_1.dll");
 #else
-		GetLibraryPath(dllPath, MAX_PATH, "LibRevive32_1.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "LibRevive32_1.dll");
 #endif
 	}
 	return InjectDLL(hProcess, hThread, dllPath, MAX_PATH);
@@ -144,11 +140,11 @@ bool InjectOpenVR(HANDLE hProcess, HANDLE hThread, bool xr)
 	char dllPath[MAX_PATH];
 	if (xr)
 	{
-		GetLibraryPath(dllPath, MAX_PATH, "openxr_loader-0_90.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "openxr_loader-0_90.dll");
 	}
 	else
 	{
-		GetLibraryPath(dllPath, MAX_PATH, "openvr_api.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "openvr_api.dll");
 	}
 	return InjectDLL(hProcess, hThread, dllPath, MAX_PATH);
 }
