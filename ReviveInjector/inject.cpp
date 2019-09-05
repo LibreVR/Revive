@@ -69,6 +69,7 @@ unsigned int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc)
 			LOG("Failed to wait for injector to exit\n");
 			return false;
 		}
+		ResumeThread(pi.hThread);
 		return pi.dwProcessId;
 	}
 #endif

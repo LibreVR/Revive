@@ -3,7 +3,7 @@
         {
             "app_key": "revive.app.oculus-dreamdeck-nux",
             "arguments": "/base \"Support/oculus-dreamdeck-nux/Dreamdeck/Binaries/Win64/Dreamdeck-Win64-Shipping.exe\" -vr -dreamdeck=NUX",
-            "binary_path_windows": "Revive/ReviveInjector_x64.exe",
+            "binary_path_windows": "Revive/x64/ReviveInjector.exe",
             "image_path": "SupportAssets/oculus-dreamdeck-nux/cover_landscape_image.jpg",
             "launch_type": "binary",
             "strings": {
@@ -15,7 +15,7 @@
         {
             "app_key": "revive.app.oculus-touch-tutorial",
             "arguments": "/base \"Support/oculus-touch-tutorial/WindowsNoEditor/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=nux",
-            "binary_path_windows": "Revive/ReviveInjector_x64.exe",
+            "binary_path_windows": "Revive/x64/ReviveInjector.exe",
             "image_path": "SupportAssets/oculus-touch-tutorial/cover_landscape_image.jpg",
             "launch_type": "binary",
             "strings": {
@@ -27,7 +27,7 @@
         {
             "app_key": "revive.app.oculus-first-contact",
             "arguments": "/base \"Support/oculus-touch-tutorial/WindowsNoEditor/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=\"experienceonly\"",
-            "binary_path_windows": "Revive/ReviveInjector_x64.exe",
+            "binary_path_windows": "Revive/x64/ReviveInjector.exe",
             "image_path": "SupportAssets/oculus-first-contact/cover_landscape_image.jpg",
             "launch_type": "binary",
             "strings": {
@@ -39,7 +39,7 @@
         {
             "app_key": "revive.app.oculus-worlds",
             "arguments": "/base \"Support/oculus-worlds/Home2/Binaries/Win64/Home2-Win64-Shipping.exe\"",
-            "binary_path_windows": "Revive/ReviveInjector_x64.exe",
+            "binary_path_windows": "Revive/x64/ReviveInjector.exe",
             "image_path": "SupportAssets/oculus-worlds/cover_landscape_image.jpg",
             "launch_type": "binary",
             "strings": {
