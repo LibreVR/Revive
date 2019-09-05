@@ -62,8 +62,8 @@ function generateManifest(manifest) {
             // Generate the entry and add it to the manifest
             var revive = {
                 "launch_type" : "binary",
-                "binary_path_windows" : "Revive/ReviveInjector_x64.exe",
-                "arguments" : apc + "/library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
+                "binary_path_windows" : "Revive/x64/ReviveInjector.exe",
+                "arguments" : apc + "/app " + manifest["canonicalName"] + " /library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
 
                 "image_path" : Revive.BasePath + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
 

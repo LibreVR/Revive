@@ -9,7 +9,7 @@ bool InjectLibRevive(HANDLE hProcess, HANDLE hThread, bool xr);
 bool InjectOpenVR(HANDLE hProcess, HANDLE hThread, bool xr);
 bool InjectDLL(HANDLE hProcess, HANDLE hThread, const char *dllPath, int dllPathLength);
 
-int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc)
+unsigned int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc)
 {
 	LOG("Creating process: %ls\n", programPath);
 
@@ -40,7 +40,7 @@ int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc)
 	if (!CreateProcess(NULL, programPath, &sa, NULL, FALSE, CREATE_SUSPENDED, NULL, (file && ext) ? workingDir : NULL, &si, &pi))
 	{
 		LOG("Failed to create process\n");
-		return -1;
+		return pi.dwProcessId;
 	}
 
 #if _WIN64
@@ -48,32 +48,28 @@ int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc)
 	if (!IsWow64Process(pi.hProcess, &is32Bit))
 	{
 		LOG("Failed to query bit depth\n");
-		return -1;
+		return pi.dwProcessId;
 	}
 	if (is32Bit)
 	{
-		LOG("Delegating 32-bit process (%d) to ReviveInjector_x86\n", pi.dwProcessId);
+		LOG("Delegating 32-bit process (%d) to x86 injector\n", pi.dwProcessId);
 
 		PROCESS_INFORMATION injector;
 		ZeroMemory(&injector, sizeof(injector));
 		wchar_t commandLine[MAX_PATH];
-		swprintf(commandLine, sizeof(commandLine), L"ReviveInjector_x86.exe /handle %d", pi.hProcess);
+		swprintf(commandLine, sizeof(commandLine), L"..\\x86\\ReviveInjector.exe /handle %d", pi.hProcess);
 		if (!CreateProcess(NULL, commandLine, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &injector))
 		{
-			LOG("Failed to create ReviveInjector_x86\n");
+			LOG("Failed to create injector\n");
 			return -1;
 		}
 
 		DWORD waitReturnValue = WaitForSingleObject(injector.hThread, INFINITE);
 		if (waitReturnValue != WAIT_OBJECT_0) {
-			LOG("Failed to wait for ReviveInjector_x86 to exit\n");
+			LOG("Failed to wait for injector to exit\n");
 			return false;
 		}
-
-		DWORD injectorReturnValue;
-		GetExitCodeThread(injector.hThread, &injectorReturnValue);
-		ResumeThread(pi.hThread);
-		return injectorReturnValue;
+		return pi.dwProcessId;
 	}
 #endif
 
@@ -81,12 +77,12 @@ int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc)
 	if (!InjectOpenVR(pi.hProcess, hThread, xr) ||
 		!InjectLibRevive(pi.hProcess, hThread, xr)) {
 		ResumeThread(pi.hThread);
-		return -1;
+		return pi.dwProcessId;
 	}
 
 	LOG("Injected dlls successfully\n");
 	ResumeThread(pi.hThread);
-	return 0;
+	return pi.dwProcessId;
 }
 
 int OpenProcessAndInject(wchar_t *processId, bool xr)

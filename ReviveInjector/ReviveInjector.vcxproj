@@ -76,26 +76,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(IncludePath)</IncludePath>
-    <TargetName>$(ProjectName)_x86</TargetName>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\</OutDir>
-    <TargetName>$(ProjectName)_x64</TargetName>
+    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(IncludePath)</IncludePath>
-    <TargetName>$(ProjectName)_x86</TargetName>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\</OutDir>
-    <TargetName>$(ProjectName)_x64</TargetName>
+    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -109,7 +105,8 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>Shlwapi.lib;Shell32.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>openvr_api.lib;Shlwapi.lib;Shell32.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(Externals)openvr\lib\win32</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -124,7 +121,8 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>Shlwapi.lib;Shell32.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>openvr_api.lib;Shlwapi.lib;Shell32.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(Externals)openvr\lib\win64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -143,7 +141,8 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Shlwapi.lib;Shell32.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>openvr_api.lib;Shlwapi.lib;Shell32.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(Externals)openvr\lib\win32</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -162,7 +161,8 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Shlwapi.lib;Shell32.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>openvr_api.lib;Shlwapi.lib;Shell32.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(Externals)openvr\lib\win64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

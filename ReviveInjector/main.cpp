@@ -1,5 +1,8 @@
 #include "inject.h"
 
+#include <string>
+#include <codecvt>
+
 #include <Windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -113,6 +116,7 @@ int wmain(int argc, wchar_t *argv[]) {
 
 	bool xr = false;
 	bool apc = false;
+	std::string appKey;
 	WCHAR path[MAX_PATH] = { 0 };
 	for (int i = 1; i < argc; i++)
 	{
@@ -127,6 +131,10 @@ int wmain(int argc, wchar_t *argv[]) {
 		else if (wcscmp(argv[i], L"/handle") == 0)
 		{
 			return OpenProcessAndInject(argv[++i], xr);
+		}
+		if (wcscmp(argv[i], L"/app") == 0)
+		{
+			appKey = "application.generated.revive.app." + std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(argv[++i]);
 		}
 		else if (wcscmp(argv[i], L"/base") == 0)
 		{
@@ -148,5 +156,13 @@ int wmain(int argc, wchar_t *argv[]) {
 		}
 	}
 
-	return CreateProcessAndInject(path, xr, apc);
+	uint32_t processId = CreateProcessAndInject(path, xr, apc);
+	if (!appKey.empty())
+	{
+		vr::EVRInitError err;
+		vr::VR_Init(&err, vr::VRApplication_Utility);
+		vr::VRApplications()->IdentifyApplication(processId, appKey.data());
+		vr::VR_Shutdown();
+	}
+	return processId;
 }

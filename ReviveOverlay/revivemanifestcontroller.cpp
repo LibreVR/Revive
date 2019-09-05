@@ -304,9 +304,10 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 
 	if (!m_OpenXREnabled && vr::VRApplications())
 	{
+		// Refresh the manifest after launching the application to aid application identification
 		vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(qPrintable(appKey));
 		if (error == vr::VRApplicationError_None)
-			return true;
+			return AddApplicationManifest(m_manifestFile);
 		else
 			qWarning("Failed to launch application through OpenVR, falling back to injector: %s (%s)", qUtf8Printable(appKey), vr::VRApplications()->GetApplicationsErrorNameFromEnum(error));
 	}
