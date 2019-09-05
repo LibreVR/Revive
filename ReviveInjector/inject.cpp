@@ -57,7 +57,15 @@ unsigned int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc)
 		PROCESS_INFORMATION injector;
 		ZeroMemory(&injector, sizeof(injector));
 		wchar_t commandLine[MAX_PATH];
-		swprintf(commandLine, sizeof(commandLine), L"..\\x86\\ReviveInjector.exe /handle %d", pi.hProcess);
+		GetModuleFileNameW(NULL, commandLine, MAX_PATH);
+		wchar_t* substr = wcswcs(commandLine, L"x64");
+		if (substr)
+		{
+			// Replace with x86
+			substr[1] = '8';
+			substr[2] = '6';
+		}
+		swprintf(commandLine, MAX_PATH, L"%s /handle %d", commandLine, pi.hProcess);
 		if (!CreateProcess(NULL, commandLine, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &injector))
 		{
 			LOG("Failed to create injector\n");
