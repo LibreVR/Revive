@@ -1,5 +1,6 @@
 !define BASE_DIR "..\Release"
 !define SRC_DIR "..\Revive"
+!define DASH_DIR "..\ReviveOverlay"
 
 !if 0
 Function .onInit
@@ -86,8 +87,8 @@ install:
   
   ; Main application files
   File "..\LICENSE"
-  File "${BASE_DIR}\app.vrmanifest"
-  File "${BASE_DIR}\support.vrmanifest"
+  File "${DASH_DIR}\app.vrmanifest"
+  File "${DASH_DIR}\support.vrmanifest"
   File /r "${BASE_DIR}\*.exe"
   File /r /x "${BASE_DIR}\bearer" "${BASE_DIR}\*.dll"
   File /r "${BASE_DIR}\*.jpg"
