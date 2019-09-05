@@ -179,13 +179,13 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 			// Transform the overlay.
 			vr::HmdMatrix34_t transform = REV::Matrix4f(pose);
 			vr::VROverlay()->SetOverlayWidthInMeters(chain->Overlay, layer.QuadSize.x);
-			if (layer.Header.Flags & ovrLayerFlag_HeadLocked)
+			if (layerPtrList[i]->Flags & ovrLayerFlag_HeadLocked)
 				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(chain->Overlay, vr::k_unTrackedDeviceIndex_Hmd, &transform);
 			else
 				vr::VROverlay()->SetOverlayTransformAbsolute(chain->Overlay, session->TrackingOrigin, &transform);
 
 			// Set the texture and show the overlay.
-			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.Viewport, layer.ColorTexture, layer.Header.Flags);
+			vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.Viewport, layer.ColorTexture, layerPtrList[i]->Flags);
 			vr::VROverlay()->SetOverlayTextureBounds(chain->Overlay, &bounds);
 
 			// Show the overlay, unfortunately we have no control over the order in which
