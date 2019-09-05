@@ -5,45 +5,28 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.8.0</title>
+			<title>Version 1.8.1</title>
 			<description>
 			<![CDATA[
-			<h3>Hotfixes</h3>
-
-			<p>This release has been updated a few times to fix some minor mistakes, redownload the release if you experience any of these problems.</p>
-
-			<ul>
-			    <li>Fixed menu button activating unintentionally</li>
-			    <li>Fixed apps not being recognized correctly in the Steam library</li>
-			    <li>Fixed game image being stuck in the same position when turning your head</li>
-			    <li>Fixed incorrect throwing direction in Echo Arena</li>
-			    <li>Change the default grip binding to use capsense instead of the force sensor</li>
-			</ul>
-
 			<h3>Changes</h3>
 
 			<ul>
-			    <li>Revive: Major overhaul of SteamVR Input support</li>
-			    <ul><li>Controller pose can now be customized in SteamVR as well</li></ul>
-			    <li>Revive: Updated OpenVR to version 1.6.10</li>
-			    <li>Revive: Removed support for the Revive tab in the old versions of OpenVR-AdvancedSettings</li>
-			    <li>Dashboard: Added Oculus Home to the list of default apps</li>
-			    <li>ReviveXR: Update OpenXR support to 1.0 (experimental <i>and</i> untested)</li>
+			    <li>Updated Oculus SDK to version 1.40</li>
+			    <li>Improved SteamVR app identification</li>
 			</ul>
 
 			<h3>Bug fixes</h3>
 
 			<ul>
-			    <li>Revive: Fixed stuttering in The Climb, The Unspoken and Wilson's Heart</li>
-			    <li>Revive: Re-enabled pose submission to reduce latency in Defector and other apps</li>
-			    <li>Revive: Small tweaks to display time prediction to improve tracking</li>
+			    <li>Revive: Fixed quad layers in Dirt Rally flipping upside down (#1322)</li>
+			    <li>Revive: Fixed controllers not working if the user is not an admin (#1311)</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>15 August 2019</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.8.0/ReviveInstaller.exe"
+			<pubDate>5 September 2019</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.8.1/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.8.0.6"
+					   sparkle:version="1.8.1.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
