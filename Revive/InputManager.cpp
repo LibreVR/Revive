@@ -60,11 +60,11 @@ void InputManager::LoadActionManifest()
 #else
 	std::vector<char> pathVec;
 	DWORD pathSize = MAX_PATH;
-	LSTATUS status = RegGetValueA(HKEY_CURRENT_USER, "Software\\Revive", "", RRF_RT_REG_SZ, NULL, NULL, &pathSize);
+	LSTATUS status = RegGetValueA(HKEY_LOCAL_MACHINE, "Software\\Revive", "", RRF_RT_REG_SZ, NULL, NULL, &pathSize);
 	if (status == ERROR_SUCCESS)
 	{
 		pathVec.resize(pathSize);
-		status = RegGetValueA(HKEY_CURRENT_USER, "Software\\Revive", "", RRF_RT_REG_SZ, NULL, pathVec.data(), &pathSize);
+		status = RegGetValueA(HKEY_LOCAL_MACHINE, "Software\\Revive", "", RRF_RT_REG_SZ, NULL, pathVec.data(), &pathSize);
 
 		if (status == ERROR_SUCCESS)
 		{

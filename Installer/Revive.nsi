@@ -122,7 +122,7 @@ install:
   ExecWait '"$INSTDIR\ReviveOverlay.exe" -manifest'
   
   ;Store installation folder
-  WriteRegStr HKCU "Software\Revive" "" $INSTDIR
+  WriteRegStr HKLM "Software\Revive" "" $INSTDIR
   
   ;Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
