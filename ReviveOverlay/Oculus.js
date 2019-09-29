@@ -65,7 +65,7 @@ function generateManifest(manifest) {
                 "binary_path_windows" : "Revive/x64/ReviveInjector.exe",
                 "arguments" : apc + "/app " + manifest["canonicalName"] + " /library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
 
-                "image_path" : Revive.BasePath + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image.jpg",
+                "image_path" : Revive.BasePath + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image_large.png",
 
                 "strings" : {
                     "en_us" : {
