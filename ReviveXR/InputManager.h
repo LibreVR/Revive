@@ -181,7 +181,6 @@ public:
 	ovrResult GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState);
 
 	void GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime);
-	ovrResult GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses);
 
 protected:
 	static XrPath s_SubActionPaths[ovrHand_Count];

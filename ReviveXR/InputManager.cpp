@@ -209,43 +209,6 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	outState->CalibratedOrigin = session->CalibratedOrigin;
 }
 
-ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
-{
-	XrTime displayTime = AbsTimeToXrTime(session->Instance, absTime);
-	XrSpace space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ? session->StageSpace : session->LocalSpace;
-
-	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
-	for (int i = 0; i < deviceCount; i++)
-	{
-		// Get the space for device types we recognize
-		XrSpace space = XR_NULL_HANDLE;
-		switch (deviceTypes[i])
-		{
-		case ovrTrackedDevice_HMD:
-			space = session->ViewSpace;
-			break;
-		case ovrTrackedDevice_LTouch:
-			space = m_ActionSpaces[ovrHand_Left];
-			break;
-		case ovrTrackedDevice_RTouch:
-			space = m_ActionSpaces[ovrHand_Right];
-			break;
-		}
-
-		if (space)
-		{
-			CHK_XR(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &relation));
-			SpaceRelationToPoseState(relation, absTime, outDevicePoses[i]);
-		}
-		else
-		{
-			outDevicePoses[i] = ovrPoseStatef{ OVR::Posef::Identity() };
-		}
-	}
-
-	return ovrSuccess;
-}
-
 /* Action child-class */
 
 InputManager::Action::Action(InputDevice* device, XrActionType type, const char* actionName, const char* localizedName, bool handedAction)

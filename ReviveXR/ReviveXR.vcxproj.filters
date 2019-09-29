@@ -110,6 +110,9 @@
     <ClCompile Include="Extensions.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
+    <ClCompile Include="REV_CAPI_Prototypes.cpp">
+      <Filter>Source Files\LibOVR</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

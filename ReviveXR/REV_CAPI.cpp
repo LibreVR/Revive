@@ -452,29 +452,6 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	return state;
 }
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
-{
-	REV_TRACE(ovr_GetDevicePoses);
-
-	if (!session)
-		return ovrError_InvalidSession;
-
-	return session->Input->GetDevicePoses(session, deviceTypes, deviceCount, absTime, outDevicePoses);
-}
-
-struct ovrSensorData_;
-typedef struct ovrSensorData_ ovrSensorData;
-
-OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingStateWithSensorData(ovrSession session, double absTime, ovrBool latencyMarker, ovrSensorData* sensorData)
-{
-	REV_TRACE(ovr_GetTrackingStateWithSensorData);
-
-	// This is a private API, ignore the raw sensor data request and hope for the best.
-	assert(sensorData == nullptr);
-
-	return ovr_GetTrackingState(session, absTime, latencyMarker);
-}
-
 OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsigned int trackerPoseIndex)
 {
 	REV_TRACE(ovr_GetTrackerPose);
@@ -1355,12 +1332,6 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* prope
 	return false;
 }
 
-OVR_PUBLIC_FUNCTION(ovrResult) ovr_Lookup(const char* name, void** data)
-{
-	// We don't communicate with the ovrServer.
-	return ovrError_ServiceError;
-}
-
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetExternalCameras(ovrSession session, ovrExternalCamera* cameras, unsigned int* inoutCameraCount)
 {
 	// TODO: Support externalcamera.cfg used by the SteamVR Unity plugin
@@ -1370,29 +1341,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetExternalCameras(ovrSession session, ovrExt
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetExternalCameraProperties(ovrSession session, const char* name, const ovrCameraIntrinsics* const intrinsics, const ovrCameraExtrinsics* const extrinsics)
 {
 	return ovrError_NoExternalCameraInfo;
-}
-
-OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetEnabledCaps(ovrSession session)
-{
-	return 0;
-}
-
-OVR_PUBLIC_FUNCTION(void) ovr_SetEnabledCaps(ovrSession session, unsigned int hmdCaps)
-{
-}
-
-OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackingCaps(ovrSession session)
-{
-	return 0;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_ConfigureTracking(
-	ovrSession session,
-	unsigned int requestedTrackingCaps,
-	unsigned int requiredTrackingCaps)
-{
-	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
@@ -1500,83 +1448,4 @@ ovr_GetFovStencil(
 	}
 
 	return ovrSuccess;
-}
-
-struct ovrDesktopWindowDesc_;
-typedef struct ovrDesktopWindowDesc_ ovrDesktopWindowDesc;
-
-struct ovrHybridInputFocusState_;
-typedef struct ovrHybridInputFocusState_ ovrHybridInputFocusState;
-
-typedef uint32_t ovrDesktopWindowHandle;
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_InitDesktopWindow(
-	ovrSession session,
-	ovrDesktopWindowHandle* outWindowHandle)
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_ShowDesktopWindow(
-	ovrSession session,
-	const ovrDesktopWindowDesc* windowDesc)
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_HideDesktopWindow(
-	ovrSession session,
-	ovrDesktopWindowHandle windowHandle)
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_GetHybridInputFocus(
-	ovrSession session,
-	ovrControllerType controllerType,
-	ovrHybridInputFocusState* outState)
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_ShowAvatarHands(
-	ovrSession session,
-	ovrBool showHands)
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_ShowKeyboard()
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_EnableHybridRaycast()
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_GetHmdColorDesc()
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_QueryDistortion()
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_SetClientColorDesc()
-{
-	return ovrError_Unsupported;
 }
