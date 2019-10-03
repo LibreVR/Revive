@@ -149,7 +149,7 @@ bool InjectOpenVR(HANDLE hProcess, HANDLE hThread, bool xr)
 	char dllPath[MAX_PATH];
 	if (xr)
 	{
-		GetAbsolutePath(dllPath, MAX_PATH, "openxr_loader-0_90.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "openxr_loader-1_0.dll");
 	}
 	else
 	{
