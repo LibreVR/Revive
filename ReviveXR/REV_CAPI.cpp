@@ -184,9 +184,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	g_Sessions.emplace_back();
 
+	// Initialize session members
 	ovrSession session = &g_Sessions.back();
 	session->Instance = g_Instance;
 	session->TrackingSpace = XR_REFERENCE_SPACE_TYPE_LOCAL;
+	session->SystemProperties = XR_TYPE(SYSTEM_PROPERTIES);
+	for (int i = 0; i < ovrEye_Count; i++) {
+		session->ViewConfigs[i] = XR_TYPE(VIEW_CONFIGURATION_VIEW);
+		session->DefaultEyeViews[i] = XR_TYPE(VIEW);
+	}
 
 	// Initialize input
 	session->Input.reset(new InputManager(session->Instance));
@@ -258,11 +264,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
 		XrViewState viewState = XR_TYPE(VIEW_STATE);
 		locateInfo.space = viewSpace;
+		locateInfo.viewConfigurationType = beginInfo.primaryViewConfigurationType;
+		locateInfo.displayTime = 1337;
 		XrResult rs = xrLocateViews(fakeSession, &locateInfo, &viewState, ovrEye_Count, &numViews, session->DefaultEyeViews);
 		assert(XR_SUCCEEDED(rs));
 		assert(numViews == ovrEye_Count);
 
-		CHK_XR(xrEndSession(fakeSession));
+		xrRequestExitSession(fakeSession);
+		while (!XR_SUCCEEDED(xrEndSession(fakeSession)))
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		CHK_XR(xrDestroySession(fakeSession));
 	}
 
@@ -277,8 +287,9 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 	XrSession handle = session->Session;
 	if (handle)
 	{
-		XrResult rs = xrEndSession(handle);
-		assert(XR_SUCCEEDED(rs));
+		xrRequestExitSession(session->Session);
+		while (!XR_SUCCEEDED(xrEndSession(handle)))
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
 	if (session->HookedFunction)
@@ -899,6 +910,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 		return ovrError_InvalidSession;
 
 	XrFrameWaitInfo waitInfo = XR_TYPE(FRAME_WAIT_INFO);
+	session->FrameState = XR_TYPE(FRAME_STATE);
 	CHK_XR(xrWaitFrame(session->Session, &waitInfo, &session->FrameState));
 	return ovrSuccess;
 }

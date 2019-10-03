@@ -132,7 +132,7 @@ int wmain(int argc, wchar_t *argv[]) {
 		{
 			return OpenProcessAndInject(argv[++i], xr);
 		}
-		if (wcscmp(argv[i], L"/app") == 0)
+		else if (wcscmp(argv[i], L"/app") == 0)
 		{
 			appKey = "application.generated.revive.app." + std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(argv[++i]);
 		}
