@@ -1014,6 +1014,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 						break;
 				}
 
+				// Flip the field-of-view to flip the image
+				if (upsideDown)
+					OVR::OVRMath_Swap(view.fov.angleUp, view.fov.angleDown);
+
 				if (type == ovrLayerType_EyeFovDepth && g_Extensions.CompositionDepth)
 				{
 					depthData.emplace_back();
@@ -1021,7 +1025,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					depthInfo = XR_TYPE(COMPOSITION_LAYER_DEPTH_INFO_KHR);
 
 					depthInfo.subImage.swapchain = layer->EyeFovDepth.DepthTexture[i]->Swapchain;
-					depthInfo.subImage.imageRect = XR::Recti(layer->EyeFovDepth.Viewport[i], upsideDown);
+					depthInfo.subImage.imageRect = XR::Recti(layer->EyeFovDepth.Viewport[i]);
 					depthInfo.subImage.imageArrayIndex = 0;
 
 					const ovrTimewarpProjectionDesc& projDesc = layer->EyeFovDepth.ProjectionDesc;
@@ -1040,7 +1044,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 				}
 
 				view.subImage.swapchain = texture->Swapchain;
-				view.subImage.imageRect = XR::Recti(layer->EyeFov.Viewport[i], upsideDown);
+				view.subImage.imageRect = XR::Recti(layer->EyeFov.Viewport[i]);
 				view.subImage.imageArrayIndex = 0;
 			}
 
@@ -1060,7 +1064,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			quad = XR_TYPE(COMPOSITION_LAYER_QUAD);
 			quad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
 			quad.subImage.swapchain = layer->Quad.ColorTexture->Swapchain;
-			quad.subImage.imageRect = XR::Recti(layer->Quad.Viewport, upsideDown);
+			quad.subImage.imageRect = XR::Recti(layer->Quad.Viewport);
 			quad.subImage.imageArrayIndex = 0;
 			quad.pose = XR::Posef(layer->Quad.QuadPoseCenter);
 			quad.size = XR::Vector2f(layer->Quad.QuadSize);
@@ -1074,7 +1078,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			cylinder = XR_TYPE(COMPOSITION_LAYER_CYLINDER_KHR);
 			cylinder.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
 			cylinder.subImage.swapchain = layer->Cylinder.ColorTexture->Swapchain;
-			cylinder.subImage.imageRect = XR::Recti(layer->Cylinder.Viewport, upsideDown);
+			cylinder.subImage.imageRect = XR::Recti(layer->Cylinder.Viewport);
 			cylinder.subImage.imageArrayIndex = 0;
 			cylinder.pose = XR::Posef(layer->Cylinder.CylinderPoseCenter);
 			cylinder.radius = layer->Cylinder.CylinderRadius;
