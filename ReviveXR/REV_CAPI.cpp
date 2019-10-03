@@ -264,11 +264,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
 		XrViewState viewState = XR_TYPE(VIEW_STATE);
 		locateInfo.space = viewSpace;
+		locateInfo.viewConfigurationType = beginInfo.primaryViewConfigurationType;
+		locateInfo.displayTime = 1337;
 		XrResult rs = xrLocateViews(fakeSession, &locateInfo, &viewState, ovrEye_Count, &numViews, session->DefaultEyeViews);
 		assert(XR_SUCCEEDED(rs));
 		assert(numViews == ovrEye_Count);
 
-		CHK_XR(xrEndSession(fakeSession));
+		xrRequestExitSession(fakeSession);
+		while (!XR_SUCCEEDED(xrEndSession(fakeSession)))
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		CHK_XR(xrDestroySession(fakeSession));
 	}
 
