@@ -29,7 +29,8 @@ struct ovrHmdStruct
 	XrSpace ViewSpace;
 	XrSpace	LocalSpace;
 	XrSpace StageSpace;
-	XrFrameState FrameState;
+	XrFrameState CurrentFrame;
+	XrFrameState PendingFrame;
 
 	// OpenXR properties
 	XrSystemProperties SystemProperties;

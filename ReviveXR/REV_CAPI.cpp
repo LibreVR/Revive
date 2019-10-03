@@ -142,7 +142,7 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 		desc.Resolution.w += (int)session->ViewConfigs[i].recommendedImageRectWidth;
 		desc.Resolution.h = std::max(desc.Resolution.h, (int)session->ViewConfigs[i].recommendedImageRectHeight);
 	}
-	desc.DisplayRefreshRate = session->FrameState.predictedDisplayPeriod > 0 ? 1e9f / session->FrameState.predictedDisplayPeriod : 90.0f;
+	desc.DisplayRefreshRate = session->PendingFrame.predictedDisplayPeriod > 0 ? 1e9f / session->PendingFrame.predictedDisplayPeriod : 90.0f;
 	return desc;
 }
 
@@ -415,7 +415,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 		return ovrError_InvalidSession;
 
 	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
-	CHK_XR(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->FrameState.predictedDisplayTime, &relation));
+	CHK_XR(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->PendingFrame.predictedDisplayTime, &relation));
 
 	if (!(relation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
 		return ovrError_InvalidHeadsetOrientation;
@@ -481,7 +481,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 		OVR::Posef trackerPose = poses[trackerPoseIndex];
 
 		XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
-		if (XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->FrameState.predictedDisplayTime, &relation)))
+		if (XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->PendingFrame.predictedDisplayTime, &relation)))
 		{
 			// Create a leveled head pose
 			if (relation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
@@ -797,7 +797,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	CHK_XR(xrAcquireSwapchainImage(chain->Swapchain, &acquireInfo, &chain->CurrentIndex));
 
 	XrSwapchainImageWaitInfo waitInfo = XR_TYPE(SWAPCHAIN_IMAGE_WAIT_INFO);
-	waitInfo.timeout = session->FrameState.predictedDisplayPeriod;
+	waitInfo.timeout = session->CurrentFrame.predictedDisplayPeriod;
 	CHK_XR(xrWaitSwapchainImage(chain->Swapchain, &waitInfo));
 
 	return ovrSuccess;
@@ -869,7 +869,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 		XrViewState viewState = XR_TYPE(VIEW_STATE);
 		XrView views[ovrEye_Count] = XR_TYPE(VIEW);
 		locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-		locateInfo.displayTime = session->FrameState.predictedDisplayTime;
+		locateInfo.displayTime = session->CurrentFrame.predictedDisplayTime;
 		locateInfo.space = session->ViewSpace;
 		XrResult rs = xrLocateViews(session->Session, &locateInfo, &viewState, ovrEye_Count, &numViews, views);
 		assert(XR_SUCCEEDED(rs));
@@ -910,8 +910,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 		return ovrError_InvalidSession;
 
 	XrFrameWaitInfo waitInfo = XR_TYPE(FRAME_WAIT_INFO);
-	session->FrameState = XR_TYPE(FRAME_STATE);
-	CHK_XR(xrWaitFrame(session->Session, &waitInfo, &session->FrameState));
+	session->PendingFrame = XR_TYPE(FRAME_STATE);
+	CHK_XR(xrWaitFrame(session->Session, &waitInfo, &session->PendingFrame));
 	return ovrSuccess;
 }
 
@@ -925,6 +925,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 
 	XrFrameBeginInfo beginInfo = XR_TYPE(FRAME_BEGIN_INFO);
 	CHK_XR(xrBeginFrame(session->Session, &beginInfo));
+	session->CurrentFrame = session->PendingFrame;
 	return ovrSuccess;
 }
 
@@ -1114,7 +1115,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	}
 
 	XrFrameEndInfo endInfo = XR_TYPE(FRAME_END_INFO);
-	endInfo.displayTime = session->FrameState.predictedDisplayTime;
+	endInfo.displayTime = session->CurrentFrame.predictedDisplayTime;
 	endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 	endInfo.layerCount = (uint32_t)layers.size();
 	endInfo.layers = layers.data();
@@ -1203,10 +1204,10 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 
 	MICROPROFILE_META_CPU("Predict Frame", (int)frameIndex);
 
-	XrTime displayTime = session->FrameState.predictedDisplayTime;
+	XrTime displayTime = session->PendingFrame.predictedDisplayTime;
 
 	if (frameIndex > 0)
-		displayTime += session->FrameState.predictedDisplayPeriod * (session->NextFrame - frameIndex);
+		displayTime += session->PendingFrame.predictedDisplayPeriod * (session->NextFrame - frameIndex);
 
 	static double PerfFrequencyInverse = 0.0;
 	if (PerfFrequencyInverse == 0.0)
@@ -1284,7 +1285,7 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 			);
 
 		if (strcmp(propertyName, "VsyncToNextVsync") == 0)
-			return session->FrameState.predictedDisplayPeriod / 1e9f;
+			return session->PendingFrame.predictedDisplayPeriod / 1e9f;
 	}
 
 	// Override defaults, we should always return a valid value for these
