@@ -287,8 +287,9 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 	XrSession handle = session->Session;
 	if (handle)
 	{
-		XrResult rs = xrEndSession(handle);
-		assert(XR_SUCCEEDED(rs));
+		xrRequestExitSession(session->Session);
+		while (!XR_SUCCEEDED(xrEndSession(handle)))
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
 	if (session->HookedFunction)
