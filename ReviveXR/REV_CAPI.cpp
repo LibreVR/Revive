@@ -184,9 +184,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Initialize the opaque pointer with our own OpenVR-specific struct
 	g_Sessions.emplace_back();
 
+	// Initialize session members
 	ovrSession session = &g_Sessions.back();
 	session->Instance = g_Instance;
 	session->TrackingSpace = XR_REFERENCE_SPACE_TYPE_LOCAL;
+	session->SystemProperties = XR_TYPE(SYSTEM_PROPERTIES);
+	for (int i = 0; i < ovrEye_Count; i++) {
+		session->ViewConfigs[i] = XR_TYPE(VIEW_CONFIGURATION_VIEW);
+		session->DefaultEyeViews[i] = XR_TYPE(VIEW);
+	}
 
 	// Initialize input
 	session->Input.reset(new InputManager(session->Instance));
@@ -899,6 +905,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 		return ovrError_InvalidSession;
 
 	XrFrameWaitInfo waitInfo = XR_TYPE(FRAME_WAIT_INFO);
+	session->FrameState = XR_TYPE(FRAME_STATE);
 	CHK_XR(xrWaitFrame(session->Session, &waitInfo, &session->FrameState));
 	return ovrSuccess;
 }
