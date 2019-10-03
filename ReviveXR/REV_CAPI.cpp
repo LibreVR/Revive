@@ -330,19 +330,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 				if (stateChanged.state == XR_SESSION_STATE_VISIBLE)
 				{
 					status.HmdMounted = true;
-					status.IsVisible = true;
 					status.HasInputFocus = false;
 				}
 				else if (stateChanged.state == XR_SESSION_STATE_IDLE)
 					status.HmdPresent = true;
 				else if (stateChanged.state == XR_SESSION_STATE_READY)
-					status.HmdMounted = true;
+					status.IsVisible = true;
 				else if (stateChanged.state == XR_SESSION_STATE_SYNCHRONIZED)
-					status.IsVisible = false;
+					status.HmdMounted = false;
 				else if (stateChanged.state == XR_SESSION_STATE_FOCUSED)
 					status.HasInputFocus = true;
 				else if (stateChanged.state == XR_SESSION_STATE_STOPPING)
-					status.HmdMounted = false;
+					status.IsVisible = false;
 				else if (stateChanged.state == XR_SESSION_STATE_LOSS_PENDING)
 					status.DisplayLost = true;
 				else if (stateChanged.state == XR_SESSION_STATE_EXITING)
