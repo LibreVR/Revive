@@ -327,25 +327,35 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 				reinterpret_cast<XrEventDataSessionStateChanged&>(event);
 			if (stateChanged.session == session->Session)
 			{
-				if (stateChanged.state == XR_SESSION_STATE_VISIBLE)
+				switch (stateChanged.state)
 				{
+				case XR_SESSION_STATE_IDLE:
+					status.HmdPresent = true;
+					break;
+				case XR_SESSION_STATE_READY:
+					status.IsVisible = true;
+					status.HmdMounted = true;
+					break;
+				case XR_SESSION_STATE_SYNCHRONIZED:
+					status.HmdMounted = false;
+					break;
+				case XR_SESSION_STATE_VISIBLE:
 					status.HmdMounted = true;
 					status.HasInputFocus = false;
-				}
-				else if (stateChanged.state == XR_SESSION_STATE_IDLE)
-					status.HmdPresent = true;
-				else if (stateChanged.state == XR_SESSION_STATE_READY)
-					status.IsVisible = true;
-				else if (stateChanged.state == XR_SESSION_STATE_SYNCHRONIZED)
-					status.HmdMounted = false;
-				else if (stateChanged.state == XR_SESSION_STATE_FOCUSED)
+					break;
+				case XR_SESSION_STATE_FOCUSED:
 					status.HasInputFocus = true;
-				else if (stateChanged.state == XR_SESSION_STATE_STOPPING)
+					break;
+				case XR_SESSION_STATE_STOPPING:
 					status.IsVisible = false;
-				else if (stateChanged.state == XR_SESSION_STATE_LOSS_PENDING)
+					break;
+				case XR_SESSION_STATE_LOSS_PENDING:
 					status.DisplayLost = true;
-				else if (stateChanged.state == XR_SESSION_STATE_EXITING)
+					break;
+				case XR_SESSION_STATE_EXITING:
 					status.ShouldQuit = true;
+					break;
+				}
 			}
 			break;
 		}
