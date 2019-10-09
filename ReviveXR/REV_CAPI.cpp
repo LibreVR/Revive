@@ -428,7 +428,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 		return ovrError_InvalidSession;
 
 	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
-	CHK_XR(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->PendingFrame.predictedDisplayTime, &relation));
+	CHK_XR(xrLocateSpace(session->ViewSpace, session->LocalSpace, session->CurrentFrame.predictedDisplayTime, &relation));
 
 	if (!(relation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
 		return ovrError_InvalidHeadsetOrientation;
