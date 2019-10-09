@@ -194,6 +194,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		session->DefaultEyeViews[i] = XR_TYPE(VIEW);
 	}
 
+	// Initialize hacks
+	session->Details.reset(new SessionDetails(session->Instance));
+
 	// Initialize input
 	session->Input.reset(new InputManager(session->Instance));
 

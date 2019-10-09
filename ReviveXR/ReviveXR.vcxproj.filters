@@ -69,6 +69,9 @@
     <ClInclude Include="Extensions.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
+    <ClInclude Include="SessionDetails.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -112,6 +115,9 @@
     </ClCompile>
     <ClCompile Include="REV_CAPI_Prototypes.cpp">
       <Filter>Source Files\LibOVR</Filter>
+    </ClCompile>
+    <ClCompile Include="SessionDetails.cpp">
+      <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

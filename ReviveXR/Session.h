@@ -4,6 +4,8 @@
 #include <openxr/openxr.h>
 #include <memory>
 
+#include "SessionDetails.h"
+
 class InputManager;
 
 struct SessionStatusBits {
@@ -42,5 +44,9 @@ struct ovrHmdStruct
 	SessionStatusBits SessionStatus;
 	ovrPosef CalibratedOrigin;
 
+	// Hacks
+	std::unique_ptr<SessionDetails> Details;
+
+	// Input
 	std::unique_ptr<InputManager> Input;
 };
