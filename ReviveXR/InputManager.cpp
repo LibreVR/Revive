@@ -156,7 +156,7 @@ XrTime InputManager::AbsTimeToXrTime(XrInstance instance, double absTime)
 	return time;
 }
 
-unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& location, double time, ovrPoseStatef& outPoseState)
+unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& location, double time, ovrPoseStatef& lastPoseState, ovrPoseStatef& outPoseState)
 {
 	if (location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
 		outPoseState.ThePose.Orientation = XR::Quatf(location.pose.orientation);
@@ -168,15 +168,38 @@ unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& locat
 	else
 		outPoseState.ThePose.Position = XR::Vector3f::Zero();
 
-	outPoseState.AngularVelocity = XR::Vector3f::Zero();
-	outPoseState.LinearVelocity = XR::Vector3f::Zero();
-	outPoseState.AngularAcceleration = XR::Vector3f::Zero();
-	outPoseState.LinearAcceleration = XR::Vector3f::Zero();
+	XrSpaceVelocity *currv = (XrSpaceVelocity *) location.next;
+
+	if (location.locationFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT) {
+		XR::Vector3f currav(currv->angularVelocity);
+		outPoseState.AngularVelocity = currav;
+		outPoseState.AngularAcceleration = (currav - OVR::Vector3f(lastPoseState.AngularVelocity)) / float(time - lastPoseState.TimeInSeconds);
+	}
+	else {
+		outPoseState.AngularVelocity = XR::Vector3f::Zero();
+		outPoseState.AngularAcceleration = XR::Vector3f::Zero();
+	}
+
+	if (location.locationFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT) {
+		XR::Vector3f currlv(currv->linearVelocity);
+		outPoseState.LinearVelocity = currlv;
+		outPoseState.LinearAcceleration = (currlv - OVR::Vector3f(lastPoseState.LinearVelocity)) / float(time - lastPoseState.TimeInSeconds);
+	}
+	else {
+		outPoseState.LinearVelocity = XR::Vector3f::Zero();
+		outPoseState.LinearAcceleration = XR::Vector3f::Zero();
+	}
+
 	outPoseState.TimeInSeconds = time;
 
 	return (location.locationFlags >> 6) & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked) |
 		(location.locationFlags << 2) & (ovrStatus_OrientationValid | ovrStatus_PositionValid);
 }
+
+#ifdef DEBUG_TRACKING
+#include <fstream>
+#include <iomanip>
+#endif /* DEBUG_TRACKING */
 
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
 {
@@ -185,26 +208,87 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 
 	XrResult rs;
 	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
+	XrSpaceVelocity velocity = XR_TYPE(SPACE_VELOCITY);
 	XrTime displayTime = AbsTimeToXrTime(session->Instance, absTime);
 	XrSpace space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ? session->StageSpace : session->LocalSpace;
 
 	// Get space relation for the head
+	location.next = &velocity;
 	rs = xrLocateSpace(session->ViewSpace, space, displayTime, &location);
 	assert(XR_SUCCEEDED(rs));
-	outState->StatusFlags = SpaceRelationToPoseState(location, absTime, outState->HeadPose);
+	outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
 
 	// Convert the hand poses
 	for (int i = 0; i < ovrHand_Count; i++)
 	{
 		XrSpaceLocation handLocation = XR_TYPE(SPACE_LOCATION);
+		handLocation.next = &velocity;
 		if (i < m_ActionSpaces.size())
 		{
 			rs = xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation);
 			assert(XR_SUCCEEDED(rs));
 		}
 
-		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, outState->HandPoses[i]);
+		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
+
 	}
+
+#ifdef DEBUG_TRACKING
+	static int tcc = 0;
+	static bool first = false;
+
+	if (tcc == 0) {
+		std::ofstream fout("head-tracking.csv", std::ofstream::app);
+		if (!first)
+			fout << "Time,AngularVelocity,Time,AngularAcceleration,Time,LinearVelocity,Time,LinearAcceleration" << std::endl;
+		XR::Vector3f angvel(outState->HeadPose.AngularVelocity);
+		XR::Vector3f angacc(outState->HeadPose.AngularAcceleration);
+		XR::Vector3f linvel(outState->HeadPose.LinearVelocity);
+		XR::Vector3f linacc(outState->HeadPose.LinearAcceleration);
+		fout << std::fixed << std::setprecision(8);
+		fout << absTime << ',' << angvel.Length() << ',';
+		fout << absTime << ',' << angacc.Length() << ',';
+		fout << absTime << ',' << linvel.Length() << ',';
+		fout << absTime << ',' << linacc.Length();
+		fout << std::endl;
+		fout.close();
+
+		std::ofstream h0out("hand0-tracking.csv", std::ofstream::app);
+		if (!first)
+			h0out << "Time,AngularVelocity,Time,AngularAcceleration,Time,LinearVelocity,Time,LinearAcceleration" << std::endl;
+		XR::Vector3f h0angvel(outState->HandPoses[0].AngularVelocity);
+		XR::Vector3f h0angacc(outState->HandPoses[0].AngularAcceleration);
+		XR::Vector3f h0linvel(outState->HandPoses[0].LinearVelocity);
+		XR::Vector3f h0linacc(outState->HandPoses[0].LinearAcceleration);
+		h0out << std::fixed << std::setprecision(8);
+		h0out << absTime << ',' << h0angvel.Length() << ',';
+		h0out << absTime << ',' << h0angacc.Length() << ',';
+		h0out << absTime << ',' << h0linvel.Length() << ',';
+		h0out << absTime << ',' << h0linacc.Length();
+		h0out << std::endl;
+		h0out.close();
+
+		std::ofstream h1out("hand1-tracking.csv", std::ofstream::app);
+		if (!first)
+			h1out << "Time,AngularVelocity,Time,AngularAcceleration,Time,LinearVelocity,Time,LinearAcceleration" << std::endl;
+		XR::Vector3f h1hangvel(outState->HandPoses[1].AngularVelocity);
+		XR::Vector3f h1hangacc(outState->HandPoses[1].AngularAcceleration);
+		XR::Vector3f h1linvel(outState->HandPoses[1].LinearVelocity);
+		XR::Vector3f h1linacc(outState->HandPoses[1].LinearAcceleration);
+		h1out << std::fixed << std::setprecision(8);
+		h1out << absTime << ',' << h1hangvel.Length() << ',';
+		h1out << absTime << ',' << h1hangacc.Length() << ',';
+		h1out << absTime << ',' << h1linvel.Length() << ',';
+		h1out << absTime << ',' << h1linacc.Length();
+		h1out << std::endl;
+		h1out.close();
+	}
+
+	first = true;
+	tcc = (++tcc % 3);
+#endif /* DEBUG_TRACKING */
+
+	m_LastTrackingState = *outState;
 
 	outState->CalibratedOrigin = session->CalibratedOrigin;
 }
