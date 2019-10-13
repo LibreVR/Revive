@@ -895,6 +895,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 {
 	REV_TRACE(ovr_GetPerfStats);
 
+	if (session->Details->UseHack(SessionDetails::HACK_DISABLE_STATS))
+		return ovrSuccess;
+
 	ovrPerfStatsPerCompositorFrame FrameStats[ovrMaxProvidedFrameStats];
 
 	// TODO: Implement performance scale heuristics

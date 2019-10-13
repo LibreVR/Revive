@@ -42,6 +42,10 @@ public:
 		// Some driver don't support pose submission therefore we can't use predicted poses for rendering
 		// that did not come from the compositor.
 		HACK_STRICT_POSES,
+
+		// Hack: Disable support for performance statistics.
+		// Dance Central VR crashes when any of the compositor statistics calls are made.
+		HACK_DISABLE_STATS,
 	};
 
 	SessionDetails();
