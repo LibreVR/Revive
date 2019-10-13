@@ -119,8 +119,8 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
 	// WaitGetPoses is equivalent to calling BeginFrame, so we need to wait for any frame still in-flight
-	m_FrameLock.lock();
-	m_FrameLock.unlock();
+	m_FrameMutex.lock();
+	m_FrameMutex.unlock();
 
 	MICROPROFILE_SCOPE(WaitGetPoses);
 	vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
@@ -131,7 +131,9 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
 
-	m_FrameLock.lock();
+	// Lock the mutex only if we don't already own it
+	if (!m_FrameLock)
+		m_FrameLock.lock();
 
 	session->FrameIndex = frameIndex;
 	return session->Input->UpdateInputState();
