@@ -114,13 +114,20 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
-	// TODO: Allow waiting to begin frame on the CPU thread
+	// WaitGetPoses is equivalent to calling BeginFrame, so we need to wait for any frame still in-flight
+	m_FrameMutex.lock();
+	m_FrameMutex.unlock();
+
+	MICROPROFILE_SCOPE(WaitGetPoses);
+	vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 	return ovrSuccess;
 }
 
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
+
+	m_FrameMutex.lock();
 
 	session->FrameIndex = frameIndex;
 	return session->Input->UpdateInputState();
@@ -221,16 +228,16 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	if (baseLayer)
 		error = SubmitLayer(session, baseLayer);
 
+	vr::VRCompositor()->PostPresentHandoff();
+
+	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
+	m_FrameMutex.unlock();
+
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
 
 	// Flip the profiler.
 	MicroProfileFlip();
-
-	{
-		MICROPROFILE_SCOPE(WaitGetPoses);
-		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-	}
 
 	return rev_CompositorErrorToOvrError(error);
 }

@@ -5,6 +5,7 @@
 
 #include <openvr.h>
 #include <vector>
+#include <mutex>
 
 class CompositorBase
 {
@@ -47,4 +48,5 @@ private:
 	// Overlays
 	unsigned int m_OverlayCount;
 	std::vector<vr::VROverlayHandle_t> m_ActiveOverlays;
+	std::mutex m_FrameMutex;
 };
