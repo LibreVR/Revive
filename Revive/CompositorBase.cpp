@@ -56,8 +56,12 @@ ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
 
 
 CompositorBase::CompositorBase()
-	: m_MirrorTexture(nullptr)
-	, m_ChainCount(0)
+	: m_ChainCount(0)
+	, m_MirrorTexture(nullptr)
+	, m_OverlayCount(0)
+	, m_ActiveOverlays()
+	, m_FrameMutex()
+	, m_FrameLock(m_FrameMutex, std::defer_lock)
 {
 }
 
@@ -115,8 +119,8 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
 	// WaitGetPoses is equivalent to calling BeginFrame, so we need to wait for any frame still in-flight
-	m_FrameMutex.lock();
-	m_FrameMutex.unlock();
+	m_FrameLock.lock();
+	m_FrameLock.unlock();
 
 	MICROPROFILE_SCOPE(WaitGetPoses);
 	vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
@@ -127,7 +131,7 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
 
-	m_FrameMutex.lock();
+	m_FrameLock.lock();
 
 	session->FrameIndex = frameIndex;
 	return session->Input->UpdateInputState();
@@ -231,7 +235,8 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	vr::VRCompositor()->PostPresentHandoff();
 
 	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
-	m_FrameMutex.unlock();
+	if (m_FrameLock)
+		m_FrameLock.unlock();
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
