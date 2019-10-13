@@ -1,0 +1,160 @@
+{
+  "action_manifest_version": 2,
+  "controller_type": "vive_cosmos_controller",
+  "description": "",
+  "name": "Revive for Vive Cosmos",
+  "bindings": {
+    "/actions/touch": {
+      "poses": [
+        {
+          "path": "/user/hand/left/pose/handgrip",
+          "output": "/actions/touch/in/pose"
+        },
+        {
+          "path": "/user/hand/right/pose/handgrip",
+          "output": "/actions/touch/in/pose"
+        }
+      ],
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_thumb"
+            },
+            "position": {
+              "output": "/actions/touch/in/thumbstick"
+            },
+            "touch": {
+              "output": "/actions/touch/in/touch_thumb"
+            }
+          },
+          "mode": "joystick",
+          "path": "/user/hand/left/input/joystick"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/touch/in/handtrigger"
+            }
+          },
+          "mode": "trigger",
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_indextrigger"
+            },
+            "pull": {
+              "output": "/actions/touch/in/indextrigger"
+            },
+            "touch": {
+              "output": "/actions/touch/in/touch_indextrigger"
+            }
+          },
+          "mode": "trigger",
+          "path": "/user/hand/left/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_indextrigger"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/bumper"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_ax"
+            },
+            "touch": {
+              "output": "/actions/touch/in/touch_ax"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/x"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_by"
+            },
+            "touch": {
+              "output": "/actions/touch/in/touch_by"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/y"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_thumb"
+            },
+            "position": {
+              "output": "/actions/touch/in/thumbstick"
+            },
+            "touch": {
+              "output": "/actions/touch/in/touch_thumb"
+            }
+          },
+          "mode": "joystick",
+          "path": "/user/hand/right/input/joystick"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/touch/in/handtrigger"
+            }
+          },
+          "mode": "trigger",
+          "path": "/user/hand/right/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_ax"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/a"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_by"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/b"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_indextrigger"
+            },
+            "pull": {
+              "output": "/actions/touch/in/indextrigger"
+            },
+            "touch": {
+              "output": "/actions/touch/in/touch_indextrigger"
+            }
+          },
+          "mode": "trigger",
+          "path": "/user/hand/right/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_indextrigger"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/right/input/bumper"
+        }
+      ]
+    }
+  }
+}
