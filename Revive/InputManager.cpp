@@ -386,7 +386,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 	unsigned int buttons = 0, touches = 0;
 
 	if (GetDigital(m_Button_Enter))
-		buttons |= ovrButton_Enter;
+		inputState->Buttons |= ovrButton_Enter;
 
 	if (GetDigital(m_Button_AX))
 		buttons |= ovrButton_A;
