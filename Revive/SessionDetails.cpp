@@ -13,7 +13,8 @@ SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
 	{ nullptr, "lighthouse", HACK_SPOOF_SENSORS, false },
 	{ nullptr, "lighthouse", HACK_STRICT_POSES, false },
 	{ "DCVR-Win64-Shipping.exe", nullptr, HACK_DISABLE_STATS, true },
-	{ "DCVR-Win64-Shipping.exe", nullptr, HACK_WAIT_ON_SUBMIT, true }
+	{ "DCVR-Win64-Shipping.exe", nullptr, HACK_WAIT_ON_SUBMIT, true },
+	{ "WrathGame-Win64-Shipping.exe", nullptr, HACK_WAIT_ON_SUBMIT, true }
 };
 
 SessionDetails::SessionDetails()
