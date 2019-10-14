@@ -46,6 +46,10 @@ public:
 		// Hack: Disable support for performance statistics.
 		// Dance Central VR crashes when any of the compositor statistics calls are made.
 		HACK_DISABLE_STATS,
+
+		// Hack: Wait as soon as the submit is done.
+		// Some apps like Dance Central VR don't handle waiting in the game thread very well.
+		HACK_WAIT_ON_SUBMIT,
 	};
 
 	SessionDetails();

@@ -122,8 +122,11 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	m_FrameMutex.lock();
 	m_FrameMutex.unlock();
 
-	MICROPROFILE_SCOPE(WaitGetPoses);
-	vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
+	{
+		MICROPROFILE_SCOPE(WaitGetPoses);
+		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	}
 	return ovrSuccess;
 }
 
@@ -234,7 +237,15 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	if (baseLayer)
 		error = SubmitLayer(session, baseLayer);
 
-	vr::VRCompositor()->PostPresentHandoff();
+	if (session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
+	{
+		MICROPROFILE_SCOPE(WaitGetPoses);
+		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	}
+	else
+	{
+		vr::VRCompositor()->PostPresentHandoff();
+	}
 
 	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
 	if (m_FrameLock)
