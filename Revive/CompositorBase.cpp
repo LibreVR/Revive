@@ -233,6 +233,8 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	}
 	m_ActiveOverlays = activeOverlays;
 
+	Flush();
+
 	vr::EVRCompositorError error = vr::VRCompositorError_None;
 	if (baseLayer)
 		error = SubmitLayer(session, baseLayer);
