@@ -63,6 +63,8 @@ CompositorBase::CompositorBase()
 	, m_FrameMutex()
 	, m_FrameLock(m_FrameMutex, std::defer_lock)
 {
+	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
+	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
 }
 
 CompositorBase::~CompositorBase()
@@ -237,14 +239,13 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	if (baseLayer)
 		error = SubmitLayer(session, baseLayer);
 
+	vr::VRCompositor()->PostPresentHandoff();
+	vr::VRCompositor()->SubmitExplicitTimingData();
+
 	if (session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
 	{
 		MICROPROFILE_SCOPE(WaitGetPoses);
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-	}
-	else
-	{
-		vr::VRCompositor()->PostPresentHandoff();
 	}
 
 	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
