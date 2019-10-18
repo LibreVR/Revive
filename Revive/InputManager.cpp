@@ -414,7 +414,7 @@ bool InputManager::OculusTouch::GetInputState(ovrSession session, ovrInputState*
 
 	// FIXME: Can't use IsReleased or IsPressed, because bChanged resets after every call to GetDigitalActionData
 	vr::InputDigitalActionData_t recenterData = {};
-	vr::VRInput()->GetDigitalActionData(m_Recenter_Thumb, &recenterData, sizeof(recenterData), vr::k_ulInvalidInputValueHandle);
+	vr::VRInput()->GetDigitalActionData(m_Recenter_Thumb, &recenterData, sizeof(recenterData), Handle);
 	if (recenterData.bChanged)
 	{
 		if (recenterData.bState)
