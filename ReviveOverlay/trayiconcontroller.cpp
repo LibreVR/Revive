@@ -44,7 +44,6 @@ bool CTrayIconController::Init()
 	QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(openxr(bool)));
 	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
-	m_trayIconMenu.addAction("&Patch...", this, SLOT(patch()));
 	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
@@ -112,44 +111,6 @@ void CTrayIconController::inject()
 	QStringList args;
 	args.append(QDir::toNativeSeparators(file));
 	QProcess::execute(QCoreApplication::applicationDirPath() + "/Revive/x64/ReviveInjector_x64.exe", args);
-}
-
-void CTrayIconController::patch()
-{
-	QMessageBox::warning(nullptr,
-		"This isn't the option you're looking for",
-		"Patching will lock the game to always use Revive.\n"
-		"It is only needed for Oculus-only games on Steam.\n\n"
-		"Do not try to use this feature for any other reason.\n"
-		);
-
-	QString file = openDialog();
-	if (file.isNull())
-		return;
-
-	DWORD type;
-	if (!GetBinaryType(qUtf16Printable(file), &type))
-		return;
-
-	QString dir = QCoreApplication::applicationDirPath();
-	QStringList files, names = QStringList{ "xinput1_3.dll", "openvr_api.dll" };
-	if (type == SCS_32BIT_BINARY)
-	{
-		files.append(dir + "/Revive/x86/xinput1_3.dll");
-		files.append(dir + "/Revive/x86/openvr_api.dll");
-		files.append(dir + "/Revive/x86/LibRevive32_1.dll");
-		names.append("LibRevive32_1.dll");
-	}
-	if (type == SCS_64BIT_BINARY)
-	{
-		files.append(dir + "/Revive/x64/xinput1_3.dll");
-		files.append(dir + "/Revive/x64/openvr_api.dll");
-		files.append(dir + "/Revive/x64/LibRevive64_1.dll");
-		names.append("LibRevive64_1.dll");
-	}
-
-	QFileInfo info(file);
-	WindowsServices::CopyFiles(files, info.absolutePath(), names);
 }
 
 void CTrayIconController::showHelp()
