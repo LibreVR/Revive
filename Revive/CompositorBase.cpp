@@ -121,7 +121,8 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
 	// WaitGetPoses is equivalent to calling BeginFrame, so we need to wait for any frame still in-flight
-	WaitForSingleObject(m_FrameEvent, int(vr::VRCompositor()->GetFrameTimeRemaining() * 1000.0));
+	for (int i = 0; i < frameIndex - session->FrameIndex; i++)
+		WaitForSingleObject(m_FrameEvent, int(vr::VRCompositor()->GetFrameTimeRemaining() * 1000.0));
 
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
 	{
