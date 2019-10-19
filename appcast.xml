@@ -5,33 +5,28 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.9.0</title>
+			<title>Version 1.9.1</title>
 			<description>
 			<![CDATA[
 			<h3>Changes</h3>
 
 			<ul>
-			    <li>Updated Oculus SDK to version 1.41</li>
-			    <li>Improved frame blocking behavior to enhance performance in UE4 games</li>
-			    <li>Removed patching function from the tray icon to avoid user confusion</li>
+			    <li>Further optimizations to frame blocking behaviour</li>
+			    <li>Patching option has been removed from the tray icon to avoid user confusion</li>
 			    <ul><li>Still available by manually copying files if you know what you're doing</li></ul>
 			</ul>
 
 			<h3>Bug fixes</h3>
 
 			<ul>
-			    <li>Revive: Added default bindings for Vive Cosmos controllers (#1340)</li>
-			    <li>Revive: Fixed Dance Central regression that causes fatal errors (#1334)</li>
-			    <li>Revive: Fixed menu button on the Left controller not working (#1339)</li>
-			    <li>Revive: Fixed thumbstick recenter triggering on both controllers when only touching one (#1357)</li>
-			    <li>ReviveXR: Fixed missing loader DLL oversight and added various fixes contributed by @qlyoung (#1323)</li>
+			    <li>Revive: Fixed Asgard's Wrath loading screen blinking on/off (#1347)</li>
 			</ul>
 			]]>
 			</description>
-			<pubDate>5 September 2019</pubDate>
+			<pubDate>20 October 2019</pubDate>
 			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.9.0/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.9.0.1"
+					   sparkle:version="1.9.1.2"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
