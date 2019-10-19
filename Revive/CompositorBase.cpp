@@ -79,8 +79,7 @@ ovrResult CompositorBase::CreateTextureSwapChain(const ovrTextureSwapChainDesc* 
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(*desc);
 	swapChain->Identifier = m_ChainCount++;
 
-	// FIXME: A bug in OpenVR causes Asynchronous Reprojection to fail with swapchains
-	if (GetAPI() == vr::TextureType_OpenGL)
+	if (desc->StaticImage)
 		swapChain->Length = 1;
 
 	for (int i = 0; i < swapChain->Length; i++)
