@@ -5,7 +5,6 @@
 
 #include <openvr.h>
 #include <vector>
-#include <mutex>
 
 class CompositorBase
 {
@@ -50,6 +49,5 @@ private:
 	std::vector<vr::VROverlayHandle_t> m_ActiveOverlays;
 
 	// Call order enforcement
-	std::mutex m_FrameMutex;
-	std::unique_lock<std::mutex> m_FrameLock;
+	void* m_FrameEvent;
 };

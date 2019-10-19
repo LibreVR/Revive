@@ -8,6 +8,7 @@
 #include "rcu_ptr.h"
 
 #include <openvr.h>
+#include <Windows.h>
 #include <vector>
 #include <algorithm>
 
@@ -60,11 +61,11 @@ CompositorBase::CompositorBase()
 	, m_MirrorTexture(nullptr)
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
-	, m_FrameMutex()
-	, m_FrameLock(m_FrameMutex, std::defer_lock)
+	, m_FrameEvent()
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
 	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
+	m_FrameEvent = CreateEvent(nullptr, true, true, nullptr);
 }
 
 CompositorBase::~CompositorBase()
@@ -121,8 +122,7 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
 	// WaitGetPoses is equivalent to calling BeginFrame, so we need to wait for any frame still in-flight
-	m_FrameMutex.lock();
-	m_FrameMutex.unlock();
+	WaitForSingleObject(m_FrameEvent, int(vr::VRCompositor()->GetFrameTimeRemaining() * 1000.0));
 
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
 	{
@@ -136,9 +136,7 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
 
-	// Lock the mutex only if we don't already own it
-	if (!m_FrameLock)
-		m_FrameLock.lock();
+	ResetEvent(m_FrameEvent);
 
 	session->FrameIndex = frameIndex;
 	return session->Input->UpdateInputState();
@@ -249,8 +247,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	}
 
 	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
-	if (m_FrameLock)
-		m_FrameLock.unlock();
+	SetEvent(m_FrameEvent);
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
