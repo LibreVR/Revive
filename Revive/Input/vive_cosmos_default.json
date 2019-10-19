@@ -153,6 +153,15 @@
           },
           "mode": "button",
           "path": "/user/hand/right/input/bumper"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/touch/in/button_enter"
+            }
+          },
+          "mode": "button",
+          "path": "/user/hand/left/input/application_menu"
         }
       ]
     }

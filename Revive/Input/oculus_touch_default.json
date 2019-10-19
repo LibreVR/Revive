@@ -4,7 +4,35 @@
   "description": "",
   "name": "Revive for Oculus Touch",
   "bindings": {
-    "/actions/touch": {
+      "/actions/touch": {
+      "chords": [
+        {
+          "output": "/actions/touch/in/button_enter",
+          "inputs": [
+            [
+              "/user/hand/left/input/x",
+              "click"
+            ],
+            [
+              "/user/hand/left/input/y",
+              "click"
+            ]
+          ]
+        },
+        {
+          "output": "/actions/touch/in/button_enter",
+          "inputs": [
+            [
+              "/user/hand/right/input/a",
+              "click"
+            ],
+            [
+              "/user/hand/right/input/b",
+              "click"
+            ]
+          ]
+        }
+      ],
       "poses": [
         {
           "path": "/user/hand/left/pose/handgrip",
