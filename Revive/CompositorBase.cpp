@@ -8,7 +8,6 @@
 #include "rcu_ptr.h"
 
 #include <openvr.h>
-#include <Windows.h>
 #include <vector>
 #include <algorithm>
 
@@ -61,11 +60,11 @@ CompositorBase::CompositorBase()
 	, m_MirrorTexture(nullptr)
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
+	, m_FrameMutex()
 	, m_FrameEvent()
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
 	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
-	m_FrameEvent = CreateEvent(nullptr, true, true, nullptr);
 }
 
 CompositorBase::~CompositorBase()
@@ -120,9 +119,12 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
+	// Protect the wait order with a mutex
+	std::unique_lock<std::mutex> lk(m_FrameMutex);
+
 	// WaitGetPoses is equivalent to calling BeginFrame, so we need to wait for any frame still in-flight
 	for (int i = 0; i < frameIndex - session->FrameIndex; i++)
-		WaitForSingleObject(m_FrameEvent, int(vr::VRCompositor()->GetFrameTimeRemaining() * 1000.0));
+		m_FrameEvent.wait_for(lk, std::chrono::duration<double>(vr::VRCompositor()->GetFrameTimeRemaining()));
 
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
 	{
@@ -135,8 +137,6 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
-
-	ResetEvent(m_FrameEvent);
 
 	session->FrameIndex = frameIndex;
 	return session->Input->UpdateInputState();
@@ -247,7 +247,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	}
 
 	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
-	SetEvent(m_FrameEvent);
+	m_FrameEvent.notify_all();
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
