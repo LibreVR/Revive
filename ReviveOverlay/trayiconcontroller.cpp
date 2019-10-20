@@ -110,7 +110,7 @@ void CTrayIconController::inject()
 
 	QStringList args;
 	args.append(QDir::toNativeSeparators(file));
-	QProcess::execute(QCoreApplication::applicationDirPath() + "/Revive/x64/ReviveInjector_x64.exe", args);
+	QProcess::execute(QCoreApplication::applicationDirPath() + "/Revive/x64/ReviveInjector.exe", args);
 }
 
 void CTrayIconController::showHelp()
