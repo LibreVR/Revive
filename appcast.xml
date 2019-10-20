@@ -24,7 +24,7 @@
 			]]>
 			</description>
 			<pubDate>20 October 2019</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.9.0/ReviveInstaller.exe"
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.9.1/ReviveInstaller.exe"
 					   type="application/exe"
 					   sparkle:version="1.9.1.3"
 					   sparkle:os="windows-x64"/>
