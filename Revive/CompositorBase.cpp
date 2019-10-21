@@ -240,6 +240,8 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	vr::VRCompositor()->PostPresentHandoff();
 	vr::VRCompositor()->SubmitExplicitTimingData();
 
+	session->FrameIndex++;
+
 	if (session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
 	{
 		MICROPROFILE_SCOPE(WaitGetPoses);
