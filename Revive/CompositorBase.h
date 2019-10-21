@@ -52,5 +52,6 @@ private:
 
 	// Call order enforcement
 	std::mutex m_FrameMutex;
+	std::unique_lock<std::mutex> m_FrameLock;
 	std::condition_variable m_FrameEvent;
 };

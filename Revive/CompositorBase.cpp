@@ -61,6 +61,7 @@ CompositorBase::CompositorBase()
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
 	, m_FrameMutex()
+	, m_FrameLock(m_FrameMutex, std::defer_lock)
 	, m_FrameEvent()
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
@@ -120,12 +121,14 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
 	// Protect the wait order with a mutex
+	// This also waits for any frame still in-flight
 	std::unique_lock<std::mutex> lk(m_FrameMutex);
 
-	// WaitGetPoses is equivalent to calling BeginFrame, so we need to wait for any frame still in-flight
-	for (int i = 0; i < frameIndex - session->FrameIndex; i++)
+	// Wait for any extra frames beyond just the next frame
+	for (int i = 1; i < frameIndex - session->FrameIndex; i++)
 		m_FrameEvent.wait_for(lk, std::chrono::duration<double>(vr::VRCompositor()->GetFrameTimeRemaining()));
 
+	// Wait for the actual next frame
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
 	{
 		MICROPROFILE_SCOPE(WaitGetPoses);
@@ -138,7 +141,12 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
 
+	// Lock the frame mutex only if we don't already own it
+	if (!m_FrameLock)
+		m_FrameLock.lock();
+
 	session->FrameIndex = frameIndex;
+	vr::VRCompositor()->SubmitExplicitTimingData();
 	return session->Input->UpdateInputState();
 }
 
@@ -238,9 +246,6 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 		error = SubmitLayer(session, baseLayer);
 
 	vr::VRCompositor()->PostPresentHandoff();
-	vr::VRCompositor()->SubmitExplicitTimingData();
-
-	session->FrameIndex++;
 
 	if (session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
 	{
@@ -250,6 +255,8 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 
 	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
 	m_FrameEvent.notify_all();
+	if (m_FrameLock)
+		m_FrameLock.unlock();
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
