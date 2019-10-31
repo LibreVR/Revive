@@ -3,6 +3,9 @@
 #include "Session.h"
 #include "OVR_CAPI.h"
 #include "XR_Math.h"
+#ifdef _DEBUG
+#include "Debug.h"
+#endif
 
 #include <Windows.h>
 #include <openxr/openxr.h>
@@ -196,10 +199,9 @@ unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& locat
 		(location.locationFlags << 2) & (ovrStatus_OrientationValid | ovrStatus_PositionValid);
 }
 
-#ifdef DEBUG_TRACKING
-#include <fstream>
-#include <iomanip>
-#endif /* DEBUG_TRACKING */
+#ifdef _DEBUG
+ReviveTrackingPlotter trackingPlotter(1000);
+#endif
 
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
 {
@@ -230,63 +232,13 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		}
 
 		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
-
 	}
 
-#ifdef DEBUG_TRACKING
-	static int tcc = 0;
-	static bool first = false;
-
-	if (tcc == 0) {
-		std::ofstream fout("head-tracking.csv", std::ofstream::app);
-		if (!first)
-			fout << "Time,AngularVelocity,Time,AngularAcceleration,Time,LinearVelocity,Time,LinearAcceleration" << std::endl;
-		XR::Vector3f angvel(outState->HeadPose.AngularVelocity);
-		XR::Vector3f angacc(outState->HeadPose.AngularAcceleration);
-		XR::Vector3f linvel(outState->HeadPose.LinearVelocity);
-		XR::Vector3f linacc(outState->HeadPose.LinearAcceleration);
-		fout << std::fixed << std::setprecision(8);
-		fout << absTime << ',' << angvel.Length() << ',';
-		fout << absTime << ',' << angacc.Length() << ',';
-		fout << absTime << ',' << linvel.Length() << ',';
-		fout << absTime << ',' << linacc.Length();
-		fout << std::endl;
-		fout.close();
-
-		std::ofstream h0out("hand0-tracking.csv", std::ofstream::app);
-		if (!first)
-			h0out << "Time,AngularVelocity,Time,AngularAcceleration,Time,LinearVelocity,Time,LinearAcceleration" << std::endl;
-		XR::Vector3f h0angvel(outState->HandPoses[0].AngularVelocity);
-		XR::Vector3f h0angacc(outState->HandPoses[0].AngularAcceleration);
-		XR::Vector3f h0linvel(outState->HandPoses[0].LinearVelocity);
-		XR::Vector3f h0linacc(outState->HandPoses[0].LinearAcceleration);
-		h0out << std::fixed << std::setprecision(8);
-		h0out << absTime << ',' << h0angvel.Length() << ',';
-		h0out << absTime << ',' << h0angacc.Length() << ',';
-		h0out << absTime << ',' << h0linvel.Length() << ',';
-		h0out << absTime << ',' << h0linacc.Length();
-		h0out << std::endl;
-		h0out.close();
-
-		std::ofstream h1out("hand1-tracking.csv", std::ofstream::app);
-		if (!first)
-			h1out << "Time,AngularVelocity,Time,AngularAcceleration,Time,LinearVelocity,Time,LinearAcceleration" << std::endl;
-		XR::Vector3f h1hangvel(outState->HandPoses[1].AngularVelocity);
-		XR::Vector3f h1hangacc(outState->HandPoses[1].AngularAcceleration);
-		XR::Vector3f h1linvel(outState->HandPoses[1].LinearVelocity);
-		XR::Vector3f h1linacc(outState->HandPoses[1].LinearAcceleration);
-		h1out << std::fixed << std::setprecision(8);
-		h1out << absTime << ',' << h1hangvel.Length() << ',';
-		h1out << absTime << ',' << h1hangacc.Length() << ',';
-		h1out << absTime << ',' << h1linvel.Length() << ',';
-		h1out << absTime << ',' << h1linacc.Length();
-		h1out << std::endl;
-		h1out.close();
-	}
-
-	first = true;
-	tcc = (++tcc % 3);
-#endif /* DEBUG_TRACKING */
+#ifdef _DEBUG
+	trackingPlotter.SampleValue(*outState);
+	if ((trackingPlotter.size() % 6) == 0)
+		trackingPlotter.plot();
+#endif
 
 	m_LastTrackingState = *outState;
 

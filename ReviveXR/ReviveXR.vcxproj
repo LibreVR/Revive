@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -121,6 +121,8 @@
     <ClInclude Include="..\microprofile\microprofiledraw.h" />
     <ClInclude Include="..\microprofile\microprofilehtml.h" />
     <ClInclude Include="..\microprofile\microprofileui.h" />
+    <ClInclude Include="CImg.h" />
+    <ClInclude Include="Debug.h" />
     <ClInclude Include="Extensions.h" />
     <ClInclude Include="HapticsBuffer.h" />
     <ClInclude Include="OVR_CAPI.h" />
