@@ -161,20 +161,30 @@ XrTime InputManager::AbsTimeToXrTime(XrInstance instance, double absTime)
 
 unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& location, double time, ovrPoseStatef& lastPoseState, ovrPoseStatef& outPoseState)
 {
-	if (location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
+	unsigned int flags = 0;
+
+	if (location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) {
 		outPoseState.ThePose.Orientation = XR::Quatf(location.pose.orientation);
-	else
+		flags |= ovrStatus_OrientationValid;
+		flags |= (location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT) ? ovrStatus_OrientationTracked : 0;
+	}
+	else {
 		outPoseState.ThePose.Orientation = XR::Quatf::Identity();
+	}
 
-	if (location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+	if (location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) {
 		outPoseState.ThePose.Position = XR::Vector3f(location.pose.position);
-	else
+		flags |= ovrStatus_PositionValid;
+		flags |= (location.locationFlags & XR_SPACE_LOCATION_POSITION_TRACKED_BIT) ? ovrStatus_PositionTracked : 0;
+	}
+	else {
 		outPoseState.ThePose.Position = XR::Vector3f::Zero();
+	}
 
-	XrSpaceVelocity *currv = (XrSpaceVelocity *) location.next;
+	XrSpaceVelocity *spaceVelocity = (XrSpaceVelocity *) location.next;
 
-	if (location.locationFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT) {
-		XR::Vector3f currav(currv->angularVelocity);
+	if (spaceVelocity->velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT) {
+		XR::Vector3f currav(spaceVelocity->angularVelocity);
 		outPoseState.AngularVelocity = currav;
 		outPoseState.AngularAcceleration = time > lastPoseState.TimeInSeconds ? (currav - XR::Vector3f(lastPoseState.AngularVelocity)) / (time - lastPoseState.TimeInSeconds) : lastPoseState.AngularAcceleration;
 	}
@@ -183,8 +193,8 @@ unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& locat
 		outPoseState.AngularAcceleration = XR::Vector3f::Zero();
 	}
 
-	if (location.locationFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT) {
-		XR::Vector3f currlv(currv->linearVelocity);
+	if (spaceVelocity->velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT) {
+		XR::Vector3f currlv(spaceVelocity->linearVelocity);
 		outPoseState.LinearVelocity = currlv;
 		outPoseState.LinearAcceleration = time > lastPoseState.TimeInSeconds ? (currlv - XR::Vector3f(lastPoseState.LinearVelocity)) / (time - lastPoseState.TimeInSeconds) : lastPoseState.LinearAcceleration;
 	}
@@ -195,8 +205,7 @@ unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& locat
 
 	outPoseState.TimeInSeconds = time;
 
-	return (location.locationFlags >> 6) & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked) |
-		(location.locationFlags << 2) & (ovrStatus_OrientationValid | ovrStatus_PositionValid);
+	return flags;
 }
 
 #ifdef _DEBUG
