@@ -24,16 +24,28 @@ public:
 		m_samples(samples),
 		m_leftHand(samples),
 		m_rightHand(samples),
-		m_head(samples)
+		m_head(samples),
+		m_framemarkers(samples),
+		m_abstimes(samples),
+		m_calledtimes(samples)
 	{
 		clear();
 	}
 
-	void SampleValue(ovrTrackingState state)
+	void SampleValue(ovrTrackingState state, long long framenum, double abstime, double calledTime)
 	{
 		m_leftHand.set(m_currsample, state.HandPoses[ovrHand_Left]);
 		m_rightHand.set(m_currsample, state.HandPoses[ovrHand_Right]);
 		m_head.set(m_currsample, state.HeadPose);
+		m_abstimes[m_currsample] = abstime;
+
+		if (framenum != m_lastframe) {
+			m_framemarkers[m_currsample] = XR::Vector3f(state.HandPoses[ovrHand_Left].LinearVelocity).Length();
+			m_lastframe = framenum;
+		}
+
+		if (calledTime == 0.0)
+			m_calledtimes[m_currsample] = XR::Vector3f(state.HandPoses[ovrHand_Left].LinearVelocity).Length();
 
 		m_currsample++;
 
@@ -60,11 +72,26 @@ public:
 		/* Graph left hand linear velocity & accel */
 		CImg<double> gd_lh_linvel(&m_leftHand.linearVelocity[0], m_leftHand.linearVelocity.size());
 		CImg<double> gd_lh_lincel(&m_leftHand.linearAcceleration[0], m_leftHand.linearAcceleration.size());
+		CImg<double> framemarkers(&m_framemarkers[0], m_framemarkers.size());
+		CImg<double> calledtimes(&m_calledtimes[0], m_calledtimes.size());
 		CImg<unsigned char> graph(resx, resy, 1, 3, 1);
 		graph.draw_grid(10, 10, 0, 0, false, false, white, 0.1f, 0x55555555, 0x55555555);
 		graph.draw_graph(gd_lh_linvel, blue, 1, 1, 2, 0, 10);
 		graph.draw_graph(gd_lh_lincel, red, 1, 1, 2, 0, 10);
+		graph.draw_graph(framemarkers, green, 1, 0, 3, 0, 10);
+		graph.draw_graph(calledtimes, green, 1, 0, 4, 0, 10);
 		graph.mirror('y');
+
+		/* Timestamps */
+		/*
+		int step = (resx / m_samples);
+		for (int i = 0; i < m_abstimes.size(); i++) {
+			double stamp = m_abstimes[i];
+			char buf[32];
+			snprintf(buf, sizeof(buf), "%.4f", stamp);
+			graph.draw_text(step * i, 45, buf, green);
+		}
+		*/
 
 		/* Axes */
 		int yaxis[] = { 20, 15, 10, 5, 0 };
@@ -86,7 +113,10 @@ public:
 		m_leftHand.assign(m_samples, 0);
 		m_rightHand.assign(m_samples, 0);
 		m_head.assign(m_samples, 0);
-
+		m_framemarkers.assign(m_samples, 0);
+		m_abstimes.assign(m_samples, 0);
+		m_calledtimes.assign(m_samples, 0);
+		m_lastframe = 0;
 		m_currsample = 0;
 	}
 
@@ -134,4 +164,9 @@ protected:
 	PoseVecs m_leftHand;
 	PoseVecs m_rightHand;
 	PoseVecs m_head;
+
+	long long m_lastframe;
+	std::vector<double> m_framemarkers;
+	std::vector<double> m_abstimes;
+	std::vector<double> m_calledtimes;
 };

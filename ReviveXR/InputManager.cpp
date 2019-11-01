@@ -205,6 +205,8 @@ ReviveTrackingPlotter trackingPlotter(1000);
 
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
 {
+	double calledTime = absTime;
+
 	if (absTime <= 0.0)
 		absTime = ovr_GetTimeInSeconds();
 
@@ -235,8 +237,8 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	}
 
 #ifdef _DEBUG
-	trackingPlotter.SampleValue(*outState);
-	if ((trackingPlotter.size() % 6) == 0)
+	trackingPlotter.SampleValue(*outState, session->NextFrame, absTime, calledTime);
+	if ((trackingPlotter.size() % 8) == 0)
 		trackingPlotter.plot();
 #endif
 
