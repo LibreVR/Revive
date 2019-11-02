@@ -102,8 +102,10 @@ ovrResult InputManager::SubmitControllerVibration(ovrSession session, ovrControl
 {
 	for (InputDevice* device : m_InputDevices)
 	{
-		if (controllerType & device->GetType() && device->IsConnected())
+		if (controllerType & device->GetType() && device->IsConnected()) {
+			device->StartHaptics(session->Session);
 			device->SubmitVibration(controllerType, buffer);
+		}
 	}
 
 	return ovrSuccess;
@@ -427,7 +429,7 @@ void InputManager::OculusTouch::HapticsThread(XrSession session, OculusTouch* de
 			}
 		}
 
-		std::this_thread::sleep_for(freq);
+		// std::this_thread::sleep_for(freq);
 	}
 }
 
@@ -460,6 +462,9 @@ InputManager::OculusTouch::~OculusTouch()
 
 void InputManager::OculusTouch::StartHaptics(XrSession session)
 {
+	if (m_bHapticsRunning)
+		return;
+
 	m_bHapticsRunning = true;
 	m_HapticsThread = std::thread(HapticsThread, session, this);
 }
