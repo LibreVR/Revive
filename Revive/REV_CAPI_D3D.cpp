@@ -16,7 +16,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	if (!session)
 		return ovrError_InvalidSession;
 
-	if (!d3dPtr || !desc || !out_TextureSwapChain || desc->Type != ovrTexture_2D)
+	if (!d3dPtr || !desc || !out_TextureSwapChain)
 		return ovrError_InvalidParameter;
 
 	if (!session->Compositor)
