@@ -702,7 +702,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	MICROPROFILE_META_CPU("CurrentIndex", chain->CurrentIndex);
 	MICROPROFILE_META_CPU("SubmitIndex", chain->SubmitIndex);
 
-	if (chain->Full())
+	if (chain->Length > 1 && chain->Full())
 		return ovrError_TextureSwapChainFull;
 
 	chain->Commit();
