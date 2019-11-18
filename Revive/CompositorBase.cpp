@@ -397,10 +397,10 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fov);
 
 		// Combine the fov bounds with the viewport bounds
-		bounds.uMin += fovBounds.uMin * bounds.uMax;
-		bounds.uMax *= fovBounds.uMax;
-		bounds.vMin += fovBounds.vMin * bounds.vMax;
-		bounds.vMax *= fovBounds.vMax;
+		bounds.uMin += fovBounds.uMin * (bounds.uMax - bounds.uMin);
+		bounds.uMax = bounds.uMin + fovBounds.uMax * (bounds.uMax - bounds.uMin);
+		bounds.vMin += fovBounds.vMin * (bounds.vMax - bounds.vMin);
+		bounds.vMax = bounds.vMin + fovBounds.vMax * (bounds.vMax - bounds.vMin);
 
 		unsigned int submitFlags = vr::Submit_Default;
 		union
