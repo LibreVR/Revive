@@ -50,6 +50,10 @@ public:
 		// Hack: Wait as soon as the submit is done.
 		// Some apps like Dance Central VR don't handle waiting in the game thread very well.
 		HACK_WAIT_ON_SUBMIT,
+
+		// Hack: Use the same (mirrored) FOV for both eyes.
+		// Stormland renders certain effects at the wrong depth if the eye FOVs do not match.
+		HACK_SAME_FOV_FOR_BOTH_EYES,
 	};
 
 	SessionDetails();
