@@ -8,6 +8,7 @@
 #include <memory>
 
 SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
+	{ "Stormland.exe", nullptr, HACK_SAME_FOV_FOR_BOTH_EYES, true },
 	{ "ultrawings.exe", nullptr, HACK_FAKE_PRODUCT_NAME, true },
 	{ "AirMech.exe", nullptr, HACK_SLEEP_IN_SESSION_STATUS, true },
 	{ nullptr, "lighthouse", HACK_SPOOF_SENSORS, false },
@@ -129,6 +130,12 @@ void SessionDetails::UpdateHmdDesc()
 		// Update the HMD descriptor
 		desc->DefaultEyeFov[eye] = eyeFov;
 		desc->MaxEyeFov[eye] = eyeFov;
+
+		if (eye != 0 && UseHack(HACK_SAME_FOV_FOR_BOTH_EYES)) {
+			desc->DefaultEyeFov[eye] = desc->DefaultEyeFov[0];
+			std::swap(desc->DefaultEyeFov[eye].LeftTan, desc->DefaultEyeFov[eye].RightTan);
+			desc->MaxEyeFov[eye] = desc->DefaultEyeFov[eye];
+		}
 	}
 
 	// Get the display properties
