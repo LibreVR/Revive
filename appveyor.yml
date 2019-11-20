@@ -1,0 +1,64 @@
+image: Visual Studio 2017
+clone_folder: c:\projects\revive
+
+environment:
+  QTDIR: C:\Qt\5.13.2\msvc2017_64
+
+install:
+  - git submodule update --init --recursive
+  - mkdir c:\projects\download_cache
+  # query Oculus SDK website for download link
+  - curl -fsSL -o c:\projects\download_cache\oculus_sdk.html https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.41.0/
+  # download and extract Oculus SDK
+  - ps: |
+      $url = select-string -Path 'c:\projects\download_cache\oculus_sdk.html'  -Pattern 'https:\/\/securecdn\.oculus\.com\/binaries\/download\/\?id=[0-9]+&amp;access_token=[0-9A-Za-z%]+' -AllMatches | % {$_.Matches} | % {$_.Value}
+      Invoke-WebRequest -Uri $url -OutFile 'c:\projects\download_cache\oculus_sdk.zip'
+      cd c:\projects\revive\Externals
+      unzip c:\projects\download_cache\oculus_sdk.zip
+  # install required NSIS plugins
+  - ps: |
+      Invoke-WebRequest -Uri 'https://nsis.sourceforge.io/mediawiki/images/4/4a/AccessControl.zip' -OutFile 'c:\projects\download_cache\NSIS_AccessControl.zip'
+      cd c:\projects\download_cache
+      unzip NSIS_AccessControl.zip
+      copy Plugins\AccessControl.dll 'C:\Program Files (x86)\NSIS\Plugins\x86-ansi'
+      copy Unicode\Plugins\AccessControl.dll 'C:\Program Files (x86)\NSIS\Plugins\x86-unicode'
+      
+build_script:
+  # build OpenXR
+  - ps: |
+      cd c:\projects\Revive\Externals\openxr
+      cmake -G "Visual Studio 15 2017 Win64" .
+      ((Get-Content -path 'src\loader\openxr_loader-1_0.vcxproj' -Raw) -replace 'MultiThreadedDLL', 'MultiThreaded') | Set-Content -Path 'src\loader\openxr_loader-1_0.vcxproj'
+      msbuild ALL_BUILD.vcxproj /t:Build /p:Configuration=Release
+  # build Revive
+  - ps: |
+      cd c:\projects\revive
+      msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x64
+      msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x86
+      
+after_build:
+  # copy additional files to the release folders
+  - ps: |
+      cd c:\projects\revive\release
+      copy Revive\x64\openvr_api.dll .
+      copy ..\Externals\WinSparkle\x64\Release\WinSparkle.dll .
+      copy Revive\x64\ReviveInjector.exe Revive\ReviveInjector_x64.exe
+      copy Revive\x86\ReviveInjector.exe Revive\ReviveInjector_x86.exe
+      copy ..\ReviveOverlay\SupportAssets . -Filter "*.jpg" -Recurse -Container
+  # gather built Revive files
+  - cmd: |
+      cd c:\projects\Revive\Release
+      7z a Revive.zip ReviveOverlay.exe 
+      7z a Revive.zip Revive\*.exe -r 
+      7z a Revive.zip Revive\*.dll -r
+  # Run NSIS to generate installer
+  - ps: |
+      cd c:\projects\Revive\Installer
+      $env:Path += ";C:\Program Files (x86)\NSIS"
+      makensis /DDEV_BUILD Revive.nsi
+
+artifacts:
+  - path: Installer\ReviveInstaller.exe
+    name: Revive Installer
+  - path: Release\Revive.zip
+    name: Revive Build

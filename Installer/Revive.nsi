@@ -2,7 +2,7 @@
 !define SRC_DIR "..\Revive"
 !define DASH_DIR "..\ReviveOverlay"
 
-!if 0
+!ifdef DEV_BUILD
 Function .onInit
     MessageBox MB_YESNO "Looks like you downloaded a beta release, these releases are unstable and only intended for experimentation.$\r$\n$\r$\nDo you want to install a stable release instead?" IDYES abort IDNO continue
     abort:
