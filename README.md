@@ -15,6 +15,10 @@ This is a compatibility layer between the Oculus SDK and OpenVR. It allows you t
 5. Put on the headset, open the dashboard and click the new Revive tab.
 6. If you run into any problems, read the known issues below or refer to the [wiki](https://github.com/LibreVR/Revive/wiki).
 
+# Beta Version
+
+If you want to latest and greatest changes you can [download an early version of the next release.](https://ci.appveyor.com/project/librevr/revive/build/artifacts)
+
 # Known Issues
 
 - Newly installed applications may refuse to start when you try to launch them for the first time, [simply follow these instructions to fix it](https://github.com/LibreVR/Revive/wiki/Troubleshooting#im-getting-an-entitlement-error-or-oculus-rift-not-found) or reboot your PC.
