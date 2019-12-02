@@ -29,6 +29,27 @@ If you want to latest and greatest changes you can [download an early version of
 
 # Building
 
+For your convenience, there is a script to help retrieve and set up
+dependencies in the project root. This script will also attempt to build OpenXR
+and Revive.
+
+Instructions for both scripted and manual build are below.
+
+## Script
+
+- Clone this repository:
+  ```
+  git clone git@github.com:LibreVR/Revive.git
+  ```
+- Install Visual Studio 2017, CMake, and Git, and ensure all three are in your PATH from within PowerShell.
+- Run the setup script (PowerShell):
+  ```
+  cd Revive
+  .\setup.ps1
+  ```
+
+## Manual
+
 Before the project can be built, you must retrieve and set up vendored dependencies.
 
 In bash for Windows:
