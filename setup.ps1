@@ -3,7 +3,7 @@ Write-Host "Updating git submodules..."
 git submodule update --init --recursive
 
 # Make download directory
-mkdir -Force temp_deps | Out-Null
+mkdir -Force tmp_deps | Out-Null
 
 # Retrieve Oculus SDK
 Write-Host "Downloading Oculus SDK v1.41.0..."
