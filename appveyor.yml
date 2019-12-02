@@ -48,7 +48,6 @@ after_build:
   # gather built Revive files
   - cmd: |
       cd c:\projects\Revive\Release
-      7z a Revive.zip ReviveOverlay.exe 
       7z a Revive.zip Revive\*.exe -r 
       7z a Revive.zip Revive\*.dll -r
   # Run NSIS to generate installer
