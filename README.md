@@ -17,7 +17,7 @@ This is a compatibility layer between the Oculus SDK and OpenVR. It allows you t
 
 # Beta Version
 
-If you want to latest and greatest changes you can [download an early version of the next release.](https://ci.appveyor.com/project/librevr/revive/build/artifacts)
+If you want the latest and greatest changes you can [download an early version of the next release.](https://ci.appveyor.com/project/librevr/revive/build/artifacts)
 
 # Known Issues
 
