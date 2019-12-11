@@ -28,13 +28,8 @@ struct ovrTextureSwapChainData
 	std::unique_ptr<TextureBase> Textures[REV_SWAPCHAIN_MAX_LENGTH];
 
 	bool Full() { return (CurrentIndex + 1) % Length == SubmitIndex; }
-	void Commit() { CurrentIndex++; CurrentIndex %= Length; };
-	TextureBase* Submit()
-	{
-		TextureBase* tex = Textures[SubmitIndex].get();
-		SubmitIndex = CurrentIndex;
-		return tex;
-	};
+	void Commit() { SubmitIndex = CurrentIndex; CurrentIndex = (CurrentIndex + 1) % Length; };
+	TextureBase* Submit() { return Textures[SubmitIndex].get(); };
 
 	ovrTextureSwapChainData(ovrTextureSwapChainDesc desc);
 	~ovrTextureSwapChainData();
