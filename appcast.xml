@@ -8,28 +8,26 @@
 			<title>Version 1.9.1</title>
 			<description>
 			<![CDATA[
-			<h4>A hotfix was added that fixes a performance regression</h4>
+<h3>Changes</h3>
 
+<ul>
+    <li>Updated Oculus SDK to version 1.43</li>
+    <li>SteamVR Input should now be configurable before running an app</li>
+</ul>
 
-			<h3>Changes</h3>
+<h3>Bug fixes</h3>
 
-			<ul>
-			    <li>Further optimizations to frame blocking behaviour</li>
-			    <li>Patching option has been removed from the tray icon to avoid user confusion</li>
-			    <ul><li>Still available by manually copying files if you know what you're doing</li></ul>
-			</ul>
-
-			<h3>Bug fixes</h3>
-
-			<ul>
-			    <li>Revive: Fixed Asgard's Wrath loading screen blinking on/off (#1347)</li>
-			</ul>
+<ul>
+    <li>Revive: Fixed Stormland crashing on launch and rendering differently in each eye (#1379)</li>
+    <ul><li>Special thanks to @CircuitLord  and @fholger</li></ul>
+    <li>ReviveXR: Numerous fixes thanks to @qlyoung</li>
+</ul>
 			]]>
 			</description>
-			<pubDate>21 October 2019</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.9.1/ReviveInstaller.exe"
+			<pubDate>11 December 2019</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.9.2/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.9.1.5"
+					   sparkle:version="1.9.2.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
