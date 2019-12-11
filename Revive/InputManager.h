@@ -180,6 +180,7 @@ public:
 	ovrResult GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState);
 
 	void GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime);
+	ovrResult GetDevicePoses(ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses);
 
 protected:
 	std::vector<InputDevice*> m_InputDevices;

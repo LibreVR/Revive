@@ -165,42 +165,50 @@ unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& locat
 {
 	unsigned int flags = 0;
 
-	if (location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) {
+	if (location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
+   {
 		outPoseState.ThePose.Orientation = XR::Quatf(location.pose.orientation);
 		flags |= ovrStatus_OrientationValid;
 		flags |= (location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT) ? ovrStatus_OrientationTracked : 0;
 	}
-	else {
+	else
+   {
 		outPoseState.ThePose.Orientation = XR::Quatf::Identity();
 	}
 
-	if (location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) {
+	if (location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT)
+   {
 		outPoseState.ThePose.Position = XR::Vector3f(location.pose.position);
 		flags |= ovrStatus_PositionValid;
 		flags |= (location.locationFlags & XR_SPACE_LOCATION_POSITION_TRACKED_BIT) ? ovrStatus_PositionTracked : 0;
 	}
-	else {
+	else
+   {
 		outPoseState.ThePose.Position = XR::Vector3f::Zero();
 	}
 
 	XrSpaceVelocity *spaceVelocity = (XrSpaceVelocity *) location.next;
 
-	if (spaceVelocity->velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT) {
+	if (spaceVelocity->velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT)
+   {
 		XR::Vector3f currav(spaceVelocity->angularVelocity);
 		outPoseState.AngularVelocity = currav;
-		outPoseState.AngularAcceleration = time > lastPoseState.TimeInSeconds ? (currav - XR::Vector3f(lastPoseState.AngularVelocity)) / (time - lastPoseState.TimeInSeconds) : lastPoseState.AngularAcceleration;
+		outPoseState.AngularAcceleration = time > lastPoseState.TimeInSeconds ? (currav - XR::Vector3f(lastPoseState.AngularVelocity)) / float(time - lastPoseState.TimeInSeconds) : lastPoseState.AngularAcceleration;
 	}
-	else {
+	else
+   {
 		outPoseState.AngularVelocity = XR::Vector3f::Zero();
 		outPoseState.AngularAcceleration = XR::Vector3f::Zero();
 	}
 
-	if (spaceVelocity->velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT) {
+	if (spaceVelocity->velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT)
+   {
 		XR::Vector3f currlv(spaceVelocity->linearVelocity);
 		outPoseState.LinearVelocity = currlv;
-		outPoseState.LinearAcceleration = time > lastPoseState.TimeInSeconds ? (currlv - XR::Vector3f(lastPoseState.LinearVelocity)) / (time - lastPoseState.TimeInSeconds) : lastPoseState.LinearAcceleration;
+		outPoseState.LinearAcceleration = time > lastPoseState.TimeInSeconds ? (currlv - XR::Vector3f(lastPoseState.LinearVelocity)) / float(time - lastPoseState.TimeInSeconds) : lastPoseState.LinearAcceleration;
 	}
-	else {
+	else
+   {
 		outPoseState.LinearVelocity = XR::Vector3f::Zero();
 		outPoseState.LinearAcceleration = XR::Vector3f::Zero();
 	}
@@ -256,6 +264,47 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	m_LastTrackingState = *outState;
 
 	outState->CalibratedOrigin = session->CalibratedOrigin;
+}
+
+ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
+{
+	XrTime displayTime = AbsTimeToXrTime(session->Instance, absTime);
+	XrSpace space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ? session->StageSpace : session->LocalSpace;
+
+	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
+	for (int i = 0; i < deviceCount; i++)
+	{
+		// Get the space for device types we recognize
+		XrSpace space = XR_NULL_HANDLE;
+      ovrPoseStatef* pLastState = nullptr;
+		switch (deviceTypes[i])
+		{
+		case ovrTrackedDevice_HMD:
+			space = session->ViewSpace;
+         pLastState = &m_LastTrackingState.HeadPose;
+			break;
+		case ovrTrackedDevice_LTouch:
+			space = m_ActionSpaces[ovrHand_Left];
+         pLastState = &m_LastTrackingState.HandPoses[ovrHand_Left];
+			break;
+		case ovrTrackedDevice_RTouch:
+			space = m_ActionSpaces[ovrHand_Right];
+         pLastState = &m_LastTrackingState.HandPoses[ovrHand_Right];
+			break;
+		}
+
+		if (space && pLastState)
+		{
+			CHK_XR(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &relation));
+			SpaceRelationToPoseState(relation, absTime, *pLastState, outDevicePoses[i]);
+		}
+		else
+		{
+			outDevicePoses[i] = ovrPoseStatef{ OVR::Posef::Identity() };
+		}
+	}
+
+	return ovrSuccess;
 }
 
 /* Action child-class */

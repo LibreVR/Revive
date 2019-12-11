@@ -158,9 +158,6 @@
     <ClCompile Include="..\Externals\LibOVR\Shim\OVR_StereoProjection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="REV_CAPI_Prototypes.cpp">
-      <Filter>Source Files\LibOVR</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CompositorShader.hlsl">
