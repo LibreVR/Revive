@@ -2,6 +2,7 @@
     "applications": [
         {
             "app_key": "revive.app.oculus-dreamdeck-nux",
+            "action_manifest_path": "Input/action_manifest.json",
             "arguments": "/app oculus-dreamdeck-nux /base \"Support/oculus-dreamdeck-nux/Dreamdeck/Binaries/Win64/Dreamdeck-Win64-Shipping.exe\" -vr -dreamdeck=NUX",
             "binary_path_windows": "Revive/x64/ReviveInjector.exe",
             "image_path": "SupportAssets/oculus-dreamdeck-nux/cover_landscape_image.jpg",
@@ -14,6 +15,7 @@
         },
         {
             "app_key": "revive.app.oculus-touch-tutorial",
+            "action_manifest_path": "Input/action_manifest.json",
             "arguments": "/app oculus-touch-tutorial /base \"Support/oculus-touch-tutorial/WindowsNoEditor/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=nux",
             "binary_path_windows": "Revive/x64/ReviveInjector.exe",
             "image_path": "SupportAssets/oculus-touch-tutorial/cover_landscape_image.jpg",
@@ -26,6 +28,7 @@
         },
         {
             "app_key": "revive.app.oculus-first-contact",
+            "action_manifest_path": "Input/action_manifest.json",
             "arguments": "/app oculus-first-contact /base \"Support/oculus-touch-tutorial/WindowsNoEditor/TouchNUX/Binaries/Win64/TouchNUX-Win64-Shipping.exe\" -gamemode=\"experienceonly\"",
             "binary_path_windows": "Revive/x64/ReviveInjector.exe",
             "image_path": "SupportAssets/oculus-first-contact/cover_landscape_image.jpg",
@@ -38,6 +41,7 @@
         },
         {
             "app_key": "revive.app.oculus-worlds",
+            "action_manifest_path": "Input/action_manifest.json",
             "arguments": "/app oculus-worlds /base \"Support/oculus-worlds/Home2/Binaries/Win64/Home2-Win64-Shipping.exe\"",
             "binary_path_windows": "Revive/x64/ReviveInjector.exe",
             "image_path": "SupportAssets/oculus-worlds/cover_landscape_image.jpg",
