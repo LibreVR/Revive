@@ -3,6 +3,7 @@
 #include <OVR_CAPI.h>
 #include <openxr/openxr.h>
 #include <memory>
+#include <utility>
 
 #include "SessionDetails.h"
 
@@ -22,7 +23,7 @@ struct SessionStatusBits {
 struct ovrHmdStruct
 {
 	long long NextFrame;
-	void* HookedFunction;
+	std::pair<void**, void*> HookedFunction;
 
 	// OpenXR handles
 	XrInstance Instance;

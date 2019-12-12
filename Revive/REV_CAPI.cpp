@@ -12,7 +12,7 @@
 #include <dxgi1_2.h>
 #include <openvr.h>
 #include <Windows.h>
-#include <MinHook.h>
+#include <Detours.h>
 #include <list>
 #include <algorithm>
 #include <thread>
@@ -68,15 +68,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 	g_MinorVersion = params->RequestedMinorVersion;
 
-	MH_QueueDisableHook(LoadLibraryW);
-	MH_QueueDisableHook(OpenEventW);
-	MH_ApplyQueued();
-
 	vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
-
-	MH_QueueEnableHook(LoadLibraryW);
-	MH_QueueEnableHook(OpenEventW);
-	MH_ApplyQueued();
 
 	uint32_t timeout = params->ConnectionTimeoutMS;
 	if (timeout == 0)

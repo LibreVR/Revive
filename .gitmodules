@@ -1,9 +1,6 @@
 [submodule "openvr"]
 	path = Externals/openvr
 	url = https://github.com/ValveSoftware/openvr.git
-[submodule "minhook"]
-	path = Externals/minhook
-	url = https://github.com/Armada651/minhook.git
 [submodule "WinSparkle"]
 	path = Externals/WinSparkle
 	url = https://github.com/LibreVR/ext-win-sparkle.git
@@ -16,3 +13,6 @@
 [submodule "Externals/openxr"]
 	path = Externals/openxr
 	url = https://github.com/KhronosGroup/OpenXR-SDK.git
+[submodule "Externals/Detours"]
+	path = Externals/Detours
+	url = https://github.com/microsoft/Detours
