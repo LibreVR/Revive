@@ -267,3 +267,4 @@ Installer/*.exe
 GeneratedFiles
 *.qmlc
 *.jsc
+/Externals/LibOVRKernel
