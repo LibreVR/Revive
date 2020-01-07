@@ -4,7 +4,7 @@ function decodeHtml(str) {
   });
 };
 
-function generateManifest(manifest) {
+function generateManifest(manifest, basePath) {
     console.log("Generating manifest for " + manifest["canonicalName"]);
     var launch = manifest["launchFile"];
 
@@ -35,6 +35,9 @@ function generateManifest(manifest) {
     if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None" && manifest["launchParameters"] != null)
         parameters = " " + manifest["launchParameters"];
 
+    //add condition ?
+    var argBasePath = " /baseLib \"" + basePath.replace(/^.*file\:\/\/\/|\/$/g, '').replace(/\//g, '\\') + "\"";
+
     // Some games need special arguments, seems like a great idea to hardcode them here
     // TODO: Detect these arguments automatically from the file tree
     if (manifest["canonicalName"] == "epic-games-showdown")
@@ -63,7 +66,7 @@ function generateManifest(manifest) {
             var revive = {
                 "launch_type" : "binary",
                 "binary_path_windows" : "Revive/x64/ReviveInjector.exe",
-                "arguments" : apc + "/app " + manifest["canonicalName"] + " /library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
+                "arguments" : apc + "/app " + manifest["canonicalName"] + argBasePath + " /library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
                 "action_manifest_path" : "Input/action_manifest.json",
                 "image_path" : Revive.BasePath + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image_large.png",
 
@@ -83,26 +86,31 @@ function generateManifest(manifest) {
 
 function verifyAppManifest(appKey) {
     // Load the smaller mini file since we only want to verify whether it exists.
-    var manifestURL = Revive.LibraryURL + 'Manifests/' + appKey + '.json.mini';
-    var xhr = new XMLHttpRequest;
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == XMLHttpRequest.DONE) {
-            // Check if the application is still installed.
-            if (xhr.status != 200)
-            {
-                // If the manifest no longer exists, then the application has been removed.
-                if (Revive.isApplicationInstalled(appKey))
-                    Revive.removeManifest(appKey);
+	 var appToRemove = Revive.LibrariesURL.length;
+    for (var index in Revive.LibrariesURL) {
+        console.log("parsing lib " + Revive.LibrariesURL[index]);
+        var manifestURL = Revive.LibrariesURL[index] + 'Manifests/' + appKey + '.json.mini';
+        var xhr = new XMLHttpRequest;
+        //remove async access, needed to synchronize appToRemove list
+        xhr.open('GET', manifestURL, false);
+        xhr.send(null);
+        console.log("xhr status " + appKey + " " + xhr.status);
+        if (xhr.status != 200) {
+            if (!Revive.isApplicationInstalled(appKey)) {
+                appToRemove--;
             }
+        } else {
+            appToRemove--;
         }
     }
-    xhr.open('GET', manifestURL);
-    xhr.send();
+    if (!appToRemove > 0) {
+        Revive.removeManifest(appKey);
+    }
 }
 
-function loadManifest(manifestURL) {
+function loadManifest(manifestURL, basePath) {
     var xhr = new XMLHttpRequest;
-    xhr.onreadystatechange = function() {
+    xhr.onreadystatechange = function () {
         if (xhr.readyState == XMLHttpRequest.DONE) {
             var manifest = JSON.parse(xhr.responseText);
 
@@ -112,7 +120,7 @@ function loadManifest(manifestURL) {
                 var cover = Revive.BaseURL + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_square_image.jpg";
                 coverModel.append({coverURL: cover, appKey: manifest["canonicalName"]});
                 if (!Revive.isApplicationInstalled(manifest["canonicalName"]))
-                    generateManifest(manifest);
+                    generateManifest(manifest, basePath);
             }
         }
     }
