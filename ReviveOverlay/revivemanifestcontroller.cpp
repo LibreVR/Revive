@@ -14,6 +14,8 @@
 #include <QSettings>
 #include <QUrl>
 
+#define MAX_KEY_LENGTH 255
+#define MAX_VALUE_NAME 16383						  		
 CReviveManifestController *s_pSharedRevController = NULL;
 const char* CReviveManifestController::AppKey = "revive.dashboard.overlay";
 const char* CReviveManifestController::AppPrefix = "revive.app.";
@@ -25,6 +27,127 @@ CReviveManifestController *CReviveManifestController::SharedInstance()
 		s_pSharedRevController = new CReviveManifestController();
 	}
 	return s_pSharedRevController;
+}
+
+bool GetVolumePath(PWCHAR path, DWORD length, PWCHAR subKey)
+{
+	LONG error = ERROR_SUCCESS;
+
+	// Open the libraries key
+	WCHAR keyPath[MAX_PATH] = { L"Software\\Oculus VR, LLC\\Oculus\\Libraries\\" };
+	HKEY oculusKey;
+
+	// Open the library key
+	wcsncat(keyPath, subKey, MAX_PATH);
+	error = RegOpenKeyExW(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &oculusKey);
+	if (error != ERROR_SUCCESS)
+	{
+		qDebug("Unable to open Library path key.");
+		return false;
+	}
+
+	// Get the volume path to this library
+	DWORD pathSize;
+	error = RegQueryValueExW(oculusKey, L"Path", NULL, NULL, NULL, &pathSize);
+	PWCHAR volumePath = (PWCHAR)malloc(pathSize);
+	error = RegQueryValueExW(oculusKey, L"Path", NULL, NULL, (PBYTE)volumePath, &pathSize);
+	RegCloseKey(oculusKey);
+	if (error != ERROR_SUCCESS)
+	{
+		free(volumePath);
+		qDebug("Unable to read Library path.");
+		return false;
+	}
+
+	// Resolve the volume path to a mount point
+	DWORD total;
+	WCHAR volume[50] = { L'\0' };
+	wcsncpy(volume, volumePath, 49);
+	GetVolumePathNamesForVolumeNameW(volume, path, length, &total);
+	wcsncat(path, volumePath + 49, MAX_PATH);
+	free(volumePath);
+
+	return true;
+}
+
+void QueryKey(HKEY hKey, QStringList &path_array)
+{
+	TCHAR    achKey[MAX_KEY_LENGTH];   // buffer for subkey name
+	DWORD    cbName;                   // size of name string 
+	TCHAR    achClass[MAX_PATH] = TEXT("");  // buffer for class name 
+	DWORD    cchClassName = MAX_PATH;  // size of class string 
+	DWORD    cSubKeys = 0;               // number of subkeys 
+	DWORD    cbMaxSubKey;              // longest subkey size 
+	DWORD    cchMaxClass;              // longest class string 
+	DWORD    cValues;              // number of values for key 
+	DWORD    cchMaxValue;          // longest value name 
+	DWORD    cbMaxValueData;       // longest value data 
+	DWORD    cbSecurityDescriptor; // size of security descriptor 
+	FILETIME ftLastWriteTime;      // last write time 
+
+	DWORD i, retCode;
+
+	TCHAR  achValue[MAX_VALUE_NAME];
+	DWORD cchValue = MAX_VALUE_NAME;
+
+	// Get the class name and the value count. 
+	retCode = RegQueryInfoKey(
+		hKey,                    // key handle 
+		achClass,                // buffer for class name 
+		&cchClassName,           // size of class string 
+		NULL,                    // reserved 
+		&cSubKeys,               // number of subkeys 
+		&cbMaxSubKey,            // longest subkey size 
+		&cchMaxClass,            // longest class string 
+		&cValues,                // number of values for this key 
+		&cchMaxValue,            // longest value name 
+		&cbMaxValueData,         // longest value data 
+		&cbSecurityDescriptor,   // security descriptor 
+		&ftLastWriteTime);       // last write time 
+
+	// Enumerate the subkeys, until RegEnumKeyEx fails.
+
+	if (cSubKeys)
+	{
+		WCHAR* paths = new WCHAR[cSubKeys];
+		WCHAR path[MAX_PATH] = { 0 };
+		for (i = 0; i < cSubKeys; i++)
+		{
+			cbName = MAX_KEY_LENGTH;
+			retCode = RegEnumKeyEx(hKey, i,
+				achKey,
+				&cbName,
+				NULL,
+				NULL,
+				NULL,
+				&ftLastWriteTime);
+			if (retCode == ERROR_SUCCESS)
+			{
+				wprintf(TEXT("(%d) %s\n"), i + 1, achKey);
+				GetVolumePath(path, MAX_PATH, achKey);
+				path_array << QString::fromWCharArray(path);
+			}
+		}
+	}
+}
+
+bool CReviveManifestController::GetLibrariesPath(QStringList &path_array, uint32_t length)
+{
+	
+	LONG error = ERROR_SUCCESS;
+	
+	// Open the libraries key
+	WCHAR keyPath[MAX_PATH] = { L"Software\\Oculus VR, LLC\\Oculus\\Libraries\\" };
+	HKEY oculusKey;
+	error = RegOpenKeyExW(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &oculusKey);
+	if (error != ERROR_SUCCESS)
+	{
+		qDebug("Unable to open Libraries key.");
+		return false;
+	}
+	QueryKey(oculusKey, path_array);
+	RegCloseKey(oculusKey);
+	return true;
 }
 
 bool CReviveManifestController::GetDefaultLibraryPath(wchar_t* path, uint32_t length)
@@ -162,16 +285,23 @@ bool CReviveManifestController::Init()
 	}
 
 	// Get the library path
-	if (GetDefaultLibraryPath(path, MAX_PATH))
+	QStringList path_array;
+	if (GetLibrariesPath(path_array, MAX_PATH))
 	{
-		QString library = QString::fromWCharArray(path);
-		if (!library.endsWith('\\'))
-			library.append('\\');
-		qDebug("Oculus Library found: %s", qUtf8Printable(library));
+		if (path_array.size() > 1)
+			qDebug("Multiple libraries found");
+		for (int i = 0; i < path_array.size(); ++i) {
+			QString library = path_array.at(i);//QString::fromWCharArray(path);
+			if (!library.endsWith('\\'))
+				library.append('\\');
+			qDebug("Oculus Library found: %s", qUtf8Printable(library));
 
-		m_bLibraryFound = true;
-		m_strLibraryURL = QUrl::fromLocalFile(library).url();
-		m_strLibraryPath = QDir::fromNativeSeparators(library);
+			m_bLibraryFound = true;
+			m_strLibraryURL = QUrl::fromLocalFile(library).url();
+			//used ?
+			m_strLibraryPath = QDir::fromNativeSeparators(library);
+			m_lstLibrariesURL << m_strLibraryURL;
+		}
 		emit LibraryChanged();
 
 		if (vr::VRApplications() && !QCoreApplication::arguments().contains("-compositor"))
