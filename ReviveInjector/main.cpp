@@ -119,9 +119,10 @@ int wmain(int argc, wchar_t *argv[]) {
 	std::string appKey;
 	WCHAR path[MAX_PATH] = { 0 };
 	//3 new variables: not very good
-	WCHAR endPath[MAX_PATH] = { 0 };
-	WCHAR basePath[MAX_PATH] = { 0 };
+	WCHAR otherArgs[MAX_PATH] = { 0 };
+	WCHAR libraryBase[MAX_PATH] = { 0 };
 	WCHAR library[MAX_PATH] = { 0 };
+	WCHAR support[MAX_PATH] = { 0 };
 	// TODO: cleaning
 	//for (int i = 1; i < argc; i++)
 	//{
@@ -147,9 +148,7 @@ int wmain(int argc, wchar_t *argv[]) {
 		}
 		else if (wcscmp(argv[i], L"/base") == 0)
 		{
-			if (!GetOculusBasePath(path, MAX_PATH))
-				return -1;
-			wnsprintf(path, MAX_PATH, L"%s\\%s ", path, argv[++i]);
+			wcsncat(support, argv[++i], MAX_PATH);
 		}
 		else if (wcscmp(argv[i], L"/library") == 0)
 		{
@@ -158,25 +157,33 @@ int wmain(int argc, wchar_t *argv[]) {
 		//force path if not default Oculus folder
 		else if (wcscmp(argv[i], L"/baseLib") == 0)
 		{
-			wcsncat(basePath, argv[++i], MAX_PATH);
+			wcsncat(libraryBase, argv[++i], MAX_PATH);
 		}
 		else
 		{
 			// Concatenate all other arguments
-			wcsncat(endPath, argv[i], MAX_PATH);
-			wcsncat(endPath, L" ", MAX_PATH);
+			wcsncat(otherArgs, argv[i], MAX_PATH);
+			wcsncat(otherArgs, L" ", MAX_PATH);
 		}
 	}
-	
-	if (wcslen(basePath) != 0) {
-		wnsprintf(path, MAX_PATH, L"%s\\%s ", basePath, library);
+
+	//path reconstruction
+
+	//support app ?
+	if (wcslen(support) != 0) {
+		if (!GetOculusBasePath(path, MAX_PATH))
+			return -1;
+		wnsprintf(path, MAX_PATH, L"%s\\%s ", path, support);
+	}
+	else if (wcslen(libraryBase) != 0) {
+		wnsprintf(path, MAX_PATH, L"%s\\%s ", libraryBase, library);
 	}
 	else {
 		if (!GetDefaultLibraryPath(path, MAX_PATH))
 			return -1;
 		wnsprintf(path, MAX_PATH, L"%s\\%s ", path, library);
 	}
-	wcsncat(path, endPath, MAX_PATH);
+	wcsncat(path, otherArgs, MAX_PATH);
 	
 	LOG("Path for injector is: %ls\n", path);
 	
