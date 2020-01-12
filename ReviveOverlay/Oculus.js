@@ -88,13 +88,11 @@ function verifyAppManifest(appKey) {
     // Load the smaller mini file since we only want to verify whether it exists.
 	 var appToRemove = Revive.LibrariesURL.length;
     for (var index in Revive.LibrariesURL) {
-        console.log("parsing lib " + Revive.LibrariesURL[index]);
         var manifestURL = Revive.LibrariesURL[index] + 'Manifests/' + appKey + '.json.mini';
         var xhr = new XMLHttpRequest;
         //remove async access, needed to synchronize appToRemove list
         xhr.open('GET', manifestURL, false);
         xhr.send(null);
-        console.log("xhr status " + appKey + " " + xhr.status);
         if (xhr.status != 200) {
             if (!Revive.isApplicationInstalled(appKey)) {
                 appToRemove--;
