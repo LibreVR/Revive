@@ -9,43 +9,10 @@ Rectangle {
     width: 1920
     height: 1080
     color: "#183755"
+	id: mainWindow
 
-	// manifestsModel, manifestsModel2, manifestsModel3: libraries locations
-    FolderListModel {
-        id: manifestsModel
-        folder: Revive.LibrariesURL[0] + 'Manifests/'
-        nameFilters: ["*.json"]
-        showDirs: false
-        onCountChanged: {
-            coverModel.remove(4, coverModel.count - 4);		
-            for (var i = 0; i < manifestsModel.count; i++)
-                Oculus.loadManifest(manifestsModel.get(i, "fileURL"), Revive.LibrariesURL[0]);
-        }
-    }
-
-	FolderListModel {
-    id: manifestsModel2
-    folder: Revive.LibrariesURL[1] + 'Manifests/'
-    nameFilters: ["*.json"]
-    showDirs: false
-    onCountChanged: {
-        coverModel.remove(4, coverModel.count - 4);
-        for (var i = 0; i < manifestsModel2.count; i++)
-            Oculus.loadManifest(manifestsModel2.get(i, "fileURL"), Revive.LibrariesURL[1]);
-        }
-    }
-
-	FolderListModel {
-    id: manifestsModel3
-    folder: Revive.LibrariesURL[2] + 'Manifests/'
-    nameFilters: ["*.json"]
-    showDirs: false
-    onCountChanged: {
-        coverModel.remove(4, coverModel.count - 4);
-        for (var i = 0; i < manifestsModel3.count; i++)
-            Oculus.loadManifest(manifestsModel3.get(i, "fileURL"), Revive.LibrariesURL[2]);
-        }
-    }
+	Component.onCompleted: Oculus.createObjects();
+   
     FolderListModel {
         id: assetsModel
         folder: Revive.BaseURL + 'CoreData/Manifests/'

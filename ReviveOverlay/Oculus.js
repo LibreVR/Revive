@@ -4,6 +4,15 @@ function decodeHtml(str) {
   });
 };
 
+function createObjects() {
+    //create folderListModels for each folder
+    for (var index in Revive.LibrariesURL){
+        Qt.createQmlObject('import QtQuick 2.4;import Qt.labs.folderlistmodel 2.1;import "Oculus.js" as Oculus;FolderListModel {id: manifestsModelindex;folder: Revive.LibrariesURL[index] + \'Manifests/\';nameFilters: ["*.json"];showDirs: false;onCountChanged: {coverModel.remove(4, coverModel.count - 4);for (var i = 0; i < manifestsModelindex.count; i++){Oculus.loadManifest(manifestsModelindex.get(i, "fileURL"), Revive.LibrariesURL[index]);}}}'.replace(/index/g, index),
+    mainWindow, "dynamicFolderObjects");
+    }
+}
+
+
 function generateManifest(manifest, basePath) {
     console.log("Generating manifest for " + manifest["canonicalName"]);
     var launch = manifest["launchFile"];
