@@ -10,9 +10,9 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_PROCESS_ATTACH:
     case DLL_THREAD_ATTACH:
 #if _WIN64
-		LoadLibrary(L"LibRevive64_1.dll");
+		LoadLibrary(L"LibRevive64.dll");
 #else
-		LoadLibrary(L"LibRevive32_1.dll");
+		LoadLibrary(L"LibRevive32.dll");
 #endif
 		break;
     case DLL_THREAD_DETACH:

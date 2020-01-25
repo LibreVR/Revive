@@ -6,7 +6,6 @@
 #include <Shlwapi.h>
 
 bool InjectLibRevive(HANDLE hProcess, HANDLE hThread, bool xr);
-bool InjectOpenVR(HANDLE hProcess, HANDLE hThread, bool xr);
 bool InjectDLL(HANDLE hProcess, HANDLE hThread, const char *dllPath, int dllPathLength);
 
 unsigned int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc)
@@ -83,8 +82,8 @@ unsigned int CreateProcessAndInject(wchar_t *programPath, bool xr, bool apc)
 #endif
 
 	HANDLE hThread = apc ? pi.hThread : INVALID_HANDLE_VALUE;
-	if (!InjectOpenVR(pi.hProcess, hThread, xr) ||
-		!InjectLibRevive(pi.hProcess, hThread, xr)) {
+	if (!InjectLibRevive(pi.hProcess, hThread, xr))
+	{
 		ResumeThread(pi.hThread);
 		return pi.dwProcessId;
 	}
@@ -105,10 +104,8 @@ int OpenProcessAndInject(wchar_t *processId, bool xr)
 		return -1;
 	}
 
-	if (!InjectOpenVR(hProcess, INVALID_HANDLE_VALUE, xr) ||
-		!InjectLibRevive(hProcess, INVALID_HANDLE_VALUE, xr)) {
+	if (!InjectLibRevive(hProcess, INVALID_HANDLE_VALUE, xr))
 		return -1;
-	}
 
 	LOG("Injected dlls succesfully\n");
 	return 0;
@@ -128,32 +125,18 @@ bool InjectLibRevive(HANDLE hProcess, HANDLE hThread, bool xr)
 	if (xr)
 	{
 #if _WIN64
-		GetAbsolutePath(dllPath, MAX_PATH, "LibRXRRT64_1.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "LibRXRRT64.dll");
 #else
-		GetAbsolutePath(dllPath, MAX_PATH, "LibRXRRT32_1.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "LibRXRRT32.dll");
 #endif
 	}
 	else
 	{
 #if _WIN64
-		GetAbsolutePath(dllPath, MAX_PATH, "LibRevive64_1.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "LibRevive64.dll");
 #else
-		GetAbsolutePath(dllPath, MAX_PATH, "LibRevive32_1.dll");
+		GetAbsolutePath(dllPath, MAX_PATH, "LibRevive32.dll");
 #endif
-	}
-	return InjectDLL(hProcess, hThread, dllPath, MAX_PATH);
-}
-
-bool InjectOpenVR(HANDLE hProcess, HANDLE hThread, bool xr)
-{
-	char dllPath[MAX_PATH];
-	if (xr)
-	{
-		GetAbsolutePath(dllPath, MAX_PATH, "openxr_loader-1_0.dll");
-	}
-	else
-	{
-		GetAbsolutePath(dllPath, MAX_PATH, "openvr_api.dll");
 	}
 	return InjectDLL(hProcess, hThread, dllPath, MAX_PATH);
 }
