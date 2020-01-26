@@ -40,16 +40,12 @@ after_build:
   # copy additional files to the release folders
   - ps: |
       cd c:\projects\revive\release
-      copy Revive\x64\openvr_api.dll .
       copy ..\Externals\WinSparkle\x64\Release\WinSparkle.dll .
-      copy Revive\x64\ReviveInjector.exe Revive\ReviveInjector_x64.exe
-      copy Revive\x86\ReviveInjector.exe Revive\ReviveInjector_x86.exe
       copy ..\ReviveOverlay\SupportAssets . -Filter "*.jpg" -Recurse -Container
   # gather built Revive files
   - cmd: |
       cd c:\projects\Revive\Release
-      7z a Revive.zip Revive\*.exe -r 
-      7z a Revive.zip Revive\*.dll -r
+      7z a Revive.zip ReviveInjector.exe LibRevive32.dll LibRevive64.dll LibRXRRT64.dll openxr_loader-1_0.dll
   # Run NSIS to generate installer
   - ps: |
       cd c:\projects\Revive\Installer

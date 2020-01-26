@@ -79,6 +79,9 @@
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PostBuildEvent />
+    <PostBuildEvent>
+      <Command>copy /Y "$(Externals)openxr\src\loader\$(Configuration)"  "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -111,6 +114,9 @@
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <PostBuildEvent />
+    <PostBuildEvent>
+      <Command>copy /Y "$(Externals)openxr\src\loader\$(Configuration)"  "$(TargetDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\microprofile\microprofile.h" />
