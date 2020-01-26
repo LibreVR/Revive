@@ -45,11 +45,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>LibRXRRT64</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>LibRXRRT64</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -78,9 +78,7 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
-    <PostBuildEvent>
-      <Command>copy /Y "$(Externals)openxr\src\loader\$(Configuration)"  "$(TargetDir)"</Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -112,9 +110,7 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
-    <PostBuildEvent>
-      <Command>copy /Y "$(Externals)openxr\src\loader\$(Configuration)"  "$(TargetDir)"</Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\microprofile\microprofile.h" />

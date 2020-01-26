@@ -7,13 +7,13 @@ function decodeHtml(str) {
 function createObjects() {
     //create folderListModels for each folder
     for (var index in Revive.LibrariesURL){
-        Qt.createQmlObject('import QtQuick 2.4;import Qt.labs.folderlistmodel 2.1;import "Oculus.js" as Oculus;FolderListModel {id: manifestsModelindex;folder: Revive.LibrariesURL[index] + \'Manifests/\';nameFilters: ["*.json"];showDirs: false;onCountChanged: {coverModel.remove(4, coverModel.count - 4);for (var i = 0; i < manifestsModelindex.count; i++){Oculus.loadManifest(manifestsModelindex.get(i, "fileURL"), Revive.LibrariesURL[index]);}}}'.replace(/index/g, index),
+        Qt.createQmlObject('import QtQuick 2.4;import Qt.labs.folderlistmodel 2.1;import "Oculus.js" as Oculus;FolderListModel {id: manifestsModelindex;folder: Revive.LibrariesURL[index] + \'Manifests/\';nameFilters: ["*.json"];showDirs: false;onCountChanged: {coverModel.remove(4, coverModel.count - 4);for (var i = 0; i < manifestsModelindex.count; i++){Oculus.loadManifest(manifestsModelindex.get(i, "fileURL"), Revive.Libraries[index]);}}}'.replace(/index/g, index),
     mainWindow, "dynamicFolderObjects");
     }
 }
 
 
-function generateManifest(manifest, basePath) {
+function generateManifest(manifest, library) {
     console.log("Generating manifest for " + manifest["canonicalName"]);
     var launch = manifest["launchFile"];
 
@@ -35,17 +35,9 @@ function generateManifest(manifest, basePath) {
     // TODO: Move this to the injector
     launch = launch.replace(/\//g, '\\');
 
-    // Some games need APC injection
-    var apc = "";
-    if (manifest["canonicalName"] == "oculus-quill")
-        apc = "/apc ";
-
     var parameters = "";
     if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None" && manifest["launchParameters"] != null)
         parameters = " " + manifest["launchParameters"];
-
-    //add condition ?
-    var argBasePath = " /baseLib \"" + basePath.replace(/^.*file\:\/\/\/|\/$/g, '').replace(/\//g, '\\') + "\"";
 
     // Some games need special arguments, seems like a great idea to hardcode them here
     // TODO: Detect these arguments automatically from the file tree
@@ -73,15 +65,15 @@ function generateManifest(manifest, basePath) {
 
             // Generate the entry and add it to the manifest
             var revive = {
-                "launch_type" : "binary",
-                "binary_path_windows" : "Revive/x64/ReviveInjector.exe",
-                "arguments" : apc + "/app " + manifest["canonicalName"] + argBasePath + " /library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
+                "launch_type": "binary",
+                "binary_path_windows": "ReviveInjector.exe",
+                "arguments": "/app " + manifest["canonicalName"] + " /library " + library + " \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
                 "action_manifest_path" : "Input/action_manifest.json",
-                "image_path" : Revive.BasePath + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image_large.png",
+                "image_path": Revive.BasePath + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image_large.png",
 
-                "strings" : {
-                    "en_us" : {
-                        "name" : title
+                "strings": {
+                    "en_us": {
+                        "name": title
                     }
                 }
             }
@@ -115,7 +107,7 @@ function verifyAppManifest(appKey) {
     }
 }
 
-function loadManifest(manifestURL, basePath) {
+function loadManifest(manifestURL, library) {
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function () {
         if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -127,7 +119,7 @@ function loadManifest(manifestURL, basePath) {
                 var cover = Revive.BaseURL + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_square_image.jpg";
                 coverModel.append({coverURL: cover, appKey: manifest["canonicalName"]});
                 if (!Revive.isApplicationInstalled(manifest["canonicalName"]))
-                    generateManifest(manifest, basePath);
+                    generateManifest(manifest, library);
             }
         }
     }

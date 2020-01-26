@@ -158,12 +158,6 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Oculus.js">
-      <Filter>Distribution Files</Filter>
-    </None>
-    <None Include="Overlay.qml">
-      <Filter>Distribution Files</Filter>
-    </None>
     <None Include="support.vrmanifest">
       <Filter>Resource Files</Filter>
     </None>

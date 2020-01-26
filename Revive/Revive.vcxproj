@@ -74,19 +74,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetName>LibRevive32</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>LibRevive32</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>LibRevive64</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>LibRevive64</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -110,9 +110,7 @@
       <ShaderModel>4.0</ShaderModel>
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
-    <PostBuildEvent>
-      <Command>copy /Y "$(Externals)openvr\bin\win32"  "$(TargetDir)"</Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
@@ -139,9 +137,7 @@
       <ShaderModel>4.0</ShaderModel>
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
-    <PostBuildEvent>
-      <Command>copy /Y "$(Externals)openvr\bin\win64"  "$(TargetDir)"</Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
@@ -171,9 +167,7 @@
       <ShaderModel>4.0</ShaderModel>
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
-    <PostBuildEvent>
-      <Command>copy /Y "$(Externals)openvr\bin\win32"  "$(TargetDir)"</Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
@@ -203,9 +197,7 @@
       <ShaderModel>4.0</ShaderModel>
       <VariableName>g_%(Filename)</VariableName>
     </FxCompile>
-    <PostBuildEvent>
-      <Command>copy /Y "$(Externals)openvr\bin\win64"  "$(TargetDir)"</Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
