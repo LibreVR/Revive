@@ -14,12 +14,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     openvroverlaycontroller.cpp \
+    qquickwindowscaled.cpp \
     revivemanifestcontroller.cpp \
     trayiconcontroller.cpp \
     windowsservices.cpp
 
 HEADERS  += \
     openvroverlaycontroller.h \
+    qquickwindowscaled.h \
     revivemanifestcontroller.h \
     trayiconcontroller.h \
     windowsservices.h
