@@ -56,7 +56,7 @@ Write-Host "MSBuild found"
 # Build OpenXR libraries
 Write-Host "Building OpenXR library..."
 cd Externals/openxr
-cmake -G "Visual Studio 15 2017 Win64" .
+cmake -G "Visual Studio 15 2017 Win64" -D "DYNAMIC_LOADER=1" -D "BUILD_TESTS=0" .
 ((Get-Content -path 'src\loader\openxr_loader-1_0.vcxproj' -Raw) -replace 'MultiThreadedDLL', 'MultiThreaded') | Set-Content -Path 'src\loader\openxr_loader-1_0.vcxproj'
 & $msBuild ALL_BUILD.vcxproj /t:Build /p:Configuration=Release
 cd ..\..
