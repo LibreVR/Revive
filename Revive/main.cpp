@@ -45,10 +45,6 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 	if (wcsncmp(name, ovrModuleName, length) == 0)
 		return TrueLoadLibrary(revModuleName);
 
-	// We've already injected OpenVR, block attempts to override it.
-	if (wcsncmp(name, L"openvr_api.dll", length) == 0)
-		return NULL;
-
 	return TrueLoadLibrary(lpFileName);
 }
 
