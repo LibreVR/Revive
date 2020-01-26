@@ -111,6 +111,9 @@ install:
   ; Delete the Revive local data
   RMDir /r "$LocalAppdata\Revive"
 
+  ; Delete the old Revive injector
+  RMDir /r "$INSTDIR\Revive"
+
   ; Ensure all users have access to the manifest file
   AccessControl::GrantOnFile \
     "$INSTDIR\revive.vrmanifest" "(S-1-5-32-545)" "GenericRead + GenericWrite"
