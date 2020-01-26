@@ -86,25 +86,22 @@ function generateManifest(manifest, library) {
 }
 
 function verifyAppManifest(appKey) {
-    // Load the smaller mini file since we only want to verify whether it exists.
-	 var appToRemove = Revive.LibrariesURL.length;
+    // See if the application manifest exists in any library.
     for (var index in Revive.LibrariesURL) {
+        // Load the smaller mini file since we only want to verify whether it exists.
         var manifestURL = Revive.LibrariesURL[index] + 'Manifests/' + appKey + '.json.mini';
         var xhr = new XMLHttpRequest;
-        //remove async access, needed to synchronize appToRemove list
         xhr.open('GET', manifestURL, false);
         xhr.send(null);
-        if (xhr.status != 200) {
-            if (!Revive.isApplicationInstalled(appKey)) {
-                appToRemove--;
-            }
-        } else {
-            appToRemove--;
+        if (xhr.status == 200) {
+            // Found a manifest, this app is still installed.
+            return;
         }
     }
-    if (!appToRemove > 0) {
+
+    // No manifest found in any library, remove it from our own manifest.
+    if (Revive.isApplicationInstalled(appKey))
         Revive.removeManifest(appKey);
-    }
 }
 
 function loadManifest(manifestURL, library) {

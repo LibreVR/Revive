@@ -25,10 +25,10 @@ Rectangle {
             {
                 var key = assetsModel.get(i, "fileName");
                 console.log("Found assets bundle " + key);
-				var appManifest = key.substring(0, key.indexOf("_assets"));
-				//verify only assets files
-				if (appManifest.length !=0)
-					Oculus.verifyAppManifest(appManifest);
+                var appManifest = key.substring(0, key.indexOf("_assets"));
+                //verify only assets files
+                if (appManifest.length !=0)
+                  Oculus.verifyAppManifest(appManifest);
             }
         }
     }
