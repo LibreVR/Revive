@@ -6,8 +6,8 @@ git submodule update --init --recursive
 mkdir -Force tmp_deps | Out-Null
 
 # Retrieve Oculus SDK
-Write-Host "Downloading Oculus SDK v1.41.0..."
-curl -o tmp_deps\oculus_sdk.html https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.41.0/
+Write-Host "Downloading Oculus SDK v1.43.0..."
+curl -o tmp_deps\oculus_sdk.html https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.43.0/
 $url = select-string -Path 'tmp_deps\oculus_sdk.html' -Pattern 'https:\/\/securecdn\.oculus\.com\/binaries\/download\/\?id=[0-9]+&amp;access_token=[0-9A-Za-z%]+' -AllMatches | % {$_.Matches} | % {$_.Value}
 Invoke-WebRequest -Uri $url -OutFile 'tmp_deps\oculus_sdk.zip'
 Write-Host "Extracting Oculus SDK into Externals/..."
