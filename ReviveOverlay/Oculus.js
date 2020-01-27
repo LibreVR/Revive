@@ -12,7 +12,6 @@ function createObjects() {
     }
 }
 
-
 function generateManifest(manifest, library) {
     console.log("Generating manifest for " + manifest["canonicalName"]);
     var launch = manifest["launchFile"];
@@ -85,6 +84,19 @@ function generateManifest(manifest, library) {
     xhr.send();
 }
 
+function heartbeat(appId) {
+    if (Platform.AccessToken.length > 0) {
+        var xhr = new XMLHttpRequest;
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                console.log(xhr.responseText);
+            }
+        }
+        xhr.open('POST', "https://graph.oculus.com/user_heartbeat?access_token=" + Platform.AccessToken);
+        xhr.send({'current_status' : 'ONLINE', 'app_id_override' : appId, 'in_vr' : 'true'});
+    }
+}
+
 function verifyAppManifest(appKey) {
     // See if the application manifest exists in any library.
     for (var index in Revive.LibrariesURL) {
@@ -92,7 +104,7 @@ function verifyAppManifest(appKey) {
         var manifestURL = Revive.LibrariesURL[index] + 'Manifests/' + appKey + '.json.mini';
         var xhr = new XMLHttpRequest;
         xhr.open('GET', manifestURL, false);
-        xhr.send(null);
+        xhr.send();
         if (xhr.status == 200) {
             // Found a manifest, this app is still installed.
             return;
@@ -114,7 +126,7 @@ function loadManifest(manifestURL, library) {
             if (manifest["packageType"] == "APP" && !manifest["isCore"] && !manifest["thirdParty"]) {
                 console.log("Found application " + manifest["canonicalName"]);
                 var cover = Revive.BaseURL + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_square_image.jpg";
-                coverModel.append({coverURL: cover, appKey: manifest["canonicalName"]});
+                coverModel.append({coverURL: cover, appKey: manifest["canonicalName"], appId: manifest["appId"]});
                 if (!Revive.isApplicationInstalled(manifest["canonicalName"]))
                     generateManifest(manifest, library);
             }

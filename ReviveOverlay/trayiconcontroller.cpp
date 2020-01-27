@@ -1,8 +1,10 @@
 #include "trayiconcontroller.h"
 #include "openvroverlaycontroller.h"
 #include "revivemanifestcontroller.h"
+#include "windowsservices.h"
+#include "oculusplatform.h"
+#include "logindialog.h"
 
-#include <windowsservices.h>
 #include <qt_windows.h>
 #include <winsparkle.h>
 
@@ -29,6 +31,9 @@ CTrayIconController *CTrayIconController::SharedInstance()
 CTrayIconController::CTrayIconController()
 	: BaseClass()
 	, m_trayIcon()
+	, m_trayIconMenu()
+	, m_LastInfo()
+	, m_loginDialog()
 {
 }
 
@@ -45,8 +50,10 @@ bool CTrayIconController::Init()
 	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
 	m_trayIconMenu.addSeparator();
-	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
+	m_trayIconMenu.addAction("&Link Oculus Account", this, SLOT(login()));
+	m_trayIconMenu.addSeparator();
+	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addAction("Check for &updates", win_sparkle_check_update_with_ui);
 	m_trayIconMenu.addAction("&Quit", this, SLOT(quit()));
 	m_trayIcon->setContextMenu(&m_trayIconMenu);
@@ -54,6 +61,7 @@ bool CTrayIconController::Init()
 
 	connect(m_trayIcon.get(), &QSystemTrayIcon::messageClicked, this, &CTrayIconController::messageClicked);
 	connect(m_trayIcon.get(), &QSystemTrayIcon::activated, this, &CTrayIconController::activated);
+	connect(&m_loginDialog, &LoginDialog::acceptLogin, this, &CTrayIconController::acceptLogin);
 
 	m_trayIcon->show();
 	return true;
@@ -148,4 +156,21 @@ void CTrayIconController::activated(QSystemTrayIcon::ActivationReason reason)
 {
 	if (reason == QSystemTrayIcon::ActivationReason::DoubleClick)
 		show();
+}
+
+void CTrayIconController::login()
+{
+	QString user, password;
+	if (WindowsServices::ReadCredentials(user, password))
+	{
+		m_loginDialog.setUsername(user);
+		m_loginDialog.setPassword(password);
+	}
+	m_loginDialog.show();
+}
+
+void CTrayIconController::acceptLogin(QString& username, QString& password, int& indexNumber)
+{
+	if (COculusPlatform::SharedInstance()->Login(username, password))
+		WindowsServices::WriteCredentials(username, password);
 }

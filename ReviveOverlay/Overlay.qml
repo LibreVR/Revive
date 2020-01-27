@@ -55,18 +55,22 @@ Rectangle {
         ListElement {
             coverURL: "SupportAssets/oculus-worlds/cover_square_image.jpg"
             appKey: "oculus-worlds"
+            appId: "1112064135564993"
         }
         ListElement {
             coverURL: "SupportAssets/oculus-dreamdeck-nux/cover_square_image.jpg"
             appKey: "oculus-dreamdeck-nux"
+            appId: "919445174798085"
         }
         ListElement {
             coverURL: "SupportAssets/oculus-touch-tutorial/cover_square_image.jpg"
             appKey: "oculus-touch-tutorial"
+            appId: "1184903171584429"
         }
         ListElement {
             coverURL: "SupportAssets/oculus-first-contact/cover_square_image.jpg"
             appKey: "oculus-first-contact"
+            appId: "1217155751659625"
         }
     }
 
@@ -85,6 +89,8 @@ Rectangle {
         source: OpenVR.URL + "content/panorama/sounds/focus_change.wav"
         volume: 0.6
     }
+
+    property var currentAppId: "0"
 
     Component {
         id: coverDelegate
@@ -115,12 +121,23 @@ Rectangle {
                     onPressed: {
                         if (Revive.launchApplication(appKey)) {
                             activateSound.play();
+                            currentAppId = appId;
+                            heartbeat.start();
                         } else {
                             failSound.play();
                         }
                     }
                 }
             }
+        }
+    }
+
+    Timer {
+        id: heartbeat
+        interval: 10000
+        repeat: true
+        onTriggered: {
+            Oculus.heartbeat(currentAppId)
         }
     }
 

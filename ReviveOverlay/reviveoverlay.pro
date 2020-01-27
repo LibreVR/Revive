@@ -13,6 +13,8 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
+    logindialog.cpp \
+    oculusplatform.cpp \
     openvroverlaycontroller.cpp \
     qquickwindowscaled.cpp \
     revivemanifestcontroller.cpp \
@@ -20,6 +22,8 @@ SOURCES += main.cpp\
     windowsservices.cpp
 
 HEADERS  += \
+    logindialog.h \
+    oculusplatform.h \
     openvroverlaycontroller.h \
     qquickwindowscaled.h \
     revivemanifestcontroller.h \
