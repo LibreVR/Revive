@@ -493,6 +493,9 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Externals\openvr_api.vcxproj">
+      <Project>{8940fe26-e0d4-4977-8a24-ab26ae687432}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\ReviveInjector\ReviveInjector.vcxproj">
       <Project>{589559c6-2b51-41f4-a896-5d9db2537a7f}</Project>
     </ProjectReference>
