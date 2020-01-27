@@ -846,7 +846,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		return ovrError_InvalidSession;
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	return session->Compositor->EndFrame(session, layerPtrList, layerCount);
+	return session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
@@ -862,12 +862,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 		frameIndex = session->FrameIndex;
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	ovrResult result = session->Compositor->EndFrame(session, layerPtrList, layerCount);
-
-	// Begin the next frame
-	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
-		session->Compositor->WaitToBeginFrame(session, frameIndex + 1);
-	session->Compositor->BeginFrame(session, frameIndex + 1);
+	ovrResult result = session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
+	if (OVR_SUCCESS(result))
+	{
+		// Begin the next frame
+		if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
+			session->Compositor->WaitToBeginFrame(session, frameIndex + 1);
+		session->Compositor->BeginFrame(session, frameIndex + 1);
+	}
 
 	return result;
 }
