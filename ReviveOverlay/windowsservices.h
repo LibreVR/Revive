@@ -10,6 +10,7 @@ public:
 	static bool CopyFiles(QStringList files, QString destination, QStringList newName);
 	static bool ReadCredentials(QString& user, QString& password);
 	static bool WriteCredentials(const QString& user, const QString& password);
+	static bool DeleteCredentials();
 
 private:
 	static const wchar_t* CredTargetName;

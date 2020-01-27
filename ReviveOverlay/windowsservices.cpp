@@ -95,3 +95,8 @@ bool WindowsServices::WriteCredentials(const QString& user, const QString& passw
 	cred.UserName = (LPWSTR)user.utf16();
 	return !!CredWriteW(&cred, 0);
 }
+
+bool WindowsServices::DeleteCredentials()
+{
+	return !!CredDeleteW(CredTargetName, CRED_TYPE_GENERIC, 0);
+}

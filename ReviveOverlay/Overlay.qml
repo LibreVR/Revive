@@ -9,10 +9,10 @@ Rectangle {
     width: 1920
     height: 1080
     color: "#183755"
-	id: mainWindow
+    id: mainWindow
 
-	Component.onCompleted: Oculus.createObjects();
-   
+    Component.onCompleted: Oculus.createObjects();
+
     FolderListModel {
         id: assetsModel
         folder: Revive.BaseURL + 'CoreData/Manifests/'
@@ -28,7 +28,7 @@ Rectangle {
                 var appManifest = key.substring(0, key.indexOf("_assets"));
                 //verify only assets files
                 if (appManifest.length !=0)
-                  Oculus.verifyAppManifest(appManifest);
+                    Oculus.verifyAppManifest(appManifest);
             }
         }
     }
@@ -267,4 +267,15 @@ Rectangle {
         }
     }
 
+    Image {
+        id: link
+        x: 10
+        y: 10
+        width: 50
+        height: 50
+        opacity: 0.5
+        source: "no-link.svg"
+        fillMode: Image.PreserveAspectFit
+        visible: !Platform.connected
+    }
 }

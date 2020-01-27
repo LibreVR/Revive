@@ -85,3 +85,10 @@ bool COculusPlatform::Login(const QString& email, const QString& password)
 	m_PollTimer.start(1000);
 	return req != 0;
 }
+
+void COculusPlatform::Logout()
+{
+	m_PollTimer.stop();
+	m_strAccessToken.clear();
+	TokenChanged();
+}
