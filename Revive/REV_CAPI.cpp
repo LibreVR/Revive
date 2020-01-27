@@ -60,6 +60,9 @@ ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
+	if (g_InitError == vr::VRInitError_None)
+		return ovrSuccess;
+
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetForceEnable(true);
 	MicroProfileSetEnableAllGroups(true);
@@ -93,6 +96,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 	g_Sessions.clear();
 	vr::VR_Shutdown();
 	MicroProfileShutdown();
+	g_InitError = vr::VRInitError_Init_NotInitialized;
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
