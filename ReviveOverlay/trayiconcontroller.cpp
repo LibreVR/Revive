@@ -48,13 +48,12 @@ bool CTrayIconController::Init()
 	action->setCheckable(true);
 	QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(openxr(bool)));
 	m_trayIconMenu.addSeparator();
+	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
 	m_trayIconMenu.addSeparator();
-	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
 	m_trayIconMenu.addAction("&Link Oculus Account", this, SLOT(login()));
-	m_trayIconMenu.addSeparator();
-	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addAction("Check for &updates", win_sparkle_check_update_with_ui);
+	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addAction("&Quit", this, SLOT(quit()));
 	m_trayIcon->setContextMenu(&m_trayIconMenu);
 	m_trayIcon->setToolTip("Revive Dashboard");
