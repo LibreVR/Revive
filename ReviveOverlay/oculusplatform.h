@@ -40,6 +40,7 @@ class COculusPlatform : public QObject
 	Q_OBJECT
 	typedef QObject BaseClass;
 
+	Q_PROPERTY(bool connected READ Connected NOTIFY TokenChanged);
 	Q_PROPERTY(QString AccessToken READ GetToken NOTIFY TokenChanged);
 public:
 	static COculusPlatform *SharedInstance();
@@ -53,6 +54,7 @@ public:
 	bool Init(QString basePath);
 	bool Login(const QString& email, const QString& password);
 
+	bool Connected() { return !m_strAccessToken.isEmpty(); }
 	QString GetToken() { return m_strAccessToken; }
 
 signals:

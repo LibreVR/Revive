@@ -189,6 +189,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Library.qml" />
+    <None Include="no-link.svg">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="version.h">
