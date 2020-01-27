@@ -206,8 +206,8 @@ int wmain(int argc, wchar_t *argv[]) {
 	{
 		if (wcscmp(argv[i], L"/xr") == 0)
 		{
-			dlls.add(moduleDir + std::string("\\LibRXRRT64.dll"));
 			dlls.add(moduleDir + std::string("\\openxr_loader-1_0.dll"));
+			dlls.add(moduleDir + std::string("\\LibRXRRT64.dll"));
 		}
 		else if (wcscmp(argv[i], L"/app") == 0)
 		{
@@ -217,7 +217,6 @@ int wmain(int argc, wchar_t *argv[]) {
 		{
 			if (!GetOculusBasePath(path, MAX_PATH))
 				return -1;
-			wcsncat(path, L"\\", MAX_PATH);
 		}
 		else if (wcscmp(argv[i], L"/library") == 0)
 		{
@@ -239,7 +238,10 @@ int wmain(int argc, wchar_t *argv[]) {
 	}
 
 	if (dlls.empty())
+	{
+		dlls.add(moduleDir + std::string("\\openvr_api64.dll"));
 		dlls.add(moduleDir + std::string("\\LibRevive64.dll"));
+	}
 	
 	LOG("Command for injector is: %ls\n", path);
 
