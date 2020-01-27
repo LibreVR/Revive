@@ -522,6 +522,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.vrmanifest" />
+    <None Include="Library.qml" />
     <None Include="support.vrmanifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

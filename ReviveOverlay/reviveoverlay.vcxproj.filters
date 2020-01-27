@@ -188,6 +188,7 @@
     <None Include="app.vrmanifest">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Library.qml" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="version.h">

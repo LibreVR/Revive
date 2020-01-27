@@ -54,21 +54,25 @@ Rectangle {
 
         ListElement {
             coverURL: "SupportAssets/oculus-worlds/cover_square_image.jpg"
+            libraryId: "0"
             appKey: "oculus-worlds"
             appId: "1112064135564993"
         }
         ListElement {
             coverURL: "SupportAssets/oculus-dreamdeck-nux/cover_square_image.jpg"
+            libraryId: "0"
             appKey: "oculus-dreamdeck-nux"
             appId: "919445174798085"
         }
         ListElement {
             coverURL: "SupportAssets/oculus-touch-tutorial/cover_square_image.jpg"
+            libraryId: "0"
             appKey: "oculus-touch-tutorial"
             appId: "1184903171584429"
         }
         ListElement {
             coverURL: "SupportAssets/oculus-first-contact/cover_square_image.jpg"
+            libraryId: "0"
             appKey: "oculus-first-contact"
             appId: "1217155751659625"
         }

@@ -6,9 +6,28 @@ function decodeHtml(str) {
 
 function createObjects() {
     //create folderListModels for each folder
-    for (var index in Revive.LibrariesURL){
-        Qt.createQmlObject('import QtQuick 2.4;import Qt.labs.folderlistmodel 2.1;import "Oculus.js" as Oculus;FolderListModel {id: manifestsModelindex;folder: Revive.LibrariesURL[index] + \'Manifests/\';nameFilters: ["*.json"];showDirs: false;onCountChanged: {coverModel.remove(4, coverModel.count - 4);for (var i = 0; i < manifestsModelindex.count; i++){Oculus.loadManifest(manifestsModelindex.get(i, "fileURL"), Revive.Libraries[index]);}}}'.replace(/index/g, index),
-    mainWindow, "dynamicFolderObjects");
+    for (var index in Revive.Libraries) {
+        var finishCreation = function() {
+            if (component.status == Component.Ready) {
+                var library = component.createObject(mainWindow, {
+                    library: Revive.Libraries[index],
+                    libraryURL: Revive.LibrariesURL[index]
+                });
+                if (library == null) {
+                    console.log("Error creating object");
+                }
+            } else if (component.status == Component.Error) {
+                console.log("Error loading component:", component.errorString());
+            }
+        }
+
+        var component = Qt.createComponent("Library.qml");
+        if (component.status == Component.Ready)
+            finishCreation();
+        else if (component.status == Component.Loading)
+            component.statusChanged.connect(finishCreation);
+        else if (component.status == Component.Error)
+            console.log("Error loading component:", component.errorString());
     }
 }
 
@@ -126,7 +145,7 @@ function loadManifest(manifestURL, library) {
             if (manifest["packageType"] == "APP" && !manifest["isCore"] && !manifest["thirdParty"]) {
                 console.log("Found application " + manifest["canonicalName"]);
                 var cover = Revive.BaseURL + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_square_image.jpg";
-                coverModel.append({coverURL: cover, appKey: manifest["canonicalName"], appId: manifest["appId"]});
+                coverModel.append({coverURL: cover, libraryId: library, appKey: manifest["canonicalName"], appId: manifest["appId"]});
                 if (!Revive.isApplicationInstalled(manifest["canonicalName"]))
                     generateManifest(manifest, library);
             }
@@ -135,4 +154,16 @@ function loadManifest(manifestURL, library) {
     xhr.open('GET', manifestURL);
     xhr.send();
     console.log("Loading manifest: " + manifestURL);
+}
+
+function removeLibrary(library) {
+    // Iterate backwards so we can remove elements while iterating
+    var anyRemoved = false;
+    for (var i = coverModel.count - 1; i >= 0; i--) {
+        if (coverModel.get(i).libraryId == library) {
+            coverModel.remove(i);
+            anyRemoved = true;
+        }
+    }
+    return anyRemoved;
 }

@@ -15,7 +15,8 @@
 #include <QUrl>
 
 #define MAX_KEY_LENGTH 255
-#define MAX_VALUE_NAME 16383						  		
+#define MAX_VALUE_NAME 16383
+
 CReviveManifestController *s_pSharedRevController = NULL;
 const char* CReviveManifestController::AppKey = "revive.dashboard.overlay";
 const char* CReviveManifestController::AppPrefix = "revive.app.";

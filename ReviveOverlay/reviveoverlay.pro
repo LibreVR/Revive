@@ -31,6 +31,7 @@ HEADERS  += \
     windowsservices.h
 
 DISTFILES += \
+    Library.qml \
     Overlay.qml \
     Oculus.js \
     Settings.qml
