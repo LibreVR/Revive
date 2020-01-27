@@ -170,6 +170,12 @@ void CTrayIconController::login()
 
 void CTrayIconController::acceptLogin(QString& username, QString& password, int& indexNumber)
 {
+	if (username.isEmpty() || password.isEmpty())
+	{
+		COculusPlatform::SharedInstance()->Logout();
+		WindowsServices::DeleteCredentials();
+	}
+
 	if (COculusPlatform::SharedInstance()->Login(username, password))
 		WindowsServices::WriteCredentials(username, password);
 }

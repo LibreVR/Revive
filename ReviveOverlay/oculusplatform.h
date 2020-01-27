@@ -53,6 +53,7 @@ public:
 
 	bool Init(QString basePath);
 	bool Login(const QString& email, const QString& password);
+	void Logout();
 
 	bool Connected() { return !m_strAccessToken.isEmpty(); }
 	QString GetToken() { return m_strAccessToken; }
