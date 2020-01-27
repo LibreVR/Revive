@@ -253,6 +253,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	sessionStatus->ShouldRecenter = status.ShouldRecenter;
 	sessionStatus->HasInputFocus = status.HasInputFocus;
 	sessionStatus->OverlayPresent = status.OverlayPresent;
+	sessionStatus->DepthRequested = false;
 
 	static const bool do_sleep = session->Details->UseHack(SessionDetails::HACK_SLEEP_IN_SESSION_STATUS);
 	if (do_sleep)

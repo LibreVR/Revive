@@ -66,7 +66,7 @@ CompositorBase::CompositorBase()
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
 	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
-	m_FrameEvent[1] = CreateEvent(nullptr, true, false, nullptr);
+	m_FrameEvent[0] = CreateEvent(nullptr, true, true, nullptr);
 }
 
 CompositorBase::~CompositorBase()
@@ -136,8 +136,7 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	}
 
 	// Wait on the last frame completion with a 500ms timeout
-	if (WaitForSingleObject(handle, 500) != WAIT_OBJECT_0)
-		return ovrError_Timeout;
+	bool timeout = WaitForSingleObject(handle, 500) != WAIT_OBJECT_0;
 
 	// Wait for the actual frame start
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
@@ -145,7 +144,7 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 		MICROPROFILE_SCOPE(WaitGetPoses);
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 	}
-	return ovrSuccess;
+	return timeout ? ovrError_Timeout : ovrSuccess;
 }
 
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
