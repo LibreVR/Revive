@@ -65,7 +65,7 @@ DXGI_FORMAT TextureD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, bool 
 			case OVR_FORMAT_D16_UNORM:            return DXGI_FORMAT_R16_TYPELESS;
 			case OVR_FORMAT_D24_UNORM_S8_UINT:    return DXGI_FORMAT_R24G8_TYPELESS;
 			case OVR_FORMAT_D32_FLOAT:            return DXGI_FORMAT_R32_TYPELESS;
-			case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return DXGI_FORMAT_R32G32_TYPELESS;
+			case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return DXGI_FORMAT_R32G8X24_TYPELESS;
 
 			// Added in 1.5 compressed formats can be used for static layers
 			case OVR_FORMAT_BC1_UNORM:            return DXGI_FORMAT_BC1_TYPELESS;

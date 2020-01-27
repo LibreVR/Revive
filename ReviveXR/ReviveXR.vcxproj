@@ -44,12 +44,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>LibRXRRT64_1</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
+    <TargetName>LibRXRRT64</TargetName>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>LibRXRRT64_1</TargetName>
-    <OutDir>$(SolutionDir)$(Configuration)\$(SolutionName)\$(PlatformShortName)\</OutDir>
+    <TargetName>LibRXRRT64</TargetName>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -57,7 +57,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>XR_USE_PLATFORM_WIN32;VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;NOMINMAX;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;DEBUG;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openxr\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;..\ReviveOverlay;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)Detours\src;$(Externals)openxr\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;..\ReviveOverlay;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -78,6 +78,7 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PostBuildEvent />
     <PostBuildEvent>
       <Command>copy /Y "$(Externals)openxr\src\loader\$(Configuration)"  "$(TargetDir)"</Command>
     </PostBuildEvent>
@@ -90,7 +91,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>XR_USE_PLATFORM_WIN32;VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;NOMINMAX;MICROPROFILE_ENABLED=0;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(Externals)LuaJIT\include;$(Externals)microprofile;$(Externals)minhook\include;$(Externals)openxr\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;..\ReviveOverlay;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)Detours\src;$(Externals)openxr\include;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;..\ReviveOverlay;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -112,6 +113,7 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(Externals)LibOVR\Include</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PostBuildEvent />
     <PostBuildEvent>
       <Command>copy /Y "$(Externals)openxr\src\loader\$(Configuration)"  "$(TargetDir)"</Command>
     </PostBuildEvent>
@@ -157,8 +159,8 @@
     <ResourceCompile Include="Revive.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Externals\minhook\build\VC15\libMinHook.vcxproj">
-      <Project>{f142a341-5ee0-442d-a15f-98ae9b48dbae}</Project>
+    <ProjectReference Include="..\Externals\Detours.vcxproj">
+      <Project>{8776bf45-11e0-4e82-9480-c9316cab5c42}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -102,6 +102,24 @@
     <ClCompile Include="qquickwindowscaled.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="logindialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="oculusplatform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_logindialog.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_logindialog.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_oculusplatform.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_oculusplatform.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="openvroverlaycontroller.h">
@@ -151,6 +169,12 @@
     <CustomBuild Include="qquickwindowscaled.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="logindialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="oculusplatform.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="overlay.qrc">
@@ -158,18 +182,13 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Oculus.js">
-      <Filter>Distribution Files</Filter>
-    </None>
-    <None Include="Overlay.qml">
-      <Filter>Distribution Files</Filter>
-    </None>
     <None Include="support.vrmanifest">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="app.vrmanifest">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Library.qml" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="version.h">

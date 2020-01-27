@@ -2,6 +2,7 @@
 #include "openvroverlaycontroller.h"
 #include "revivemanifestcontroller.h"
 #include "windowsservices.h"
+#include "oculusplatform.h"
 #include <qt_windows.h>
 #include <winsparkle.h>
 
@@ -76,10 +77,14 @@ int main(int argc, char *argv[])
 	if (!CReviveManifestController::SharedInstance()->Init())
 		qDebug("Failed to initialize the revive manifest");
 
+	if (!COculusPlatform::SharedInstance()->Init(CReviveManifestController::SharedInstance()->GetBasePath()))
+		qDebug("Failed to initialize the oculus platform");
+
 	// Create a QML engine.
 	QQmlEngine qmlEngine;
 	qmlEngine.rootContext()->setContextProperty("Revive", CReviveManifestController::SharedInstance());
 	qmlEngine.rootContext()->setContextProperty("OpenVR", COpenVROverlayController::SharedInstance());
+	qmlEngine.rootContext()->setContextProperty("Platform", COculusPlatform::SharedInstance());
 
 	QQmlComponent qmlComponent( &qmlEngine, QUrl("qrc:/Overlay.qml"));
 	if (qmlComponent.isError())

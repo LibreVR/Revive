@@ -7,6 +7,7 @@
 #include "microprofile.h"
 #include "rcu_ptr.h"
 
+#include <Windows.h>
 #include <openvr.h>
 #include <vector>
 #include <algorithm>
@@ -61,11 +62,11 @@ CompositorBase::CompositorBase()
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
 	, m_FrameMutex()
-	, m_FrameLock(m_FrameMutex, std::defer_lock)
 	, m_FrameEvent()
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
 	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
+	m_FrameEvent[0] = CreateEvent(nullptr, true, true, nullptr);
 }
 
 CompositorBase::~CompositorBase()
@@ -120,30 +121,64 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
-	// Protect the wait order with a mutex
-	// This also waits for any frame still in-flight
-	std::unique_lock<std::mutex> lk(m_FrameMutex);
+	// Find the event for the last frame
+	void* handle = nullptr;
+	{
+		std::unique_lock<std::mutex> lk(m_FrameMutex);
+		handle = m_FrameEvent[frameIndex - 1];
 
-	// Wait for any extra frames beyond just the next frame
-	for (int i = 1; i < frameIndex - session->FrameIndex; i++)
-		m_FrameEvent.wait_for(lk, std::chrono::duration<double>(vr::VRCompositor()->GetFrameTimeRemaining()));
+		// If the last frame hasn't started yet, create a new event object for it
+		if (!handle)
+		{
+			handle = CreateEvent(nullptr, true, false, nullptr);
+			m_FrameEvent[frameIndex - 1] = handle;
+		}
+	}
 
-	// Wait for the actual next frame
+	// Wait on the last frame completion with a 500ms timeout
+	bool timeout = WaitForSingleObject(handle, 500) != WAIT_OBJECT_0;
+
+	// Wait for the actual frame start
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
 	{
 		MICROPROFILE_SCOPE(WaitGetPoses);
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 	}
-	return ovrSuccess;
+	return timeout ? ovrError_Timeout : ovrSuccess;
 }
 
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
 
-	// Lock the frame mutex only if we don't already own it
-	if (!m_FrameLock)
-		m_FrameLock.lock();
+	{
+		std::unique_lock<std::mutex> lk(m_FrameMutex);
+
+		// Find the event from the last frame
+		auto it = m_FrameEvent.find(frameIndex - 1);
+
+		if (m_FrameEvent[frameIndex])
+		{
+			// If this frame already has an event, close the last one if it exists
+			if (it != m_FrameEvent.end())
+			{
+				CloseHandle(it->second);
+				m_FrameEvent.erase(it);
+			}
+		}
+		else if (it != m_FrameEvent.end())
+		{
+			// Reset the event from the last frame and reuse it for the next frame
+			ResetEvent(it->second);
+			m_FrameEvent[frameIndex] = it->second;
+			m_FrameEvent.erase(it);
+		}
+		else
+		{
+			// Create a new event for this frame
+			m_FrameEvent[frameIndex] = CreateEvent(nullptr, true, false, nullptr);
+		}
+	}
 
 	session->FrameIndex = frameIndex;
 	vr::VRCompositor()->SubmitExplicitTimingData();
@@ -160,11 +195,11 @@ const ovrLayer_Union& CompositorBase::ToUnion(const ovrLayerHeader* layerPtr)
 		return *(ovrLayer_Union*)layerPtr;
 }
 
-ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	MICROPROFILE_SCOPE(EndFrame);
 
-	if (layerCount == 0 || !layerPtrList)
+	if (layerCount == 0 || !layerPtrList || frameIndex < session->FrameIndex)
 		return ovrError_InvalidParameter;
 
 	const ovrLayerHeader* baseLayer = nullptr;
@@ -254,9 +289,14 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	}
 
 	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
-	m_FrameEvent.notify_all();
-	if (m_FrameLock)
-		m_FrameLock.unlock();
+	{
+		std::unique_lock<std::mutex> lk(m_FrameMutex);
+		void* handle = m_FrameEvent[frameIndex];
+		if (handle)
+			SetEvent(handle);
+		else
+			m_FrameEvent[frameIndex] = CreateEvent(nullptr, true, true, nullptr);
+	}
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);

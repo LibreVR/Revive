@@ -11,10 +11,12 @@
 class CReviveManifestController : public QObject
 {
 	Q_OBJECT
-	typedef QObject BaseClass;
+	typedef QObject BaseClass; 
 
 	Q_PROPERTY(bool LibraryFound READ IsLibraryFound NOTIFY LibraryChanged)
 	Q_PROPERTY(QString LibraryURL READ GetLibraryURL NOTIFY LibraryChanged)
+	Q_PROPERTY(QStringList Libraries READ GetLibraries NOTIFY LibraryChanged)
+	Q_PROPERTY(QStringList LibrariesURL READ GetLibrariesURL NOTIFY LibraryChanged)
 	Q_PROPERTY(QString LibraryPath READ GetLibraryPath NOTIFY LibraryChanged)
 	Q_PROPERTY(QString BaseURL READ GetBaseURL NOTIFY BaseChanged)
 	Q_PROPERTY(QString BasePath READ GetBasePath NOTIFY BaseChanged)
@@ -36,6 +38,8 @@ public:
 	QString GetLibraryPath() { return m_strLibraryPath; }
 	QString GetBaseURL() { return m_strBaseURL; }
 	QString GetBasePath() { return m_strBasePath; }
+	QStringList GetLibraries() { return m_lstLibraries; }
+	QStringList GetLibrariesURL() { return m_lstLibrariesURL; }
 
 	Q_INVOKABLE bool addManifest(const QString &canonicalName, const QString &manifest);
 	Q_INVOKABLE bool removeManifest(const QString &canonicalName);
@@ -50,6 +54,7 @@ private:
 	bool LoadDocument();
 	bool SaveDocument();
 	bool GetDefaultLibraryPath(wchar_t* path, uint32_t length);
+	bool GetLibraries(QStringList &id_array, QStringList & path_array);
 	bool AddApplicationManifest(QFile& file);
 	bool LaunchSupportApp(const QString& appKey);
 	bool LaunchInjector(const QString& args);
@@ -66,6 +71,8 @@ private:
 	QString m_strLibraryPath;
 	QString m_strBaseURL;
 	QString m_strBasePath;
+	QStringList m_lstLibraries;
+	QStringList m_lstLibrariesURL;
 	bool m_OpenXREnabled;
 };
 

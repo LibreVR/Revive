@@ -13,18 +13,25 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
+    logindialog.cpp \
+    oculusplatform.cpp \
     openvroverlaycontroller.cpp \
+    qquickwindowscaled.cpp \
     revivemanifestcontroller.cpp \
     trayiconcontroller.cpp \
     windowsservices.cpp
 
 HEADERS  += \
+    logindialog.h \
+    oculusplatform.h \
     openvroverlaycontroller.h \
+    qquickwindowscaled.h \
     revivemanifestcontroller.h \
     trayiconcontroller.h \
     windowsservices.h
 
 DISTFILES += \
+    Library.qml \
     Overlay.qml \
     Oculus.js \
     Settings.qml

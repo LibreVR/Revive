@@ -6,7 +6,7 @@
 #include <openvr.h>
 #include <vector>
 #include <mutex>
-#include <condition_variable>
+#include <map>
 
 class CompositorBase
 {
@@ -28,7 +28,7 @@ public:
 
 	ovrResult WaitToBeginFrame(ovrSession session, long long frameIndex);
 	ovrResult BeginFrame(ovrSession session, long long frameIndex);
-	ovrResult EndFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
+	ovrResult EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
 	static vr::VRTextureBounds_t FovPortToTextureBounds(ovrFovPort eyeFov, ovrFovPort fov);
@@ -52,6 +52,5 @@ private:
 
 	// Call order enforcement
 	std::mutex m_FrameMutex;
-	std::unique_lock<std::mutex> m_FrameLock;
-	std::condition_variable m_FrameEvent;
+	std::map<long long, void*> m_FrameEvent;
 };

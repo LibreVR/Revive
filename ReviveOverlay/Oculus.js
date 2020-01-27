@@ -4,7 +4,34 @@ function decodeHtml(str) {
   });
 };
 
-function generateManifest(manifest) {
+function createObjects() {
+    //create folderListModels for each folder
+    for (var index in Revive.Libraries) {
+        var finishCreation = function() {
+            if (component.status == Component.Ready) {
+                var library = component.createObject(mainWindow, {
+                    library: Revive.Libraries[index],
+                    libraryURL: Revive.LibrariesURL[index]
+                });
+                if (library == null) {
+                    console.log("Error creating object");
+                }
+            } else if (component.status == Component.Error) {
+                console.log("Error loading component:", component.errorString());
+            }
+        }
+
+        var component = Qt.createComponent("Library.qml");
+        if (component.status == Component.Ready)
+            finishCreation();
+        else if (component.status == Component.Loading)
+            component.statusChanged.connect(finishCreation);
+        else if (component.status == Component.Error)
+            console.log("Error loading component:", component.errorString());
+    }
+}
+
+function generateManifest(manifest, library) {
     console.log("Generating manifest for " + manifest["canonicalName"]);
     var launch = manifest["launchFile"];
 
@@ -26,11 +53,6 @@ function generateManifest(manifest) {
     // TODO: Move this to the injector
     launch = launch.replace(/\//g, '\\');
 
-    // Some games need APC injection
-    var apc = "";
-    if (manifest["canonicalName"] == "oculus-quill")
-        apc = "/apc ";
-
     var parameters = "";
     if (manifest["launchParameters"] != "" && manifest["launchParameters"] != "None" && manifest["launchParameters"] != null)
         parameters = " " + manifest["launchParameters"];
@@ -48,7 +70,7 @@ function generateManifest(manifest) {
     var xhr = new XMLHttpRequest;
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
-            var regEx = /<title id=\"pageTitle\">(.*?) on Oculus Rift \| Oculus<\/title>/i;
+            var regEx = /<title id=\"pageTitle\">(.*?) Rift \| Oculus<\/title>/i;
             var title = manifest["canonicalName"];
 
             // If the request was successful we can parse the response
@@ -61,15 +83,15 @@ function generateManifest(manifest) {
 
             // Generate the entry and add it to the manifest
             var revive = {
-                "launch_type" : "binary",
-                "binary_path_windows" : "Revive/x64/ReviveInjector.exe",
-                "arguments" : apc + "/app " + manifest["canonicalName"] + " /library \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
+                "launch_type": "binary",
+                "binary_path_windows": "ReviveInjector.exe",
+                "arguments": "/app " + manifest["canonicalName"] + " /library " + library + " \"Software\\" + manifest["canonicalName"] + "\\" + launch + "\"" + parameters,
                 "action_manifest_path" : "Input/action_manifest.json",
-                "image_path" : Revive.BasePath + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image_large.png",
+                "image_path": Revive.BasePath + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_landscape_image_large.png",
 
-                "strings" : {
-                    "en_us" : {
-                        "name" : title
+                "strings": {
+                    "en_us": {
+                        "name": title
                     }
                 }
             }
@@ -81,28 +103,41 @@ function generateManifest(manifest) {
     xhr.send();
 }
 
-function verifyAppManifest(appKey) {
-    // Load the smaller mini file since we only want to verify whether it exists.
-    var manifestURL = Revive.LibraryURL + 'Manifests/' + appKey + '.json.mini';
-    var xhr = new XMLHttpRequest;
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == XMLHttpRequest.DONE) {
-            // Check if the application is still installed.
-            if (xhr.status != 200)
-            {
-                // If the manifest no longer exists, then the application has been removed.
-                if (Revive.isApplicationInstalled(appKey))
-                    Revive.removeManifest(appKey);
+function heartbeat(appId) {
+    if (Platform.AccessToken.length > 0) {
+        var xhr = new XMLHttpRequest;
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                console.log(xhr.responseText);
             }
         }
+        xhr.open('POST', "https://graph.oculus.com/user_heartbeat?access_token=" + Platform.AccessToken);
+        xhr.send({'current_status' : 'ONLINE', 'app_id_override' : appId, 'in_vr' : 'true'});
     }
-    xhr.open('GET', manifestURL);
-    xhr.send();
 }
 
-function loadManifest(manifestURL) {
+function verifyAppManifest(appKey) {
+    // See if the application manifest exists in any library.
+    for (var index in Revive.LibrariesURL) {
+        // Load the smaller mini file since we only want to verify whether it exists.
+        var manifestURL = Revive.LibrariesURL[index] + 'Manifests/' + appKey + '.json.mini';
+        var xhr = new XMLHttpRequest;
+        xhr.open('GET', manifestURL, false);
+        xhr.send();
+        if (xhr.status == 200) {
+            // Found a manifest, this app is still installed.
+            return;
+        }
+    }
+
+    // No manifest found in any library, remove it from our own manifest.
+    if (Revive.isApplicationInstalled(appKey))
+        Revive.removeManifest(appKey);
+}
+
+function loadManifest(manifestURL, library) {
     var xhr = new XMLHttpRequest;
-    xhr.onreadystatechange = function() {
+    xhr.onreadystatechange = function () {
         if (xhr.readyState == XMLHttpRequest.DONE) {
             var manifest = JSON.parse(xhr.responseText);
 
@@ -110,13 +145,25 @@ function loadManifest(manifestURL) {
             if (manifest["packageType"] == "APP" && !manifest["isCore"] && !manifest["thirdParty"]) {
                 console.log("Found application " + manifest["canonicalName"]);
                 var cover = Revive.BaseURL + "CoreData/Software/StoreAssets/" + manifest["canonicalName"] + "_assets/cover_square_image.jpg";
-                coverModel.append({coverURL: cover, appKey: manifest["canonicalName"]});
+                coverModel.append({coverURL: cover, libraryId: library, appKey: manifest["canonicalName"], appId: manifest["appId"]});
                 if (!Revive.isApplicationInstalled(manifest["canonicalName"]))
-                    generateManifest(manifest);
+                    generateManifest(manifest, library);
             }
         }
     }
     xhr.open('GET', manifestURL);
     xhr.send();
     console.log("Loading manifest: " + manifestURL);
+}
+
+function removeLibrary(library) {
+    // Iterate backwards so we can remove elements while iterating
+    var anyRemoved = false;
+    for (var i = coverModel.count - 1; i >= 0; i--) {
+        if (coverModel.get(i).libraryId == library) {
+            coverModel.remove(i);
+            anyRemoved = true;
+        }
+    }
+    return anyRemoved;
 }

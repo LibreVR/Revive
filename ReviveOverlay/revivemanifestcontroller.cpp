@@ -14,6 +14,9 @@
 #include <QSettings>
 #include <QUrl>
 
+#define MAX_KEY_LENGTH 255
+#define MAX_VALUE_NAME 16383
+
 CReviveManifestController *s_pSharedRevController = NULL;
 const char* CReviveManifestController::AppKey = "revive.dashboard.overlay";
 const char* CReviveManifestController::AppPrefix = "revive.app.";
@@ -25,6 +28,98 @@ CReviveManifestController *CReviveManifestController::SharedInstance()
 		s_pSharedRevController = new CReviveManifestController();
 	}
 	return s_pSharedRevController;
+}
+
+bool GetLibraryPath(PWCHAR path, DWORD length, PWCHAR guid)
+{
+	LONG error = ERROR_SUCCESS;
+
+	// Open the libraries key
+	WCHAR keyPath[MAX_PATH] = { L"Software\\Oculus VR, LLC\\Oculus\\Libraries\\" };
+	HKEY oculusKey;
+
+	// Open the library key
+	wcsncat(keyPath, guid, MAX_PATH);
+	error = RegOpenKeyExW(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &oculusKey);
+	if (error != ERROR_SUCCESS)
+	{
+		qDebug("Unable to open Library path key.");
+		return false;
+	}
+
+	// Get the volume path to this library
+	DWORD pathSize;
+	error = RegQueryValueExW(oculusKey, L"Path", NULL, NULL, NULL, &pathSize);
+	PWCHAR volumePath = (PWCHAR)malloc(pathSize);
+	error = RegQueryValueExW(oculusKey, L"Path", NULL, NULL, (PBYTE)volumePath, &pathSize);
+	RegCloseKey(oculusKey);
+	if (error != ERROR_SUCCESS)
+	{
+		free(volumePath);
+		qDebug("Unable to read Library path.");
+		return false;
+	}
+
+	// Resolve the volume path to a mount point
+	DWORD total;
+	WCHAR volume[50] = { L'\0' };
+	wcsncpy(volume, volumePath, 49);
+	GetVolumePathNamesForVolumeNameW(volume, path, length, &total);
+	wcsncat(path, volumePath + 49, MAX_PATH);
+	free(volumePath);
+
+	return true;
+}
+
+void QueryKey(HKEY hKey, QStringList &id_array, QStringList &path_array)
+{
+	TCHAR    achKey[MAX_KEY_LENGTH];   // buffer for subkey name
+	DWORD    cbName;                   // size of name string 
+	DWORD    cSubKeys = 0;               // number of subkeys 
+	DWORD i, retCode;
+
+	// Get the class name and the value count. 
+	retCode = RegQueryInfoKey(hKey, NULL, NULL, NULL, /* number of subkeys*/ &cSubKeys, NULL, NULL, NULL, NULL, NULL, NULL, NULL); 
+
+	// Enumerate the subkeys, until RegEnumKeyEx fails.
+	if (cSubKeys)
+	{
+		WCHAR path[MAX_PATH] = { 0 };
+		for (i = 0; i < cSubKeys; i++)
+		{
+			cbName = MAX_KEY_LENGTH;
+			retCode = RegEnumKeyEx(hKey, i,
+				achKey,
+				&cbName,
+				NULL,
+				NULL,
+				NULL,
+				NULL);
+			if (retCode == ERROR_SUCCESS && GetLibraryPath(path, MAX_PATH, achKey))
+			{
+				id_array << QString::fromWCharArray(achKey);
+				path_array << QString::fromWCharArray(path);
+			}
+		}
+	}
+}
+
+bool CReviveManifestController::GetLibraries(QStringList &id_array, QStringList &path_array)
+{
+	LONG error = ERROR_SUCCESS;
+	
+	// Open the libraries key
+	WCHAR keyPath[MAX_PATH] = { L"Software\\Oculus VR, LLC\\Oculus\\Libraries\\" };
+	HKEY oculusKey;
+	error = RegOpenKeyExW(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &oculusKey);
+	if (error != ERROR_SUCCESS)
+	{
+		qDebug("Unable to open Libraries key.");
+		return false;
+	}
+	QueryKey(oculusKey, id_array, path_array);
+	RegCloseKey(oculusKey);
+	return true;
 }
 
 bool CReviveManifestController::GetDefaultLibraryPath(wchar_t* path, uint32_t length)
@@ -162,16 +257,20 @@ bool CReviveManifestController::Init()
 	}
 
 	// Get the library path
-	if (GetDefaultLibraryPath(path, MAX_PATH))
+	QStringList path_array;
+	if (GetLibraries(m_lstLibraries, path_array))
 	{
-		QString library = QString::fromWCharArray(path);
-		if (!library.endsWith('\\'))
-			library.append('\\');
-		qDebug("Oculus Library found: %s", qUtf8Printable(library));
+		for (int i = 0; i < path_array.size(); ++i) {
+			QString library = path_array.at(i);
+			if (!library.endsWith('\\'))
+				library.append('\\');
+			qDebug("Oculus Library found: %s", qUtf8Printable(library));
 
-		m_bLibraryFound = true;
-		m_strLibraryURL = QUrl::fromLocalFile(library).url();
-		m_strLibraryPath = QDir::fromNativeSeparators(library);
+			m_bLibraryFound = true;
+			m_strLibraryURL = QUrl::fromLocalFile(library).url();
+			m_strLibraryPath = QDir::fromNativeSeparators(library);
+			m_lstLibrariesURL << m_strLibraryURL;
+		}
 		emit LibraryChanged();
 
 		if (vr::VRApplications() && !QCoreApplication::arguments().contains("-compositor"))
@@ -277,7 +376,7 @@ bool CReviveManifestController::LaunchInjector(const QString& args)
 {
 	// Launch the injector with the arguments
 	QProcess injector;
-	injector.setProgram(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe");
+	injector.setProgram(QCoreApplication::applicationDirPath() + "/ReviveInjector.exe");
 	if (m_OpenXREnabled)
 		injector.setNativeArguments("/xr " + args);
 	else
