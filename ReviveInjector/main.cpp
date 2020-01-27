@@ -267,7 +267,7 @@ int wmain(int argc, wchar_t *argv[]) {
 	if (!DetourCreateProcessWithDlls(NULL, path, NULL, NULL, FALSE, 0, NULL, (file && ext) ? workingDir : NULL, &si, &pi, dlls.size(), dlls.c_str(), NULL))
 	{
 		LOG("Failed to create process\n");
-		return pi.dwProcessId;
+		return -1;
 	}
 
 	LOG("Succesfully injected!\n");
@@ -281,5 +281,5 @@ int wmain(int argc, wchar_t *argv[]) {
 			LOG("Identified application as: %s\n", appKey.c_str());
 		vr::VR_Shutdown();
 	}
-	return pi.dwProcessId;
+	return 0;
 }
