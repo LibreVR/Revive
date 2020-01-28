@@ -139,7 +139,7 @@ bool WindowsServices::ReadCredentials(QString& user, QString& password)
 		return false;
 
 	user = QString::fromWCharArray(pcred->UserName);
-	password = QString::fromWCharArray((wchar_t*)pcred->CredentialBlob, pcred->CredentialBlobSize / sizeof(wchar_t));
+	password.setUnicode((QChar*)pcred->CredentialBlob, pcred->CredentialBlobSize / sizeof(QChar));
 	CredFree(pcred);
 	return true;
 }
@@ -150,8 +150,8 @@ bool WindowsServices::WriteCredentials(const QString& user, const QString& passw
 	CREDENTIALW cred = {0};
 	cred.Type = CRED_TYPE_GENERIC;
 	cred.TargetName = (LPWSTR)CredTargetName;
-	cred.CredentialBlobSize = (password.size() + 1) * sizeof(wchar_t);
-	cred.CredentialBlob = (LPBYTE)password.utf16();
+	cred.CredentialBlobSize = password.size() * sizeof(QChar);
+	cred.CredentialBlob = (LPBYTE)password.unicode();
 	cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
 	cred.UserName = (LPWSTR)user.utf16();
 	return !!CredWriteW(&cred, 0);
