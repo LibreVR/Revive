@@ -82,7 +82,6 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 	QByteArray packedAuth;
 	if (ReadCredentials(user, password))
 	{
-		// We're casting a bunch of const away here, but it should be safe
 		DWORD size = 0;
 		CredPackAuthenticationBufferW(0, (LPWSTR)user.data(), (LPWSTR)password.data(), nullptr, &size);
 		packedAuth.resize(size);
