@@ -13,7 +13,8 @@ enum ETrayInfo
 {
 	TrayInfo_OculusLibraryNotFound,
 	TrayInfo_AutoLaunchEnabled,
-	TrayInfo_AutoLaunchFailed
+	TrayInfo_AutoLaunchFailed,
+	TrayInfo_OculusNotLinked
 };
 
 class CTrayIconController : public QObject

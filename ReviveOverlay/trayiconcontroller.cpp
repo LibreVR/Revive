@@ -86,8 +86,13 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 		break;
 		case TrayInfo_OculusLibraryNotFound:
 			m_trayIcon->showMessage("Revive did not start correctly",
-								   "No Oculus Library was found, please install the Oculus Software from oculus.com/setup.",
+								   "No Oculus Library was found, click here to install the Oculus Software from oculus.com/setup.",
 								   QSystemTrayIcon::Warning);
+		break;
+		case TrayInfo_OculusNotLinked:
+			m_trayIcon->showMessage("Oculus account not linked",
+								   "Click here to log into your Oculus Account to enable online multiplayer with Revive.",
+								   QSystemTrayIcon::Information);
 		break;
 	}
 }
@@ -135,6 +140,9 @@ void CTrayIconController::messageClicked()
 		case TrayInfo_OculusLibraryNotFound:
 			QDesktopServices::openUrl(QUrl("https://oculus.com/setup"));
 		break;
+		case TrayInfo_OculusNotLinked:
+			login();
+		break;
 	}
 }
 
@@ -174,6 +182,7 @@ void CTrayIconController::acceptLogin(QString& username, QString& password, int&
 	{
 		COculusPlatform::SharedInstance()->Logout();
 		WindowsServices::DeleteCredentials();
+		return;
 	}
 
 	if (COculusPlatform::SharedInstance()->Login(username, password))

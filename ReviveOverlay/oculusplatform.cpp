@@ -1,5 +1,6 @@
 #include "oculusplatform.h"
 #include "windowsservices.h"
+#include "trayiconcontroller.h"
 
 const ovrID COculusPlatform::AppId = 572698886195608; // Oculus Runtime
 
@@ -46,6 +47,8 @@ bool COculusPlatform::Init(QString basePath)
 		QString email, password;
 		if (WindowsServices::ReadCredentials(email, password))
 			Login(email, password);
+		else
+			CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_OculusNotLinked);
 		return true;
 	}
 	return false;
