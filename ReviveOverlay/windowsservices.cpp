@@ -108,9 +108,11 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 		// Destroy old data before resizing the buffer
 		user.fill(0);
 		password.fill(0);
+
+		// QStrings are not null-terminated, but we need to reserve enough memory for the null terminator
 		user.reserve(userSize);
 		user.resize(userSize - 1);
-		user.reserve(userSize);
+		password.reserve(passwordSize);
 		password.resize(passwordSize - 1);
 
 		CredUnPackAuthenticationBufferW(0,
