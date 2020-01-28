@@ -8,6 +8,7 @@ class WindowsServices
 public:
 	static bool CreateShortcut(QString shortcutPath, QString exePath);
 	static bool CopyFiles(QStringList files, QString destination, QStringList newName);
+	static bool PromptCredentials(QString& user, QString& password);
 	static bool ReadCredentials(QString& user, QString& password);
 	static bool WriteCredentials(const QString& user, const QString& password);
 	static bool DeleteCredentials();

@@ -49,6 +49,10 @@ bool COculusPlatform::Init(QString basePath)
 			Login(email, password);
 		else
 			CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_OculusNotLinked);
+
+		// Overwrite sensitive credential data
+		email.fill(0);
+		password.fill(0);
 		return true;
 	}
 	return false;
@@ -77,6 +81,9 @@ void COculusPlatform::Update()
 
 bool COculusPlatform::Login(const QString& email, const QString& password)
 {
+	if (email.isEmpty() || password.isEmpty())
+		return false;
+
 	QByteArray emailUtf8 = email.toUtf8(), passwordUtf8 = password.toUtf8();
 	ovrOculusInitParams params;
 	params.sType = ovrPlatformStructureType_OculusInitParams;

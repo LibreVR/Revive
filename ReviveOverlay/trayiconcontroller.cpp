@@ -3,7 +3,6 @@
 #include "revivemanifestcontroller.h"
 #include "windowsservices.h"
 #include "oculusplatform.h"
-#include "logindialog.h"
 
 #include <qt_windows.h>
 #include <winsparkle.h>
@@ -33,7 +32,6 @@ CTrayIconController::CTrayIconController()
 	, m_trayIcon()
 	, m_trayIconMenu()
 	, m_LastInfo()
-	, m_loginDialog()
 {
 }
 
@@ -60,7 +58,6 @@ bool CTrayIconController::Init()
 
 	connect(m_trayIcon.get(), &QSystemTrayIcon::messageClicked, this, &CTrayIconController::messageClicked);
 	connect(m_trayIcon.get(), &QSystemTrayIcon::activated, this, &CTrayIconController::activated);
-	connect(&m_loginDialog, &LoginDialog::acceptLogin, this, &CTrayIconController::acceptLogin);
 
 	m_trayIcon->show();
 	return true;
@@ -168,23 +165,11 @@ void CTrayIconController::activated(QSystemTrayIcon::ActivationReason reason)
 void CTrayIconController::login()
 {
 	QString user, password;
-	if (WindowsServices::ReadCredentials(user, password))
-	{
-		m_loginDialog.setUsername(user);
-		m_loginDialog.setPassword(password);
-	}
-	m_loginDialog.show();
-}
 
-void CTrayIconController::acceptLogin(QString& username, QString& password, int& indexNumber)
-{
-	if (username.isEmpty() || password.isEmpty())
-	{
-		COculusPlatform::SharedInstance()->Logout();
-		WindowsServices::DeleteCredentials();
-		return;
-	}
+	if (WindowsServices::PromptCredentials(user, password))
+		COculusPlatform::SharedInstance()->Login(user, password);
 
-	if (COculusPlatform::SharedInstance()->Login(username, password))
-		WindowsServices::WriteCredentials(username, password);
+	// Overwrite sensitive credential data
+	user.fill(0);
+	password.fill(0);
 }

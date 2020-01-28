@@ -71,6 +71,67 @@ bool WindowsServices::CopyFiles(QStringList files, QString destination, QStringL
 
 const wchar_t* WindowsServices::CredTargetName = L"Revive/Oculus";
 
+bool WindowsServices::PromptCredentials(QString& user, QString& password)
+{
+	PVOID authBuffer = nullptr;
+	ULONG authSize = 0;
+	ULONG pkg = 0;
+	BOOL save = false;
+	uint32_t flags = CREDUIWIN_GENERIC | CREDUIWIN_CHECKBOX;
+
+	QByteArray packedAuth;
+	if (!user.isEmpty() && !password.isEmpty())
+	{
+		// We're casting a bunch of const away here, but it should be safe
+		DWORD size = 0;
+		CredPackAuthenticationBufferW(0, (LPWSTR)user.data(), (LPWSTR)password.data(), nullptr, &size);
+		packedAuth.resize(size);
+		CredPackAuthenticationBufferW(0, (LPWSTR)user.data(), (LPWSTR)password.data(), (PBYTE)packedAuth.data(), &size);
+	}
+
+	CREDUI_INFOW pcred;
+	pcred.cbSize = sizeof(CREDUI_INFOW);
+	pcred.hwndParent = NULL;
+	pcred.pszMessageText = L"Please log in to your Oculus account to enable online multiplayer.";
+	pcred.pszCaptionText = L"Revive Dashboard";
+	pcred.hbmBanner = nullptr;
+	DWORD result = CredUIPromptForWindowsCredentialsW(&pcred, 0, &pkg, packedAuth.constData(), packedAuth.size(), &authBuffer, &authSize, &save, flags);
+	packedAuth.fill(0);
+	if (result == NO_ERROR)
+	{
+		DWORD userSize = 0, passwordSize = 0;
+		CredUnPackAuthenticationBufferW(0,
+			authBuffer, authSize,
+			nullptr, &userSize,
+			nullptr, nullptr,
+			nullptr, &passwordSize);
+
+		// Destroy old data before resizing the buffer
+		user.fill(0);
+		password.fill(0);
+		user.reserve(userSize);
+		user.resize(userSize - 1);
+		user.reserve(userSize);
+		password.resize(passwordSize - 1);
+
+		CredUnPackAuthenticationBufferW(0,
+			authBuffer, authSize,
+			(LPWSTR)user.data(), &userSize,
+			nullptr, nullptr,
+			(LPWSTR)password.data(), &passwordSize);
+
+		if (save)
+			WriteCredentials(user, password);
+		else
+			DeleteCredentials();
+
+		SecureZeroMemory(authBuffer, authSize);
+		CoTaskMemFree(authBuffer);
+		return true;
+	}
+	return false;
+}
+
 bool WindowsServices::ReadCredentials(QString& user, QString& password)
 {
 	PCREDENTIALW pcred;

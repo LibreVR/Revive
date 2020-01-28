@@ -1,8 +1,6 @@
 #ifndef CTRAYICONCONTROLLER_H
 #define CTRAYICONCONTROLLER_H
 
-#include "logindialog.h"
-
 #include <QObject>
 #include <QMenu>
 #include <QSystemTrayIcon>
@@ -43,13 +41,11 @@ protected slots:
 	void messageClicked();
 	void activated(QSystemTrayIcon::ActivationReason reason);
 	void login();
-	void acceptLogin(QString& username, QString& password, int& indexNumber);
 
 private:
 	std::unique_ptr<QSystemTrayIcon> m_trayIcon;
 	QMenu m_trayIconMenu;
 	ETrayInfo m_LastInfo;
-	LoginDialog m_loginDialog;
 
 	QString openDialog();
 };
