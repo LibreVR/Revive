@@ -80,7 +80,7 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 	uint32_t flags = CREDUIWIN_GENERIC | CREDUIWIN_CHECKBOX;
 
 	QByteArray packedAuth;
-	if (!user.isEmpty() && !password.isEmpty())
+	if (ReadCredentials(user, password))
 	{
 		// We're casting a bunch of const away here, but it should be safe
 		DWORD size = 0;
