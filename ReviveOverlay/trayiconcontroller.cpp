@@ -165,7 +165,6 @@ void CTrayIconController::activated(QSystemTrayIcon::ActivationReason reason)
 void CTrayIconController::login()
 {
 	QString user, password;
-
 	if (WindowsServices::PromptCredentials(user, password))
 		COculusPlatform::SharedInstance()->Login(user, password);
 

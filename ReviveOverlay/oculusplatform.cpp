@@ -42,6 +42,8 @@ bool COculusPlatform::Init(QString basePath)
 		PopMessage = (ovr_PopMessage)m_PlatformLib.resolve("ovr_PopMessage");
 		GetType = (ovr_Message_GetType)m_PlatformLib.resolve("ovr_Message_GetType");
 		GetString = (ovr_Message_GetString)m_PlatformLib.resolve("ovr_Message_GetString");
+		GetPlatformInitialize = (ovr_Message_GetPlatformInitialize)m_PlatformLib.resolve("ovr_Message_GetPlatformInitialize");
+		GetResult = (ovr_PlatformInitialize_GetResult)m_PlatformLib.resolve("ovr_PlatformInitialize_GetResult");
 		FreeMessage = (ovr_FreeMessage)m_PlatformLib.resolve("ovr_FreeMessage");
 
 		QString email, password;
@@ -71,8 +73,32 @@ void COculusPlatform::Update()
 			TokenChanged();
 		break;
 		case ovrMessage_Platform_InitializeStandaloneOculus:
-			qDebug("Logged in to Oculus Platform");
-			GetAccessToken();
+			ovrPlatformInitializeResult result = ovrPlatformInitialize_Uninitialized;
+			ovrPlatformInitializeHandle handle = GetPlatformInitialize(message);
+			if (handle)
+				result = GetResult(handle);
+
+			if (result == ovrPlatformInitialize_Success)
+			{
+				qDebug("Logged into Oculus Platform");
+				GetAccessToken();
+			}
+			else if (result == ovrPlatformInitialize_Unknown ||
+				result == ovrPlatformInitialize_InvalidCredentials)
+			{
+				qDebug("Invalid Oculus Platform credentials");
+				QString user, password;
+				if (WindowsServices::PromptCredentials(user, password, true))
+					Login(user, password);
+
+				// Overwrite sensitive credential data
+				user.fill(0);
+				password.fill(0);
+			}
+			else
+			{
+				qDebug("Oculus Platform failed with %d", result);
+			}
 		break;
 		}
 		FreeMessage(message);

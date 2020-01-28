@@ -71,7 +71,7 @@ bool WindowsServices::CopyFiles(QStringList files, QString destination, QStringL
 
 const wchar_t* WindowsServices::CredTargetName = L"Revive/Oculus";
 
-bool WindowsServices::PromptCredentials(QString& user, QString& password)
+bool WindowsServices::PromptCredentials(QString& user, QString& password, bool failed)
 {
 	PVOID authBuffer = nullptr;
 	ULONG authSize = 0;
@@ -95,7 +95,7 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password)
 	pcred.pszMessageText = L"Please log in to your Oculus account to enable online multiplayer.";
 	pcred.pszCaptionText = L"Revive Dashboard";
 	pcred.hbmBanner = nullptr;
-	DWORD result = CredUIPromptForWindowsCredentialsW(&pcred, 0, &pkg, packedAuth.constData(), packedAuth.size(), &authBuffer, &authSize, &save, flags);
+	DWORD result = CredUIPromptForWindowsCredentialsW(&pcred, failed ? ERROR_LOGON_FAILURE : 0, &pkg, packedAuth.constData(), packedAuth.size(), &authBuffer, &authSize, &save, flags);
 	packedAuth.fill(0);
 	if (result == NO_ERROR)
 	{
