@@ -96,7 +96,7 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 	pcred.hbmBanner = nullptr;
 	DWORD result = CredUIPromptForWindowsCredentialsW(&pcred, failed ? ERROR_LOGON_FAILURE : 0, &pkg, packedAuth.constData(), packedAuth.size(), &authBuffer, &authSize, &save, flags);
 	packedAuth.fill(0);
-	if (result == NO_ERROR)
+	if (result == ERROR_SUCCESS)
 	{
 		DWORD userSize = 0, passwordSize = 0;
 		CredUnPackAuthenticationBufferW(0,
@@ -114,8 +114,8 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 		user.resize(userSize - 1);
 		password.reserve(passwordSize);
 		password.resize(passwordSize - 1);
-		Q_ASSERT(user.capacity() == userSize);
-		Q_ASSERT(password.capacity() == passwordSize);
+		Q_ASSERT(user.capacity() >= userSize);
+		Q_ASSERT(password.capacity() >= passwordSize);
 
 		CredUnPackAuthenticationBufferW(0,
 			authBuffer, authSize,
@@ -149,6 +149,13 @@ bool WindowsServices::ReadCredentials(QString& user, QString& password)
 
 bool WindowsServices::WriteCredentials(const QString& user, const QString& password)
 {
+	if (user.isEmpty() && password.isEmpty())
+	{
+		// Did you mean to do this?
+		DeleteCredentials();
+		return true;
+	}
+
 	// We're casting a bunch of const away here, but it should be safe
 	CREDENTIALW cred = {0};
 	cred.Type = CRED_TYPE_GENERIC;
