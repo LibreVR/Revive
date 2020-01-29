@@ -4,6 +4,7 @@
 #include "InputManager.h"
 
 #include <Windows.h>
+#include <assert.h>
 
 void SessionThreadFunc(ovrSession session)
 {
@@ -23,10 +24,9 @@ void SessionThreadFunc(ovrSession session)
 				vr::ETrackedDeviceClass deviceClass = vr::VRSystem()->GetTrackedDeviceClass(vrEvent.trackedDeviceIndex);
 				if (deviceClass == vr::TrackedDeviceClass_Controller)
 					session->Input->UpdateConnectedControllers();
-				else if (deviceClass == vr::TrackedDeviceClass_HMD)
-					session->Details->UpdateHmdDesc();
 				else if (deviceClass == vr::TrackedDeviceClass_TrackingReference)
 					session->Details->UpdateTrackerDesc();
+				assert(deviceClass != vr::TrackedDeviceClass_HMD);
 			}
 			break;
 			case vr::VREvent_TrackedDeviceRoleChanged:

@@ -60,36 +60,34 @@ bool SessionDetails::UseHack(Hack hack)
 
 void SessionDetails::UpdateHmdDesc()
 {
-	std::shared_ptr<ovrHmdDesc> desc = std::make_shared<ovrHmdDesc>();
-
-	desc->Type = ovrHmd_CV1;
+	HmdDesc.Type = ovrHmd_CV1;
 
 	// Get HMD name
-	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_ModelNumber_String, desc->ProductName, 64);
-	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_ManufacturerName_String, desc->Manufacturer, 64);
+	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_ModelNumber_String, HmdDesc.ProductName, 64);
+	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_ManufacturerName_String, HmdDesc.Manufacturer, 64);
 
 	// Some games require a fake product name
 	if (UseHack(SessionDetails::HACK_FAKE_PRODUCT_NAME))
-		strcpy_s(desc->ProductName, 64, "Oculus Rift");
+		strcpy_s(HmdDesc.ProductName, 64, "Oculus Rift");
 
 	// TODO: Get HID information
-	desc->VendorId = 0;
-	desc->ProductId = 0;
+	HmdDesc.VendorId = 0;
+	HmdDesc.ProductId = 0;
 
 	// Get serial number
-	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String, desc->SerialNumber, 24);
+	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String, HmdDesc.SerialNumber, 24);
 
 	// TODO: Get firmware version
-	desc->FirmwareMajor = 0;
-	desc->FirmwareMinor = 0;
+	HmdDesc.FirmwareMajor = 0;
+	HmdDesc.FirmwareMinor = 0;
 
 	// Get capabilities
-	desc->AvailableHmdCaps = 0;
-	desc->DefaultHmdCaps = 0;
-	desc->AvailableTrackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_Position;
+	HmdDesc.AvailableHmdCaps = 0;
+	HmdDesc.DefaultHmdCaps = 0;
+	HmdDesc.AvailableTrackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_Position;
 	if (!vr::VRSystem()->GetBoolTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_WillDriftInYaw_Bool))
-		desc->AvailableTrackingCaps |= ovrTrackingCap_MagYawCorrection;
-	desc->DefaultTrackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position;
+		HmdDesc.AvailableTrackingCaps |= ovrTrackingCap_MagYawCorrection;
+	HmdDesc.DefaultTrackingCaps = ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position;
 
 	// Get the render target size
 	ovrSizei size;
@@ -98,53 +96,47 @@ void SessionDetails::UpdateHmdDesc()
 	// Update the render descriptors
 	for (int eye = 0; eye < ovrEye_Count; eye++)
 	{
-		std::shared_ptr<ovrEyeRenderDesc> eyeDesc = std::make_shared<ovrEyeRenderDesc>();
+		ovrEyeRenderDesc& desc = RenderDesc[eye];
 
 		OVR::FovPort eyeFov;
 		vr::VRSystem()->GetProjectionRaw((vr::EVREye)eye, &eyeFov.LeftTan, &eyeFov.RightTan, &eyeFov.DownTan, &eyeFov.UpTan);
 		eyeFov.LeftTan *= -1.0f;
 		eyeFov.DownTan *= -1.0f;
 
-		eyeDesc->Eye = (ovrEyeType)eye;
-		eyeDesc->Fov = eyeFov;
+		desc.Eye = (ovrEyeType)eye;
+		desc.Fov = eyeFov;
 
-		eyeDesc->DistortedViewport = OVR::Recti(eye == ovrEye_Left ? 0 : size.w, 0, size.w, size.h);
-		eyeDesc->PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
+		desc.DistortedViewport = OVR::Recti(eye == ovrEye_Left ? 0 : size.w, 0, size.w, size.h);
+		desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(size.w * (MATH_FLOAT_PIOVER4 / eyeFov.GetHorizontalFovRadians()),
 			size.h * (MATH_FLOAT_PIOVER4 / eyeFov.GetVerticalFovRadians()));
 
 		if (UseHack(HACK_RECONSTRUCT_EYE_MATRIX))
 		{
 			float ipd = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_UserIpdMeters_Float);
-			eyeDesc->HmdToEyePose.Orientation = OVR::Quatf::Identity();
-			eyeDesc->HmdToEyePose.Position.x = (eye == ovrEye_Left) ? -ipd / 2.0f : ipd / 2.0f;
+			desc.HmdToEyePose.Orientation = OVR::Quatf::Identity();
+			desc.HmdToEyePose.Position.x = (eye == ovrEye_Left) ? -ipd / 2.0f : ipd / 2.0f;
 		}
 		else
 		{
 			REV::Matrix4f HmdToEyeMatrix = (REV::Matrix4f)vr::VRSystem()->GetEyeToHeadTransform((vr::EVREye)eye);
-			eyeDesc->HmdToEyePose = OVR::Posef(OVR::Quatf(HmdToEyeMatrix), HmdToEyeMatrix.GetTranslation());
+			desc.HmdToEyePose = OVR::Posef(OVR::Quatf(HmdToEyeMatrix), HmdToEyeMatrix.GetTranslation());
 		}
 
-		// Swap in the new copy
-		RenderDesc[eye].swap(eyeDesc);
-
 		// Update the HMD descriptor
-		desc->DefaultEyeFov[eye] = eyeFov;
-		desc->MaxEyeFov[eye] = eyeFov;
+		HmdDesc.DefaultEyeFov[eye] = eyeFov;
+		HmdDesc.MaxEyeFov[eye] = eyeFov;
 
 		if (eye != 0 && UseHack(HACK_SAME_FOV_FOR_BOTH_EYES)) {
-			desc->DefaultEyeFov[eye] = desc->DefaultEyeFov[0];
-			std::swap(desc->DefaultEyeFov[eye].LeftTan, desc->DefaultEyeFov[eye].RightTan);
-			desc->MaxEyeFov[eye] = desc->DefaultEyeFov[eye];
+			HmdDesc.DefaultEyeFov[eye] = HmdDesc.DefaultEyeFov[0];
+			std::swap(HmdDesc.DefaultEyeFov[eye].LeftTan, HmdDesc.DefaultEyeFov[eye].RightTan);
+			HmdDesc.MaxEyeFov[eye] = HmdDesc.DefaultEyeFov[eye];
 		}
 	}
 
 	// Get the display properties
-	desc->Resolution = size;
-	desc->Resolution.w *= 2; // Both eye ports
-	desc->DisplayRefreshRate = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
-
-	// Swap in the new copy
-	HmdDesc.swap(desc);
+	HmdDesc.Resolution = size;
+	HmdDesc.Resolution.w *= 2; // Both eye ports
+	HmdDesc.DisplayRefreshRate = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
 }
 
 void SessionDetails::UpdateTrackerDesc()
@@ -156,17 +148,17 @@ void SessionDetails::UpdateTrackerDesc()
 	if (!spoofSensors)
 		count = vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(vr::TrackedDeviceClass_TrackingReference, trackers, vr::k_unMaxTrackedDeviceCount);
 
-	for (uint32_t i = 0; i < count; i++)
+	// Only update trackers we haven't seen yet, this ensures we don't run into concurrency errors
+	for (uint32_t i = TrackerCount; i < count; i++)
 	{
-		// Fill the descriptor.
-		std::shared_ptr<ovrTrackerDesc> desc = std::make_shared<ovrTrackerDesc>();
+		ovrTrackerDesc& desc = TrackerDesc[i];
 
 		if (spoofSensors)
 		{
-			desc->FrustumHFovInRadians = OVR::DegreeToRad(100.0f);
-			desc->FrustumVFovInRadians = OVR::DegreeToRad(70.0f);
-			desc->FrustumNearZInMeters = 0.4f;
-			desc->FrustumFarZInMeters = 2.5f;
+			desc.FrustumHFovInRadians = OVR::DegreeToRad(100.0f);
+			desc.FrustumVFovInRadians = OVR::DegreeToRad(70.0f);
+			desc.FrustumNearZInMeters = 0.4f;
+			desc.FrustumFarZInMeters = 2.5f;
 		}
 		else 
 		{
@@ -177,16 +169,13 @@ void SessionDetails::UpdateTrackerDesc()
 			float right = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewRightDegrees_Float);
 			float top = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewTopDegrees_Float);
 			float bottom = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_FieldOfViewBottomDegrees_Float);
-			desc->FrustumHFovInRadians = (float)OVR::DegreeToRad(left + right);
-			desc->FrustumVFovInRadians = (float)OVR::DegreeToRad(top + bottom);
+			desc.FrustumHFovInRadians = (float)OVR::DegreeToRad(left + right);
+			desc.FrustumVFovInRadians = (float)OVR::DegreeToRad(top + bottom);
 
 			// Get the tracking frustum.
-			desc->FrustumNearZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
-			desc->FrustumFarZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
+			desc.FrustumNearZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMinimumMeters_Float);
+			desc.FrustumFarZInMeters = vr::VRSystem()->GetFloatTrackedDeviceProperty(index, vr::Prop_TrackingRangeMaximumMeters_Float);
 		}
-
-		// Swap in the new copy
-		TrackerDesc[i].swap(desc);
 	}
 
 	// Update the tracker count, this also serves as a memory barrier for the array

@@ -5,9 +5,9 @@
 #include "SessionDetails.h"
 #include "InputManager.h"
 #include "microprofile.h"
-#include "rcu_ptr.h"
 
 #include <Windows.h>
+#include <assert.h>
 #include <openvr.h>
 #include <vector>
 #include <algorithm>
@@ -390,7 +390,7 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.EyeFov.Viewport[i], colorChain, baseLayer->Flags);
 
 		// Get the descriptor for this eye
-		rcu_ptr<ovrEyeRenderDesc> desc = session->Details->RenderDesc[i];
+		const ovrEyeRenderDesc* desc = session->Details->GetRenderDesc((ovrEyeType)i);
 
 		// Shrink the bounds to account for the overlapping fov
 		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fov);
