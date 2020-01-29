@@ -30,9 +30,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Assert.h">
-      <Filter>Header Files\LibRevive</Filter>
-    </ClInclude>
     <ClInclude Include="CompositorBase.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
@@ -92,6 +89,9 @@
     </ClInclude>
     <ClInclude Include="rcu_ptr.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
