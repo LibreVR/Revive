@@ -1021,16 +1021,15 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	if (session->FrameIndex == 0)
 		return ovr_GetTimeInSeconds();
 
-	float fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
-	double predictAhead = vr::VRCompositor()->GetFrameTimeRemaining() + fVsyncToPhotons;
+	double predictAhead = vr::VRCompositor()->GetFrameTimeRemaining() + session->Details->GetVsyncToPhotons();
 	if (session)
 	{
 		// Some applications ask for frames ahead of the current frame
-		const ovrHmdDesc* pHmd = session->Details->GetHmdDesc();
+		float refreshRate = session->Details->GetRefreshRate();
 		if (frameIndex > 0)
-			predictAhead += double(frameIndex - session->FrameIndex) / pHmd->DisplayRefreshRate;
+			predictAhead += double(frameIndex - session->FrameIndex) / refreshRate;
 		else
-			predictAhead += 1.0 / pHmd->DisplayRefreshRate;
+			predictAhead += 1.0 / refreshRate;
 	}
 	return ovr_GetTimeInSeconds() + predictAhead;
 }

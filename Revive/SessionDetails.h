@@ -70,6 +70,9 @@ public:
 		return index < vr::k_unMaxTrackedDeviceCount ? &TrackerDesc[index] : nullptr;
 	}
 
+	float GetRefreshRate() const { return HmdDesc.DisplayRefreshRate; }
+	float GetVsyncToPhotons() const { return fVsyncToPhotons; }
+
 private:
 	struct HackInfo
 	{
@@ -82,6 +85,7 @@ private:
 	static HackInfo m_known_hacks[];
 	std::map<Hack, HackInfo> m_hacks;
 
+	float fVsyncToPhotons;
 	ovrHmdDesc HmdDesc;
 	ovrEyeRenderDesc RenderDesc[ovrEye_Count];
 	ovrTrackerDesc TrackerDesc[vr::k_unMaxTrackedDeviceCount];

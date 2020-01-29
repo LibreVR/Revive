@@ -17,9 +17,11 @@ SessionDetails::HackInfo SessionDetails::m_known_hacks[] = {
 };
 
 SessionDetails::SessionDetails()
-	: HmdDesc()
+	: TrackerCount(0)
+	, fVsyncToPhotons(0.0f)
+	, HmdDesc()
+	, RenderDesc()
 	, TrackerDesc()
-	, TrackerCount(0)
 {
 	char filepath[MAX_PATH];
 	GetModuleFileNameA(NULL, filepath, MAX_PATH);
@@ -137,6 +139,7 @@ void SessionDetails::UpdateHmdDesc()
 	HmdDesc.Resolution = size;
 	HmdDesc.Resolution.w *= 2; // Both eye ports
 	HmdDesc.DisplayRefreshRate = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
+	fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
 }
 
 void SessionDetails::UpdateTrackerDesc()
