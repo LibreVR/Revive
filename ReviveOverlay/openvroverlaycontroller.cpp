@@ -132,6 +132,7 @@ bool COpenVROverlayController::Init()
 	// native (platform) window.
 	m_pWindow = new QQuickWindowScaled(m_pRenderControl);
 	m_pWindow->setMinimumSize(QSize(1280, 720));
+	m_pWindow->setTitle("Revive Dashboard");
 
 	// Load the thumbnail
 	QImage image(":/revive_overlay.png");
