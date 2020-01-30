@@ -1,5 +1,5 @@
 #include "OVR_CAPI_Vk.h"
-#include "Assert.h"
+#include "Common.h"
 #include "Session.h"
 #include "CompositorVk.h"
 #include "TextureVk.h"

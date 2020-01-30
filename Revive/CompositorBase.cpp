@@ -5,9 +5,9 @@
 #include "SessionDetails.h"
 #include "InputManager.h"
 #include "microprofile.h"
-#include "rcu_ptr.h"
 
 #include <Windows.h>
+#include <assert.h>
 #include <openvr.h>
 #include <vector>
 #include <algorithm>
@@ -61,16 +61,21 @@ CompositorBase::CompositorBase()
 	, m_MirrorTexture(nullptr)
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
-	, m_FrameMutex()
-	, m_FrameEvent()
+	, m_FrameEvents()
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
 	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
-	m_FrameEvent[0] = CreateEvent(nullptr, true, true, nullptr);
+
+	// Create a ring buffer of events
+	for (int i = 0; i < MAX_QUEUE_AHEAD; i++)
+		m_FrameEvents[i] = CreateEvent(nullptr, true, i == 0, nullptr);
 }
 
 CompositorBase::~CompositorBase()
 {
+	for (int i = 0; i < MAX_QUEUE_AHEAD; i++)
+		CloseHandle(m_FrameEvents[i]);
+
 	if (m_MirrorTexture)
 		delete m_MirrorTexture;
 }
@@ -121,22 +126,9 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
-	// Find the event for the last frame
-	void* handle = nullptr;
-	{
-		std::unique_lock<std::mutex> lk(m_FrameMutex);
-		handle = m_FrameEvent[frameIndex - 1];
-
-		// If the last frame hasn't started yet, create a new event object for it
-		if (!handle)
-		{
-			handle = CreateEvent(nullptr, true, false, nullptr);
-			m_FrameEvent[frameIndex - 1] = handle;
-		}
-	}
-
 	// Wait on the last frame completion with a 500ms timeout
-	bool timeout = WaitForSingleObject(handle, 500) != WAIT_OBJECT_0;
+	assert(frameIndex - session->FrameIndex < MAX_QUEUE_AHEAD);
+	bool timeout = WaitForSingleObject(m_FrameEvents[(frameIndex - 1) % MAX_QUEUE_AHEAD], 500) != WAIT_OBJECT_0;
 
 	// Wait for the actual frame start
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
@@ -151,34 +143,8 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
 
-	{
-		std::unique_lock<std::mutex> lk(m_FrameMutex);
-
-		// Find the event from the last frame
-		auto it = m_FrameEvent.find(frameIndex - 1);
-
-		if (m_FrameEvent[frameIndex])
-		{
-			// If this frame already has an event, close the last one if it exists
-			if (it != m_FrameEvent.end())
-			{
-				CloseHandle(it->second);
-				m_FrameEvent.erase(it);
-			}
-		}
-		else if (it != m_FrameEvent.end())
-		{
-			// Reset the event from the last frame and reuse it for the next frame
-			ResetEvent(it->second);
-			m_FrameEvent[frameIndex] = it->second;
-			m_FrameEvent.erase(it);
-		}
-		else
-		{
-			// Create a new event for this frame
-			m_FrameEvent[frameIndex] = CreateEvent(nullptr, true, false, nullptr);
-		}
-	}
+	// Reset the event in the frame ring buffer
+	ResetEvent(m_FrameEvents[frameIndex % MAX_QUEUE_AHEAD]);
 
 	session->FrameIndex = frameIndex;
 	vr::VRCompositor()->SubmitExplicitTimingData();
@@ -289,14 +255,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	}
 
 	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
-	{
-		std::unique_lock<std::mutex> lk(m_FrameMutex);
-		void* handle = m_FrameEvent[frameIndex];
-		if (handle)
-			SetEvent(handle);
-		else
-			m_FrameEvent[frameIndex] = CreateEvent(nullptr, true, true, nullptr);
-	}
+	SetEvent(m_FrameEvents[frameIndex % MAX_QUEUE_AHEAD]);
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
@@ -431,7 +390,7 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.EyeFov.Viewport[i], colorChain, baseLayer->Flags);
 
 		// Get the descriptor for this eye
-		rcu_ptr<ovrEyeRenderDesc> desc = session->Details->RenderDesc[i];
+		const ovrEyeRenderDesc* desc = session->Details->GetRenderDesc((ovrEyeType)i);
 
 		// Shrink the bounds to account for the overlapping fov
 		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fov);

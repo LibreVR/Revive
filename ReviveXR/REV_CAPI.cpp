@@ -381,6 +381,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 			break;
 		}
 		}
+		event = XR_TYPE(EVENT_DATA_BUFFER);
 	}
 
 	sessionStatus->IsVisible = status.IsVisible;
@@ -902,7 +903,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 		uint32_t numViews;
 		XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
 		XrViewState viewState = XR_TYPE(VIEW_STATE);
-		XrView views[ovrEye_Count] = XR_TYPE(VIEW);
+		XrView views[ovrEye_Count] = { XR_TYPE(VIEW), XR_TYPE(VIEW) };
 		locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 		locateInfo.displayTime = session->CurrentFrame.predictedDisplayTime;
 		locateInfo.space = session->ViewSpace;
@@ -1030,7 +1031,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					break;
 
 				XrCompositionLayerProjectionView& view = viewData.back().Views[i];
-				view = XR_TYPE(VIEW_CONFIGURATION_VIEW);
+				view = XR_TYPE(COMPOSITION_LAYER_PROJECTION_VIEW);
 
 				if (type == ovrLayerType_EyeMatrix)
 				{

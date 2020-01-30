@@ -9,6 +9,7 @@
 typedef uint64_t ovrID;
 typedef uint64_t ovrRequest;
 typedef struct ovrMessage *ovrMessageHandle;
+typedef struct ovrPlatformInitialize *ovrPlatformInitializeHandle;
 
 typedef enum ovrMessageType_ {
 	ovrMessage_User_GetAccessToken = 0x06A85ABE,
@@ -28,11 +29,26 @@ typedef struct {
 	const char *uriPrefixOverride;
 } ovrOculusInitParams;
 
+typedef enum ovrPlatformInitializeResult_ {
+	ovrPlatformInitialize_Success = 0,
+	ovrPlatformInitialize_Uninitialized = -1,
+	ovrPlatformInitialize_PreLoaded = -2,
+	ovrPlatformInitialize_FileInvalid = -3,
+	ovrPlatformInitialize_SignatureInvalid = -4,
+	ovrPlatformInitialize_UnableToVerify = -5,
+	ovrPlatformInitialize_VersionMismatch = -6,
+	ovrPlatformInitialize_Unknown = -7,
+	ovrPlatformInitialize_InvalidCredentials = -8,
+	ovrPlatformInitialize_NotEntitled = -9,
+} ovrPlatformInitializeResult;
+
 typedef ovrRequest (*ovr_Platform_InitializeStandaloneOculus)(const ovrOculusInitParams *params);
 typedef ovrRequest (*ovr_User_GetAccessToken)();
 typedef ovrMessageHandle (*ovr_PopMessage)();
 typedef ovrMessageType (*ovr_Message_GetType)(const ovrMessageHandle obj);
 typedef const char* (*ovr_Message_GetString)(const ovrMessageHandle obj);
+typedef ovrPlatformInitializeHandle(*ovr_Message_GetPlatformInitialize)(const ovrMessageHandle obj);
+typedef ovrPlatformInitializeResult(*ovr_PlatformInitialize_GetResult)(const ovrPlatformInitializeHandle obj);
 typedef void (*ovr_FreeMessage)(ovrMessageHandle);
 
 class COculusPlatform : public QObject
@@ -74,6 +90,8 @@ private:
 	ovr_PopMessage PopMessage;
 	ovr_Message_GetType GetType;
 	ovr_Message_GetString GetString;
+	ovr_Message_GetPlatformInitialize GetPlatformInitialize;
+	ovr_PlatformInitialize_GetResult GetResult;
 	ovr_FreeMessage FreeMessage;
 };
 

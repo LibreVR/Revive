@@ -1,5 +1,5 @@
 #include "OVR_CAPI_D3D.h"
-#include "Assert.h"
+#include "Common.h"
 #include "Session.h"
 #include "CompositorD3D.h"
 #include "TextureD3D.h"

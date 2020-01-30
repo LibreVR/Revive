@@ -2,12 +2,11 @@
 #include "OVR_Version.h"
 #include "REV_Math.h"
 
-#include "Assert.h"
+#include "Common.h"
 #include "Session.h"
 #include "CompositorBase.h"
 #include "SessionDetails.h"
 #include "InputManager.h"
-#include "rcu_ptr.h"
 
 #include <dxgi1_2.h>
 #include <openvr.h>
@@ -133,8 +132,7 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 		return desc;
 	}
 
-	rcu_ptr<ovrHmdDesc> pDesc = session->Details->HmdDesc;
-	return *pDesc;
+	return *session->Details->GetHmdDesc();
 }
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
@@ -154,7 +152,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsig
 	if (!session)
 		return ovrTrackerDesc();
 
-	rcu_ptr<ovrTrackerDesc> pDesc = session->Details->TrackerDesc[trackerDescIndex];
+	const ovrTrackerDesc* pDesc = session->Details->GetTrackerDesc(trackerDescIndex);
 
 	if (!pDesc)
 		return ovrTrackerDesc();
@@ -766,7 +764,7 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	REV_TRACE(ovr_GetFovTextureSize);
 
 	// Get the descriptor for this eye
-	rcu_ptr<ovrEyeRenderDesc> desc = session->Details->RenderDesc[eye];
+	const ovrEyeRenderDesc* desc = session->Details->GetRenderDesc(eye);
 	ovrSizei size = desc->DistortedViewport.Size;
 
 	// Grow the recommended size to account for the overlapping fov
@@ -783,11 +781,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	REV_TRACE(ovr_GetRenderDesc);
 
 	// Make a copy so we can adjust a few parameters
-	ovrEyeRenderDesc desc;
-	{
-		rcu_ptr<ovrEyeRenderDesc> pDesc = session->Details->RenderDesc[eyeType];
-		desc = *pDesc;
-	}
+	ovrEyeRenderDesc desc = *session->Details->GetRenderDesc(eyeType);
 
 	// Adjust the descriptor for the supplied field-of-view
 	desc.Fov = fov;
@@ -1027,16 +1021,15 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	if (session->FrameIndex == 0)
 		return ovr_GetTimeInSeconds();
 
-	float fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
-	double predictAhead = vr::VRCompositor()->GetFrameTimeRemaining() + fVsyncToPhotons;
+	double predictAhead = vr::VRCompositor()->GetFrameTimeRemaining() + session->Details->GetVsyncToPhotons();
 	if (session)
 	{
 		// Some applications ask for frames ahead of the current frame
-		rcu_ptr<ovrHmdDesc> pHmd = session->Details->HmdDesc;
+		float refreshRate = session->Details->GetRefreshRate();
 		if (frameIndex > 0)
-			predictAhead += double(frameIndex - session->FrameIndex) / pHmd->DisplayRefreshRate;
+			predictAhead += double(frameIndex - session->FrameIndex) / refreshRate;
 		else
-			predictAhead += 1.0 / pHmd->DisplayRefreshRate;
+			predictAhead += 1.0 / refreshRate;
 	}
 	return ovr_GetTimeInSeconds() + predictAhead;
 }

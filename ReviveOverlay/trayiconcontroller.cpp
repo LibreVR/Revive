@@ -3,7 +3,6 @@
 #include "revivemanifestcontroller.h"
 #include "windowsservices.h"
 #include "oculusplatform.h"
-#include "logindialog.h"
 
 #include <qt_windows.h>
 #include <winsparkle.h>
@@ -33,7 +32,6 @@ CTrayIconController::CTrayIconController()
 	, m_trayIcon()
 	, m_trayIconMenu()
 	, m_LastInfo()
-	, m_loginDialog()
 {
 }
 
@@ -60,7 +58,6 @@ bool CTrayIconController::Init()
 
 	connect(m_trayIcon.get(), &QSystemTrayIcon::messageClicked, this, &CTrayIconController::messageClicked);
 	connect(m_trayIcon.get(), &QSystemTrayIcon::activated, this, &CTrayIconController::activated);
-	connect(&m_loginDialog, &LoginDialog::acceptLogin, this, &CTrayIconController::acceptLogin);
 
 	m_trayIcon->show();
 	return true;
@@ -86,17 +83,21 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 		break;
 		case TrayInfo_OculusLibraryNotFound:
 			m_trayIcon->showMessage("Revive did not start correctly",
-								   "No Oculus Library was found, please install the Oculus Software from oculus.com/setup.",
+								   "No Oculus Library was found, click here to install the Oculus Software from oculus.com/setup.",
 								   QSystemTrayIcon::Warning);
+		break;
+		case TrayInfo_OculusNotLinked:
+			m_trayIcon->showMessage("Oculus account not linked",
+								   "Click here to log into your Oculus Account to enable online multiplayer with Revive.",
+								   QSystemTrayIcon::Information);
 		break;
 	}
 }
 
 void CTrayIconController::quit()
 {
-	if (!m_trayIcon)
-		return;
-	m_trayIcon->setVisible(false);
+	win_sparkle_cleanup();
+	m_trayIcon.reset();
 	QCoreApplication::quit();
 }
 
@@ -129,11 +130,17 @@ void CTrayIconController::messageClicked()
 {
 	switch (m_LastInfo)
 	{
+		case TrayInfo_AutoLaunchEnabled:
+			show();
+		break;
 		case TrayInfo_AutoLaunchFailed:
 			QDesktopServices::openUrl(QUrl("https://github.com/LibreVR/Revive/issues"));
 		break;
 		case TrayInfo_OculusLibraryNotFound:
 			QDesktopServices::openUrl(QUrl("https://oculus.com/setup"));
+		break;
+		case TrayInfo_OculusNotLinked:
+			login();
 		break;
 	}
 }
@@ -160,22 +167,10 @@ void CTrayIconController::activated(QSystemTrayIcon::ActivationReason reason)
 void CTrayIconController::login()
 {
 	QString user, password;
-	if (WindowsServices::ReadCredentials(user, password))
-	{
-		m_loginDialog.setUsername(user);
-		m_loginDialog.setPassword(password);
-	}
-	m_loginDialog.show();
-}
+	if (WindowsServices::PromptCredentials(user, password))
+		COculusPlatform::SharedInstance()->Login(user, password);
 
-void CTrayIconController::acceptLogin(QString& username, QString& password, int& indexNumber)
-{
-	if (username.isEmpty() || password.isEmpty())
-	{
-		COculusPlatform::SharedInstance()->Logout();
-		WindowsServices::DeleteCredentials();
-	}
-
-	if (COculusPlatform::SharedInstance()->Login(username, password))
-		WindowsServices::WriteCredentials(username, password);
+	// Overwrite sensitive credential data
+	user.fill(0);
+	password.fill(0);
 }

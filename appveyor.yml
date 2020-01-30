@@ -42,6 +42,8 @@ after_build:
       cd c:\projects\revive\release
       copy ..\Externals\WinSparkle\x64\Release\WinSparkle.dll .
       copy ..\ReviveOverlay\SupportAssets . -Filter "*.jpg" -Recurse -Container
+      copy c:\OpenSSL-Win64\bin\libeay32.dll .
+      copy c:\OpenSSL-Win64\bin\ssleay32.dll .
   # gather built Revive files
   - cmd: |
       cd c:\projects\Revive\Release
