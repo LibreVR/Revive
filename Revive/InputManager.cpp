@@ -271,8 +271,8 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		// Apply a 45-degree offset to better fit the Oculus Touch pose
 		vr::TrackedDevicePose_t pose;
 
-		vr::HmdMatrix34_t offset;
-
+		vr::HmdMatrix34_t offset = REV::Matrix4f(OVR::Matrix4f::RotationX(-MATH_FLOAT_PIOVER4));
+		/*
 		char *driverName = new char;
 		vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String, driverName, 12, NULL);
 		if (std::strcmp(driverName, "holographic") == 0)
@@ -280,6 +280,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 			offset = REV::Matrix4f(OVR::Matrix4f::RotationX(-MATH_FLOAT_PIOVER4)*OVR::Matrix4f::Translation(0, -0.025, 0.04));
 		}
 		else vr::HmdMatrix34_t offset = REV::Matrix4f(OVR::Matrix4f::RotationX(-MATH_FLOAT_PIOVER4));
+		*/
 		vr::VRSystem()->ApplyTransform(&pose, &handPose.pose, &offset);
 
 		// Velocity data from SteamVR Input is in the wrong tracking space
