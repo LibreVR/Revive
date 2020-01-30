@@ -132,6 +132,7 @@ bool COpenVROverlayController::Init()
 	// native (platform) window.
 	m_pWindow = new QQuickWindowScaled(m_pRenderControl);
 	m_pWindow->setMinimumSize(QSize(1280, 720));
+	m_pWindow->setTitle("Revive Dashboard");
 
 	// Load the thumbnail
 	QImage image(":/revive_overlay.png");
@@ -240,7 +241,7 @@ void COpenVROverlayController::OnSceneChanged()
 	QOpenGLFramebufferObject::bindDefault();
 
 	m_pOpenGLContext->functions()->glFlush();
-	GLuint unTexture = m_pFbo->texture();
+	uintptr_t unTexture = m_pFbo->texture();
 	if( vr::VROverlay() && unTexture != 0 )
 	{
 		vr::Texture_t texture = {(void*)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto };
@@ -543,7 +544,7 @@ vr::HmdError COpenVROverlayController::GetLastHmdError()
 //-----------------------------------------------------------------------------
 void COpenVROverlayController::UpdateThumbnail()
 {
-	GLuint unThumbnail = m_pThumbnailTexture->textureId();
+	uintptr_t unThumbnail = m_pThumbnailTexture->textureId();
 	if( vr::VROverlay() && unThumbnail != 0 )
 	{
 		vr::Texture_t thumbnail = {(void*)unThumbnail, vr::TextureType_OpenGL, vr::ColorSpace_Auto };

@@ -15,7 +15,8 @@
 #include <QUrl>
 
 #define MAX_KEY_LENGTH 255
-#define MAX_VALUE_NAME 16383						  		
+#define MAX_VALUE_NAME 16383
+
 CReviveManifestController *s_pSharedRevController = NULL;
 const char* CReviveManifestController::AppKey = "revive.dashboard.overlay";
 const char* CReviveManifestController::AppPrefix = "revive.app.";
@@ -29,7 +30,7 @@ CReviveManifestController *CReviveManifestController::SharedInstance()
 	return s_pSharedRevController;
 }
 
-bool GetVolumePath(PWCHAR path, DWORD length, PWCHAR subKey)
+bool GetLibraryPath(PWCHAR path, DWORD length, PWCHAR guid)
 {
 	LONG error = ERROR_SUCCESS;
 
@@ -38,7 +39,7 @@ bool GetVolumePath(PWCHAR path, DWORD length, PWCHAR subKey)
 	HKEY oculusKey;
 
 	// Open the library key
-	wcsncat(keyPath, subKey, MAX_PATH);
+	wcsncat(keyPath, guid, MAX_PATH);
 	error = RegOpenKeyExW(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &oculusKey);
 	if (error != ERROR_SUCCESS)
 	{
@@ -70,7 +71,7 @@ bool GetVolumePath(PWCHAR path, DWORD length, PWCHAR subKey)
 	return true;
 }
 
-void QueryKey(HKEY hKey, QStringList &path_array)
+void QueryKey(HKEY hKey, QStringList &id_array, QStringList &path_array)
 {
 	TCHAR    achKey[MAX_KEY_LENGTH];   // buffer for subkey name
 	DWORD    cbName;                   // size of name string 
@@ -83,7 +84,6 @@ void QueryKey(HKEY hKey, QStringList &path_array)
 	// Enumerate the subkeys, until RegEnumKeyEx fails.
 	if (cSubKeys)
 	{
-		WCHAR* paths = new WCHAR[cSubKeys];
 		WCHAR path[MAX_PATH] = { 0 };
 		for (i = 0; i < cSubKeys; i++)
 		{
@@ -95,19 +95,17 @@ void QueryKey(HKEY hKey, QStringList &path_array)
 				NULL,
 				NULL,
 				NULL);
-			if (retCode == ERROR_SUCCESS)
+			if (retCode == ERROR_SUCCESS && GetLibraryPath(path, MAX_PATH, achKey))
 			{
-				wprintf(TEXT("(%d) %s\n"), i + 1, achKey);
-				GetVolumePath(path, MAX_PATH, achKey);
+				id_array << QString::fromWCharArray(achKey);
 				path_array << QString::fromWCharArray(path);
 			}
 		}
 	}
 }
 
-bool CReviveManifestController::GetLibrariesPath(QStringList &path_array, uint32_t length)
+bool CReviveManifestController::GetLibraries(QStringList &id_array, QStringList &path_array)
 {
-	
 	LONG error = ERROR_SUCCESS;
 	
 	// Open the libraries key
@@ -119,7 +117,7 @@ bool CReviveManifestController::GetLibrariesPath(QStringList &path_array, uint32
 		qDebug("Unable to open Libraries key.");
 		return false;
 	}
-	QueryKey(oculusKey, path_array);
+	QueryKey(oculusKey, id_array, path_array);
 	RegCloseKey(oculusKey);
 	return true;
 }
@@ -260,19 +258,16 @@ bool CReviveManifestController::Init()
 
 	// Get the library path
 	QStringList path_array;
-	if (GetLibrariesPath(path_array, MAX_PATH))
+	if (GetLibraries(m_lstLibraries, path_array))
 	{
-		if (path_array.size() > 1)
-			qDebug("Multiple libraries found");
 		for (int i = 0; i < path_array.size(); ++i) {
-			QString library = path_array.at(i);//QString::fromWCharArray(path);
+			QString library = path_array.at(i);
 			if (!library.endsWith('\\'))
 				library.append('\\');
 			qDebug("Oculus Library found: %s", qUtf8Printable(library));
 
 			m_bLibraryFound = true;
 			m_strLibraryURL = QUrl::fromLocalFile(library).url();
-			//used ?
 			m_strLibraryPath = QDir::fromNativeSeparators(library);
 			m_lstLibrariesURL << m_strLibraryURL;
 		}
@@ -381,7 +376,7 @@ bool CReviveManifestController::LaunchInjector(const QString& args)
 {
 	// Launch the injector with the arguments
 	QProcess injector;
-	injector.setProgram(QCoreApplication::applicationDirPath() + "/Revive/ReviveInjector_x64.exe");
+	injector.setProgram(QCoreApplication::applicationDirPath() + "/ReviveInjector.exe");
 	if (m_OpenXREnabled)
 		injector.setNativeArguments("/xr " + args);
 	else

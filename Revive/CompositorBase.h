@@ -5,8 +5,8 @@
 
 #include <openvr.h>
 #include <vector>
-#include <mutex>
-#include <condition_variable>
+
+#define MAX_QUEUE_AHEAD 5
 
 class CompositorBase
 {
@@ -28,7 +28,7 @@ public:
 
 	ovrResult WaitToBeginFrame(ovrSession session, long long frameIndex);
 	ovrResult BeginFrame(ovrSession session, long long frameIndex);
-	ovrResult EndFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
+	ovrResult EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
 	static vr::VRTextureBounds_t FovPortToTextureBounds(ovrFovPort eyeFov, ovrFovPort fov);
@@ -51,7 +51,5 @@ private:
 	std::vector<vr::VROverlayHandle_t> m_ActiveOverlays;
 
 	// Call order enforcement
-	std::mutex m_FrameMutex;
-	std::unique_lock<std::mutex> m_FrameLock;
-	std::condition_variable m_FrameEvent;
+	void* m_FrameEvents[MAX_QUEUE_AHEAD];
 };

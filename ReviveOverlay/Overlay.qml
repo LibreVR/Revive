@@ -9,10 +9,10 @@ Rectangle {
     width: 1920
     height: 1080
     color: "#183755"
-	id: mainWindow
+    id: mainWindow
 
-	Component.onCompleted: Oculus.createObjects();
-   
+    Component.onCompleted: Oculus.createObjects();
+
     FolderListModel {
         id: assetsModel
         folder: Revive.BaseURL + 'CoreData/Manifests/'
@@ -25,10 +25,10 @@ Rectangle {
             {
                 var key = assetsModel.get(i, "fileName");
                 console.log("Found assets bundle " + key);
-				var appManifest = key.substring(0, key.indexOf("_assets"));
-				//verify only assets files
-				if (appManifest.length !=0)
-					Oculus.verifyAppManifest(appManifest);
+                var appManifest = key.substring(0, key.indexOf("_assets"));
+                //verify only assets files
+                if (appManifest.length !=0)
+                    Oculus.verifyAppManifest(appManifest);
             }
         }
     }
@@ -54,19 +54,27 @@ Rectangle {
 
         ListElement {
             coverURL: "SupportAssets/oculus-worlds/cover_square_image.jpg"
+            libraryId: "0"
             appKey: "oculus-worlds"
+            appId: "1112064135564993"
         }
         ListElement {
             coverURL: "SupportAssets/oculus-dreamdeck-nux/cover_square_image.jpg"
+            libraryId: "0"
             appKey: "oculus-dreamdeck-nux"
+            appId: "919445174798085"
         }
         ListElement {
             coverURL: "SupportAssets/oculus-touch-tutorial/cover_square_image.jpg"
+            libraryId: "0"
             appKey: "oculus-touch-tutorial"
+            appId: "1184903171584429"
         }
         ListElement {
             coverURL: "SupportAssets/oculus-first-contact/cover_square_image.jpg"
+            libraryId: "0"
             appKey: "oculus-first-contact"
+            appId: "1217155751659625"
         }
     }
 
@@ -85,6 +93,8 @@ Rectangle {
         source: OpenVR.URL + "content/panorama/sounds/focus_change.wav"
         volume: 0.6
     }
+
+    property var currentAppId: "0"
 
     Component {
         id: coverDelegate
@@ -115,12 +125,23 @@ Rectangle {
                     onPressed: {
                         if (Revive.launchApplication(appKey)) {
                             activateSound.play();
+                            currentAppId = appId;
+                            heartbeat.start();
                         } else {
                             failSound.play();
                         }
                     }
                 }
             }
+        }
+    }
+
+    Timer {
+        id: heartbeat
+        interval: 10000
+        repeat: true
+        onTriggered: {
+            Oculus.heartbeat(currentAppId)
         }
     }
 
@@ -246,4 +267,15 @@ Rectangle {
         }
     }
 
+    Image {
+        id: link
+        x: 10
+        y: 10
+        width: 50
+        height: 50
+        opacity: 0.5
+        source: "no-link.svg"
+        fillMode: Image.PreserveAspectFit
+        visible: !Platform.connected
+    }
 }

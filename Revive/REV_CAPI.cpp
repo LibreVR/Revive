@@ -2,17 +2,16 @@
 #include "OVR_Version.h"
 #include "REV_Math.h"
 
-#include "Assert.h"
+#include "Common.h"
 #include "Session.h"
 #include "CompositorBase.h"
 #include "SessionDetails.h"
 #include "InputManager.h"
-#include "rcu_ptr.h"
 
 #include <dxgi1_2.h>
 #include <openvr.h>
 #include <Windows.h>
-#include <MinHook.h>
+#include <Detours.h>
 #include <list>
 #include <algorithm>
 #include <thread>
@@ -60,6 +59,9 @@ ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
+	if (g_InitError == vr::VRInitError_None)
+		return ovrSuccess;
+
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetForceEnable(true);
 	MicroProfileSetEnableAllGroups(true);
@@ -68,15 +70,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 	g_MinorVersion = params->RequestedMinorVersion;
 
-	MH_QueueDisableHook(LoadLibraryW);
-	MH_QueueDisableHook(OpenEventW);
-	MH_ApplyQueued();
-
 	vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
-
-	MH_QueueEnableHook(LoadLibraryW);
-	MH_QueueEnableHook(OpenEventW);
-	MH_ApplyQueued();
 
 	uint32_t timeout = params->ConnectionTimeoutMS;
 	if (timeout == 0)
@@ -101,6 +95,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 	g_Sessions.clear();
 	vr::VR_Shutdown();
 	MicroProfileShutdown();
+	g_InitError = vr::VRInitError_Init_NotInitialized;
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
@@ -137,8 +132,7 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 		return desc;
 	}
 
-	rcu_ptr<ovrHmdDesc> pDesc = session->Details->HmdDesc;
-	return *pDesc;
+	return *session->Details->GetHmdDesc();
 }
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
@@ -158,7 +152,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsig
 	if (!session)
 		return ovrTrackerDesc();
 
-	rcu_ptr<ovrTrackerDesc> pDesc = session->Details->TrackerDesc[trackerDescIndex];
+	const ovrTrackerDesc* pDesc = session->Details->GetTrackerDesc(trackerDescIndex);
 
 	if (!pDesc)
 		return ovrTrackerDesc();
@@ -257,6 +251,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	sessionStatus->ShouldRecenter = status.ShouldRecenter;
 	sessionStatus->HasInputFocus = status.HasInputFocus;
 	sessionStatus->OverlayPresent = status.OverlayPresent;
+	sessionStatus->DepthRequested = false;
 
 	static const bool do_sleep = session->Details->UseHack(SessionDetails::HACK_SLEEP_IN_SESSION_STATUS);
 	if (do_sleep)
@@ -769,7 +764,7 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	REV_TRACE(ovr_GetFovTextureSize);
 
 	// Get the descriptor for this eye
-	rcu_ptr<ovrEyeRenderDesc> desc = session->Details->RenderDesc[eye];
+	const ovrEyeRenderDesc* desc = session->Details->GetRenderDesc(eye);
 	ovrSizei size = desc->DistortedViewport.Size;
 
 	// Grow the recommended size to account for the overlapping fov
@@ -786,11 +781,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	REV_TRACE(ovr_GetRenderDesc);
 
 	// Make a copy so we can adjust a few parameters
-	ovrEyeRenderDesc desc;
-	{
-		rcu_ptr<ovrEyeRenderDesc> pDesc = session->Details->RenderDesc[eyeType];
-		desc = *pDesc;
-	}
+	ovrEyeRenderDesc desc = *session->Details->GetRenderDesc(eyeType);
 
 	// Adjust the descriptor for the supplied field-of-view
 	desc.Fov = fov;
@@ -850,7 +841,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		return ovrError_InvalidSession;
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	return session->Compositor->EndFrame(session, layerPtrList, layerCount);
+	return session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
@@ -866,12 +857,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 		frameIndex = session->FrameIndex;
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	ovrResult result = session->Compositor->EndFrame(session, layerPtrList, layerCount);
-
-	// Begin the next frame
-	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
-		session->Compositor->WaitToBeginFrame(session, frameIndex + 1);
-	session->Compositor->BeginFrame(session, frameIndex + 1);
+	ovrResult result = session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
+	if (OVR_SUCCESS(result))
+	{
+		// Begin the next frame
+		if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
+			session->Compositor->WaitToBeginFrame(session, frameIndex + 1);
+		session->Compositor->BeginFrame(session, frameIndex + 1);
+	}
 
 	return result;
 }
@@ -1028,16 +1021,15 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	if (session->FrameIndex == 0)
 		return ovr_GetTimeInSeconds();
 
-	float fVsyncToPhotons = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SecondsFromVsyncToPhotons_Float);
-	double predictAhead = vr::VRCompositor()->GetFrameTimeRemaining() + fVsyncToPhotons;
+	double predictAhead = vr::VRCompositor()->GetFrameTimeRemaining() + session->Details->GetVsyncToPhotons();
 	if (session)
 	{
 		// Some applications ask for frames ahead of the current frame
-		rcu_ptr<ovrHmdDesc> pHmd = session->Details->HmdDesc;
+		float refreshRate = session->Details->GetRefreshRate();
 		if (frameIndex > 0)
-			predictAhead += double(frameIndex - session->FrameIndex) / pHmd->DisplayRefreshRate;
+			predictAhead += double(frameIndex - session->FrameIndex) / refreshRate;
 		else
-			predictAhead += 1.0 / pHmd->DisplayRefreshRate;
+			predictAhead += 1.0 / refreshRate;
 	}
 	return ovr_GetTimeInSeconds() + predictAhead;
 }

@@ -5,8 +5,9 @@
 #include "SessionDetails.h"
 #include "InputManager.h"
 #include "microprofile.h"
-#include "rcu_ptr.h"
 
+#include <Windows.h>
+#include <assert.h>
 #include <openvr.h>
 #include <vector>
 #include <algorithm>
@@ -60,16 +61,21 @@ CompositorBase::CompositorBase()
 	, m_MirrorTexture(nullptr)
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
-	, m_FrameMutex()
-	, m_FrameLock(m_FrameMutex, std::defer_lock)
-	, m_FrameEvent()
+	, m_FrameEvents()
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
 	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
+
+	// Create a ring buffer of events
+	for (int i = 0; i < MAX_QUEUE_AHEAD; i++)
+		m_FrameEvents[i] = CreateEvent(nullptr, true, i == 0, nullptr);
 }
 
 CompositorBase::~CompositorBase()
 {
+	for (int i = 0; i < MAX_QUEUE_AHEAD; i++)
+		CloseHandle(m_FrameEvents[i]);
+
 	if (m_MirrorTexture)
 		delete m_MirrorTexture;
 }
@@ -120,30 +126,25 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
-	// Protect the wait order with a mutex
-	// This also waits for any frame still in-flight
-	std::unique_lock<std::mutex> lk(m_FrameMutex);
+	// Wait on the last frame completion with a 500ms timeout
+	assert(frameIndex - session->FrameIndex < MAX_QUEUE_AHEAD);
+	bool timeout = WaitForSingleObject(m_FrameEvents[(frameIndex - 1) % MAX_QUEUE_AHEAD], 500) != WAIT_OBJECT_0;
 
-	// Wait for any extra frames beyond just the next frame
-	for (int i = 1; i < frameIndex - session->FrameIndex; i++)
-		m_FrameEvent.wait_for(lk, std::chrono::duration<double>(vr::VRCompositor()->GetFrameTimeRemaining()));
-
-	// Wait for the actual next frame
+	// Wait for the actual frame start
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
 	{
 		MICROPROFILE_SCOPE(WaitGetPoses);
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 	}
-	return ovrSuccess;
+	return timeout ? ovrError_Timeout : ovrSuccess;
 }
 
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
 
-	// Lock the frame mutex only if we don't already own it
-	if (!m_FrameLock)
-		m_FrameLock.lock();
+	// Reset the event in the frame ring buffer
+	ResetEvent(m_FrameEvents[frameIndex % MAX_QUEUE_AHEAD]);
 
 	session->FrameIndex = frameIndex;
 	vr::VRCompositor()->SubmitExplicitTimingData();
@@ -160,11 +161,11 @@ const ovrLayer_Union& CompositorBase::ToUnion(const ovrLayerHeader* layerPtr)
 		return *(ovrLayer_Union*)layerPtr;
 }
 
-ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	MICROPROFILE_SCOPE(EndFrame);
 
-	if (layerCount == 0 || !layerPtrList)
+	if (layerCount == 0 || !layerPtrList || frameIndex < session->FrameIndex)
 		return ovrError_InvalidParameter;
 
 	const ovrLayerHeader* baseLayer = nullptr;
@@ -254,9 +255,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, ovrLayerHeader const * co
 	}
 
 	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
-	m_FrameEvent.notify_all();
-	if (m_FrameLock)
-		m_FrameLock.unlock();
+	SetEvent(m_FrameEvents[frameIndex % MAX_QUEUE_AHEAD]);
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
@@ -391,7 +390,7 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.EyeFov.Viewport[i], colorChain, baseLayer->Flags);
 
 		// Get the descriptor for this eye
-		rcu_ptr<ovrEyeRenderDesc> desc = session->Details->RenderDesc[i];
+		const ovrEyeRenderDesc* desc = session->Details->GetRenderDesc((ovrEyeType)i);
 
 		// Shrink the bounds to account for the overlapping fov
 		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fov);

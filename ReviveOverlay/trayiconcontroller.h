@@ -4,13 +4,15 @@
 #include <QObject>
 #include <QMenu>
 #include <QSystemTrayIcon>
+#include <QString>
 #include <memory>
 
 enum ETrayInfo
 {
 	TrayInfo_OculusLibraryNotFound,
 	TrayInfo_AutoLaunchEnabled,
-	TrayInfo_AutoLaunchFailed
+	TrayInfo_AutoLaunchFailed,
+	TrayInfo_OculusNotLinked
 };
 
 class CTrayIconController : public QObject
@@ -38,6 +40,7 @@ protected slots:
 	void showHelp();
 	void messageClicked();
 	void activated(QSystemTrayIcon::ActivationReason reason);
+	void login();
 
 private:
 	std::unique_ptr<QSystemTrayIcon> m_trayIcon;

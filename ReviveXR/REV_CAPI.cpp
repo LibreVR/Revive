@@ -16,12 +16,12 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 #include <Windows.h>
-#include <MinHook.h>
 #include <list>
 #include <vector>
 #include <algorithm>
 #include <thread>
 #include <wrl/client.h>
+#include <detours.h>
 
 #define REV_DEFAULT_TIMEOUT 10000
 
@@ -52,16 +52,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	CHK_XR(xrEnumerateInstanceExtensionProperties(nullptr, (uint32_t)properties.size(), &size, properties.data()));
 	g_Extensions.InitExtensionList(properties);
 
-	MH_QueueDisableHook(LoadLibraryW);
-	MH_QueueDisableHook(OpenEventW);
-	MH_ApplyQueued();
-
 	XrInstanceCreateInfo createInfo = g_Extensions.GetInstanceCreateInfo();
 	CHK_XR(xrCreateInstance(&createInfo, &g_Instance));
-
-	MH_QueueEnableHook(LoadLibraryW);
-	MH_QueueEnableHook(OpenEventW);
-	MH_ApplyQueued();
 
 	return ovrSuccess;
 }
@@ -186,6 +178,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 	// Initialize session members
 	ovrSession session = &g_Sessions.back();
+	session->NextFrame = 0;
+	session->HookedFunction = std::make_pair(nullptr, nullptr);
 	session->Instance = g_Instance;
 	session->TrackingSpace = XR_REFERENCE_SPACE_TYPE_LOCAL;
 	session->SystemProperties = XR_TYPE(SYSTEM_PROPERTIES);
@@ -295,8 +289,13 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
-	if (session->HookedFunction)
-		MH_RemoveHook(session->HookedFunction);
+	if (session->HookedFunction.first)
+	{
+		DetourTransactionBegin();
+		DetourUpdateThread(GetCurrentThread());
+		DetourDetach(session->HookedFunction.first, session->HookedFunction.second);
+		DetourTransactionCommit();
+	}
 
 	// Delete the session from the list of sessions
 	g_Sessions.erase(std::find_if(g_Sessions.begin(), g_Sessions.end(), [session](ovrHmdStruct const& o) { return &o == session; }));
@@ -382,6 +381,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 			break;
 		}
 		}
+		event = XR_TYPE(EVENT_DATA_BUFFER);
 	}
 
 	sessionStatus->IsVisible = status.IsVisible;
@@ -903,7 +903,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 		uint32_t numViews;
 		XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
 		XrViewState viewState = XR_TYPE(VIEW_STATE);
-		XrView views[ovrEye_Count] = XR_TYPE(VIEW);
+		XrView views[ovrEye_Count] = { XR_TYPE(VIEW), XR_TYPE(VIEW) };
 		locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 		locateInfo.displayTime = session->CurrentFrame.predictedDisplayTime;
 		locateInfo.space = session->ViewSpace;
@@ -1031,7 +1031,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					break;
 
 				XrCompositionLayerProjectionView& view = viewData.back().Views[i];
-				view = XR_TYPE(VIEW_CONFIGURATION_VIEW);
+				view = XR_TYPE(COMPOSITION_LAYER_PROJECTION_VIEW);
 
 				if (type == ovrLayerType_EyeMatrix)
 				{

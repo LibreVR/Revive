@@ -13,5 +13,7 @@
         <file>SupportAssets/oculus-worlds/cover_landscape_image.jpg</file>
         <file>SupportAssets/oculus-worlds/cover_square_image.jpg</file>
         <file>revive_white.ico</file>
+        <file>Library.qml</file>
+        <file>no-link.svg</file>
     </qresource>
 </RCC>

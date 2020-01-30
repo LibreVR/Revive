@@ -4,43 +4,17 @@
 #include <d3d11.h>
 #include <Shlwapi.h>
 #include <string>
+#include <Detours.h>
 
-#include "MinHook.h"
 #include "OVR_CAPI.h"
 #include "OVR_Version.h"
 
-typedef FARPROC(WINAPI* _GetProcAddress)(HMODULE hModule, LPCSTR lpProcName);
-typedef HMODULE(WINAPI* _LoadLibrary)(LPCWSTR lpFileName);
-typedef HANDLE(WINAPI* _OpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName);
-
-_GetProcAddress TrueGetProcAddress;
-_LoadLibrary TrueLoadLibrary;
-_OpenEvent TrueOpenEvent;
+static HMODULE(WINAPI* TrueLoadLibrary)(LPCWSTR lpFileName) = LoadLibraryW;
+static HANDLE(WINAPI* TrueOpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName) = OpenEventW;
 
 HMODULE revModule;
 WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_Unsupported()
-{
-	return ovrError_Unsupported;
-}
-
-FARPROC WINAPI HookGetProcAddress(HMODULE hModule, LPCSTR lpProcName)
-{
-	FARPROC proc = TrueGetProcAddress(hModule, lpProcName);
-
-	if (hModule == revModule && !proc)
-	{
-		OutputDebugStringA("Unsupported: ");
-		OutputDebugStringA(lpProcName);
-		OutputDebugStringA("\n");
-		return (FARPROC)ovr_Unsupported;
-	}
-
-	return proc;
-}
 
 HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
 {
@@ -66,6 +40,9 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
+	if (DetourIsHelperProcess())
+		return TRUE;
+
 #if defined(_WIN64)
 	const char* pBitDepth = "64";
 #else
@@ -77,16 +54,21 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 			revModule = (HMODULE)hModule;
 			GetModuleFileName(revModule, revModuleName, MAX_PATH);
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
-			MH_Initialize();
-#if 0
-			MH_CreateHook(GetProcAddress, HookGetProcAddress, (PVOID*)&TrueGetProcAddress);
-#endif
-			MH_CreateHook(LoadLibraryW, HookLoadLibrary, (PVOID*)&TrueLoadLibrary);
-			MH_CreateHook(OpenEventW, HookOpenEvent, (PVOID*)&TrueOpenEvent);
-			MH_EnableHook(MH_ALL_HOOKS);
+
+			DetourRestoreAfterWith();
+
+			DetourTransactionBegin();
+			DetourUpdateThread(GetCurrentThread());
+			DetourAttach(&(PVOID&)TrueLoadLibrary, HookLoadLibrary);
+			DetourAttach(&(PVOID&)TrueOpenEvent, HookOpenEvent);
+			DetourTransactionCommit();
 			break;
 		case DLL_PROCESS_DETACH:
-			MH_Uninitialize();
+			DetourTransactionBegin();
+			DetourUpdateThread(GetCurrentThread());
+			DetourDetach(&(PVOID&)TrueLoadLibrary, HookLoadLibrary);
+			DetourDetach(&(PVOID&)TrueOpenEvent, HookOpenEvent);
+			DetourTransactionCommit();
 			break;
 		default:
 			break;

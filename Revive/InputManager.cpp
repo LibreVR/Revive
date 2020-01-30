@@ -4,7 +4,6 @@
 #include "CompositorBase.h"
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
-#include "rcu_ptr.h"
 
 #include <openvr.h>
 #include <algorithm>
@@ -53,11 +52,14 @@ InputManager::~InputManager()
 
 void InputManager::LoadActionManifest()
 {
-#ifdef DEBUG
-	vr::EVRInputError err = vr::VRInput()->SetActionManifestPath("F:\\Source\\Revive\\Revive\\Input\\action_manifest.json");
-	if (err == vr::VRInputError_None)
-		return;
-#else
+	const char* devManifest = getenv("REVIVE_ACTION_MANIFEST");
+	if (devManifest)
+	{
+		vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(devManifest);
+		if (err == vr::VRInputError_None)
+			return;
+	}
+
 	std::vector<char> pathVec;
 	DWORD pathSize = MAX_PATH;
 	LSTATUS status = RegGetValueA(HKEY_LOCAL_MACHINE, "Software\\Revive", "", RRF_RT_REG_SZ | RRF_SUBKEY_WOW6432KEY, NULL, NULL, &pathSize);
@@ -75,8 +77,8 @@ void InputManager::LoadActionManifest()
 				return;
 		}
 	}
-#endif
 	vr::VROverlay()->ShowMessageOverlay("Failed to load action manifest, input will not function correctly!", "Action manifest error", "Continue");
+
 }
 
 void InputManager::UpdateConnectedControllers()

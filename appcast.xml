@@ -5,29 +5,30 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 1.9.2</title>
+			<title>Version 2.0.0</title>
 			<description>
 			<![CDATA[
 <h3>Changes</h3>
 
 <ul>
-    <li>Updated Oculus SDK to version 1.43</li>
-    <li>SteamVR Input should now be configurable before running an app</li>
+    <li>The Revive Dashboard can now link with your Oculus account to improve online multiplayer support</li>
+    <li>The Revive Dashboard now supports scanning multiple Oculus libraries as contributed by @croger42</li>
+    <li>The Revive Injector has been rewritten to improve reliability using Microsoft Detours</li>
+    <li>Improved and simplified frame blocking behavior in Revive to improve performance</li>
 </ul>
 
 <h3>Bug fixes</h3>
 
 <ul>
-    <li>Revive: Fixed Stormland crashing on launch and rendering differently in each eye (#1379)</li>
-    <ul><li>Special thanks to @CircuitLord  and @fholger</li></ul>
-    <li>ReviveXR: Numerous fixes thanks to @qlyoung</li>
+    <li>Revive: Fixed Walking Dead: Saints and Sinners crashing on launch (#1451)</li>
+    <ul><li>As contributed by @fholger</li></ul>
 </ul>
 			]]>
 			</description>
-			<pubDate>11 December 2019</pubDate>
+			<pubDate>30 January 2020</pubDate>
 			<enclosure url="https://github.com/LibreVR/Revive/releases/download/1.9.2/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="1.9.2.0"
+					   sparkle:version="2.0.0.13"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>

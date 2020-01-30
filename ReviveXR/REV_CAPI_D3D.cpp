@@ -4,14 +4,24 @@
 #include "SwapChain.h"
 #include "InputManager.h"
 #include "XR_Math.h"
-#include "MinHook.h"
 
+#include <detours.h>
 #include <vector>
 #include <algorithm>
 
 #define XR_USE_GRAPHICS_API_D3D11
 #include <d3d11.h>
 #include <openxr/openxr_platform.h>
+
+LONG DetourVirtual(PVOID pInstance, UINT methodPos, PVOID *ppPointer, PVOID pDetour)
+{
+	if (!pInstance || !ppPointer)
+		return ERROR_INVALID_PARAMETER;
+
+	LPVOID* pVMT = *((LPVOID**)pInstance);
+	*ppPointer = pVMT[methodPos];
+	return DetourAttach(ppPointer, pDetour);
+}
 
 typedef HRESULT(WINAPI* _CreateRenderTargetView)(
 	ID3D11Device						*pDevice,
@@ -124,8 +134,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 		// Install a hook on CreateRenderTargetView so we can ensure NULL descriptors keep working on typeless formats
 		// This fixes Echo Arena.
-		MH_CreateHookVirtualEx(pDevice, 9, HookCreateRenderTargetView, (PVOID*)&TrueCreateRenderTargetView, &session->HookedFunction);
-		MH_EnableHook(session->HookedFunction);
+		DetourTransactionBegin();
+		DetourUpdateThread(GetCurrentThread());
+		DetourVirtual(pDevice, 9, (PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
+		DetourTransactionCommit();
+		session->HookedFunction = std::make_pair((PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
 
 		XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
 		graphicsBinding.device = pDevice;

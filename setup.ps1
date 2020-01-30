@@ -6,8 +6,8 @@ git submodule update --init --recursive
 mkdir -Force tmp_deps | Out-Null
 
 # Retrieve Oculus SDK
-Write-Host "Downloading Oculus SDK v1.41.0..."
-curl -o tmp_deps\oculus_sdk.html https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.41.0/
+Write-Host "Downloading Oculus SDK v1.43.0..."
+curl -o tmp_deps\oculus_sdk.html https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.43.0/
 $url = select-string -Path 'tmp_deps\oculus_sdk.html' -Pattern 'https:\/\/securecdn\.oculus\.com\/binaries\/download\/\?id=[0-9]+&amp;access_token=[0-9A-Za-z%]+' -AllMatches | % {$_.Matches} | % {$_.Value}
 Invoke-WebRequest -Uri $url -OutFile 'tmp_deps\oculus_sdk.zip'
 Write-Host "Extracting Oculus SDK into Externals/..."
@@ -56,7 +56,7 @@ Write-Host "MSBuild found"
 # Build OpenXR libraries
 Write-Host "Building OpenXR library..."
 cd Externals/openxr
-cmake -G "Visual Studio 15 2017 Win64" .
+cmake -G "Visual Studio 15 2017 Win64" -D "DYNAMIC_LOADER=1" -D "BUILD_TESTS=0" .
 ((Get-Content -path 'src\loader\openxr_loader-1_0.vcxproj' -Raw) -replace 'MultiThreadedDLL', 'MultiThreaded') | Set-Content -Path 'src\loader\openxr_loader-1_0.vcxproj'
 & $msBuild ALL_BUILD.vcxproj /t:Build /p:Configuration=Release
 cd ..\..
