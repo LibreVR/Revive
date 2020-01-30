@@ -114,8 +114,8 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 		user.resize(userSize - 1);
 		password.reserve(passwordSize);
 		password.resize(passwordSize - 1);
-		Q_ASSERT(user.capacity() >= userSize);
-		Q_ASSERT(password.capacity() >= passwordSize);
+		Q_ASSERT((DWORD)user.capacity() >= userSize);
+		Q_ASSERT((DWORD)password.capacity() >= passwordSize);
 
 		CredUnPackAuthenticationBufferW(0,
 			authBuffer, authSize,

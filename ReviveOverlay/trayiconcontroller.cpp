@@ -96,9 +96,8 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 
 void CTrayIconController::quit()
 {
-	if (!m_trayIcon)
-		return;
-	m_trayIcon->setVisible(false);
+	win_sparkle_cleanup();
+	m_trayIcon.reset();
 	QCoreApplication::quit();
 }
 

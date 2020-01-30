@@ -102,6 +102,6 @@ int main(int argc, char *argv[])
 	win_sparkle_set_can_shutdown_callback([]() { return (BOOL)!QApplication::startingUp(); });
 	win_sparkle_set_shutdown_request_callback([]() { CTrayIconController::SharedInstance()->quit(); });
 	win_sparkle_init();
-	QObject::connect(&a, &QApplication::aboutToQuit, win_sparkle_cleanup);
+	QObject::connect(&a, &QApplication::aboutToQuit, CTrayIconController::SharedInstance(), &CTrayIconController::quit);
 	return a.exec();
 }
