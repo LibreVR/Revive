@@ -102,9 +102,6 @@
     <ClCompile Include="qquickwindowscaled.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="logindialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="oculusplatform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -167,9 +164,6 @@
       <Filter>Resource Files</Filter>
     </CustomBuild>
     <CustomBuild Include="qquickwindowscaled.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="logindialog.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="oculusplatform.h">

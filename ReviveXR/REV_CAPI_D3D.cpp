@@ -15,15 +15,12 @@
 
 LONG DetourVirtual(PVOID pInstance, UINT methodPos, PVOID *ppPointer, PVOID pDetour)
 {
+	if (!pInstance || !ppPointer)
+		return ERROR_INVALID_PARAMETER;
+
 	LPVOID* pVMT = *((LPVOID**)pInstance);
-	LPVOID  pTarget = pVMT[methodPos];
-
-	if (ppPointer != NULL)
-	{
-		*ppPointer = pTarget;
-	}
-
-	return DetourAttach(&pTarget, pDetour);
+	*ppPointer = pVMT[methodPos];
+	return DetourAttach(ppPointer, pDetour);
 }
 
 typedef HRESULT(WINAPI* _CreateRenderTargetView)(

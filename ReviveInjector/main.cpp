@@ -175,7 +175,7 @@ private:
 
 int wmain(int argc, wchar_t *argv[]) {
 	if (argc < 2) {
-		printf("usage: ReviveInjector.exe [/handle] <process path/process handle>\n");
+		printf("usage: ReviveInjector.exe <executable path>\n");
 		return -1;
 	}
 

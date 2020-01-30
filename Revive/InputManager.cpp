@@ -4,7 +4,6 @@
 #include "CompositorBase.h"
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
-#include "rcu_ptr.h"
 
 #include <openvr.h>
 #include <algorithm>

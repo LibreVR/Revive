@@ -5,8 +5,8 @@
 
 #include <openvr.h>
 #include <vector>
-#include <mutex>
-#include <map>
+
+#define MAX_QUEUE_AHEAD 5
 
 class CompositorBase
 {
@@ -51,6 +51,5 @@ private:
 	std::vector<vr::VROverlayHandle_t> m_ActiveOverlays;
 
 	// Call order enforcement
-	std::mutex m_FrameMutex;
-	std::map<long long, void*> m_FrameEvent;
+	void* m_FrameEvents[MAX_QUEUE_AHEAD];
 };

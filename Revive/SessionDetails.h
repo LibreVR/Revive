@@ -5,7 +5,6 @@
 #include <openvr.h>
 
 #include "OVR_CAPI.h"
-#include "rcu_ptr.h"
 
 class SessionDetails
 {
@@ -61,13 +60,18 @@ public:
 
 	bool UseHack(Hack hack);
 
-	rcu_ptr<ovrHmdDesc> HmdDesc;
-	rcu_ptr<ovrEyeRenderDesc> RenderDesc[ovrEye_Count];
-	void UpdateHmdDesc();
-
 	std::atomic_uint32_t TrackerCount;
-	rcu_ptr<ovrTrackerDesc> TrackerDesc[vr::k_unMaxTrackedDeviceCount];
 	void UpdateTrackerDesc();
+
+	const ovrHmdDesc* GetHmdDesc() const { return &HmdDesc; }
+	const ovrEyeRenderDesc* GetRenderDesc(ovrEyeType eye) const { return &RenderDesc[eye]; }
+	const ovrTrackerDesc* GetTrackerDesc(unsigned int index) const
+	{
+		return index < vr::k_unMaxTrackedDeviceCount ? &TrackerDesc[index] : nullptr;
+	}
+
+	float GetRefreshRate() const { return HmdDesc.DisplayRefreshRate; }
+	float GetVsyncToPhotons() const { return fVsyncToPhotons; }
 
 private:
 	struct HackInfo
@@ -80,4 +84,11 @@ private:
 
 	static HackInfo m_known_hacks[];
 	std::map<Hack, HackInfo> m_hacks;
+
+	float fVsyncToPhotons;
+	ovrHmdDesc HmdDesc;
+	ovrEyeRenderDesc RenderDesc[ovrEye_Count];
+	ovrTrackerDesc TrackerDesc[vr::k_unMaxTrackedDeviceCount];
+
+	void UpdateHmdDesc();
 };
