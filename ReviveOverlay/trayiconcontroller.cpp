@@ -130,6 +130,9 @@ void CTrayIconController::messageClicked()
 {
 	switch (m_LastInfo)
 	{
+		case TrayInfo_AutoLaunchEnabled:
+			show();
+		break;
 		case TrayInfo_AutoLaunchFailed:
 			QDesktopServices::openUrl(QUrl("https://github.com/LibreVR/Revive/issues"));
 		break;

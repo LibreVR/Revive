@@ -2,6 +2,8 @@
 #include "windowsservices.h"
 #include "trayiconcontroller.h"
 
+#include <QCoreApplication>
+
 const ovrID COculusPlatform::AppId = 572698886195608; // Oculus Runtime
 
 COculusPlatform *COculusPlatform::SharedInstance()
@@ -49,7 +51,7 @@ bool COculusPlatform::Init(QString basePath)
 		QString email, password;
 		if (WindowsServices::ReadCredentials(email, password))
 			Login(email, password);
-		else
+		else if (QCoreApplication::arguments().contains("-compositor"))
 			CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_OculusNotLinked);
 
 		// Overwrite sensitive credential data
