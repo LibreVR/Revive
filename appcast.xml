@@ -11,7 +11,7 @@
 <h3>Changes</h3>
 
 <ul>
-    <li>The Revive Dashboard can now link with your Oculus account to improve online multiplayer support</li>
+    <li>The Revive Dashboard can now link with your Oculus account to improve online multiplayer support thanks to @ahmanwoods</li>
     <li>The Revive Dashboard now supports scanning multiple Oculus libraries as contributed by @croger42</li>
     <li>The Revive Injector has been rewritten to improve reliability using Microsoft Detours</li>
     <li>Improved and simplified frame blocking behavior in Revive to improve performance</li>
