@@ -24,18 +24,6 @@ MICROPROFILE_DEFINE(BlitLayers, "Compositor", "BlitLayers", 0x00ff00);
 MICROPROFILE_DEFINE(SubmitLayer, "Compositor", "SubmitLayer", 0x00ff00);
 MICROPROFILE_DEFINE(WaitGetPoses, "Compositor", "WaitGetPoses", 0x00ff00);
 
-const char* swapNames[] = {
-	"SwapChain Left", "SwapChain Right"
-};
-
-const char* depthNames[] = {
-	"DepthChain Left", "DepthChain Right"
-};
-
-const char* submitNames[] = {
-	"Submit Left", "Submit Right"
-};
-
 ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
 {
 	switch (error)
@@ -332,8 +320,6 @@ void CompositorBase::BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHe
 		if (src.EyeFov.ColorTexture[i] && src.EyeFov.ColorTexture[i] != srcChain)
 		{
 			srcChain = src.EyeFov.ColorTexture[i];
-			MICROPROFILE_META_CPU(submitNames[i], srcChain->SubmitIndex);
-			MICROPROFILE_META_CPU(swapNames[i], srcChain->Identifier);
 			srcTex = srcChain->Submit();
 		}
 
@@ -362,6 +348,11 @@ void CompositorBase::BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHe
 		// Composit the layer
 		RenderTextureSwapChain((vr::EVREye)i, srcTex, dstTex, dst.EyeFov.Viewport[i], bounds, quad);
 	}
+
+	MICROPROFILE_META_CPU("SwapChain Left", src.EyeFov.ColorTexture[0]->Identifier);
+	MICROPROFILE_META_CPU("Submit Left", src.EyeFov.ColorTexture[0]->SubmitIndex);
+	MICROPROFILE_META_CPU("SwapChain Right", srcChain->Identifier);
+	MICROPROFILE_META_CPU("Submit Right", srcChain->SubmitIndex);
 }
 
 vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrLayerHeader* baseLayer)
@@ -381,8 +372,6 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		if (layer.EyeFov.ColorTexture[i] && layer.EyeFov.ColorTexture[i] != colorChain)
 		{
 			colorChain = layer.EyeFov.ColorTexture[i];
-			MICROPROFILE_META_CPU(submitNames[i], colorChain->SubmitIndex);
-			MICROPROFILE_META_CPU(swapNames[i], colorChain->Identifier);
 			colorChain->Submit()->ToVRTexture(colorTexture);
 		}
 
@@ -437,7 +426,6 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 			if (layer.EyeFovDepth.DepthTexture[i] && layer.EyeFovDepth.DepthTexture[i] != depthChain)
 			{
 				depthChain = layer.EyeFovDepth.DepthTexture[i];
-				MICROPROFILE_META_CPU(depthNames[i], depthChain->Identifier);
 				depthChain->Submit()->ToVRTexture(depthTexture);
 			}
 
@@ -455,6 +443,11 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		if (err != vr::VRCompositorError_None)
 			break;
 	}
+
+	MICROPROFILE_META_CPU("SwapChain Left", layer.EyeFov.ColorTexture[0]->Identifier);
+	MICROPROFILE_META_CPU("Submit Left", layer.EyeFov.ColorTexture[0]->SubmitIndex);
+	MICROPROFILE_META_CPU("SwapChain Right", colorChain->Identifier);
+	MICROPROFILE_META_CPU("Submit Right", colorChain->SubmitIndex);
 	return err;
 }
 
