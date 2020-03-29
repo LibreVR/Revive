@@ -242,8 +242,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	SessionStatusBits status = session->SessionStatus;
 
 	// Don't use the activity level while debugging, so I don't have to put on the HMD
+#ifdef _DEBUG
+	sessionStatus->HmdPresent = true;
+	sessionStatus->HmdMounted = true;
+#else
 	sessionStatus->HmdPresent = status.HmdPresent;
 	sessionStatus->HmdMounted = status.HmdMounted;
+#endif
 
 	// TODO: Detect if the display is lost, can this ever happen with OpenVR?
 	sessionStatus->DisplayLost = status.DisplayLost;
