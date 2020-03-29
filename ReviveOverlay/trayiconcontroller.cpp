@@ -88,7 +88,7 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 		break;
 		case TrayInfo_OculusNotLinked:
 			m_trayIcon->showMessage("Oculus account not linked",
-								   "Click here to log into your Oculus Account to enable online multiplayer with Revive.",
+								   "Click here to log into your Oculus Account to enable joining multiplayer parties in Echo Arena.",
 								   QSystemTrayIcon::Information);
 		break;
 	}

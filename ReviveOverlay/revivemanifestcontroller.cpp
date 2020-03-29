@@ -1,6 +1,7 @@
 #include "revivemanifestcontroller.h"
 #include "trayiconcontroller.h"
 #include "openvroverlaycontroller.h"
+#include "oculusplatform.h"
 #include "openvr.h"
 #include "OVR_CAPI_Keys.h"
 #include <qt_windows.h>
@@ -400,6 +401,9 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 {
 	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
+
+	if (canonicalName == "ready-at-dawn-echo-arena" && !COculusPlatform::SharedInstance()->Connected())
+		CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_OculusNotLinked);
 
 	if (!m_OpenXREnabled && vr::VRApplications())
 	{

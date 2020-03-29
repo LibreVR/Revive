@@ -91,7 +91,7 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 	CREDUI_INFOW pcred;
 	pcred.cbSize = sizeof(CREDUI_INFOW);
 	pcred.hwndParent = NULL;
-	pcred.pszMessageText = L"Please log in to your Oculus account to enable online multiplayer.";
+	pcred.pszMessageText = L"Please log in to your Oculus account to enable online multiplayer lobbies. Accounts with 2FA are not supported.";
 	pcred.pszCaptionText = L"Revive Dashboard";
 	pcred.hbmBanner = nullptr;
 	DWORD result = CredUIPromptForWindowsCredentialsW(&pcred, failed ? ERROR_LOGON_FAILURE : 0, &pkg, packedAuth.constData(), packedAuth.size(), &authBuffer, &authSize, &save, flags);
