@@ -264,7 +264,7 @@ int wmain(int argc, wchar_t *argv[]) {
 	if (file)
 		*file = L'\0';
 
-	if (!DetourCreateProcessWithDlls(NULL, path, NULL, NULL, FALSE, 0, NULL, (file && ext) ? workingDir : NULL, &si, &pi, dlls.size(), dlls.c_str(), NULL))
+	if (!DetourCreateProcessWithDlls(NULL, path, NULL, NULL, FALSE, 0, NULL, (file && ext) ? workingDir : NULL, &si, &pi, (DWORD)dlls.size(), dlls.c_str(), NULL))
 	{
 		LOG("Failed to create process\n");
 		return -1;

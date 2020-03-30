@@ -57,10 +57,40 @@ ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
 	}
 }
 
+bool LoadRenderDoc()
+{
+	LONG error = ERROR_SUCCESS;
+
+	// Open the libraries key
+	char keyPath[MAX_PATH] = { "Software\\Baldur Karlsson\\RenderDoc" };
+	HKEY installKey;
+	error = RegOpenKeyExA(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &installKey);
+	if (error != ERROR_SUCCESS)
+		return false;
+
+	// Get the default library
+	char path[MAX_PATH];
+	DWORD length = MAX_PATH;
+	error = RegQueryValueExA(installKey, "", NULL, NULL, (PBYTE)path, &length);
+	RegCloseKey(installKey);
+	if (error != ERROR_SUCCESS)
+		return false;
+
+	if (path[0] == '\0')
+		return false;
+
+	strcat_s(path, "renderdoc.dll");
+	return LoadLibraryA(path) != NULL;
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
 	if (g_InitError == vr::VRInitError_None)
 		return ovrSuccess;
+
+#if 0
+	LoadRenderDoc();
+#endif
 
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetForceEnable(true);
