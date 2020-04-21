@@ -83,7 +83,7 @@ void SessionThreadFunc(ovrSession session)
 	}
 }
 
-ovrHmdStruct::ovrHmdStruct(ProfileManager* profileManager)
+ovrHmdStruct::ovrHmdStruct()
 	: Running(true)
 	, SessionStatus()
 	, StringBuffer()
@@ -94,7 +94,6 @@ ovrHmdStruct::ovrHmdStruct(ProfileManager* profileManager)
 	, Compositor(nullptr)
 	, Input(new InputManager())
 	, Details(new SessionDetails())
-	, Profiler(profileManager)
 {
 	// Oculus games expect a seated tracking space by default
 	if (Details->UseHack(SessionDetails::HACK_STRICT_POSES))

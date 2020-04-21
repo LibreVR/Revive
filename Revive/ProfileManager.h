@@ -2,6 +2,7 @@
 
 #include <openvr.h>
 
+#ifdef _DEBUG
 class ProfileManager
 {
 public:
@@ -25,3 +26,4 @@ private:
 	vr::HmdVector2_t m_MousePos;
 	uint32_t m_MouseButtons;
 };
+#endif

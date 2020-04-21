@@ -46,8 +46,7 @@ struct ovrHmdStruct
 	std::unique_ptr<CompositorBase> Compositor;
 	std::unique_ptr<InputManager> Input;
 	std::unique_ptr<SessionDetails> Details;
-	ProfileManager* Profiler;
 
-	ovrHmdStruct(ProfileManager* profileManager = nullptr);
+	ovrHmdStruct();
 	~ovrHmdStruct();
 };

@@ -14,6 +14,7 @@
 #include <algorithm>
 
 extern uint32_t g_MinorVersion;
+extern ProfileManager g_ProfileManager;
 
 #define REV_LAYER_BIAS 0.0001f
 #define ENABLE_DEPTH_SUBMIT 0
@@ -252,8 +253,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 		RenderMirrorTexture(m_MirrorTexture);
 
 #if _DEBUG
-	if (session->Profiler)
-		session->Profiler->Flip();
+	g_ProfileManager.Flip();
 #endif
 
 	return rev_CompositorErrorToOvrError(error);

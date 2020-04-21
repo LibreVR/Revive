@@ -23,7 +23,10 @@
 vr::EVRInitError g_InitError = vr::VRInitError_Init_NotInitialized;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
+
+#ifdef _DEBUG
 ProfileManager g_ProfileManager;
+#endif
 
 ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
 {
@@ -211,7 +214,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	*pSession = nullptr;
 
 	// Initialize the opaque pointer with our own OpenVR-specific struct
-	g_Sessions.emplace_back(&g_ProfileManager);
+	g_Sessions.emplace_back();
 
 	// Get the LUID for the OpenVR adapter
 	uint64_t adapter;

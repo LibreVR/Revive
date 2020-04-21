@@ -1,3 +1,4 @@
+#ifdef _DEBUG
 #include "ProfileManager.h"
 #include "REV_Math.h"
 #include "microprofile.h"
@@ -24,7 +25,6 @@ ProfileManager::~ProfileManager()
 
 bool ProfileManager::Initialize()
 {
-#ifdef _DEBUG
 	if (!glfwInit())
 		return false;
 
@@ -82,13 +82,11 @@ bool ProfileManager::Initialize()
 
 	MicroProfileSetDisplayMode(1);
 	wglMakeCurrent(dc, ctx);
-#endif
 	return true;
 }
 
 void ProfileManager::Shutdown()
 {
-#ifdef _DEBUG
 	if (m_ProfileOverlay != vr::k_ulOverlayHandleInvalid)
 		vr::VROverlay()->DestroyOverlay(m_ProfileOverlay);
 	m_ProfileOverlay = vr::k_ulOverlayHandleInvalid;
@@ -100,7 +98,6 @@ void ProfileManager::Shutdown()
 	glDeleteTextures(1, &m_ProfileTexture);
 	m_ProfileTexture = 0;
 	wglMakeCurrent(dc, ctx);
-#endif
 }
 
 void ProfileManager::Flip()
@@ -108,7 +105,6 @@ void ProfileManager::Flip()
 	// Flip the profiler.
 	MicroProfileFlip();
 
-#ifdef _DEBUG
 	if (!m_ProfileWindow)
 		return;
 
@@ -167,7 +163,6 @@ void ProfileManager::Flip()
 	glfwPollEvents();
 
 	wglMakeCurrent(dc, ctx);
-#endif
 }
 
 void ProfileManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -190,3 +185,4 @@ void ProfileManager::ScrollCallback(GLFWwindow* window, double xoffset, double y
 	glfwGetCursorPos(window, &xpos, &ypos);
 	MicroProfileMousePosition((uint32_t)xpos, (uint32_t)ypos, (int)-yoffset);
 }
+#endif
