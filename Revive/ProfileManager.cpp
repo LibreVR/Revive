@@ -172,6 +172,9 @@ void ProfileManager::Flip()
 
 void ProfileManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !MicroProfileIsDrawing())
+		MicroProfileSetDisplayMode(1);
+
 	MicroProfileMouseButton(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT), glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT));
 }
 
