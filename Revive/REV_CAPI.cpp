@@ -7,6 +7,7 @@
 #include "CompositorBase.h"
 #include "SessionDetails.h"
 #include "InputManager.h"
+#include "ProfileManager.h"
 
 #include <dxgi1_2.h>
 #include <openvr.h>
@@ -22,6 +23,7 @@
 vr::EVRInitError g_InitError = vr::VRInitError_Init_NotInitialized;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
+ProfileManager g_ProfileManager;
 
 ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
 {
@@ -117,11 +119,20 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	if (vr::VRCompositor() == nullptr)
 		return ovrError_Timeout;
 
+#if _DEBUG
+	if (!g_ProfileManager.Initialize())
+		return ovrError_RuntimeException;
+#endif
+
 	return rev_InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
+#if _DEBUG
+	g_ProfileManager.Shutdown();
+#endif
+
 	g_Sessions.clear();
 	vr::VR_Shutdown();
 	MicroProfileShutdown();
@@ -200,7 +211,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	*pSession = nullptr;
 
 	// Initialize the opaque pointer with our own OpenVR-specific struct
-	g_Sessions.emplace_back();
+	g_Sessions.emplace_back(&g_ProfileManager);
 
 	// Get the LUID for the OpenVR adapter
 	uint64_t adapter;

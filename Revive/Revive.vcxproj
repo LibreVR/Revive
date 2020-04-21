@@ -94,13 +94,14 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;DEBUG;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)Detours\src;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)Detours\src;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;$(Externals)glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Ws2_32.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Ws2_32.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <AdditionalLibraryDirectories>$(Externals)glfw\build\src\Debug</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -121,13 +122,14 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;VK_NO_PROTOTYPES;VK_USE_PLATFORM_WIN32_KHR;MICROPROFILE_ENABLED=1;MICROPROFILE_GPU_TIMERS=0;OVR_DLL_BUILD;GLEW_STATIC;DEBUG;_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)Detours\src;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)microprofile;$(Externals)Detours\src;$(Externals)openvr\headers;$(Externals)LibOVR\Include;$(Externals)glad\include;$(Externals)Vulkan\include;$(Externals)glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Ws2_32.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Ws2_32.lib;opengl32.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <AdditionalLibraryDirectories>$(Externals)glfw\build\src\Debug</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
@@ -203,16 +205,17 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\microprofile\microprofile.h" />
-    <ClInclude Include="..\microprofile\microprofiledraw.h" />
-    <ClInclude Include="..\microprofile\microprofilehtml.h" />
-    <ClInclude Include="..\microprofile\microprofileui.h" />
+    <ClInclude Include="..\Externals\microprofile\microprofile.h" />
+    <ClInclude Include="..\Externals\microprofile\microprofiledraw.h" />
+    <ClInclude Include="..\Externals\microprofile\microprofilehtml.h" />
+    <ClInclude Include="..\Externals\microprofile\microprofileui.h" />
     <ClInclude Include="CompositorBase.h" />
     <ClInclude Include="CompositorD3D.h" />
     <ClInclude Include="CompositorGL.h" />
     <ClInclude Include="CompositorVk.h" />
     <ClInclude Include="HapticsBuffer.h" />
     <ClInclude Include="OVR_CAPI.h" />
+    <ClInclude Include="ProfileManager.h" />
     <ClInclude Include="REV_Math.h" />
     <ClInclude Include="SessionDetails.h" />
     <ClInclude Include="InputManager.h" />
@@ -232,6 +235,7 @@
     <ClCompile Include="CompositorGL.cpp" />
     <ClCompile Include="CompositorVk.cpp" />
     <ClCompile Include="HapticsBuffer.cpp" />
+    <ClCompile Include="ProfileManager.cpp" />
     <ClCompile Include="REV_CAPI_Vk.cpp" />
     <ClCompile Include="SessionDetails.cpp" />
     <ClCompile Include="InputManager.cpp" />

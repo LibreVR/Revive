@@ -4,6 +4,7 @@
 #include "Session.h"
 #include "SessionDetails.h"
 #include "InputManager.h"
+#include "ProfileManager.h"
 #include "microprofile.h"
 
 #include <Windows.h>
@@ -250,8 +251,10 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
 
-	// Flip the profiler.
-	MicroProfileFlip();
+#if _DEBUG
+	if (session->Profiler)
+		session->Profiler->Flip();
+#endif
 
 	return rev_CompositorErrorToOvrError(error);
 }

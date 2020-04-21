@@ -242,6 +242,16 @@
       "name": "/actions/system/in/Button_Home",
       "requirement": "optional",
       "type": "boolean"
+    },
+    {
+      "name": "/actions/microprofile/in/ToggleDisplay",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/microprofile/in/TogglePause",
+      "requirement": "optional",
+      "type": "boolean"
     }
   ],
   "action_sets": [
@@ -260,6 +270,10 @@
     {
       "name": "/actions/system",
       "usage": "hidden"
+    },
+    {
+      "name": "/actions/microprofile",
+      "usage": "leftright"
     }
   ],
   "localization": [
@@ -270,6 +284,7 @@
       "/actions/remote": "Oculus Remote",
       "/actions/xbox": "Xbox",
       "/actions/system": "System",
+      "/actions/microprofile": "MicroProfile",
 
       "/actions/touch/in/Button_AX": "A/X press",
       "/actions/touch/in/Button_BY": "B/Y press",
@@ -316,7 +331,10 @@
       "/actions/remote/in/Button_VolUp": "Volume up button",
       "/actions/remote/in/Button_VolDown": "Volume down button",
 
-      "/actions/system/in/Button_Home": "Home button"
+      "/actions/system/in/Button_Home": "Home button",
+
+      "/actions/microprofile/in/ToggleDisplay": "Toggle Display",
+      "/actions/microprofile/in/TogglePause": "Toggle Pause"
     }
   ]
 }

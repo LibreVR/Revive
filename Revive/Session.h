@@ -11,7 +11,7 @@
 class CompositorBase;
 class InputManager;
 class SessionDetails;
-class SettingsManager;
+class ProfileManager;
 
 struct SessionStatusBits {
 	bool IsVisible : 1;
@@ -26,6 +26,9 @@ struct SessionStatusBits {
 
 struct ovrHmdStruct
 {
+	uint32_t MinorVersion;
+
+	// Session thread
 	std::thread SessionThread;
 	std::atomic_bool Running;
 
@@ -43,7 +46,8 @@ struct ovrHmdStruct
 	std::unique_ptr<CompositorBase> Compositor;
 	std::unique_ptr<InputManager> Input;
 	std::unique_ptr<SessionDetails> Details;
+	ProfileManager* Profiler;
 
-	ovrHmdStruct();
+	ovrHmdStruct(ProfileManager* profileManager = nullptr);
 	~ovrHmdStruct();
 };
