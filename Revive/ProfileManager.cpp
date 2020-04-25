@@ -1,4 +1,4 @@
-#ifdef _DEBUG
+#if MICROPROFILE_ENABLED
 #include "ProfileManager.h"
 #include "REV_Math.h"
 #include "microprofile.h"
@@ -90,14 +90,6 @@ void ProfileManager::Shutdown()
 	if (m_ProfileOverlay != vr::k_ulOverlayHandleInvalid)
 		vr::VROverlay()->DestroyOverlay(m_ProfileOverlay);
 	m_ProfileOverlay = vr::k_ulOverlayHandleInvalid;
-
-	HDC dc = wglGetCurrentDC();
-	HGLRC ctx = wglGetCurrentContext();
-
-	glfwMakeContextCurrent(m_ProfileWindow);
-	glDeleteTextures(1, &m_ProfileTexture);
-	m_ProfileTexture = 0;
-	wglMakeCurrent(dc, ctx);
 }
 
 void ProfileManager::Flip()

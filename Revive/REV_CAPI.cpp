@@ -24,7 +24,7 @@ vr::EVRInitError g_InitError = vr::VRInitError_Init_NotInitialized;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
 
-#ifdef _DEBUG
+#if MICROPROFILE_ENABLED
 ProfileManager g_ProfileManager;
 #endif
 
@@ -122,7 +122,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	if (vr::VRCompositor() == nullptr)
 		return ovrError_Timeout;
 
-#if _DEBUG
+#if MICROPROFILE_ENABLED
 	if (!g_ProfileManager.Initialize())
 		return ovrError_RuntimeException;
 #endif
@@ -132,7 +132,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
-#if _DEBUG
+#if MICROPROFILE_ENABLED
 	g_ProfileManager.Shutdown();
 #endif
 
@@ -286,7 +286,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	SessionStatusBits status = session->SessionStatus;
 
 	// Don't use the activity level while debugging, so I don't have to put on the HMD
-#ifdef _DEBUG
+#if MICROPROFILE_ENABLED
 	sessionStatus->HmdPresent = true;
 	sessionStatus->HmdMounted = true;
 #else

@@ -252,7 +252,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
 
-#if _DEBUG
+#if MICROPROFILE_ENABLED
 	g_ProfileManager.Flip();
 #endif
 

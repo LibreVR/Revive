@@ -2,7 +2,7 @@
 
 #include <openvr.h>
 
-#ifdef _DEBUG
+#ifdef MICROPROFILE_ENABLED
 class ProfileManager
 {
 public:
