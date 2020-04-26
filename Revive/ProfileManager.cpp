@@ -7,11 +7,11 @@
 #include "microprofileui.h"
 
 #include <assert.h>
-#include <glad\glad.h>
-#include <glad\glad_wgl.h>
-#include <GLFW\glfw3.h>
+#include <glad/glad.h>
+#include <glad/glad_wgl.h>
+#include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WGL
-#include <GLFW\glfw3native.h>
+#include <GLFW/glfw3native.h>
 #include <d3d11.h>
 
 ProfileManager::ProfileManager()
@@ -68,7 +68,8 @@ bool ProfileManager::Initialize()
 		vr::VROverlay()->CreateOverlay("revive.debug.microprofile", "Revive Microprofile", &m_ProfileOverlay);
 		vr::VROverlay()->SetOverlayWidthInMeters(m_ProfileOverlay, 0.5f);
 		vr::VROverlay()->SetOverlayInputMethod(m_ProfileOverlay, vr::VROverlayInputMethod_Mouse);
-		vr::VROverlay()->SetOverlayFlag(m_ProfileOverlay, vr::VROverlayFlags_MakeOverlaysInteractiveIfVisible, true);
+		vr::VROverlay()->SetOverlayFlag(m_ProfileOverlay, vr::VROverlayFlags_VisibleInDashboard, true);
+		vr::VROverlay()->SetOverlayFlag(m_ProfileOverlay, vr::VROverlayFlags_SortWithNonSceneOverlays, true);
 		vr::VROverlay()->SetOverlayFlag(m_ProfileOverlay, vr::VROverlayFlags_SendVRDiscreteScrollEvents, true);
 
 		vr::HmdVector2_t vecWindowSize = { (float)width, (float)height };
@@ -105,12 +106,11 @@ bool ProfileManager::SetTexture(TextureBase* pTexture)
 		wglMakeCurrent(dc, ctx);
 	}
 
+	m_Target = 0;
+	m_Texture.handle = nullptr;
+
 	if (!pTexture)
-	{
-		m_Target = 0;
-		m_Texture.handle = nullptr;
 		return true;
-	}
 
 	pTexture->ToVRTexture(m_Texture);
 
@@ -201,13 +201,14 @@ void ProfileManager::Flip()
 
 	if (m_Texture.handle)
 	{
-		vr::HmdMatrix34_t matrix = REV::Matrix4f(OVR::Matrix4f::RotationX(MATH_FLOAT_PI) * OVR::Matrix4f::RotationY(-MATH_FLOAT_PIOVER2));
+		static const vr::HmdMatrix34_t matrix = REV::Matrix4f(OVR::Matrix4f::RotationX(MATH_FLOAT_PI) * OVR::Matrix4f::RotationY(-MATH_FLOAT_PIOVER2) *
+			OVR::Matrix4f::Translation(OVR::Vector3f(0.0f, 0.0f, 0.1f)));
 		vr::TrackedDeviceIndex_t device = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
 		vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ProfileOverlay, device, &matrix);
 
 		if (m_Texture.eType != vr::TextureType_OpenGL)
 		{
-			vr::VRTextureBounds_t bounds = { 0.0f, 1.0f, 1.0f, 0.0f };
+			static const vr::VRTextureBounds_t bounds = { 0.0f, 1.0f, 1.0f, 0.0f };
 			vr::VROverlay()->SetOverlayTextureBounds(m_ProfileOverlay, &bounds);
 		}
 
