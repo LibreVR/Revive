@@ -161,6 +161,9 @@
     <ClCompile Include="ProfileManager.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
+    <ClCompile Include="..\Externals\glad\src\glad_wgl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CompositorShader.hlsl">

@@ -3,6 +3,10 @@
 #include <openvr.h>
 
 #ifdef MICROPROFILE_ENABLED
+
+#define PROFILE_WINDOW_WIDTH 800
+#define PROFILE_WINDOW_HEIGHT 600
+
 class ProfileManager
 {
 public:
@@ -12,6 +16,7 @@ public:
 	bool Initialize();
 	void Shutdown();
 
+	bool SetTexture(class TextureBase* pTexture);
 	void Flip();
 
 private:
@@ -21,9 +26,13 @@ private:
 
 	struct GLFWwindow* m_ProfileWindow;
 	vr::VROverlayHandle_t m_ProfileOverlay;
-	unsigned int m_ProfileTexture;
+	vr::Texture_t m_Texture;
+	unsigned int m_Target;
 
 	vr::HmdVector2_t m_MousePos;
 	uint32_t m_MouseButtons;
+
+	void* m_hInteropDevice;
+	void* m_hInteropTarget;
 };
 #endif

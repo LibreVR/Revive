@@ -1,20 +1,20 @@
 #include "CompositorBase.h"
-#include "OVR_CAPI.h"
-#include "REV_Math.h"
+#include "Common.h"
 #include "Session.h"
 #include "SessionDetails.h"
 #include "InputManager.h"
 #include "ProfileManager.h"
+#include "TextureBase.h"
+
 #include "microprofile.h"
+#include "OVR_CAPI.h"
+#include "REV_Math.h"
 
 #include <Windows.h>
 #include <assert.h>
 #include <openvr.h>
 #include <vector>
 #include <algorithm>
-
-extern uint32_t g_MinorVersion;
-extern ProfileManager g_ProfileManager;
 
 #define REV_LAYER_BIAS 0.0001f
 #define ENABLE_DEPTH_SUBMIT 0
@@ -52,6 +52,7 @@ CompositorBase::CompositorBase()
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
 	, m_FrameEvents()
+	, m_ProfileTexture()
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
 	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
@@ -68,10 +69,24 @@ CompositorBase::~CompositorBase()
 
 	if (m_MirrorTexture)
 		delete m_MirrorTexture;
+
+#if MICROPROFILE_ENABLED
+	g_ProfileManager.SetTexture(nullptr);
+#endif
 }
 
 ovrResult CompositorBase::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
 {
+#if MICROPROFILE_ENABLED
+	if (!m_ProfileTexture)
+	{
+		// Create the profiler render target texture.
+		m_ProfileTexture.reset(CreateTexture());
+		m_ProfileTexture->Init(ovrTexture_2D, PROFILE_WINDOW_WIDTH, PROFILE_WINDOW_HEIGHT, 1, 1, OVR_FORMAT_R8G8B8A8_UNORM, ovrTextureMisc_None, ovrTextureBind_DX_RenderTarget);
+		g_ProfileManager.SetTexture(m_ProfileTexture.get());
+	}
+#endif
+
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(*desc);
 	swapChain->Identifier = m_ChainCount++;
 

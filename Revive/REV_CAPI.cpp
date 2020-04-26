@@ -20,8 +20,8 @@
 
 #define REV_DEFAULT_TIMEOUT 10000
 
+unsigned int g_MinorVersion = OVR_MINOR_VERSION;
 vr::EVRInitError g_InitError = vr::VRInitError_Init_NotInitialized;
-uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
 
 #if MICROPROFILE_ENABLED
