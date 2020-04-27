@@ -16,6 +16,7 @@ public:
 	bool Initialize();
 	void Shutdown();
 
+	void* GetContext();
 	bool SetTexture(class TextureBase* pTexture);
 	void Flip();
 
@@ -26,13 +27,10 @@ private:
 
 	struct GLFWwindow* m_ProfileWindow;
 	vr::VROverlayHandle_t m_ProfileOverlay;
-	vr::Texture_t m_Texture;
+	class TextureBase* m_Texture;
 	unsigned int m_Target;
 
 	vr::HmdVector2_t m_MousePos;
 	uint32_t m_MouseButtons;
-
-	void* m_hInteropDevice;
-	void* m_hInteropTarget;
 };
 #endif

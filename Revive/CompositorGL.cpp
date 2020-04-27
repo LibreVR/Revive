@@ -2,12 +2,12 @@
 #include "TextureGL.h"
 #include "OVR_CAPI.h"
 
-#include <glad/glad.h>
 #include <Windows.h>
+#include <glad/glad.h>
 
-GLboolean CompositorGL::gladInitialized = GL_FALSE;
+unsigned char CompositorGL::gladInitialized = GL_FALSE;
 
-void CompositorGL::DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+void DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
 	OutputDebugStringA(message);
 	OutputDebugStringA("\n");
@@ -21,6 +21,7 @@ CompositorGL* CompositorGL::Create()
 			return false;
 #ifdef DEBUG
 		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback((GLDEBUGPROC)DebugCallback, nullptr);
 #else
 		glDisable(GL_DEBUG_OUTPUT);
@@ -29,6 +30,11 @@ CompositorGL* CompositorGL::Create()
 		gladInitialized = GL_TRUE;
 	}
 	return new CompositorGL();
+}
+
+void CompositorGL::Flush()
+{
+	glFlush();
 }
 
 CompositorGL::CompositorGL()

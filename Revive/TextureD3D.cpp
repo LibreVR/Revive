@@ -3,12 +3,16 @@
 
 #include <openvr.h>
 #include <d3d11.h>
+#include <glad/glad.h>
+#include <glad/glad_wgl.h>
 
 TextureD3D::TextureD3D(ID3D11Device* pDevice)
 	: m_pDevice(pDevice)
 	, m_data()
 	, m_pDevice12()
 	, m_pQueue()
+	, m_hInteropDevice(nullptr)
+	, m_hInteropTarget(nullptr)
 {
 }
 
@@ -263,4 +267,37 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 	}
 
 	return true;
+}
+
+bool TextureD3D::LockSharedTexture()
+{
+	return wglDXLockObjectsNV(m_hInteropDevice, 1, &m_hInteropTarget);
+}
+
+bool TextureD3D::UnlockSharedTexture()
+{
+	return wglDXUnlockObjectsNV(m_hInteropDevice, 1, &m_hInteropTarget);
+}
+
+bool TextureD3D::CreateSharedTextureGL(unsigned int* outName)
+{
+	if (m_pDevice12)
+		return false;
+
+	glGenTextures(1, outName);
+	m_hInteropDevice = wglDXOpenDeviceNV(m_pDevice.Get());
+	if (m_hInteropDevice)
+		m_hInteropTarget = wglDXRegisterObjectNV(m_hInteropDevice, m_pTexture.Get(), *outName, GL_TEXTURE_2D, WGL_ACCESS_READ_WRITE_NV);
+	return m_hInteropDevice != nullptr;
+}
+
+void TextureD3D::DeleteSharedTextureGL(unsigned int name)
+{
+	if (m_hInteropTarget)
+		wglDXUnregisterObjectNV(m_hInteropDevice, m_hInteropTarget);
+	m_hInteropTarget = nullptr;
+	if (m_hInteropDevice)
+		wglDXCloseDeviceNV(m_hInteropDevice);
+	m_hInteropDevice = nullptr;
+	glDeleteTextures(1, &name);
 }

@@ -86,7 +86,9 @@ ovr_GetDeviceExtensionsVk(
 		extensions << openvrExtensions.data() << ' ';
 	}
 
-	extensions << VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+	extensions << VK_KHR_SWAPCHAIN_EXTENSION_NAME << ' ';
+	extensions << VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME << ' ';
+	extensions << VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME;
 
 	std::string result = extensions.str();
 	uint32_t size = *inoutExtensionNamesSize;

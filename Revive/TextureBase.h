@@ -16,6 +16,11 @@ public:
 	virtual void ToVRTexture(vr::Texture_t& out) = 0;
 	virtual bool Init(ovrTextureType type, int width, int height, int mipLevels, int arraySize,
 		ovrTextureFormat format, unsigned int miscFlags, unsigned int bindFlags) = 0;
+
+	virtual bool LockSharedTexture() { return true; }
+	virtual bool UnlockSharedTexture() { return true; }
+	virtual bool CreateSharedTextureGL(unsigned int* outName) = 0;
+	virtual void DeleteSharedTextureGL(unsigned int name) = 0;
 };
 
 struct ovrTextureSwapChainData

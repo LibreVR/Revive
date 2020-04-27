@@ -1,5 +1,7 @@
 #include "TextureVk.h"
-#include "vulkan.h" 
+#include "vulkan.h"
+
+#include <glad/glad.h>
 
 TextureVk::TextureVk(VkDevice device, VkPhysicalDevice physicalDevice,
 	VkInstance instance, VkQueue* pQueue)
@@ -9,6 +11,8 @@ TextureVk::TextureVk(VkDevice device, VkPhysicalDevice physicalDevice,
 	, m_memoryProperties()
 	, m_device(device)
 	, m_pQueue(pQueue)
+	, m_hMemoryHandle(nullptr)
+	, m_MemoryObject()
 {
 	// Update the texture data
 	m_data.m_pDevice = device;
@@ -105,15 +109,18 @@ bool TextureVk::GetMemoryType(uint32_t typeBits, VkFlags requirements_mask, uint
 bool TextureVk::Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 	ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
 {
-	VK_DEVICE_FUNCTION(m_device, vkCreateImage)
-	VK_DEVICE_FUNCTION(m_device, vkGetImageMemoryRequirements)
-	VK_DEVICE_FUNCTION(m_device, vkAllocateMemory)
-	VK_DEVICE_FUNCTION(m_device, vkBindImageMemory)
-	VK_DEVICE_FUNCTION(m_device, vkFreeMemory)
-	VK_DEVICE_FUNCTION(m_device, vkDestroyImage)
+	VK_DEVICE_FUNCTION(m_device, vkCreateImage);
+	VK_DEVICE_FUNCTION(m_device, vkGetImageMemoryRequirements);
+	VK_DEVICE_FUNCTION(m_device, vkAllocateMemory);
+	VK_DEVICE_FUNCTION(m_device, vkBindImageMemory);
+	VK_DEVICE_FUNCTION(m_device, vkFreeMemory);
+	VK_DEVICE_FUNCTION(m_device, vkDestroyImage);
 
-	VkImageCreateInfo create_info = {};
-	create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	VkExternalMemoryImageCreateInfoKHR external_create_info = { VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO_KHR };
+	external_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR;
+
+	VkImageCreateInfo create_info = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+	create_info.pNext = &external_create_info;
 	create_info.imageType = VK_IMAGE_TYPE_2D;
 	create_info.format = TextureFormatToVkFormat(Format);
 	create_info.extent.width = Width;
@@ -129,11 +136,14 @@ bool TextureVk::Init(ovrTextureType type, int Width, int Height, int MipLevels, 
 	if (vkCreateImage(m_device, &create_info, nullptr, &m_image) != VK_SUCCESS)
 		return false;
 
-	VkMemoryRequirements memReqs = {};
+	VkMemoryRequirements memReqs;
 	vkGetImageMemoryRequirements(m_device, m_image, &memReqs);
 
-	VkMemoryAllocateInfo memAlloc = {};
-	memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	VkExportMemoryAllocateInfoKHR export_allocate_info = { VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_KHR };
+	export_allocate_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR;
+
+	VkMemoryAllocateInfo memAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+	memAlloc.pNext = &export_allocate_info;
 	memAlloc.allocationSize = memReqs.size;
 	if (!GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memAlloc.memoryTypeIndex))
 		return false;
@@ -153,3 +163,34 @@ bool TextureVk::Init(ovrTextureType type, int Width, int Height, int MipLevels, 
 
 	return true;
 }
+
+bool TextureVk::CreateSharedTextureGL(unsigned int* outName)
+{
+	VK_DEVICE_FUNCTION(m_device, vkGetMemoryWin32HandleKHR);
+
+	VkMemoryGetWin32HandleInfoKHR handleInfo = { VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR };
+	handleInfo.memory = m_memory;
+	handleInfo.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR;
+	VkResult result = vkGetMemoryWin32HandleKHR(m_device, &handleInfo, &m_hMemoryHandle);
+	if (result != VK_SUCCESS)
+		return false;
+
+	VkMemoryRequirements memReqs;
+	vkGetImageMemoryRequirements(m_device, m_image, &memReqs);
+
+	glCreateTextures(GL_TEXTURE_2D, 1, outName);
+	glCreateMemoryObjectsEXT(1, &m_MemoryObject);
+	glImportMemoryWin32HandleEXT(m_MemoryObject, memReqs.size, GL_HANDLE_TYPE_OPAQUE_WIN32_EXT, m_hMemoryHandle);
+	glTextureStorageMem2DEXT(*outName, 1, GL_RGBA8, m_data.m_nWidth, m_data.m_nHeight, m_MemoryObject, 0);
+	return true;
+}
+
+void TextureVk::DeleteSharedTextureGL(unsigned int name)
+{
+	glDeleteMemoryObjectsEXT(1, &m_MemoryObject);
+	m_MemoryObject = 0;
+	glDeleteTextures(1, &name);
+	CloseHandle(m_hMemoryHandle);
+	m_hMemoryHandle = nullptr;
+}
+

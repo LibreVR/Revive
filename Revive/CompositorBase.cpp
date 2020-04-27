@@ -52,7 +52,9 @@ CompositorBase::CompositorBase()
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
 	, m_FrameEvents()
+#if MICROPROFILE_ENABLED
 	, m_ProfileTexture()
+#endif
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
 	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);

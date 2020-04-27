@@ -13,9 +13,14 @@ public:
 	TextureD3D(ID3D12CommandQueue* pQueue);
 	virtual ~TextureD3D();
 
-	virtual void ToVRTexture(vr::Texture_t& texture);
+	virtual void ToVRTexture(vr::Texture_t& texture) override;
 	virtual bool Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
-		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
+		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags) override;
+
+	virtual bool LockSharedTexture() override;
+	virtual bool UnlockSharedTexture() override;
+	virtual bool CreateSharedTextureGL(unsigned int* outName) override;
+	virtual void DeleteSharedTextureGL(unsigned int name) override;
 
 	IUnknown* Texture() { if (m_pDevice) return m_pTexture.Get(); else return m_pResource12.Get(); };
 	ID3D11ShaderResourceView* Resource() { return m_pSRV.Get(); };
@@ -39,4 +44,8 @@ protected:
 	Microsoft::WRL::ComPtr<ID3D12Device> m_pDevice12;
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_pResource12;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_pQueue;
+
+	// OpenGL interop
+	void* m_hInteropDevice;
+	void* m_hInteropTarget;
 };

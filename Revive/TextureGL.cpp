@@ -1,10 +1,15 @@
 #include "TextureGL.h"
 
+#include <Windows.h>
 #include <glad/glad.h>
+#include <glad/glad_wgl.h>
 
 TextureGL::TextureGL()
 	: Texture(0)
 	, Framebuffer(0)
+	, m_Width(0)
+	, m_Height(0)
+	, m_InteropTexture(0)
 {
 }
 
@@ -19,11 +24,11 @@ void TextureGL::ToVRTexture(vr::Texture_t& texture)
 	texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format
 	texture.eType = vr::TextureType_OpenGL;
 #pragma warning( disable : 4312 )
-	texture.handle = (void*)Texture;
+	texture.handle = (void*)static_cast<uintptr_t>(m_InteropTexture ? m_InteropTexture : Texture);
 #pragma warning( default : 4312 )
 }
 
-GLenum TextureGL::TextureFormatToInternalFormat(ovrTextureFormat format)
+unsigned int TextureGL::TextureFormatToInternalFormat(ovrTextureFormat format)
 {
 	switch (format)
 	{
@@ -46,7 +51,7 @@ GLenum TextureGL::TextureFormatToInternalFormat(ovrTextureFormat format)
 	}
 }
 
-GLenum TextureGL::TextureFormatToGLFormat(ovrTextureFormat format)
+unsigned int TextureGL::TextureFormatToGLFormat(ovrTextureFormat format)
 {
 	switch (format)
 	{
@@ -75,21 +80,38 @@ bool TextureGL::Init(ovrTextureType type, int Width, int Height, int MipLevels, 
 	GLenum internalFormat = TextureFormatToInternalFormat(Format);
 	GLenum format = TextureFormatToGLFormat(Format);
 
-	glGenTextures(1, &Texture);
-	glBindTexture(GL_TEXTURE_2D, Texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, Width, Height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+	glCreateTextures(GL_TEXTURE_2D, 1, &Texture);
+	glTextureParameteri(Texture, GL_TEXTURE_BASE_LEVEL, 0);
+	glTextureParameteri(Texture, GL_TEXTURE_MAX_LEVEL, 0);
+	glTextureStorage2D(Texture, 1, internalFormat, Width, Height);
+
+	m_Width = Width;
+	m_Height = Height;
 
 	if (BindFlags & ovrTextureBind_DX_RenderTarget)
 	{
-		glGenFramebuffers(1, &Framebuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, Framebuffer);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Texture, 0);
-		glReadBuffer(GL_COLOR_ATTACHMENT0);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+		glCreateFramebuffers(1, &Framebuffer);
+		glNamedFramebufferTexture(Framebuffer, GL_COLOR_ATTACHMENT0, Texture, 0);
+		glNamedFramebufferReadBuffer(Framebuffer, GL_COLOR_ATTACHMENT0);
+		glNamedFramebufferDrawBuffer(Framebuffer, GL_COLOR_ATTACHMENT0);
+		return glCheckNamedFramebufferStatus(Framebuffer, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 	}
 
 	return true;
+}
+
+bool TextureGL::CreateSharedTextureGL(unsigned int* outName)
+{
+	// We don't actually share a texture, we just create a new one in the current context
+	glCreateTextures(GL_TEXTURE_2D, 1, &m_InteropTexture);
+	glTextureParameteri(m_InteropTexture, GL_TEXTURE_BASE_LEVEL, 0);
+	glTextureParameteri(m_InteropTexture, GL_TEXTURE_MAX_LEVEL, 0);
+	glTextureStorage2D(m_InteropTexture, 1, GL_RGBA8, m_Width, m_Height);
+	*outName = m_InteropTexture;
+	return true;
+}
+
+void TextureGL::DeleteSharedTextureGL(unsigned int name)
+{
+	glDeleteTextures(1, &name);
 }

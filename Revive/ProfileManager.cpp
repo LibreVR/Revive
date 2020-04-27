@@ -1,6 +1,7 @@
 #if MICROPROFILE_ENABLED
 #include "ProfileManager.h"
 #include "TextureBase.h"
+#include "TextureVk.h"
 #include "REV_Math.h"
 #include "microprofile.h"
 #include "microprofiledraw.h"
@@ -12,16 +13,14 @@
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WGL
 #include <GLFW/glfw3native.h>
-#include <d3d11.h>
 
 ProfileManager::ProfileManager()
 	: m_ProfileWindow(nullptr)
 	, m_ProfileOverlay(vr::k_ulOverlayHandleInvalid)
-	, m_Texture()
+	, m_Texture(nullptr)
 	, m_Target()
 	, m_MousePos()
 	, m_MouseButtons(0)
-	, m_hInteropDevice()
 {
 }
 
@@ -60,9 +59,6 @@ bool ProfileManager::Initialize()
 		glfwMakeContextCurrent(m_ProfileWindow);
 	}
 
-	int width, height;
-	glfwGetFramebufferSize(m_ProfileWindow, &width, &height);
-
 	if (m_ProfileOverlay == vr::k_ulOverlayHandleInvalid)
 	{
 		vr::VROverlay()->CreateOverlay("revive.debug.microprofile", "Revive Microprofile", &m_ProfileOverlay);
@@ -72,6 +68,8 @@ bool ProfileManager::Initialize()
 		vr::VROverlay()->SetOverlayFlag(m_ProfileOverlay, vr::VROverlayFlags_SortWithNonSceneOverlays, true);
 		vr::VROverlay()->SetOverlayFlag(m_ProfileOverlay, vr::VROverlayFlags_SendVRDiscreteScrollEvents, true);
 
+		int width, height;
+		glfwGetFramebufferSize(m_ProfileWindow, &width, &height);
 		vr::HmdVector2_t vecWindowSize = { (float)width, (float)height };
 		vr::VROverlay()->SetOverlayMouseScale(m_ProfileOverlay, &vecWindowSize);
 	}
@@ -79,6 +77,11 @@ bool ProfileManager::Initialize()
 	MicroProfileSetDisplayMode(1);
 	wglMakeCurrent(dc, ctx);
 	return true;
+}
+
+void* ProfileManager::GetContext()
+{
+	return glfwGetWGLContext(m_ProfileWindow);
 }
 
 void ProfileManager::Shutdown()
@@ -93,49 +96,24 @@ bool ProfileManager::SetTexture(TextureBase* pTexture)
 {
 	HDC dc = wglGetCurrentDC();
 	HGLRC ctx = wglGetCurrentContext();
+	glfwMakeContextCurrent(m_ProfileWindow);
 
-	if (m_hInteropDevice)
+	if (m_Texture)
 	{
-		glfwMakeContextCurrent(m_ProfileWindow);
-		if (m_hInteropTarget)
-			wglDXUnregisterObjectNV(m_hInteropDevice, m_hInteropTarget);
-		wglDXCloseDeviceNV(m_hInteropDevice);
-		glDeleteTextures(1, &m_Target);
-		m_hInteropTarget = nullptr;
-		m_hInteropDevice = nullptr;
-		wglMakeCurrent(dc, ctx);
+		m_Texture->DeleteSharedTextureGL(m_Target);
+		m_Target = 0;
+		m_Texture = nullptr;
 	}
 
-	m_Target = 0;
-	m_Texture.handle = nullptr;
-
-	if (!pTexture)
-		return true;
-
-	pTexture->ToVRTexture(m_Texture);
-
-	if (m_Texture.eType == vr::TextureType_OpenGL)
+	bool result = true;
+	if (pTexture)
 	{
-		m_Target = (GLuint)reinterpret_cast<uintptr_t>(m_Texture.handle);
-		return wglShareLists(glfwGetWGLContext(m_ProfileWindow), ctx);
+		result = pTexture->CreateSharedTextureGL(&m_Target);
+		if (result)
+			m_Texture = pTexture;
 	}
-	else if (m_Texture.eType == vr::TextureType_DirectX)
-	{
-		glfwMakeContextCurrent(m_ProfileWindow);
-
-		ID3D11Texture2D* pTexture2D = (ID3D11Texture2D*)m_Texture.handle;
-		ID3D11Device* pDevice;
-		pTexture2D->GetDevice(&pDevice);
-
-		glGenTextures(1, &m_Target);
-		m_hInteropDevice = wglDXOpenDeviceNV(pDevice);
-		if (m_hInteropDevice)
-			m_hInteropTarget = wglDXRegisterObjectNV(m_hInteropDevice, pTexture2D, m_Target, GL_TEXTURE_2D, WGL_ACCESS_READ_WRITE_NV);
-		wglMakeCurrent(dc, ctx);
-		return m_hInteropDevice != nullptr;
-	}
-
-	return false;
+	wglMakeCurrent(dc, ctx);
+	return result;
 }
 
 void ProfileManager::Flip()
@@ -182,37 +160,35 @@ void ProfileManager::Flip()
 
 	MicroProfileRender(width, height, 1.0f);
 
-	if (m_Target)
+	if (m_Texture)
 	{
-		if (m_hInteropDevice)
-			wglDXLockObjectsNV(m_hInteropDevice, 1, &m_hInteropTarget);
+		m_Texture->LockSharedTexture();
 
 		glBindTexture(GL_TEXTURE_2D, m_Target);
 		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, width, height);
 
-		if (m_hInteropDevice)
-			wglDXUnlockObjectsNV(m_hInteropDevice, 1, &m_hInteropTarget);
+		m_Texture->UnlockSharedTexture();
 	}
 
 	glfwSwapBuffers(m_ProfileWindow);
 	glfwPollEvents();
 
-	wglMakeCurrent(dc, ctx);
-
-	if (m_Texture.handle)
+	if (m_Texture)
 	{
 		static const vr::HmdMatrix34_t matrix = REV::Matrix4f(OVR::Matrix4f::RotationX(MATH_FLOAT_PI) * OVR::Matrix4f::RotationY(-MATH_FLOAT_PIOVER2) *
 			OVR::Matrix4f::Translation(OVR::Vector3f(0.0f, 0.0f, 0.1f)));
 		vr::TrackedDeviceIndex_t device = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
 		vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ProfileOverlay, device, &matrix);
 
-		if (m_Texture.eType != vr::TextureType_OpenGL)
+		vr::Texture_t texture;
+		m_Texture->ToVRTexture(texture);
+		if (texture.eType != vr::TextureType_OpenGL)
 		{
 			static const vr::VRTextureBounds_t bounds = { 0.0f, 1.0f, 1.0f, 0.0f };
 			vr::VROverlay()->SetOverlayTextureBounds(m_ProfileOverlay, &bounds);
 		}
 
-		vr::VROverlay()->SetOverlayTexture(m_ProfileOverlay, &m_Texture);
+		vr::VROverlay()->SetOverlayTexture(m_ProfileOverlay, &texture);
 
 		if (MicroProfileIsDrawing())
 			vr::VROverlay()->ShowOverlay(m_ProfileOverlay);
@@ -220,6 +196,7 @@ void ProfileManager::Flip()
 			vr::VROverlay()->HideOverlay(m_ProfileOverlay);
 	}
 
+	wglMakeCurrent(dc, ctx);
 }
 
 void ProfileManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
