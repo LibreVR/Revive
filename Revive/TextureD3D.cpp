@@ -104,10 +104,10 @@ DXGI_FORMAT TextureD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, bool 
 			case OVR_FORMAT_R11G11B10_FLOAT:      return DXGI_FORMAT_R10G10B10A2_UNORM; // TODO: OpenVR doesn't support R11G11B10
 
 			// Depth formats
-			case OVR_FORMAT_D16_UNORM:            return DXGI_FORMAT_R16_UNORM;
-			case OVR_FORMAT_D24_UNORM_S8_UINT:    return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-			case OVR_FORMAT_D32_FLOAT:            return DXGI_FORMAT_R32_FLOAT;
-			case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+			case OVR_FORMAT_D16_UNORM:            return DXGI_FORMAT_D16_UNORM;
+			case OVR_FORMAT_D24_UNORM_S8_UINT:    return DXGI_FORMAT_D24_UNORM_S8_UINT;
+			case OVR_FORMAT_D32_FLOAT:            return DXGI_FORMAT_D32_FLOAT;
+			case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 
 			// Added in 1.5 compressed formats can be used for static layers
 			case OVR_FORMAT_BC1_UNORM:            return DXGI_FORMAT_BC1_UNORM;
@@ -180,7 +180,7 @@ D3D12_RESOURCE_FLAGS TextureD3D::BindFlagsToD3DResourceFlags(unsigned int flags)
 bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 	ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
 {
-	const bool typeless = MiscFlags & ovrTextureMisc_DX_Typeless || BindFlags & ovrTextureBind_DX_DepthStencil;
+	const bool typeless = (MiscFlags & ovrTextureMisc_DX_Typeless) || (BindFlags & ovrTextureBind_DX_DepthStencil);
 
 	if (m_pDevice12)
 	{
@@ -243,7 +243,7 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 			return false;
 	}
 
-	if (m_pDevice)
+	if (m_pDevice && BindFlags & ovrTextureBind_DX_RenderTarget)
 	{
 		D3D11_SHADER_RESOURCE_VIEW_DESC desc = {};
 		desc.Format = TextureFormatToDXGIFormat(Format);
@@ -253,15 +253,12 @@ bool TextureD3D::Init(ovrTextureType type, int Width, int Height, int MipLevels,
 		HRESULT hr = m_pDevice->CreateShaderResourceView(m_pTexture.Get(), &desc, m_pSRV.GetAddressOf());
 		if (FAILED(hr))
 			return false;
-	}
 
-	if (m_pDevice && BindFlags & ovrTextureBind_DX_RenderTarget)
-	{
 		D3D11_RENDER_TARGET_VIEW_DESC target_desc = {};
 		target_desc.Format = TextureFormatToDXGIFormat(Format);
 		target_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		target_desc.Texture2D.MipSlice = 0;
-		HRESULT hr = m_pDevice->CreateRenderTargetView(m_pTexture.Get(), &target_desc, m_pRTV.GetAddressOf());
+		hr = m_pDevice->CreateRenderTargetView(m_pTexture.Get(), &target_desc, m_pRTV.GetAddressOf());
 		if (FAILED(hr))
 			return false;
 	}
