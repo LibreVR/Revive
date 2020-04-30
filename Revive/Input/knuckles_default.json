@@ -23,7 +23,6 @@
           "inputs": {
             "click": {
               "output": "/actions/touch/in/button_ax"
-              "output": "/actions/microprofile/in/toggledisplay"
             },
             "touch": {
               "output": "/actions/touch/in/touch_ax"
@@ -172,27 +171,5 @@
         }
       ]
     }
-  },
-  "/actions/microprofile": {
-    "sources": [
-      {
-        "path": "/user/hand/left/input/a",
-        "mode": "button",
-        "inputs": {
-          "click": {
-            "output": "/actions/microprofile/in/togglepause"
-          }
-        }
-      },
-      {
-        "path": "/user/hand/left/input/b",
-        "mode": "button",
-        "inputs": {
-          "click": {
-            "output": "/actions/microprofile/in/toggledisplay"
-          }
-        }
-      }
-    ]
   }
 }
