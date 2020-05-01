@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+**Do not report issues when using Virtual Desktop or ALVR, this is not supported by Revive.**
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
