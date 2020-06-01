@@ -3,6 +3,8 @@
 
 #include <QString>
 
+typedef struct _CREDENTIALW* PCREDENTIALW;
+
 class WindowsServices
 {
 public:
@@ -12,6 +14,7 @@ public:
 	static bool ReadCredentials(QString& user, QString& password);
 	static bool WriteCredentials(const QString& user, const QString& password);
 	static bool DeleteCredentials();
+	static void UnpackCredentials(PCREDENTIALW pCred, QString& user, QString& password);
 
 private:
 	static const wchar_t* CredTargetName;

@@ -69,7 +69,7 @@ bool WindowsServices::CopyFiles(QStringList files, QString destination, QStringL
 	return SUCCEEDED(hr);
 }
 
-const wchar_t* WindowsServices::CredTargetName = L"Revive/Oculus";
+const wchar_t* WindowsServices::CredTargetName = L"Revive/OculusPlatform";
 
 bool WindowsServices::PromptCredentials(QString& user, QString& password, bool failed)
 {
@@ -79,54 +79,43 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 	BOOL save = false;
 	uint32_t flags = CREDUIWIN_GENERIC | CREDUIWIN_CHECKBOX;
 
-	QByteArray packedAuth;
-	if (ReadCredentials(user, password))
+	CREDUI_INFOW pCredInfo;
+	pCredInfo.cbSize = sizeof(CREDUI_INFOW);
+	pCredInfo.hwndParent = NULL;
+	pCredInfo.pszMessageText = L"Please log in to your Oculus account to enable online multiplayer lobbies. Accounts with 2FA are not supported.";
+	pCredInfo.pszCaptionText = L"Revive Dashboard";
+	pCredInfo.hbmBanner = nullptr;
+
+	PCREDENTIALW pCred;
+	DWORD result = ERROR_SUCCESS;
+	if (CredReadW(CredTargetName, CRED_TYPE_GENERIC, 0, &pCred))
 	{
-		DWORD size = 0;
-		CredPackAuthenticationBufferW(0, (LPWSTR)user.data(), (LPWSTR)password.data(), nullptr, &size);
-		packedAuth.resize(size);
-		CredPackAuthenticationBufferW(0, (LPWSTR)user.data(), (LPWSTR)password.data(), (PBYTE)packedAuth.data(), &size);
+		result = CredUIPromptForWindowsCredentialsW(&pCredInfo, failed ? ERROR_LOGON_FAILURE : 0, &pkg, pCred->CredentialBlob, pCred->CredentialBlobSize, &authBuffer, &authSize, &save, flags);
+		CredFree(pCred);
+	}
+	else
+	{
+		result = CredUIPromptForWindowsCredentialsW(&pCredInfo, failed ? ERROR_LOGON_FAILURE : 0, &pkg, nullptr, 0, &authBuffer, &authSize, &save, flags);
 	}
 
-	CREDUI_INFOW pcred;
-	pcred.cbSize = sizeof(CREDUI_INFOW);
-	pcred.hwndParent = NULL;
-	pcred.pszMessageText = L"Please log in to your Oculus account to enable online multiplayer.";
-	pcred.pszCaptionText = L"Revive Dashboard";
-	pcred.hbmBanner = nullptr;
-	DWORD result = CredUIPromptForWindowsCredentialsW(&pcred, failed ? ERROR_LOGON_FAILURE : 0, &pkg, packedAuth.constData(), packedAuth.size(), &authBuffer, &authSize, &save, flags);
-	packedAuth.fill(0);
 	if (result == ERROR_SUCCESS)
 	{
-		DWORD userSize = 0, passwordSize = 0;
-		CredUnPackAuthenticationBufferW(0,
-			authBuffer, authSize,
-			nullptr, &userSize,
-			nullptr, nullptr,
-			nullptr, &passwordSize);
-
-		// Destroy old data before resizing the buffer
-		user.fill(0);
-		password.fill(0);
-
-		// QStrings are not null-terminated, but we need to reserve enough memory for the null terminator
-		user.reserve(userSize);
-		user.resize(userSize - 1);
-		password.reserve(passwordSize);
-		password.resize(passwordSize - 1);
-		Q_ASSERT((DWORD)user.capacity() >= userSize);
-		Q_ASSERT((DWORD)password.capacity() >= passwordSize);
-
-		CredUnPackAuthenticationBufferW(0,
-			authBuffer, authSize,
-			(LPWSTR)user.data(), &userSize,
-			nullptr, nullptr,
-			(LPWSTR)password.data(), &passwordSize);
+		UnpackCredentials(pCred, user, password);
 
 		if (save)
-			WriteCredentials(user, password);
+		{
+			CREDENTIALW cred = { 0 };
+			cred.Type = CRED_TYPE_GENERIC;
+			cred.TargetName = (LPWSTR)CredTargetName;
+			cred.CredentialBlobSize = authSize;
+			cred.CredentialBlob = (LPBYTE)authBuffer;
+			cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
+			return !!CredWriteW(&cred, 0);
+		}
 		else
+		{
 			DeleteCredentials();
+		}
 
 		SecureZeroMemory(authBuffer, authSize);
 		CoTaskMemFree(authBuffer);
@@ -137,13 +126,12 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 
 bool WindowsServices::ReadCredentials(QString& user, QString& password)
 {
-	PCREDENTIALW pcred;
-	if (!CredReadW (CredTargetName, CRED_TYPE_GENERIC, 0, &pcred))
+	PCREDENTIALW pCred;
+	if (!CredReadW(CredTargetName, CRED_TYPE_GENERIC, 0, &pCred))
 		return false;
 
-	user = QString::fromWCharArray(pcred->UserName);
-	password.setUnicode((QChar*)pcred->CredentialBlob, pcred->CredentialBlobSize / sizeof(QChar));
-	CredFree(pcred);
+	UnpackCredentials(pCred, user, password);
+	CredFree(pCred);
 	return true;
 }
 
@@ -157,17 +145,50 @@ bool WindowsServices::WriteCredentials(const QString& user, const QString& passw
 	}
 
 	// We're casting a bunch of const away here, but it should be safe
+	QByteArray packedAuth;
+	DWORD size = 0;
+	CredPackAuthenticationBufferW(0, (LPWSTR)user.data(), (LPWSTR)password.data(), nullptr, &size);
+	packedAuth.resize(size);
+	CredPackAuthenticationBufferW(0, (LPWSTR)user.data(), (LPWSTR)password.data(), (PBYTE)packedAuth.data(), &size);
+
 	CREDENTIALW cred = {0};
 	cred.Type = CRED_TYPE_GENERIC;
 	cred.TargetName = (LPWSTR)CredTargetName;
-	cred.CredentialBlobSize = password.size() * sizeof(QChar);
-	cred.CredentialBlob = (LPBYTE)password.unicode();
+	cred.CredentialBlobSize = packedAuth.size();
+	cred.CredentialBlob = (LPBYTE)packedAuth.data();
 	cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
-	cred.UserName = (LPWSTR)user.utf16();
 	return !!CredWriteW(&cred, 0);
 }
 
 bool WindowsServices::DeleteCredentials()
 {
 	return !!CredDeleteW(CredTargetName, CRED_TYPE_GENERIC, 0);
+}
+
+void WindowsServices::UnpackCredentials(PCREDENTIALW pCred, QString& user, QString& password)
+{
+	DWORD userSize = 0, passwordSize = 0;
+	CredUnPackAuthenticationBufferW(0,
+		pCred->CredentialBlob, pCred->CredentialBlobSize,
+		nullptr, &userSize,
+		nullptr, nullptr,
+		nullptr, &passwordSize);
+
+	// Destroy old data before resizing the buffer
+	user.fill(0);
+	password.fill(0);
+
+	// QStrings are not null-terminated, but we need to reserve enough memory for the null terminator
+	user.reserve(userSize);
+	user.resize(userSize - 1);
+	password.reserve(passwordSize);
+	password.resize(passwordSize - 1);
+	Q_ASSERT((DWORD)user.capacity() >= userSize);
+	Q_ASSERT((DWORD)password.capacity() >= passwordSize);
+
+	CredUnPackAuthenticationBufferW(0,
+		pCred->CredentialBlob, pCred->CredentialBlobSize,
+		(LPWSTR)user.data(), &userSize,
+		nullptr, nullptr,
+		(LPWSTR)password.data(), &passwordSize);
 }

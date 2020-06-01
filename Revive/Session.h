@@ -11,7 +11,7 @@
 class CompositorBase;
 class InputManager;
 class SessionDetails;
-class SettingsManager;
+class ProfileManager;
 
 struct SessionStatusBits {
 	bool IsVisible : 1;
@@ -26,6 +26,9 @@ struct SessionStatusBits {
 
 struct ovrHmdStruct
 {
+	uint32_t MinorVersion;
+
+	// Session thread
 	std::thread SessionThread;
 	std::atomic_bool Running;
 

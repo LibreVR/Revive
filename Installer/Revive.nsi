@@ -172,7 +172,7 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\$StartMenuFolder\Revive Dashboard.lnk"
   RMDir "$SMPROGRAMS\$StartMenuFolder"
   
-  DeleteRegKey HKCU "Software\Revive"
+  DeleteRegKey HKLM "Software\Revive"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Revive"
 
 SectionEnd

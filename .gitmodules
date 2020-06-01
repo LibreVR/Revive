@@ -16,3 +16,6 @@
 [submodule "Externals/Detours"]
 	path = Externals/Detours
 	url = https://github.com/microsoft/Detours
+[submodule "Externals/glfw"]
+	path = Externals/glfw
+	url = https://github.com/glfw/glfw.git

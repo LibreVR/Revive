@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+**Do not report issues when using Virtual Desktop or ALVR, this is not supported by Revive.**
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
@@ -28,6 +30,10 @@ A clear and concise description of what you expected to happen.
 **Versions (please complete the following information):**
  - Revive:
  - SteamVR:
+
+**Create a system report**
+Right-click your SteamVR status window and click "Create System Report",
+save the result to a file and drag and drop that file into this text box.
 
 **Additional context**
 Add any other context about the problem here.

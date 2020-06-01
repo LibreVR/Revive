@@ -18,7 +18,11 @@ public:
 	virtual bool Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
 
-	VkImage Image() { return m_image; };
+	virtual bool CreateSharedTextureGL(unsigned int* outName) override;
+	virtual void DeleteSharedTextureGL(unsigned int name) override;
+
+	VkImage Image() { return m_image; }
+	VkDevice Device() { return m_device; }
 
 private:
 	vr::VRVulkanTextureData_t m_data;
@@ -28,6 +32,9 @@ private:
 	VkPhysicalDeviceMemoryProperties m_memoryProperties;
 	VkDevice m_device;
 	VkQueue* m_pQueue;
+
+	void* m_hMemoryHandle;
+	unsigned int m_MemoryObject;
 
 	VkFormat TextureFormatToVkFormat(ovrTextureFormat format);
 	VkImageUsageFlags BindFlagsToVkImageUsageFlags(unsigned int flags);
@@ -39,5 +46,6 @@ private:
 	VK_DEFINE_FUNCTION(vkBindImageMemory)
 	VK_DEFINE_FUNCTION(vkFreeMemory)
 	VK_DEFINE_FUNCTION(vkDestroyImage)
+	VK_DEFINE_FUNCTION(vkGetMemoryWin32HandleKHR)
 };
 

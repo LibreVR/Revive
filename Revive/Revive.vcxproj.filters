@@ -51,18 +51,6 @@
     <ClInclude Include="TextureGL.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
-    <ClInclude Include="..\microprofile\microprofile.h">
-      <Filter>Header Files\microprofile</Filter>
-    </ClInclude>
-    <ClInclude Include="..\microprofile\microprofiledraw.h">
-      <Filter>Header Files\microprofile</Filter>
-    </ClInclude>
-    <ClInclude Include="..\microprofile\microprofilehtml.h">
-      <Filter>Header Files\microprofile</Filter>
-    </ClInclude>
-    <ClInclude Include="..\microprofile\microprofileui.h">
-      <Filter>Header Files\microprofile</Filter>
-    </ClInclude>
     <ClInclude Include="SessionDetails.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
@@ -88,6 +76,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Common.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\microprofile\microprofile.h">
+      <Filter>Header Files\microprofile</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\microprofile\microprofiledraw.h">
+      <Filter>Header Files\microprofile</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\microprofile\microprofilehtml.h">
+      <Filter>Header Files\microprofile</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Externals\microprofile\microprofileui.h">
+      <Filter>Header Files\microprofile</Filter>
+    </ClInclude>
+    <ClInclude Include="ProfileManager.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
   </ItemGroup>
@@ -153,6 +156,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Externals\LibOVR\Shim\OVR_StereoProjection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ProfileManager.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Externals\glad\src\glad_wgl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

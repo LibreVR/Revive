@@ -52,4 +52,9 @@ private:
 
 	// Call order enforcement
 	void* m_FrameEvents[MAX_QUEUE_AHEAD];
+
+#if MICROPROFILE_ENABLED
+	// Microprofile
+	std::unique_ptr<TextureBase> m_ProfileTexture;
+#endif
 };

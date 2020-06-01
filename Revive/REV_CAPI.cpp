@@ -7,6 +7,7 @@
 #include "CompositorBase.h"
 #include "SessionDetails.h"
 #include "InputManager.h"
+#include "ProfileManager.h"
 
 #include <dxgi1_2.h>
 #include <openvr.h>
@@ -19,9 +20,13 @@
 
 #define REV_DEFAULT_TIMEOUT 10000
 
+unsigned int g_MinorVersion = OVR_MINOR_VERSION;
 vr::EVRInitError g_InitError = vr::VRInitError_Init_NotInitialized;
-uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
+
+#if MICROPROFILE_ENABLED
+ProfileManager g_ProfileManager;
+#endif
 
 ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
 {
@@ -57,10 +62,40 @@ ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
 	}
 }
 
+bool LoadRenderDoc()
+{
+	LONG error = ERROR_SUCCESS;
+
+	// Open the libraries key
+	char keyPath[MAX_PATH] = { "Software\\Baldur Karlsson\\RenderDoc" };
+	HKEY installKey;
+	error = RegOpenKeyExA(HKEY_CURRENT_USER, keyPath, 0, KEY_READ, &installKey);
+	if (error != ERROR_SUCCESS)
+		return false;
+
+	// Get the default library
+	char path[MAX_PATH];
+	DWORD length = MAX_PATH;
+	error = RegQueryValueExA(installKey, "", NULL, NULL, (PBYTE)path, &length);
+	RegCloseKey(installKey);
+	if (error != ERROR_SUCCESS)
+		return false;
+
+	if (path[0] == '\0')
+		return false;
+
+	strcat_s(path, "renderdoc.dll");
+	return LoadLibraryA(path) != NULL;
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
 	if (g_InitError == vr::VRInitError_None)
 		return ovrSuccess;
+
+#if 0
+	LoadRenderDoc();
+#endif
 
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetForceEnable(true);
@@ -87,11 +122,20 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	if (vr::VRCompositor() == nullptr)
 		return ovrError_Timeout;
 
+#if MICROPROFILE_ENABLED
+	if (!g_ProfileManager.Initialize())
+		return ovrError_RuntimeException;
+#endif
+
 	return rev_InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 {
+#if MICROPROFILE_ENABLED
+	g_ProfileManager.Shutdown();
+#endif
+
 	g_Sessions.clear();
 	vr::VR_Shutdown();
 	MicroProfileShutdown();
@@ -242,8 +286,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	SessionStatusBits status = session->SessionStatus;
 
 	// Don't use the activity level while debugging, so I don't have to put on the HMD
+#if MICROPROFILE_ENABLED
+	sessionStatus->HmdPresent = true;
+	sessionStatus->HmdMounted = true;
+#else
 	sessionStatus->HmdPresent = status.HmdPresent;
 	sessionStatus->HmdMounted = status.HmdMounted;
+#endif
 
 	// TODO: Detect if the display is lost, can this ever happen with OpenVR?
 	sessionStatus->DisplayLost = status.DisplayLost;
@@ -1235,15 +1284,25 @@ ovr_GetViewportStencil(
 	return ovr_GetFovStencil(session, &fovStencilDesc, outMeshBuffer);
 }
 
-static const vr::HmdVector2_t VisibleRectangle[] = {
+static const ovrVector2f StencilVertices[] = {
 	{ 0.0f, 0.0f },
 	{ 1.0f, 0.0f },
 	{ 1.0f, 1.0f },
 	{ 0.0f, 1.0f }
 };
 
-static const uint16_t VisibleRectangleIndices[] = {
-	0, 1, 2, 0, 2, 3
+static const ovrVector2f InvertedStencilVertices[] = {
+	{ 0.0f, 1.0f },
+	{ 1.0f, 1.0f },
+	{ 1.0f, 0.0f },
+	{ 0.0f, 0.0f }
+};
+
+static const uint16_t StencilIndices[][6] = {
+	{ 0, 0, 0 },
+	{ 0, 1, 2, 0, 2, 3 },
+	{ 0, 1, 2, 3 },
+	{ 0, 1, 2, 0, 2, 3 }
 };
 
 OVR_PUBLIC_FUNCTION(ovrResult)
@@ -1252,37 +1311,54 @@ ovr_GetFovStencil(
 	const ovrFovStencilDesc* fovStencilDesc,
 	ovrFovStencilMeshBuffer* meshBuffer)
 {
-	if (fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
+	switch (fovStencilDesc->StencilType)
 	{
-		meshBuffer->UsedVertexCount = sizeof(VisibleRectangle) / sizeof(vr::HmdVector2_t);
-		meshBuffer->UsedIndexCount = sizeof(VisibleRectangleIndices) / sizeof(uint16_t);
+	case ovrFovStencil_HiddenArea:
+		meshBuffer->UsedIndexCount = 3;
+		meshBuffer->UsedVertexCount = 1;
+		break;
+	case ovrFovStencil_BorderLine:
+		meshBuffer->UsedIndexCount = 4;
+		meshBuffer->UsedVertexCount = 4;
+		break;
+	case ovrFovStencil_VisibleArea:
+	case ovrFovStencil_VisibleRectangle:
+		meshBuffer->UsedIndexCount = 6;
+		meshBuffer->UsedVertexCount = 4;
+		break;
+	}
 
-		if (meshBuffer->AllocVertexCount >= meshBuffer->UsedVertexCount)
-			memcpy(meshBuffer->VertexBuffer, VisibleRectangle, sizeof(VisibleRectangle));
-		if (meshBuffer->AllocIndexCount >= meshBuffer->UsedIndexCount)
-			memcpy(meshBuffer->IndexBuffer, VisibleRectangleIndices, sizeof(VisibleRectangleIndices));
+	vr::HiddenAreaMesh_t mesh = { nullptr, 0 };
+	if (fovStencilDesc->StencilType < vr::k_eHiddenAreaMesh_Max)
+		mesh = vr::VRSystem()->GetHiddenAreaMesh((vr::EVREye)fovStencilDesc->Eye, (vr::EHiddenAreaMeshType)fovStencilDesc->StencilType);
+
+	if (mesh.unTriangleCount > 0)
+	{
+		meshBuffer->UsedIndexCount = mesh.unTriangleCount * 3;
+		meshBuffer->UsedVertexCount = mesh.unTriangleCount * 3;
+	}
+
+	if (meshBuffer->AllocVertexCount < meshBuffer->UsedVertexCount || meshBuffer->AllocIndexCount < meshBuffer->UsedIndexCount ||
+		!meshBuffer->VertexBuffer || !meshBuffer->IndexBuffer)
+		return !meshBuffer->AllocVertexCount && !meshBuffer->AllocVertexCount ? ovrSuccess : ovrError_InvalidParameter;
+
+	if (mesh.unTriangleCount == 0)
+	{
+		const ovrVector2f* vertex = fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft ? InvertedStencilVertices : StencilVertices;
+		const uint16_t* index = StencilIndices[fovStencilDesc->StencilType];
+		memcpy(meshBuffer->VertexBuffer, vertex, meshBuffer->UsedVertexCount * sizeof(ovrVector2f));
+		memcpy(meshBuffer->IndexBuffer, index, meshBuffer->UsedIndexCount * sizeof(uint16_t));
 		return ovrSuccess;
 	}
 
-	int i;
-	vr::HiddenAreaMesh_t mesh = vr::VRSystem()->GetHiddenAreaMesh((vr::EVREye)fovStencilDesc->Eye, (vr::EHiddenAreaMeshType)fovStencilDesc->StencilType);
-	for (i = 0; i < (int)mesh.unTriangleCount * 3; i++)
+	for (uint32_t i = 0; i < mesh.unTriangleCount * 3; i++)
 	{
-		if (meshBuffer->VertexBuffer && i < meshBuffer->AllocVertexCount)
-		{
-			if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
-				meshBuffer->VertexBuffer[i] = REV::Vector2f(mesh.pVertexData[i]);
-			else
-				meshBuffer->VertexBuffer[i] = OVR::Vector2f(mesh.pVertexData[i].v[0], 1.0f - mesh.pVertexData[i].v[1]);
-		}
-
-		if (meshBuffer->IndexBuffer && i < meshBuffer->AllocIndexCount)
-		{
-			meshBuffer->IndexBuffer[i] = i;
-		}
+		if (fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft)
+			meshBuffer->VertexBuffer[i] = REV::Vector2f(mesh.pVertexData[i]);
+		else
+			meshBuffer->VertexBuffer[i] = OVR::Vector2f(mesh.pVertexData[i].v[0], 1.0f - mesh.pVertexData[i].v[1]);
+		meshBuffer->IndexBuffer[i] = i;
 	}
-	meshBuffer->UsedVertexCount = i;
-	meshBuffer->UsedIndexCount = i;
 	return ovrSuccess;
 }
 

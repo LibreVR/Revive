@@ -1,18 +1,20 @@
 #include "CompositorBase.h"
-#include "OVR_CAPI.h"
-#include "REV_Math.h"
+#include "Common.h"
 #include "Session.h"
 #include "SessionDetails.h"
 #include "InputManager.h"
+#include "ProfileManager.h"
+#include "TextureBase.h"
+
 #include "microprofile.h"
+#include "OVR_CAPI.h"
+#include "REV_Math.h"
 
 #include <Windows.h>
 #include <assert.h>
 #include <openvr.h>
 #include <vector>
 #include <algorithm>
-
-extern uint32_t g_MinorVersion;
 
 #define REV_LAYER_BIAS 0.0001f
 #define ENABLE_DEPTH_SUBMIT 0
@@ -23,18 +25,6 @@ MICROPROFILE_DEFINE(EndFrame, "Compositor", "EndFrame", 0x00ff00);
 MICROPROFILE_DEFINE(BlitLayers, "Compositor", "BlitLayers", 0x00ff00);
 MICROPROFILE_DEFINE(SubmitLayer, "Compositor", "SubmitLayer", 0x00ff00);
 MICROPROFILE_DEFINE(WaitGetPoses, "Compositor", "WaitGetPoses", 0x00ff00);
-
-const char* swapNames[] = {
-	"SwapChain Left", "SwapChain Right"
-};
-
-const char* depthNames[] = {
-	"DepthChain Left", "DepthChain Right"
-};
-
-const char* submitNames[] = {
-	"Submit Left", "Submit Right"
-};
 
 ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
 {
@@ -62,6 +52,9 @@ CompositorBase::CompositorBase()
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
 	, m_FrameEvents()
+#if MICROPROFILE_ENABLED
+	, m_ProfileTexture()
+#endif
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
 	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
@@ -78,10 +71,24 @@ CompositorBase::~CompositorBase()
 
 	if (m_MirrorTexture)
 		delete m_MirrorTexture;
+
+#if MICROPROFILE_ENABLED
+	g_ProfileManager.SetTexture(nullptr);
+#endif
 }
 
 ovrResult CompositorBase::CreateTextureSwapChain(const ovrTextureSwapChainDesc* desc, ovrTextureSwapChain* out_TextureSwapChain)
 {
+#if MICROPROFILE_ENABLED
+	if (!m_ProfileTexture)
+	{
+		// Create the profiler render target texture.
+		m_ProfileTexture.reset(CreateTexture());
+		m_ProfileTexture->Init(ovrTexture_2D, PROFILE_WINDOW_WIDTH, PROFILE_WINDOW_HEIGHT, 1, 1, OVR_FORMAT_R8G8B8A8_UNORM, ovrTextureMisc_None, ovrTextureBind_DX_RenderTarget);
+		g_ProfileManager.SetTexture(m_ProfileTexture.get());
+	}
+#endif
+
 	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData(*desc);
 	swapChain->Identifier = m_ChainCount++;
 
@@ -126,9 +133,11 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
-	// Wait on the last frame completion with a 500ms timeout
+	// Wait on the frame before the current frame with a 500ms timeout
 	assert(frameIndex - session->FrameIndex < MAX_QUEUE_AHEAD);
-	bool timeout = WaitForSingleObject(m_FrameEvents[(frameIndex - 1) % MAX_QUEUE_AHEAD], 500) != WAIT_OBJECT_0;
+	bool timeout = false;
+	if (frameIndex > 1)
+		timeout = WaitForSingleObject(m_FrameEvents[(frameIndex - 2) % MAX_QUEUE_AHEAD], 500) != WAIT_OBJECT_0;
 
 	// Wait for the actual frame start
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
@@ -260,8 +269,9 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
 
-	// Flip the profiler.
-	MicroProfileFlip();
+#if MICROPROFILE_ENABLED
+	g_ProfileManager.Flip();
+#endif
 
 	return rev_CompositorErrorToOvrError(error);
 }
@@ -330,8 +340,6 @@ void CompositorBase::BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHe
 		if (src.EyeFov.ColorTexture[i] && src.EyeFov.ColorTexture[i] != srcChain)
 		{
 			srcChain = src.EyeFov.ColorTexture[i];
-			MICROPROFILE_META_CPU(submitNames[i], srcChain->SubmitIndex);
-			MICROPROFILE_META_CPU(swapNames[i], srcChain->Identifier);
 			srcTex = srcChain->Submit();
 		}
 
@@ -360,6 +368,11 @@ void CompositorBase::BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHe
 		// Composit the layer
 		RenderTextureSwapChain((vr::EVREye)i, srcTex, dstTex, dst.EyeFov.Viewport[i], bounds, quad);
 	}
+
+	MICROPROFILE_META_CPU("SwapChain Left", src.EyeFov.ColorTexture[0]->Identifier);
+	MICROPROFILE_META_CPU("Submit Left", src.EyeFov.ColorTexture[0]->SubmitIndex);
+	MICROPROFILE_META_CPU("SwapChain Right", srcChain->Identifier);
+	MICROPROFILE_META_CPU("Submit Right", srcChain->SubmitIndex);
 }
 
 vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrLayerHeader* baseLayer)
@@ -379,8 +392,6 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		if (layer.EyeFov.ColorTexture[i] && layer.EyeFov.ColorTexture[i] != colorChain)
 		{
 			colorChain = layer.EyeFov.ColorTexture[i];
-			MICROPROFILE_META_CPU(submitNames[i], colorChain->SubmitIndex);
-			MICROPROFILE_META_CPU(swapNames[i], colorChain->Identifier);
 			colorChain->Submit()->ToVRTexture(colorTexture);
 		}
 
@@ -435,7 +446,6 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 			if (layer.EyeFovDepth.DepthTexture[i] && layer.EyeFovDepth.DepthTexture[i] != depthChain)
 			{
 				depthChain = layer.EyeFovDepth.DepthTexture[i];
-				MICROPROFILE_META_CPU(depthNames[i], depthChain->Identifier);
 				depthChain->Submit()->ToVRTexture(depthTexture);
 			}
 
@@ -453,6 +463,11 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		if (err != vr::VRCompositorError_None)
 			break;
 	}
+
+	MICROPROFILE_META_CPU("SwapChain Left", layer.EyeFov.ColorTexture[0]->Identifier);
+	MICROPROFILE_META_CPU("Submit Left", layer.EyeFov.ColorTexture[0]->SubmitIndex);
+	MICROPROFILE_META_CPU("SwapChain Right", colorChain->Identifier);
+	MICROPROFILE_META_CPU("Submit Right", colorChain->SubmitIndex);
 	return err;
 }
 

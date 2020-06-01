@@ -2,8 +2,6 @@
 
 #include "TextureBase.h"
 
-#include <glad/glad.h>
-
 class TextureGL :
 	public TextureBase
 {
@@ -15,10 +13,16 @@ public:
 	virtual bool Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
 		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
 
-	GLuint Texture;
-	GLuint Framebuffer;
+	virtual bool CreateSharedTextureGL(unsigned int* outName) override;
+	virtual void DeleteSharedTextureGL(unsigned int name) override;
+
+	unsigned int Texture;
+	unsigned int Framebuffer;
 
 protected:
-	static GLenum TextureFormatToInternalFormat(ovrTextureFormat format);
-	static GLenum TextureFormatToGLFormat(ovrTextureFormat format);
+	static unsigned int TextureFormatToInternalFormat(ovrTextureFormat format);
+	static unsigned int TextureFormatToGLFormat(ovrTextureFormat format);
+
+	int m_Width, m_Height;
+	unsigned int m_InteropTexture;
 };
