@@ -168,7 +168,7 @@ void CTrayIconController::login()
 {
 	QString user, password;
 	if (WindowsServices::PromptCredentials(user, password))
-		COculusPlatform::SharedInstance()->Login(user, password);
+		COculusPlatform::SharedInstance()->Login(user, password, COculusPlatform::platformID);
 
 	// Overwrite sensitive credential data
 	user.fill(0);

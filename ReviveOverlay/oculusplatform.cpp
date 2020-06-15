@@ -3,7 +3,7 @@
 
 #include <QCoreApplication>
 
-const ovrID COculusPlatform::AppId = 572698886195608; // Oculus Runtime
+const ovrID COculusPlatform::platformID = 572698886195608; // Oculus Runtime
 
 COculusPlatform *COculusPlatform::SharedInstance()
 {
@@ -33,8 +33,9 @@ COculusPlatform::~COculusPlatform()
 	m_PlatformLib.unload();
 }
 
-bool COculusPlatform::Init(QString basePath)
+bool COculusPlatform::Init(QString basePath, ovrID appID)
 {
+	initBasePath = basePath;
 	m_PlatformLib.setFileName(basePath + "/Support/oculus-runtime/LibOVRPlatform64_1");
 	if (m_PlatformLib.load())
 	{
@@ -49,7 +50,7 @@ bool COculusPlatform::Init(QString basePath)
 
 		QString email, password;
 		if (WindowsServices::ReadCredentials(email, password))
-			Login(email, password);
+			Login(email, password, appID);
 
 		// Overwrite sensitive credential data
 		email.fill(0);
@@ -85,10 +86,13 @@ void COculusPlatform::Update()
 			else if (result == ovrPlatformInitialize_Unknown ||
 				result == ovrPlatformInitialize_InvalidCredentials)
 			{
+				if (result == ovrPlatformInitialize_Unknown) {
+					qDebug("Unknown Init");
+				}
 				qDebug("Invalid Oculus Platform credentials");
 				QString user, password;
 				if (WindowsServices::PromptCredentials(user, password, true))
-					Login(user, password);
+					Login(user, password, platformID);
 
 				// Overwrite sensitive credential data
 				user.fill(0);
@@ -104,21 +108,29 @@ void COculusPlatform::Update()
 	}
 }
 
-bool COculusPlatform::Login(const QString& email, const QString& password)
+bool COculusPlatform::Login(const QString& email, const QString& password, const ovrID appID)
 {
 	if (email.isEmpty() || password.isEmpty())
 		return false;
-
 	QByteArray emailUtf8 = email.toUtf8(), passwordUtf8 = password.toUtf8();
 	ovrOculusInitParams params;
 	params.sType = ovrPlatformStructureType_OculusInitParams;
 	params.email = emailUtf8.constData();
 	params.password = passwordUtf8.constData();
-	params.appId = AppId;
+	params.appId = appID;
 	params.uriPrefixOverride = nullptr;
 	ovrRequest req = InitializeStandaloneOculus(&params);
 	m_PollTimer.start(1000);
 	return req != 0;
+}
+
+void COculusPlatform::reLogin(const QString appID)
+{
+	QByteArray appIDUTF8 = appID.toUtf8();
+	QString email, password;
+
+	if (WindowsServices::ReadCredentials(email, password))
+		Login(email, password, strtoull(appIDUTF8.constData(), NULL, 10));
 }
 
 void COculusPlatform::Logout()

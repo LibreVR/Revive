@@ -105,12 +105,6 @@
     <ClCompile Include="oculusplatform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Debug\moc_logindialog.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="Release\moc_logindialog.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
     <ClCompile Include="Debug\moc_oculusplatform.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
