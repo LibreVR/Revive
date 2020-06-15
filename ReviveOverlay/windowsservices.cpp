@@ -99,7 +99,6 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 	}
 
 	if (result == ERROR_SUCCESS)
-		qDebug("success error");
 	{
 		UnpackCredentials(pCred, user, password);
 
