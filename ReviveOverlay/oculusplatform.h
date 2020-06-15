@@ -68,7 +68,7 @@ public:
 	COculusPlatform();
 	virtual ~COculusPlatform();
 
-	bool Init(QString basePath, const ovrID appID);
+	bool Init(QString basePath);
 	bool Login(const QString& email, const QString& password, const ovrID appID);
 	void Logout();
 

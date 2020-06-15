@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 	if (!CReviveManifestController::SharedInstance()->Init())
 		qDebug("Failed to initialize the revive manifest");
 
-	if (!COculusPlatform::SharedInstance()->Init(CReviveManifestController::SharedInstance()->GetBasePath(), COculusPlatform::platformID))
+	if (!COculusPlatform::SharedInstance()->Init(CReviveManifestController::SharedInstance()->GetBasePath()))
 		qDebug("Failed to initialize the oculus platform");
 
 	// Create a QML engine.

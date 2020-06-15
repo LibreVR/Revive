@@ -33,9 +33,8 @@ COculusPlatform::~COculusPlatform()
 	m_PlatformLib.unload();
 }
 
-bool COculusPlatform::Init(QString basePath, ovrID appID)
+bool COculusPlatform::Init(QString basePath)
 {
-	initBasePath = basePath;
 	m_PlatformLib.setFileName(basePath + "/Support/oculus-runtime/LibOVRPlatform64_1");
 	if (m_PlatformLib.load())
 	{
@@ -50,7 +49,7 @@ bool COculusPlatform::Init(QString basePath, ovrID appID)
 
 		QString email, password;
 		if (WindowsServices::ReadCredentials(email, password))
-			Login(email, password, appID);
+			Login(email, password, platformID);
 
 		// Overwrite sensitive credential data
 		email.fill(0);
