@@ -85,9 +85,6 @@ void COculusPlatform::Update()
 			else if (result == ovrPlatformInitialize_Unknown ||
 				result == ovrPlatformInitialize_InvalidCredentials)
 			{
-				if (result == ovrPlatformInitialize_Unknown) {
-					qDebug("Unknown Init");
-				}
 				qDebug("Invalid Oculus Platform credentials");
 				QString user, password;
 				if (WindowsServices::PromptCredentials(user, password, true))
