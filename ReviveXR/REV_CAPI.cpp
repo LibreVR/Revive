@@ -1513,7 +1513,9 @@ ovr_GetFovStencil(
 	mask.vertices = (XrVector2f*)meshBuffer->VertexBuffer;
 	mask.indexCapacityInput = meshBuffer->AllocIndexCount;
 	mask.indices = meshBuffer->IndexBuffer ? indexBuffer.data() : nullptr;
-	CHK_XR(xrGetVisibilityMaskKHR(session->Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, fovStencilDesc->Eye, type, &mask));
+	//PFN_xrVoidFunction* p_xrGetVisibilityMaskKHR;
+	CHK_XR(xrGetInstanceProcAddr(NULL, "xrGetVisibilityMaskKHR", PFN_xrVoidFunction* p_xrGetVisibilityMaskKHR));
+	p_xrGetVisibilityMaskKHR->xrGetVisibilityMaskKHR(session->Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, fovStencilDesc->Eye, type, &mask);
 	meshBuffer->UsedVertexCount = mask.vertexCountOutput;
 	meshBuffer->UsedIndexCount = mask.indexCountOutput;
 
