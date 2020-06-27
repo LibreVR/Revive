@@ -8,7 +8,7 @@ This is a compatibility layer between the Oculus SDK and OpenVR. It allows you t
 
 *Always check the [compatibility list](https://github.com/LibreVR/Revive/wiki/Compatibility-list) before making a purchase.*
 
-1. Install [Oculus Rift S(oftware)](https://www.oculus.com/en-us/setup/) and skip the first-time setup.
+1. Download and install [Oculus Rift S(oftware)](https://www.oculus.com/en-us/setup/). When you get to "Select Your Headset", choose to "Skip".
 2. [Download the latest Revive installer.](https://github.com/LibreVR/Revive/releases/latest)
 3. Install Revive in your preferred directory.
 4. Start SteamVR if it's not already running.
