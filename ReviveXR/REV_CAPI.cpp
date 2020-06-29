@@ -204,10 +204,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	assert(numViews == ovrEye_Count);
 
 	XrGraphicsRequirementsD3D11KHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_D3D11_KHR);
-	//TODO: Daws
-	PFN_xrVoidFunction *p_xrGetD3D11GraphicsRequirementsKHR = NULL;
-	xrGetInstanceProcAddr(g_Instance, "xrGetD3D11GraphicsRequirementsKHR", p_xrGetD3D11GraphicsRequirementsKHR);
-	CHK_XR(reinterpret_cast<PFN_xrGetD3D11GraphicsRequirementsKHR>(*p_xrGetD3D11GraphicsRequirementsKHR)(session->Instance, session->System, &graphicsReq));
+	CHK_XR(xrGetD3D11GraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
 
 	// Copy the LUID into the structure
 	static_assert(sizeof(graphicsReq.adapterLuid) == sizeof(ovrGraphicsLuid),
@@ -1257,10 +1254,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	}
 
 	LARGE_INTEGER li;
-	// TODO :Daws
-	PFN_xrVoidFunction *p_xrConvertTimeToWin32PerformanceCounterKHR = NULL;
-	xrGetInstanceProcAddr(g_Instance, "xrConvertTimeToWin32PerformanceCounterKHR", p_xrConvertTimeToWin32PerformanceCounterKHR);
-	if (XR_FAILED(reinterpret_cast<PFN_xrConvertTimeToWin32PerformanceCounterKHR>(*p_xrConvertTimeToWin32PerformanceCounterKHR)(session->Instance, displayTime, &li)))
+	if (XR_FAILED(xrConvertTimeToWin32PerformanceCounterKHR(session->Instance, displayTime, &li)))
 		return ovr_GetTimeInSeconds();
 
 	return li.QuadPart * PerfFrequencyInverse;
@@ -1519,10 +1513,9 @@ ovr_GetFovStencil(
 	mask.vertices = (XrVector2f*)meshBuffer->VertexBuffer;
 	mask.indexCapacityInput = meshBuffer->AllocIndexCount;
 	mask.indices = meshBuffer->IndexBuffer ? indexBuffer.data() : nullptr;
-	//TODO: Daws
-	PFN_xrVoidFunction *p_xrGetVisibilityMaskKHR = NULL;
-	xrGetInstanceProcAddr(g_Instance, "xrGetVisibilityMaskKHR", p_xrGetVisibilityMaskKHR);
-	reinterpret_cast<PFN_xrGetVisibilityMaskKHR>(*p_xrGetVisibilityMaskKHR)(session->Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, fovStencilDesc->Eye, type, &mask);
+	//PFN_xrVoidFunction* p_xrGetVisibilityMaskKHR;
+	CHK_XR(xrGetInstanceProcAddr(NULL, "xrGetVisibilityMaskKHR", PFN_xrVoidFunction* p_xrGetVisibilityMaskKHR));
+	p_xrGetVisibilityMaskKHR->xrGetVisibilityMaskKHR(session->Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, fovStencilDesc->Eye, type, &mask);
 	meshBuffer->UsedVertexCount = mask.vertexCountOutput;
 	meshBuffer->UsedIndexCount = mask.indexCountOutput;
 

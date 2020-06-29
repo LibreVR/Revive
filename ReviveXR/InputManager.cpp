@@ -156,11 +156,7 @@ XrTime InputManager::AbsTimeToXrTime(XrInstance instance, double absTime)
 	XrTime time;
 	LARGE_INTEGER li;
 	li.QuadPart = (LONGLONG)(absTime * PerfFrequency);
-	//TODO: Daws
-	PFN_xrVoidFunction *p_xrConvertWin32PerformanceCounterToTimeKHR = NULL;
-	xrGetInstanceProcAddr(NULL, "xrConvertWin32PerformanceCounterToTimeKHR", p_xrConvertWin32PerformanceCounterToTimeKHR);
-	rs = reinterpret_cast<PFN_xrConvertWin32PerformanceCounterToTimeKHR>(*p_xrConvertWin32PerformanceCounterToTimeKHR)(instance, &li, &time);
-	//rs = xrConvertWin32PerformanceCounterToTimeKHR(instance, &li, &time);
+	rs = xrConvertWin32PerformanceCounterToTimeKHR(instance, &li, &time);
 	assert(XR_SUCCEEDED(rs));
 	return time;
 }
