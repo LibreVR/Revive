@@ -32,6 +32,11 @@ extern XrResult g_LastResult;
 
 #define XR_TYPE(x) { XR_TYPE_##x, nullptr }
 
+#define XR_FUNCTION(instance, func) \
+	static PFN_xr##func func = nullptr; \
+	if (!func) \
+		CHK_XR(xrGetInstanceProcAddr(instance, "xr" #func, (PFN_xrVoidFunction*)&##func));
+
 ovrResult ResultToOvrResult(XrResult error);
 XrPath GetXrPath(const char* path);
 XrPath GetXrPath(std::string path);

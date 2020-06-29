@@ -171,6 +171,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	if (!pSession)
 		return ovrError_InvalidParameter;
 
+	XR_FUNCTION(g_Instance, GetD3D11GraphicsRequirementsKHR);
+
 	*pSession = nullptr;
 
 	// Initialize the opaque pointer with our own OpenVR-specific struct
@@ -204,7 +206,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	assert(numViews == ovrEye_Count);
 
 	XrGraphicsRequirementsD3D11KHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_D3D11_KHR);
-	CHK_XR(xrGetD3D11GraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
+	CHK_XR(GetD3D11GraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
 
 	// Copy the LUID into the structure
 	static_assert(sizeof(graphicsReq.adapterLuid) == sizeof(ovrGraphicsLuid),
@@ -1237,6 +1239,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetPerfStats(ovrSession session)
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
 {
 	REV_TRACE(ovr_GetPredictedDisplayTime);
+	XR_FUNCTION(session->Instance, ConvertTimeToWin32PerformanceCounterKHR);
 
 	MICROPROFILE_META_CPU("Predict Frame", (int)frameIndex);
 
@@ -1254,7 +1257,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	}
 
 	LARGE_INTEGER li;
-	if (XR_FAILED(xrConvertTimeToWin32PerformanceCounterKHR(session->Instance, displayTime, &li)))
+	if (XR_FAILED(ConvertTimeToWin32PerformanceCounterKHR(session->Instance, displayTime, &li)))
 		return ovr_GetTimeInSeconds();
 
 	return li.QuadPart * PerfFrequencyInverse;
@@ -1491,6 +1494,8 @@ ovr_GetFovStencil(
 	if (!session)
 		return ovrError_InvalidSession;
 
+	XR_FUNCTION(session->Instance, GetVisibilityMaskKHR);
+
 	if (fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
 	{
 		meshBuffer->UsedVertexCount = sizeof(VisibleRectangle) / sizeof(XrVector2f);
@@ -1513,7 +1518,7 @@ ovr_GetFovStencil(
 	mask.vertices = (XrVector2f*)meshBuffer->VertexBuffer;
 	mask.indexCapacityInput = meshBuffer->AllocIndexCount;
 	mask.indices = meshBuffer->IndexBuffer ? indexBuffer.data() : nullptr;
-	CHK_XR(xrGetVisibilityMaskKHR(session->Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, fovStencilDesc->Eye, type, &mask));
+	CHK_XR(GetVisibilityMaskKHR(session->Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, fovStencilDesc->Eye, type, &mask));
 	meshBuffer->UsedVertexCount = mask.vertexCountOutput;
 	meshBuffer->UsedIndexCount = mask.indexCountOutput;
 
