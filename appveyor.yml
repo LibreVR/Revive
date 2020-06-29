@@ -26,6 +26,7 @@ install:
 build_script:
   # Ensure vcpkg dependencies are installed
   - ps: |
+      vcpkg integrate install
       vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
   # build Revive
   - ps: |
@@ -44,7 +45,7 @@ after_build:
   # gather built Revive files
   - cmd: |
       cd c:\projects\Revive\Release
-      7z a Revive.zip ReviveInjector.exe LibRevive32.dll LibRevive64.dll LibRXRRT64.dll openxr_loader-1_0.dll
+      7z a Revive.zip ReviveInjector.exe LibRevive32.dll LibRevive64.dll LibRXRRT64.dll openxr_loader.dll
   # Run NSIS to generate installer
   - ps: |
       cd c:\projects\Revive\Installer

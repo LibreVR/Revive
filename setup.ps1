@@ -54,6 +54,7 @@ catch
 Write-Host "MSBuild found"
 
 # Ensure vcpkg dependencies are installed
+vcpkg integrate install
 vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
 
 # Build Revive a la carte
