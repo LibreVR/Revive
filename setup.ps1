@@ -23,7 +23,7 @@ Write-Host "Retrieved all dependencies."
 
 # --------- Build
 Write-Host "------------------------------------"
-Write-Host "Attempting to build OpenXR & Revive"
+Write-Host "Attempting to build Revive"
 Write-Host "------------------------------------"
 
 # Find and bind msbuild - thank you Lex Li
@@ -53,13 +53,8 @@ catch
 }
 Write-Host "MSBuild found"
 
-# Build OpenXR libraries
-Write-Host "Building OpenXR library..."
-cd Externals/openxr
-cmake -G "Visual Studio 15 2017 Win64" -D "DYNAMIC_LOADER=1" -D "BUILD_TESTS=0" .
-((Get-Content -path 'src\loader\openxr_loader-1_0.vcxproj' -Raw) -replace 'MultiThreadedDLL', 'MultiThreaded') | Set-Content -Path 'src\loader\openxr_loader-1_0.vcxproj'
-& $msBuild ALL_BUILD.vcxproj /t:Build /p:Configuration=Release
-cd ..\..
+# Ensure vcpkg dependencies are installed
+vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
 
 # Build Revive a la carte
 Write-Host "Building Revive..."

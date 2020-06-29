@@ -80,7 +80,7 @@
     </ResourceCompile>
     <PostBuildEvent />
     <PostBuildEvent>
-      <Command>copy /Y "$(Externals)openxr\src\loader\$(Configuration)"  "$(TargetDir)"</Command>
+      <Command>copy /Y "$(VcpkgCurrentInstalledDir)bin\openxr_loader.dll"  "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -115,7 +115,7 @@
     </ResourceCompile>
     <PostBuildEvent />
     <PostBuildEvent>
-      <Command>copy /Y "$(Externals)openxr\src\loader\$(Configuration)"  "$(TargetDir)"</Command>
+      <Command>copy /Y "$(VcpkgCurrentInstalledDir)bin\openxr_loader.dll"  "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
