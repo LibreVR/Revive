@@ -126,6 +126,7 @@ Rectangle {
                         if (Revive.launchApplication(appKey)) {
                             activateSound.play();
                             currentAppId = appId;
+                            Platform.reLogin(appId);
                             heartbeat.start();
                         } else {
                             failSound.play();

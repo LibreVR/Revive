@@ -107,8 +107,8 @@ function heartbeat(appId) {
     if (Platform.AccessToken.length > 0) {
         var xhr = new XMLHttpRequest;
         xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                console.log(xhr.responseText);
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                console.log(xhr.responseText);        
             }
         }
         xhr.open('POST', "https://graph.oculus.com/user_heartbeat?access_token=" + Platform.AccessToken);
