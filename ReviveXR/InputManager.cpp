@@ -143,6 +143,8 @@ ovrTouchHapticsDesc InputManager::GetTouchHapticsDesc(ovrControllerType controll
 
 XrTime InputManager::AbsTimeToXrTime(XrInstance instance, double absTime)
 {
+	XR_FUNCTION(instance, ConvertWin32PerformanceCounterToTimeKHR);
+
 	// Get back the XrTime
 	static double PerfFrequency = 0.0;
 	if (PerfFrequency == 0.0)
@@ -156,7 +158,7 @@ XrTime InputManager::AbsTimeToXrTime(XrInstance instance, double absTime)
 	XrTime time;
 	LARGE_INTEGER li;
 	li.QuadPart = (LONGLONG)(absTime * PerfFrequency);
-	rs = xrConvertWin32PerformanceCounterToTimeKHR(instance, &li, &time);
+	rs = ConvertWin32PerformanceCounterToTimeKHR(instance, &li, &time);
 	assert(XR_SUCCEEDED(rs));
 	return time;
 }

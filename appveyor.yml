@@ -24,12 +24,10 @@ install:
       copy Unicode\Plugins\AccessControl.dll 'C:\Program Files (x86)\NSIS\Plugins\x86-unicode'
       
 build_script:
-  # build OpenXR
+  # Ensure vcpkg dependencies are installed
   - ps: |
-      cd c:\projects\Revive\Externals\openxr
-      cmake -G "Visual Studio 15 2017 Win64" -D "DYNAMIC_LOADER=1" -D "BUILD_TESTS=0" .
-      ((Get-Content -path 'src\loader\openxr_loader-1_0.vcxproj' -Raw) -replace 'MultiThreadedDLL', 'MultiThreaded') | Set-Content -Path 'src\loader\openxr_loader-1_0.vcxproj'
-      msbuild ALL_BUILD.vcxproj /t:Build /p:Configuration=Release
+      vcpkg integrate install
+      vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
   # build Revive
   - ps: |
       cd c:\projects\revive
@@ -42,12 +40,12 @@ after_build:
       cd c:\projects\revive\release
       copy ..\Externals\WinSparkle\x64\Release\WinSparkle.dll .
       copy ..\ReviveOverlay\SupportAssets . -Filter "*.jpg" -Recurse -Container
-      copy c:\OpenSSL-Win64\bin\libeay32.dll .
-      copy c:\OpenSSL-Win64\bin\ssleay32.dll .
+      copy C:\openssl-v111-win64\bin\libcrypto-1_1-x64.dll .
+      copy C:\openssl-v111-win64\bin\libssl-1_1-x64.dll
   # gather built Revive files
   - cmd: |
       cd c:\projects\Revive\Release
-      7z a Revive.zip ReviveInjector.exe LibRevive32.dll LibRevive64.dll LibRXRRT64.dll openxr_loader-1_0.dll
+      7z a Revive.zip ReviveInjector.exe LibRevive32.dll LibRevive64.dll LibRXRRT64.dll openxr_loader.dll
   # Run NSIS to generate installer
   - ps: |
       cd c:\projects\Revive\Installer

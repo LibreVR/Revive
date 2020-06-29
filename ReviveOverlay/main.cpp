@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QStandardPaths>
+#include <QSslSocket>
 
 extern "C" {
     __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -70,6 +71,9 @@ int main(int argc, char *argv[])
 		// If the dashboard was successfully created keep running in the background
 		a.setQuitOnLastWindowClosed(false);
 	}
+
+	if (!QSslSocket::supportsSsl())
+		qDebug("Missing SSL support, online features will not work");
 
 	if (!CTrayIconController::SharedInstance()->Init())
 		qDebug("Failed to initialize the tray icon");

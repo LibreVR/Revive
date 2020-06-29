@@ -61,18 +61,20 @@ class COculusPlatform : public QObject
 public:
 	static COculusPlatform *SharedInstance();
 
-	static const ovrID AppId;
+	static const ovrID platformID;
+	QString initBasePath;
 
 public:
 	COculusPlatform();
 	virtual ~COculusPlatform();
 
 	bool Init(QString basePath);
-	bool Login(const QString& email, const QString& password);
+	bool Login(const QString& email, const QString& password, const ovrID appID);
 	void Logout();
 
 	bool Connected() { return !m_strAccessToken.isEmpty(); }
 	QString GetToken() { return m_strAccessToken; }
+	Q_INVOKABLE void reLogin(const QString appID);
 
 signals:
 	void TokenChanged();

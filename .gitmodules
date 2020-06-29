@@ -10,12 +10,6 @@
 [submodule "Vulkan"]
 	path = Externals/Vulkan
 	url = https://github.com/KhronosGroup/Vulkan-Docs.git
-[submodule "Externals/openxr"]
-	path = Externals/openxr
-	url = https://github.com/KhronosGroup/OpenXR-SDK.git
 [submodule "Externals/Detours"]
 	path = Externals/Detours
 	url = https://github.com/microsoft/Detours
-[submodule "Externals/glfw"]
-	path = Externals/glfw
-	url = https://github.com/glfw/glfw.git
