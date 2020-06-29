@@ -114,6 +114,11 @@ install:
   ; Delete the old Revive injector
   RMDir /r "$INSTDIR\Revive"
 
+  ; Delete outdated dependencies
+  Delete "$INSTDIR\openxr_loader-1_0.dll"
+  Delete "$INSTDIR\libeay32.dll"
+  Delete "$INSTDIR\ssleay32.dll"
+
   ; Ensure all users have access to the manifest file
   AccessControl::GrantOnFile \
     "$INSTDIR\revive.vrmanifest" "(S-1-5-32-545)" "GenericRead + GenericWrite"
