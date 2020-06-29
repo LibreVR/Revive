@@ -24,6 +24,9 @@ install:
       copy Unicode\Plugins\AccessControl.dll 'C:\Program Files (x86)\NSIS\Plugins\x86-unicode'
       
 build_script:
+  # Ensure vcpkg dependencies are installed
+  - ps: |
+      vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
   # build Revive
   - ps: |
       cd c:\projects\revive
