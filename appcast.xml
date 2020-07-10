@@ -5,31 +5,20 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 2.0.0</title>
+			<title>Version 2.1.1</title>
 			<description>
 			<![CDATA[
-<h3>Changes</h3>
-
-<ul>
-    <li>Limited the online functionality nag to Echo Arena</li>
-    <li>Reverted to old frame pacing behavior used in the initial 2.0 release</li>
-</ul>
-
 <h3>Bug fixes</h3>
 
 <ul>
-    <li>Revive: Fixed older games crashing due to an access violation</li>
-    <li>Revive: Improved handling of FoV stencils</li>
-    <li>ReviveOverlay: Fixed inject option in tray icon menu</li>
-    <li>ReviveOverlay: Fixed Oculus Platform heartbeat functionality</li>
-    <ul><li>As contributed by @ahmanwoods</li></ul>
+    <li>ReviveOverlay: Fixed crash when attempting to link an Oculus Account</li>
 </ul>
 			]]>
 			</description>
 			<pubDate>29 June 2020</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/2.1.0/ReviveInstaller.exe"
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/2.1.1/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="2.1.0.4"
+					   sparkle:version="2.1.1.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
