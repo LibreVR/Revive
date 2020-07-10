@@ -29,10 +29,10 @@ build_script:
       vcpkg integrate install
       vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
       mkdir C:\projects\Revive\Revive\bin
-      copy C:\Tools\vcpkg\installed\x64-windows\bin\openxr_loader.dll C:\projects\Revive\Revive\bin\openxr_loader.dll
   # build Revive
   - ps: |
       cd c:\projects\revive
+      set VcpkgCurrentInstalledDir=C:\Tools\vcpkg\installed\x64-windows\
       msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x64
       msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x86
       
