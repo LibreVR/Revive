@@ -67,7 +67,7 @@ artifacts:
 deploy:
   provider: GitHub
   auth_token:
-    secure: 1ckkLEAo2w5lZ4oziHqrXRQvuRwQoLuu9Q0ypuvk9CFp005B6T02JvV6aQdAGrHU
+    secure: cF/5tvydhc3y7edEeG6TW0luUQjW9zBvDE4T+jfQjvz9tDAdMsjgw2ZEDmh9qP/n
   artifact: 'Revive Installer'
   draft: true
   prerelease: false
