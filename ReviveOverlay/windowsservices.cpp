@@ -100,7 +100,7 @@ bool WindowsServices::PromptCredentials(QString& user, QString& password, bool f
 
 	if (result == ERROR_SUCCESS)
 	{
-		UnpackCredentials(pCred, user, password);
+		UnpackCredentials(authBuffer, authSize, user, password);
 
 		if (save)
 		{
@@ -130,7 +130,7 @@ bool WindowsServices::ReadCredentials(QString& user, QString& password)
 	if (!CredReadW(CredTargetName, CRED_TYPE_GENERIC, 0, &pCred))
 		return false;
 
-	UnpackCredentials(pCred, user, password);
+	UnpackCredentials(pCred->CredentialBlob, pCred->CredentialBlobSize, user, password);
 	CredFree(pCred);
 	return true;
 }
@@ -165,11 +165,11 @@ bool WindowsServices::DeleteCredentials()
 	return !!CredDeleteW(CredTargetName, CRED_TYPE_GENERIC, 0);
 }
 
-void WindowsServices::UnpackCredentials(PCREDENTIALW pCred, QString& user, QString& password)
+void WindowsServices::UnpackCredentials(void* pAuthBuffer, uint32_t cbAuthBuffer, QString& user, QString& password)
 {
 	DWORD userSize = 0, passwordSize = 0;
 	CredUnPackAuthenticationBufferW(0,
-		pCred->CredentialBlob, pCred->CredentialBlobSize,
+		pAuthBuffer, cbAuthBuffer,
 		nullptr, &userSize,
 		nullptr, nullptr,
 		nullptr, &passwordSize);
@@ -187,7 +187,7 @@ void WindowsServices::UnpackCredentials(PCREDENTIALW pCred, QString& user, QStri
 	Q_ASSERT((DWORD)password.capacity() >= passwordSize);
 
 	CredUnPackAuthenticationBufferW(0,
-		pCred->CredentialBlob, pCred->CredentialBlobSize,
+		pAuthBuffer, cbAuthBuffer,
 		(LPWSTR)user.data(), &userSize,
 		nullptr, nullptr,
 		(LPWSTR)password.data(), &passwordSize);
