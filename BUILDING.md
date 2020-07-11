@@ -21,26 +21,27 @@ Instructions for both scripted and manual build are below.
 
 ## Manual
 
-Before the project can be built, you must retrieve some external dependencies through [vcpkg](https://docs.microsoft.com/en-us/cpp/build/vcpkg)..
+Before the project can be built, you must retrieve some external dependencies through [vcpkg](https://docs.microsoft.com/en-us/cpp/build/vcpkg).
 
 In bash for Windows:
 
 ```
 git clone git@github.com:microsoft/vcpkg.git
 cd vcpkg
-./bootstrap-vcpkg.bat
+bootstrap-vcpkg.bat
 ```
 
 Now that vcpkg has been installed we need to install the dependencies and integrate with VS2017
 
 ```
-./vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
-./vcpkg integrate
+vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
+vcpkg integrate
 ```
 
 Now we're ready to clone the Revive repository and set up vendored dependencies.
 
 ```
+cd ..
 git clone --recursive git@github.com:LibreVR/Revive.git
 ```
 
