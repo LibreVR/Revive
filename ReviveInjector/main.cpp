@@ -239,8 +239,9 @@ int wmain(int argc, wchar_t *argv[]) {
 
 	if (dlls.empty())
 	{
-		dlls.add(moduleDir + std::string("\\openvr_api64.dll"));
+		// Not sure why, but LibRevive must appear first in this list
 		dlls.add(moduleDir + std::string("\\LibRevive64.dll"));
+		dlls.add(moduleDir + std::string("\\openvr_api64.dll"));
 	}
 	
 	LOG("Command for injector is: %ls\n", path);
@@ -264,7 +265,12 @@ int wmain(int argc, wchar_t *argv[]) {
 	if (file)
 		*file = L'\0';
 
-	if (!DetourCreateProcessWithDlls(NULL, path, NULL, NULL, FALSE, 0, NULL, (file && ext) ? workingDir : NULL, &si, &pi, (DWORD)dlls.size(), dlls.c_str(), NULL))
+	// Need to use moduleDir as working directory for DetourCreateProcessWithDlls
+	// to avoid having to copy dlls into game .exe path
+	wchar_t moduleDir_w[MAX_PATH];
+	std::mbstowcs(moduleDir_w, moduleDir, MAX_PATH);
+
+	if (!DetourCreateProcessWithDlls(NULL, path, NULL, NULL, FALSE, 0, NULL, moduleDir_w, &si, &pi, (DWORD)dlls.size(), dlls.c_str(), NULL))
 	{
 		LOG("Failed to create process\n");
 		return -1;

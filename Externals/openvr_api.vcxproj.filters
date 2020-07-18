@@ -72,4 +72,9 @@
       <Filter>Header Files\vrcommon</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="openvr_api.def">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
