@@ -133,9 +133,13 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
-	// Wait on the last frame completion with a 500ms timeout
-	assert(frameIndex - session->FrameIndex < MAX_QUEUE_AHEAD);
-	bool timeout = WaitForSingleObject(m_FrameEvents[(frameIndex - 1) % MAX_QUEUE_AHEAD], 500) != WAIT_OBJECT_0;
+	bool timeout = false;
+	if (frameIndex > 0)
+	{
+		// Wait on the last frame completion with a 500ms timeout
+		assert(frameIndex - session->FrameIndex < MAX_QUEUE_AHEAD);
+		timeout = WaitForSingleObject(m_FrameEvents[(frameIndex - 1) % MAX_QUEUE_AHEAD], 500) != WAIT_OBJECT_0;
+	}
 
 	// Wait for the actual frame start
 	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))

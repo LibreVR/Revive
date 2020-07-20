@@ -28,6 +28,8 @@ build_script:
   - ps: |
       vcpkg integrate install
       vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
+      mkdir C:\projects\Revive\ReviveXR\bin
+      copy C:\Tools\vcpkg\installed\x64-windows\bin\openxr_loader.dll C:\projects\Revive\ReviveXR\bin\openxr_loader.dll
   # build Revive
   - ps: |
       cd c:\projects\revive
@@ -41,7 +43,7 @@ after_build:
       copy ..\Externals\WinSparkle\x64\Release\WinSparkle.dll .
       copy ..\ReviveOverlay\SupportAssets . -Filter "*.jpg" -Recurse -Container
       copy C:\openssl-v111-win64\bin\libcrypto-1_1-x64.dll .
-      copy C:\openssl-v111-win64\bin\libssl-1_1-x64.dll
+      copy C:\openssl-v111-win64\bin\libssl-1_1-x64.dll .
   # gather built Revive files
   - cmd: |
       cd c:\projects\Revive\Release
@@ -50,10 +52,24 @@ after_build:
   - ps: |
       cd c:\projects\Revive\Installer
       $env:Path += ";C:\Program Files (x86)\NSIS"
-      makensis /DDEV_BUILD Revive.nsi
+      If ($env:APPVEYOR_REPO_TAG -eq "false" -Or $env:APPVEYOR_REPO_TAG_NAME -like "*beta") {
+        makensis /DDEV_BUILD Revive.nsi
+      } Else {
+        makensis Revive.nsi
+      }
 
 artifacts:
   - path: Installer\ReviveInstaller.exe
     name: Revive Installer
   - path: Release\Revive.zip
     name: Revive Build
+
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: cF/5tvydhc3y7edEeG6TW0luUQjW9zBvDE4T+jfQjvz9tDAdMsjgw2ZEDmh9qP/n
+  artifact: 'Revive Installer'
+  draft: true
+  prerelease: false
+  on:
+    APPVEYOR_REPO_TAG: true
