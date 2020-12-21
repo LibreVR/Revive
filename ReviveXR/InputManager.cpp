@@ -258,7 +258,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	}
 
 #ifdef _DEBUG
-	trackingPlotter.SampleValue(*outState, session->NextFrame, absTime, calledTime);
+	trackingPlotter.SampleValue(*outState, session->FrameIndex, absTime, calledTime);
 	if ((trackingPlotter.size() % 8) == 0)
 		trackingPlotter.plot();
 #endif

@@ -4,6 +4,7 @@
 #include <openxr/openxr.h>
 #include <memory>
 #include <utility>
+#include <atomic>
 
 #include "SessionDetails.h"
 
@@ -22,7 +23,7 @@ struct SessionStatusBits {
 
 struct ovrHmdStruct
 {
-	long long NextFrame;
+	std::atomic_llong FrameIndex;
 	std::pair<void**, void*> HookedFunction;
 
 	// OpenXR handles
@@ -32,8 +33,10 @@ struct ovrHmdStruct
 	XrSpace ViewSpace;
 	XrSpace	LocalSpace;
 	XrSpace StageSpace;
-	XrFrameState CurrentFrame;
-	XrFrameState PendingFrame;
+
+	// Frame state
+	std::atomic<XrTime> DisplayTime;
+	std::atomic<XrTime> DisplayPeriod;
 
 	// OpenXR properties
 	XrSystemProperties SystemProperties;
