@@ -48,6 +48,9 @@
     <ClCompile Include="openvr\src\vrcommon\vrpathregistry_public.cpp">
       <Filter>Source Files\vrcommon</Filter>
     </ClCompile>
+    <ClCompile Include="openvr_dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="openvr\src\vrcommon\dirtools_public.h">
@@ -71,5 +74,10 @@
     <ClInclude Include="openvr\src\vrcommon\vrpathregistry_public.h">
       <Filter>Header Files\vrcommon</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="openvr_api.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -196,6 +196,9 @@
     <None Include="Input\vive_controller_default.json">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Revive.def">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Revive.rc">
