@@ -57,4 +57,7 @@ struct ovrHmdStruct
 
 	// Input
 	std::unique_ptr<InputManager> Input;
+
+	ovrResult BeginSession(void* graphicsBinding);
+	ovrResult EndSession();
 };

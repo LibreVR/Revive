@@ -2,7 +2,6 @@
 #include "Common.h"
 #include "Session.h"
 #include "SwapChain.h"
-#include "InputManager.h"
 #include "XR_Math.h"
 
 #include <detours.h>
@@ -142,32 +141,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 		XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
 		graphicsBinding.device = pDevice;
-
-		XrSessionCreateInfo createInfo = XR_TYPE(SESSION_CREATE_INFO);
-		createInfo.next = &graphicsBinding;
-		createInfo.systemId = session->System;
-		CHK_XR(xrCreateSession(session->Instance, &createInfo, &session->Session));
-
-		// Attach it to the InputManager
-		session->Input->AttachSession(session->Session);
-
-		// Create reference spaces
-		XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
-		spaceInfo.poseInReferenceSpace = XR::Posef::Identity();
-		spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
-		CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->ViewSpace));
-		spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
-		CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->LocalSpace));
-		spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
-		CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->StageSpace));
-		session->CalibratedOrigin = OVR::Posef::Identity();
-
-		XrSessionBeginInfo beginInfo = XR_TYPE(SESSION_BEGIN_INFO);
-		beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-		CHK_XR(xrBeginSession(session->Session, &beginInfo));
-
-		CHK_OVR(ovr_WaitToBeginFrame(session, 0));
-		CHK_OVR(ovr_BeginFrame(session, 0));
+		session->BeginSession(&graphicsBinding);
 	}
 
 	// Enumerate formats

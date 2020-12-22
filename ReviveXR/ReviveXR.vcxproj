@@ -148,6 +148,7 @@
     <ClCompile Include="REV_CAPI_Audio.cpp" />
     <ClCompile Include="REV_CAPI_D3D.cpp" />
     <ClCompile Include="REV_CAPI_GL.cpp" />
+    <ClCompile Include="Session.cpp" />
     <ClCompile Include="SessionDetails.cpp" />
     <ClCompile Include="Swapchain.cpp" />
     <ClCompile Include="Extensions.cpp" />

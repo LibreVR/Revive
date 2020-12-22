@@ -289,13 +289,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 {
 	REV_TRACE(ovr_Destroy);
 
-	XrSession handle = session->Session;
-	if (handle)
-	{
-		xrRequestExitSession(session->Session);
-		while (!XR_SUCCEEDED(xrEndSession(handle)))
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	}
+	session->EndSession();
 
 	if (session->HookedFunction.first)
 	{
@@ -307,12 +301,6 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 
 	// Delete the session from the list of sessions
 	g_Sessions.erase(std::find_if(g_Sessions.begin(), g_Sessions.end(), [session](ovrHmdStruct const& o) { return &o == session; }));
-
-	if (handle)
-	{
-		XrResult rs = xrDestroySession(handle);
-		assert(XR_SUCCEEDED(rs));
-	}
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessionStatus* sessionStatus)

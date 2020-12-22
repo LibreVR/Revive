@@ -8,7 +8,10 @@
 
 const char* requiredExtensions[] = {
 	"XR_KHR_win32_convert_performance_counter_time",
-	"XR_KHR_D3D11_enable"
+	"XR_KHR_D3D11_enable",
+	"XR_KHR_D3D12_enable",
+	"XR_KHR_vulkan_enable",
+	"XR_KHR_opengl_enable"
 };
 
 const char* optionalExtensions[] = {

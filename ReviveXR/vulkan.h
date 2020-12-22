@@ -15,10 +15,7 @@
 
 #define VK_DEVICE_FUNCTION(device, func) \
 	if(!(func = (PFN_##func)vkGetDeviceProcAddr(device, #func))) \
-		return false;
+		return ovrError_InitializeVulkan;
 
 extern VK_DEFINE_FUNCTION(vkGetInstanceProcAddr)
 extern VK_DEFINE_FUNCTION(vkGetDeviceProcAddr)
-extern VK_DEFINE_FUNCTION(vkEnumeratePhysicalDevices)
-extern VK_DEFINE_FUNCTION(vkGetPhysicalDeviceMemoryProperties)
-extern VK_DEFINE_FUNCTION(vkGetPhysicalDeviceProperties2KHR)
