@@ -231,18 +231,15 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	if (absTime <= 0.0)
 		absTime = ovr_GetTimeInSeconds();
 
+	XrResult rs;
 	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
 	XrSpaceVelocity velocity = XR_TYPE(SPACE_VELOCITY);
-	location.next = &velocity;
-
-	// Convert to the display time and ensure
-	XrTime time = AbsTimeToXrTime(session->Instance, absTime);
+	XrTime displayTime = AbsTimeToXrTime(session->Instance, absTime);
 	XrSpace space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ? session->StageSpace : session->LocalSpace;
 
 	// Get space relation for the head
-	XrResult rs = xrLocateSpace(session->ViewSpace, space, time, &location);
-	if (XR_FAILED(rs))
-		rs = xrLocateSpace(session->ViewSpace, space, session->DisplayTime, &location);
+	location.next = &velocity;
+	rs = xrLocateSpace(session->ViewSpace, space, displayTime, &location);
 	assert(XR_SUCCEEDED(rs));
 	outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
 
@@ -253,9 +250,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		handLocation.next = &velocity;
 		if (i < m_ActionSpaces.size())
 		{
-			rs = xrLocateSpace(m_ActionSpaces[i], space, time, &handLocation);
-			if (XR_FAILED(rs))
-				rs = xrLocateSpace(m_ActionSpaces[i], space, session->DisplayTime, &handLocation);
+			rs = xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation);
 			assert(XR_SUCCEEDED(rs));
 		}
 
