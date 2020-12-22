@@ -87,7 +87,7 @@ namespace REV {
 #ifndef OVR_EXCLUDE_CAPI_FROM_MATH
 		static Matrix4f FromProjectionDesc(ovrTimewarpProjectionDesc desc, ovrFovPort fov) {
 			Matrix4f projection;
-			OVR::ScaleAndOffset2D scaleAndOffset = OVR::CreateNDCScaleAndOffsetFromFov(fov);
+			OVR::ScaleAndOffset2D scaleAndOffset = OVR::FovPort::CreateNDCScaleAndOffsetFromFov(fov);
 			projection.M[0][0] = scaleAndOffset.Scale.x;
 			projection.M[0][1] = 0.0f;
 			projection.M[0][2] = desc.Projection32 * scaleAndOffset.Offset.x;

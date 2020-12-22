@@ -123,8 +123,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 		return ovrError_Timeout;
 
 #if MICROPROFILE_ENABLED
-	if (!g_ProfileManager.Initialize())
-		return ovrError_RuntimeException;
+	g_ProfileManager.Initialize();
 #endif
 
 	return rev_InitErrorToOvrError(g_InitError);
@@ -1425,19 +1424,20 @@ ovr_EnableHybridRaycast()
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_GetHmdColorDesc()
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_QueryDistortion()
 {
 	return ovrError_Unsupported;
 }
 
+OVR_PUBLIC_FUNCTION(ovrHmdColorDesc)
+ovr_GetHmdColorDesc(ovrSession session)
+{
+	ovrHmdColorDesc desc = { ovrColorSpace_Unknown };
+	return desc;
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_SetClientColorDesc()
+ovr_SetClientColorDesc(ovrSession session, const ovrHmdColorDesc* colorDesc)
 {
 	return ovrError_Unsupported;
 }
