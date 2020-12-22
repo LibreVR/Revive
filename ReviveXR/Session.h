@@ -5,6 +5,7 @@
 #include <memory>
 #include <utility>
 #include <atomic>
+#include <queue>
 
 #include "SessionDetails.h"
 
@@ -41,6 +42,7 @@ struct ovrHmdStruct
 	// Frame state
 	XrIndexedFrameState FrameStats[ovrMaxProvidedFrameStats];
 	std::atomic<XrIndexedFrameState*> CurrentFrame;
+	std::queue<XrSwapchain> AcquiredChains;
 
 	// OpenXR properties
 	XrSystemProperties SystemProperties;

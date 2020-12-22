@@ -827,10 +827,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 
 	XrSwapchainImageAcquireInfo acquireInfo = XR_TYPE(SWAPCHAIN_IMAGE_ACQUIRE_INFO);
 	CHK_XR(xrAcquireSwapchainImage(chain->Swapchain, &acquireInfo, &chain->CurrentIndex));
-
-	XrSwapchainImageWaitInfo waitInfo = XR_TYPE(SWAPCHAIN_IMAGE_WAIT_INFO);
-	waitInfo.timeout = (*session->CurrentFrame).predictedDisplayPeriod;
-	CHK_XR(xrWaitSwapchainImage(chain->Swapchain, &waitInfo));
+	session->AcquiredChains.push(chain->Swapchain);
 
 	return ovrSuccess;
 }
@@ -959,6 +956,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 
 	if (!session || !session->Session)
 		return ovrError_InvalidSession;
+
+	// Wait on all outstanding surfaces
+	XrSwapchainImageWaitInfo chainWaitInfo = XR_TYPE(SWAPCHAIN_IMAGE_WAIT_INFO);
+	chainWaitInfo.timeout = XR_NO_DURATION;
+	while (!session->AcquiredChains.empty())
+	{
+		CHK_XR(xrWaitSwapchainImage(session->AcquiredChains.front(), &chainWaitInfo));
+		session->AcquiredChains.pop();
+	}
 
 	XrFrameBeginInfo beginInfo = XR_TYPE(FRAME_BEGIN_INFO);
 	CHK_XR(xrBeginFrame(session->Session, &beginInfo));

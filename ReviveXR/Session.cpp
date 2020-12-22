@@ -33,6 +33,7 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding)
 
 	CHK_OVR(ovr_WaitToBeginFrame(this, 0));
 	CHK_OVR(ovr_BeginFrame(this, 0));
+	return ovrSuccess;
 }
 
 ovrResult ovrHmdStruct::EndSession()
@@ -46,4 +47,5 @@ ovrResult ovrHmdStruct::EndSession()
 
 	CHK_XR(xrDestroySession(Session));
 	Session = XR_NULL_HANDLE;
+	return ovrSuccess;
 }
