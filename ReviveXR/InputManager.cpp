@@ -220,7 +220,7 @@ unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& locat
 	return flags;
 }
 
-#ifdef _DEBUG
+#ifdef PLOT_TRACKING
 ReviveTrackingPlotter trackingPlotter(1000);
 #endif
 
@@ -257,7 +257,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
 	}
 
-#ifdef _DEBUG
+#ifdef PLOT_TRACKING
 	trackingPlotter.SampleValue(*outState, (*session->CurrentFrame).frameIndex, absTime, calledTime);
 	if ((trackingPlotter.size() % 8) == 0)
 		trackingPlotter.plot();
