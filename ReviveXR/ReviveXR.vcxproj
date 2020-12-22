@@ -137,7 +137,6 @@
     <ClInclude Include="vulkan.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Externals\glad\src\glad.c" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="HapticsBuffer.cpp" />
     <ClCompile Include="REV_CAPI_Vk.cpp" />

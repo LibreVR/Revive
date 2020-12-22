@@ -107,9 +107,6 @@
     <ClCompile Include="REV_CAPI_Vk.cpp">
       <Filter>Source Files\LibOVR</Filter>
     </ClCompile>
-    <ClCompile Include="..\Externals\glad\src\glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Common.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>

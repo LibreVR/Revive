@@ -1099,8 +1099,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 						break;
 				}
 
-				// Flip the field-of-view to flip the image
-				if (upsideDown)
+				// Flip the field-of-view to flip the image, invert the check for OpenGL
+				if (texture->Images->type == XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR ? !upsideDown : upsideDown)
 					OVR::OVRMath_Swap(view.fov.angleUp, view.fov.angleDown);
 
 				if (type == ovrLayerType_EyeFovDepth && g_Extensions.CompositionDepth)
