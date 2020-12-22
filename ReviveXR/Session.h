@@ -21,9 +21,13 @@ struct SessionStatusBits {
 	bool OverlayPresent : 1;
 };
 
+typedef struct XrIndexedFrameState : public XrFrameState
+{
+	long long frameIndex;
+} XrIndexedFrameState;
+
 struct ovrHmdStruct
 {
-	std::atomic_llong FrameIndex;
 	std::pair<void**, void*> HookedFunction;
 
 	// OpenXR handles
@@ -35,8 +39,8 @@ struct ovrHmdStruct
 	XrSpace StageSpace;
 
 	// Frame state
-	std::atomic<XrTime> DisplayTime;
-	std::atomic<XrTime> DisplayPeriod;
+	XrIndexedFrameState FrameStats[ovrMaxProvidedFrameStats];
+	std::atomic<XrIndexedFrameState*> CurrentFrame;
 
 	// OpenXR properties
 	XrSystemProperties SystemProperties;
