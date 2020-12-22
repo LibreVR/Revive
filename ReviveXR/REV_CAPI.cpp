@@ -30,10 +30,40 @@ uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
 Extensions g_Extensions;
 
+bool LoadRenderDoc()
+{
+	LONG error = ERROR_SUCCESS;
+
+	// Open the libraries key
+	char keyPath[MAX_PATH] = { "RenderDoc.RDCCapture.1\\DefaultIcon" };
+	HKEY iconKey;
+	error = RegOpenKeyExA(HKEY_CLASSES_ROOT, keyPath, 0, KEY_READ, &iconKey);
+	if (error != ERROR_SUCCESS)
+		return false;
+
+	// Get the default library
+	char path[MAX_PATH];
+	DWORD length = MAX_PATH;
+	error = RegQueryValueExA(iconKey, "", NULL, NULL, (PBYTE)path, &length);
+	RegCloseKey(iconKey);
+	if (error != ERROR_SUCCESS)
+		return false;
+
+	if (path[0] == '\0')
+		return false;
+
+	strcpy(strrchr(path, '\\') + 1, "renderdoc.dll");
+	return LoadLibraryA(path) != NULL;
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
 	if (g_Instance)
 		return ovrSuccess;
+
+#if 0
+	LoadRenderDoc();
+#endif
 
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetForceEnable(true);
