@@ -127,10 +127,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	if (!session->Session)
 	{
+		XR_FUNCTION(session->Instance, GetD3D11GraphicsRequirementsKHR);
+		XrGraphicsRequirementsD3D11KHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_D3D11_KHR);
+		CHK_XR(GetD3D11GraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
+
 		ID3D11Device* pDevice = nullptr;
 		HRESULT hr = d3dPtr->QueryInterface(&pDevice);
 		if (FAILED(hr))
 			return ovrError_InvalidParameter;
+
+		if (pDevice->GetFeatureLevel() < graphicsReq.minFeatureLevel)
+			return ovrError_IncompatibleGPU;
 
 		// Install a hook on CreateRenderTargetView so we can ensure NULL descriptors keep working on typeless formats
 		// This fixes Echo Arena.

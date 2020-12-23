@@ -18,6 +18,9 @@ VkQueue g_Queue = VK_NULL_HANDLE;
 // Global functions
 VK_DEFINE_FUNCTION(vkGetInstanceProcAddr)
 VK_DEFINE_FUNCTION(vkGetDeviceProcAddr)
+
+// Local functions
+VK_DEFINE_FUNCTION(vkGetPhysicalDeviceProperties)
 VK_DEFINE_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties)
 VK_DEFINE_FUNCTION(vkGetDeviceQueue)
 
@@ -114,13 +117,32 @@ ovr_GetSessionPhysicalDeviceVk(
 	if (!VulkanLibrary)
 		return ovrError_InitializeVulkan;
 
-	VK_LIBRARY_FUNCTION(VulkanLibrary, vkGetInstanceProcAddr)
-	VK_INSTANCE_FUNCTION(instance, vkGetDeviceProcAddr)
-	VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceQueueFamilyProperties)
+	VK_LIBRARY_FUNCTION(VulkanLibrary, vkGetInstanceProcAddr);
+	VK_INSTANCE_FUNCTION(instance, vkGetDeviceProcAddr);
+	VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceProperties);
+	VK_INSTANCE_FUNCTION(instance, vkGetPhysicalDeviceQueueFamilyProperties);
 
-	CHK_XR(GetVulkanGraphicsDeviceKHR(session->Instance, session->System, instance, out_physicalDevice));
+	CHK_XR(GetVulkanGraphicsDeviceKHR(session->Instance, session->System, instance, &g_Binding.physicalDevice));
 	g_Binding.instance = instance;
-	g_Binding.physicalDevice = *out_physicalDevice;
+
+	VkPhysicalDeviceProperties props;
+	vkGetPhysicalDeviceProperties(g_Binding.physicalDevice, &props);
+
+	// The extension uses the OpenXR version format instead of the Vulkan one
+	XrVersion version = XR_MAKE_VERSION(
+		VK_VERSION_MAJOR(props.apiVersion),
+		VK_VERSION_MINOR(props.apiVersion),
+		VK_VERSION_PATCH(props.apiVersion)
+	);
+
+	// This should always succeed, it's more of a sanity check
+	XR_FUNCTION(session->Instance, GetVulkanGraphicsRequirementsKHR);
+	XrGraphicsRequirementsVulkanKHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_VULKAN_KHR);
+	CHK_XR(GetVulkanGraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
+	if (version < graphicsReq.minApiVersionSupported)
+		return ovrError_IncompatibleGPU;
+
+	*out_physicalDevice = g_Binding.physicalDevice;
 	return ovrSuccess;
 }
 
@@ -153,7 +175,7 @@ ovr_CreateTextureSwapChainVk(
 
 	if (!session->Session)
 	{
-		VK_DEVICE_FUNCTION(device, vkGetDeviceQueue)
+		VK_DEVICE_FUNCTION(device, vkGetDeviceQueue);
 
 		auto findQueue = [device](VkQueue queue, uint32_t& familyIndex, uint32_t& queueIndex) {
 			if (queue == VK_NULL_HANDLE)
@@ -175,6 +197,7 @@ ovr_CreateTextureSwapChainVk(
 						return true;
 				}
 			}
+
 			return false;
 		};
 
@@ -213,7 +236,7 @@ ovr_CreateTextureSwapChainVk(
 	CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, 0, &swapChain->Length, nullptr));
 	XrSwapchainImageVulkanKHR* images = new XrSwapchainImageVulkanKHR[swapChain->Length];
 	for (uint32_t i = 0; i < swapChain->Length; i++)
-		images[i] = XR_TYPE(SWAPCHAIN_IMAGE_D3D11_KHR);
+		images[i] = XR_TYPE(SWAPCHAIN_IMAGE_VULKAN_KHR);
 	swapChain->Images = (XrSwapchainImageBaseHeader*)images;
 
 	uint32_t finalLength;

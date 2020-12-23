@@ -122,6 +122,9 @@
     <ClCompile Include="RuntimeDetails.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
+    <ClCompile Include="..\Externals\glad\src\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

@@ -47,6 +47,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 
 	if (!session->Session)
 	{
+		XR_FUNCTION(session->Instance, GetOpenGLGraphicsRequirementsKHR);
+		XrGraphicsRequirementsOpenGLKHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_OPENGL_KHR);
+		CHK_XR(GetOpenGLGraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
+
+		GLint major, minor;
+		glGetIntegerv(GL_MAJOR_VERSION, &major);
+		glGetIntegerv(GL_MINOR_VERSION, &minor);
+		XrVersion version = XR_MAKE_VERSION(major, minor, 0);
+		if (version < graphicsReq.minApiVersionSupported)
+			return ovrError_IncompatibleGPU;
+
 		XrGraphicsBindingOpenGLWin32KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_OPENGL_WIN32_KHR);
 		graphicsBinding.hDC = wglGetCurrentDC();
 		graphicsBinding.hGLRC = wglGetCurrentContext();
@@ -77,7 +88,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 	CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, 0, &swapChain->Length, nullptr));
 	XrSwapchainImageOpenGLKHR* images = new XrSwapchainImageOpenGLKHR[swapChain->Length];
 	for (uint32_t i = 0; i < swapChain->Length; i++)
-		images[i] = XR_TYPE(SWAPCHAIN_IMAGE_D3D11_KHR);
+		images[i] = XR_TYPE(SWAPCHAIN_IMAGE_OPENGL_KHR);
 	swapChain->Images = (XrSwapchainImageBaseHeader*)images;
 
 	uint32_t finalLength;
