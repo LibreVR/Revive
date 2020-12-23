@@ -90,6 +90,7 @@ public:
 		Action m_Button_BY;
 		Action m_Button_Thumb;
 		Action m_Button_Enter;
+		Action m_Button_Home;
 
 		Action m_Touch_AX;
 		Action m_Touch_BY;

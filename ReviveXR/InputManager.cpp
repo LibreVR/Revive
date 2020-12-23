@@ -489,6 +489,7 @@ InputManager::OculusTouch::OculusTouch(XrInstance instance)
 	: InputDevice(instance, "touch", "Oculus Touch")
 	, m_bHapticsRunning(false)
 	, m_Button_Enter(this, XR_ACTION_TYPE_BOOLEAN_INPUT, "enter-click", "Menu button")
+	, m_Button_Home(this, XR_ACTION_TYPE_BOOLEAN_INPUT, "home-click", "Home button")
 	, m_Button_AX(this, XR_ACTION_TYPE_BOOLEAN_INPUT, "ax-click", "A/X pressed", true)
 	, m_Button_BY(this, XR_ACTION_TYPE_BOOLEAN_INPUT, "by-click", "B/Y pressed", true)
 	, m_Button_Thumb(this, XR_ACTION_TYPE_BOOLEAN_INPUT, "thumb-click", "Thumbstick pressed", true)
@@ -529,19 +530,21 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(RuntimeDetails* details, 
 
 	if (details->UseHack(RuntimeDetails::HACK_VALVE_INDEX_PROFILE))
 	{
+		ADD_BINDING(m_Button_Enter, "/user/hand/left/input/trackpad/force");
 		ADD_BINDING(m_Button_AX, "/user/hand/left/input/a/click");
 		ADD_BINDING(m_Button_BY, "/user/hand/left/input/b/click");
 		ADD_BINDING(m_Touch_AX, "/user/hand/left/input/a/touch");
 		ADD_BINDING(m_Touch_BY, "/user/hand/left/input/b/touch");
-		ADD_BINDING(m_Button_Enter, "/user/hand/left/input/trackpad/force");
+		ADD_BINDING(m_Button_Home, "/user/hand/right/input/trackpad/force");
 	}
 	else
 	{
+		ADD_BINDING(m_Button_Enter, "/user/hand/left/input/menu/click");
 		ADD_BINDING(m_Button_AX, "/user/hand/left/input/x/click");
 		ADD_BINDING(m_Button_BY, "/user/hand/left/input/y/click");
 		ADD_BINDING(m_Touch_AX, "/user/hand/left/input/x/touch");
 		ADD_BINDING(m_Touch_BY, "/user/hand/left/input/y/touch");
-		ADD_BINDING(m_Button_Enter, "/user/hand/left/input/menu/click");
+		ADD_BINDING(m_Button_Home, "/user/hand/right/input/system/click");
 	}
 	ADD_BINDING(m_Button_AX, "/user/hand/right/input/a/click");
 	ADD_BINDING(m_Button_BY, "/user/hand/right/input/b/click");
@@ -603,6 +606,11 @@ bool InputManager::OculusTouch::GetInputState(XrSession session, ovrControllerTy
 {
 	if (m_Button_Enter.GetDigital(session))
 		inputState->Buttons |= ovrButton_Enter;
+
+	// In most games this doesn't really do anything,
+	// because it would normally open the dashboard.
+	if (m_Button_Home.GetDigital(session))
+		inputState->Buttons |= ovrButton_Home;
 
 	for (int i = 0; i < ovrHand_Count; i++)
 	{
