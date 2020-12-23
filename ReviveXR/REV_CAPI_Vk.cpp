@@ -212,46 +212,8 @@ ovr_CreateTextureSwapChainVk(
 		session->BeginSession(&g_Binding);
 	}
 
-	// Enumerate formats
-	uint32_t formatCount = 0;
-	xrEnumerateSwapchainFormats(session->Session, 0, &formatCount, nullptr);
-	std::vector<int64_t> formats;
-	formats.resize(formatCount);
-	xrEnumerateSwapchainFormats(session->Session, (uint32_t)formats.size(), &formatCount, formats.data());
-	assert(formats.size() == formatCount);
-
-	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
-
-	// Check if the format is supported
-	swapChain->Format = TextureFormatToVkFormat(desc->Format);
-
-	if (std::find(formats.begin(), formats.end(), swapChain->Format) == formats.end()) {
-		swapChain->Format = formats[0];
-	}
-
-	swapChain->Desc = *desc;
-	XrSwapchainCreateInfo createInfo = DescToCreateInfo(desc, swapChain->Format);
-	CHK_XR(xrCreateSwapchain(session->Session, &createInfo, &swapChain->Swapchain));
-
-	CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, 0, &swapChain->Length, nullptr));
-	XrSwapchainImageVulkanKHR* images = new XrSwapchainImageVulkanKHR[swapChain->Length];
-	for (uint32_t i = 0; i < swapChain->Length; i++)
-		images[i] = XR_TYPE(SWAPCHAIN_IMAGE_VULKAN_KHR);
-	swapChain->Images = (XrSwapchainImageBaseHeader*)images;
-
-	uint32_t finalLength;
-	CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, swapChain->Length, &finalLength, swapChain->Images));
-	assert(swapChain->Length == finalLength);
-
-	XrSwapchainImageAcquireInfo acqInfo = XR_TYPE(SWAPCHAIN_IMAGE_ACQUIRE_INFO);
-	CHK_XR(xrAcquireSwapchainImage(swapChain->Swapchain, &acqInfo, &swapChain->CurrentIndex));
-
-	XrSwapchainImageWaitInfo waitInfo = XR_TYPE(SWAPCHAIN_IMAGE_WAIT_INFO);
-	waitInfo.timeout = XR_NO_DURATION;
-	CHK_XR(xrWaitSwapchainImage(swapChain->Swapchain, &waitInfo));
-
-	*out_TextureSwapChain = swapChain;
-	return ovrSuccess;
+	CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToVkFormat(desc->Format), out_TextureSwapChain));
+	return EnumerateImages<XrSwapchainImageVulkanKHR>(XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR, *out_TextureSwapChain);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult)

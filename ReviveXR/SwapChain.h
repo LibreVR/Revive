@@ -7,7 +7,6 @@
 
 struct ovrTextureSwapChainData
 {
-	int64_t Format;
 	ovrTextureSwapChainDesc Desc;
 	XrSwapchain Swapchain;
 	XrSwapchainImageBaseHeader* Images;
@@ -21,4 +20,19 @@ struct ovrMirrorTextureData
 	ovrTextureSwapChain Dummy;
 };
 
-XrSwapchainCreateInfo DescToCreateInfo(const ovrTextureSwapChainDesc* desc, int64_t format);
+template<typename T>
+ovrResult EnumerateImages(XrStructureType type, ovrTextureSwapChain swapChain)
+{
+	CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, 0, &swapChain->Length, nullptr));
+	T* images = new T[swapChain->Length]();
+	for (uint32_t i = 0; i < swapChain->Length; i++)
+		images[i].type = type;
+	swapChain->Images = (XrSwapchainImageBaseHeader*)images;
+
+	uint32_t finalLength;
+	CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, swapChain->Length, &finalLength, swapChain->Images));
+	assert(swapChain->Length == finalLength);
+	return ovrSuccess;
+}
+
+ovrResult CreateSwapChain(XrSession session, const ovrTextureSwapChainDesc* desc, int64_t format, ovrTextureSwapChain* out);
