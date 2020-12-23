@@ -11,13 +11,6 @@ class RuntimeDetails
 public:
 	enum Hack
 	{
-		// Hack: Windows Mixed Reality OpenXR runtime incorrectly handles gamma correction.
-		// When using displays that require gamma correction, WMR will
-		// always send linear colors, even if it means converting from
-		// sRGB to linear. This is incorrect, it should be sending sRGB
-		// to the display. To work around this, we pass sRGB colors to
-		// the WMR runtime, but specify that they are linear.
-		HACK_WMR_SRGB,
 		// Hack: SteamVR OpenXR runtime doesn't support the Oculus Touch interaction profile.
 		// Use the Valve Index interaction profile instead.
 		HACK_VALVE_INDEX_PROFILE,
