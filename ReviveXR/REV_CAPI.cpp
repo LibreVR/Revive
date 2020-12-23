@@ -306,9 +306,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		assert(XR_SUCCEEDED(rs));
 		assert(numViews == ovrEye_Count);
 
-		xrRequestExitSession(fakeSession);
-		while (!XR_SUCCEEDED(xrEndSession(fakeSession)))
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		CHK_XR(xrDestroySession(fakeSession));
 	}
 

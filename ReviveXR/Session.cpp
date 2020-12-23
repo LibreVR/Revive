@@ -41,10 +41,6 @@ ovrResult ovrHmdStruct::EndSession()
 	if (!Session)
 		return ovrError_InvalidSession;
 
-	CHK_XR(xrRequestExitSession(Session));
-	while (!XR_SUCCEEDED(xrEndSession(Session)))
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
 	CHK_XR(xrDestroySession(Session));
 	Session = XR_NULL_HANDLE;
 	return ovrSuccess;
