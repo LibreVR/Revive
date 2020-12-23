@@ -8,6 +8,8 @@
 
 ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding)
 {
+	GraphicsBindingType = *(XrStructureType*)graphicsBinding;
+
 	XrSessionCreateInfo createInfo = XR_TYPE(SESSION_CREATE_INFO);
 	createInfo.next = graphicsBinding;
 	createInfo.systemId = System;

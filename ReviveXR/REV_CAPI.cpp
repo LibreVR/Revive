@@ -1053,7 +1053,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			continue;
 
 		ovrLayerType type = layer->Header.Type;
-		const bool upsideDown = layer->Header.Flags & ovrLayerFlag_TextureOriginAtBottomLeft;
+		const bool upsideDown = session->GraphicsBindingType == XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR ?
+			!(layer->Header.Flags & ovrLayerFlag_TextureOriginAtBottomLeft)
+			: layer->Header.Flags & ovrLayerFlag_TextureOriginAtBottomLeft;
 		const bool headLocked = layer->Header.Flags & ovrLayerFlag_HeadLocked;
 
 		// Version 1.25 introduced a 128-byte reserved parameter, so on older versions the actual data
@@ -1104,8 +1106,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 						break;
 				}
 
-				// Flip the field-of-view to flip the image, invert the check for OpenGL
-				if (texture->Images->type == XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR ? !upsideDown : upsideDown)
+				// Flip the field-of-view to flip the image
+				if (upsideDown)
 					OVR::OVRMath_Swap(view.fov.angleUp, view.fov.angleDown);
 
 				if (type == ovrLayerType_EyeFovDepth && g_Extensions.CompositionDepth)

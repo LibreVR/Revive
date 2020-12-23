@@ -10,7 +10,9 @@
 #include <algorithm>
 
 #define XR_USE_GRAPHICS_API_D3D11
+#define XR_USE_GRAPHICS_API_D3D12
 #include <d3d11.h>
+#include <d3d12.h>
 #include <openxr/openxr_platform.h>
 
 LONG DetourVirtual(PVOID pInstance, UINT methodPos, PVOID *ppPointer, PVOID pDetour)
@@ -23,6 +25,10 @@ LONG DetourVirtual(PVOID pInstance, UINT methodPos, PVOID *ppPointer, PVOID pDet
 	return DetourAttach(ppPointer, pDetour);
 }
 
+// {EBA3BA6A-76A2-4A9B-B150-681FC1020EDE}
+static const GUID RXR_RTV_DESC =
+{ 0xeba3ba6a, 0x76a2, 0x4a9b,{ 0xb1, 0x50, 0x68, 0x1f, 0xc1, 0x2, 0xe, 0xde } };
+
 typedef HRESULT(WINAPI* _CreateRenderTargetView)(
 	ID3D11Device						*pDevice,
 	ID3D11Resource                      *pResource,
@@ -32,9 +38,22 @@ typedef HRESULT(WINAPI* _CreateRenderTargetView)(
 
 _CreateRenderTargetView TrueCreateRenderTargetView;
 
-// {EBA3BA6A-76A2-4A9B-B150-681FC1020EDE}
-static const GUID RXR_RTV_DESC =
-{ 0xeba3ba6a, 0x76a2, 0x4a9b,{ 0xb1, 0x50, 0x68, 0x1f, 0xc1, 0x2, 0xe, 0xde } };
+HRESULT WINAPI HookCreateRenderTargetView(
+	ID3D11Device						*pDevice,
+	ID3D11Resource                      *pResource,
+	const D3D11_RENDER_TARGET_VIEW_DESC *pDesc,
+	ID3D11RenderTargetView              **ppSRView
+)
+{
+	D3D11_RENDER_TARGET_VIEW_DESC desc;
+	UINT size = (UINT)sizeof(desc);
+	if (!pDesc && SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
+	{
+		return TrueCreateRenderTargetView(pDevice, pResource, &desc, ppSRView);
+	}
+
+	return TrueCreateRenderTargetView(pDevice, pResource, pDesc, ppSRView);
+}
 
 DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format)
 {
@@ -95,23 +114,6 @@ D3D11_RTV_DIMENSION DescToViewDimension(const ovrTextureSwapChainDesc* desc)
 	}
 }
 
-HRESULT WINAPI HookCreateRenderTargetView(
-	ID3D11Device						*pDevice,
-	ID3D11Resource                      *pResource,
-	const D3D11_RENDER_TARGET_VIEW_DESC *pDesc,
-	ID3D11RenderTargetView              **ppSRView
-)
-{
-	D3D11_RENDER_TARGET_VIEW_DESC desc;
-	UINT size = (UINT)sizeof(desc);
-	if (!pDesc && SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
-	{
-		return TrueCreateRenderTargetView(pDevice, pResource, &desc, ppSRView);
-	}
-
-	return TrueCreateRenderTargetView(pDevice, pResource, pDesc, ppSRView);
-}
-
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
                                                             IUnknown* d3dPtr,
                                                             const ovrTextureSwapChainDesc* desc,
@@ -127,33 +129,99 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	if (!session->Session)
 	{
-		XR_FUNCTION(session->Instance, GetD3D11GraphicsRequirementsKHR);
-		XrGraphicsRequirementsD3D11KHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_D3D11_KHR);
-		CHK_XR(GetD3D11GraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
-
 		ID3D11Device* pDevice = nullptr;
-		HRESULT hr = d3dPtr->QueryInterface(&pDevice);
-		if (FAILED(hr))
+		ID3D12CommandQueue* pQueue = nullptr;
+		if (SUCCEEDED(d3dPtr->QueryInterface(&pDevice)))
+		{
+			XR_FUNCTION(session->Instance, GetD3D11GraphicsRequirementsKHR);
+			XrGraphicsRequirementsD3D11KHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_D3D11_KHR);
+			CHK_XR(GetD3D11GraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
+
+			if (pDevice->GetFeatureLevel() < graphicsReq.minFeatureLevel)
+				return ovrError_IncompatibleGPU;
+
+			// Install a hook on CreateRenderTargetView so we can ensure NULL descriptors keep working on typeless formats
+			// This fixes Echo Arena.
+			DetourTransactionBegin();
+			DetourUpdateThread(GetCurrentThread());
+			DetourVirtual(pDevice, 9, (PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
+			DetourTransactionCommit();
+			session->HookedFunction = std::make_pair((PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
+
+			XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
+			graphicsBinding.device = pDevice;
+			session->BeginSession(&graphicsBinding);
+		}
+		else if (SUCCEEDED(d3dPtr->QueryInterface(&pQueue)))
+		{
+			ID3D12Device* pDevice12 = nullptr;
+			if (FAILED(pQueue->GetDevice(__uuidof(*pDevice12), reinterpret_cast<void**>(&pDevice12))))
+				return ovrError_RuntimeException;
+
+			XR_FUNCTION(session->Instance, GetD3D12GraphicsRequirementsKHR);
+			XrGraphicsRequirementsD3D12KHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_D3D12_KHR);
+			CHK_XR(GetD3D12GraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
+
+			static const D3D_FEATURE_LEVEL featureLevels[] = { graphicsReq.minFeatureLevel };
+			D3D12_FEATURE_DATA_FEATURE_LEVELS levels = { 1, featureLevels };
+			pDevice12->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &levels, sizeof(levels));
+
+			if (levels.MaxSupportedFeatureLevel < graphicsReq.minFeatureLevel)
+				return ovrError_IncompatibleGPU;
+
+			XrGraphicsBindingD3D12KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D12_KHR);
+			graphicsBinding.device = pDevice12;
+			graphicsBinding.queue = pQueue;
+			session->BeginSession(&graphicsBinding);
+		}
+		else
+		{
 			return ovrError_InvalidParameter;
-
-		if (pDevice->GetFeatureLevel() < graphicsReq.minFeatureLevel)
-			return ovrError_IncompatibleGPU;
-
-		// Install a hook on CreateRenderTargetView so we can ensure NULL descriptors keep working on typeless formats
-		// This fixes Echo Arena.
-		DetourTransactionBegin();
-		DetourUpdateThread(GetCurrentThread());
-		DetourVirtual(pDevice, 9, (PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
-		DetourTransactionCommit();
-		session->HookedFunction = std::make_pair((PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
-
-		XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
-		graphicsBinding.device = pDevice;
-		session->BeginSession(&graphicsBinding);
+		}
 	}
 
-	CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), out_TextureSwapChain));
-	return EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR, *out_TextureSwapChain);
+	if (session->GraphicsBindingType == XR_TYPE_GRAPHICS_BINDING_D3D11_KHR)
+	{
+		ovrTextureSwapChain chain;
+		CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), &chain));
+		CHK_OVR(EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR, chain));
+
+		D3D11_RENDER_TARGET_VIEW_DESC desc;
+		desc.Format = TextureFormatToDXGIFormat(chain->Desc.Format);
+		desc.ViewDimension = DescToViewDimension(&chain->Desc);
+		if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY)
+		{
+			desc.Texture2DMSArray.FirstArraySlice = 0;
+			desc.Texture2DMSArray.ArraySize = chain->Desc.ArraySize;
+		}
+		else
+		{
+			desc.Texture2DArray.MipSlice = 0;
+			desc.Texture2DArray.FirstArraySlice = 0;
+			desc.Texture2DArray.ArraySize = chain->Desc.ArraySize;
+		}
+
+		for (uint32_t i = 0; i < chain->Length; i++)
+		{
+			XrSwapchainImageD3D11KHR image = ((XrSwapchainImageD3D11KHR*)chain->Images)[i];
+
+			HRESULT hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D11_RENDER_TARGET_VIEW_DESC), &desc);
+			if (FAILED(hr))
+				return ovrError_RuntimeException;
+		}
+
+		*out_TextureSwapChain = chain;
+		return ovrSuccess;
+	}
+	else if (session->GraphicsBindingType == XR_TYPE_GRAPHICS_BINDING_D3D12_KHR)
+	{
+		CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), out_TextureSwapChain));
+		return EnumerateImages<XrSwapchainImageD3D12KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR, *out_TextureSwapChain);
+	}
+	else
+	{
+		return ovrError_RuntimeException;
+	}
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession session,
@@ -175,25 +243,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
 
 	XrSwapchainImageD3D11KHR image = ((XrSwapchainImageD3D11KHR*)chain->Images)[index];
 
-	D3D11_RENDER_TARGET_VIEW_DESC desc;
-	desc.Format = TextureFormatToDXGIFormat(chain->Desc.Format);
-	desc.ViewDimension = DescToViewDimension(&chain->Desc);
-	if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY)
-	{
-		desc.Texture2DMSArray.FirstArraySlice = 0;
-		desc.Texture2DMSArray.ArraySize = chain->Desc.ArraySize;
-	}
-	else
-	{
-		desc.Texture2DArray.MipSlice = 0;
-		desc.Texture2DArray.FirstArraySlice = 0;
-		desc.Texture2DArray.ArraySize = chain->Desc.ArraySize;
-	}
-	HRESULT hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D11_RENDER_TARGET_VIEW_DESC), &desc);
-	if (FAILED(hr))
-		return ovrError_RuntimeException;
-
-	hr = image.texture->QueryInterface(iid, out_Buffer);
+	HRESULT hr = image.texture->QueryInterface(iid, out_Buffer);
 	if (FAILED(hr))
 		return ovrError_InvalidParameter;
 
