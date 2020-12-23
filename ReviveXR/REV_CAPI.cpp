@@ -6,6 +6,7 @@
 
 #include "Common.h"
 #include "Session.h"
+#include "RuntimeDetails.h"
 #include "InputManager.h"
 #include "SwapChain.h"
 #include "Extensions.h"
@@ -227,10 +228,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	}
 
 	// Initialize hacks
-	session->Details.reset(new SessionDetails(session->Instance));
+	session->Details.reset(new RuntimeDetails(session->Instance));
 
 	// Initialize input
-	session->Input.reset(new InputManager(session->Instance));
+	session->Input.reset(new InputManager(session->Instance, session->Details.get()));
 
 	XrSystemGetInfo systemInfo = XR_TYPE(SYSTEM_GET_INFO);
 	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;

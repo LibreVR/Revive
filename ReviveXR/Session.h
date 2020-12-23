@@ -8,8 +8,7 @@
 #include <mutex>
 #include <list>
 
-#include "SessionDetails.h"
-
+class RuntimeDetails;
 class InputManager;
 
 struct SessionStatusBits {
@@ -59,7 +58,7 @@ struct ovrHmdStruct
 	ovrPosef CalibratedOrigin;
 
 	// Hacks
-	std::unique_ptr<SessionDetails> Details;
+	std::unique_ptr<RuntimeDetails> Details;
 
 	// Input
 	std::unique_ptr<InputManager> Input;

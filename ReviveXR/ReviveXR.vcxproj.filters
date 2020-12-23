@@ -69,14 +69,14 @@
     <ClInclude Include="Extensions.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
-    <ClInclude Include="SessionDetails.h">
-      <Filter>Header Files\LibRevive</Filter>
-    </ClInclude>
     <ClInclude Include="CImg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Debug.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RuntimeDetails.h">
+      <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -116,10 +116,10 @@
     <ClCompile Include="Extensions.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
-    <ClCompile Include="SessionDetails.cpp">
+    <ClCompile Include="Session.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
-    <ClCompile Include="Session.cpp">
+    <ClCompile Include="RuntimeDetails.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>

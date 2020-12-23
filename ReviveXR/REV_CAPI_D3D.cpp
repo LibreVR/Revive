@@ -1,6 +1,7 @@
 #include "OVR_CAPI_D3D.h"
 #include "Common.h"
 #include "Session.h"
+#include "RuntimeDetails.h"
 #include "SwapChain.h"
 #include "XR_Math.h"
 
@@ -159,7 +160,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 	if (std::find(formats.begin(), formats.end(), swapChain->Format) == formats.end()) {
 		swapChain->Format = formats[0];
-		if (session->Details->UseHack(SessionDetails::HACK_WMR_SRGB))
+		if (session->Details->UseHack(RuntimeDetails::HACK_WMR_SRGB))
 			swapChain->Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	}
 
@@ -210,7 +211,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferDX(ovrSession sessio
 	D3D11_RENDER_TARGET_VIEW_DESC desc;
 	// Under WMR we should always render sRGB even when the swapchain
 	// format is linear to compensate for mishandled gamma in the runtime
-	if (session->Details->UseHack(SessionDetails::HACK_WMR_SRGB)
+	if (session->Details->UseHack(RuntimeDetails::HACK_WMR_SRGB)
 	    && chain->Format == DXGI_FORMAT_R8G8B8A8_UNORM)
 		desc.Format = (DXGI_FORMAT) DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	else
