@@ -44,7 +44,6 @@ struct ovrHmdStruct
 	std::atomic<XrIndexedFrameState*> CurrentFrame;
 
 	// Swapchain management
-	XrStructureType GraphicsBindingType;
 	std::mutex ChainMutex;
 	std::list<XrSwapchain> AcquiredChains;
 

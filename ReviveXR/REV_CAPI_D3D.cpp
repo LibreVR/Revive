@@ -127,11 +127,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	if (!d3dPtr || !desc || !out_TextureSwapChain || desc->Type != ovrTexture_2D)
 		return ovrError_InvalidParameter;
 
+	ID3D11Device* pDevice = nullptr;
+	ID3D12CommandQueue* pQueue = nullptr;
+	if (FAILED(d3dPtr->QueryInterface(&pDevice)))
+	{
+		if (FAILED(d3dPtr->QueryInterface(&pQueue)))
+			return ovrError_InvalidParameter;
+	}
+
 	if (!session->Session)
 	{
-		ID3D11Device* pDevice = nullptr;
-		ID3D12CommandQueue* pQueue = nullptr;
-		if (SUCCEEDED(d3dPtr->QueryInterface(&pDevice)))
+		if (pDevice)
 		{
 			XR_FUNCTION(session->Instance, GetD3D11GraphicsRequirementsKHR);
 			XrGraphicsRequirementsD3D11KHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_D3D11_KHR);
@@ -152,7 +158,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 			graphicsBinding.device = pDevice;
 			session->BeginSession(&graphicsBinding);
 		}
-		else if (SUCCEEDED(d3dPtr->QueryInterface(&pQueue)))
+		else if (pQueue)
 		{
 			ID3D12Device* pDevice12 = nullptr;
 			if (FAILED(pQueue->GetDevice(__uuidof(*pDevice12), reinterpret_cast<void**>(&pDevice12))))
@@ -176,11 +182,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		}
 		else
 		{
-			return ovrError_InvalidParameter;
+			return ovrError_RuntimeException;
 		}
 	}
 
-	if (session->GraphicsBindingType == XR_TYPE_GRAPHICS_BINDING_D3D11_KHR)
+	if (pDevice)
 	{
 		ovrTextureSwapChain chain;
 		CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), &chain));
@@ -213,7 +219,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		*out_TextureSwapChain = chain;
 		return ovrSuccess;
 	}
-	else if (session->GraphicsBindingType == XR_TYPE_GRAPHICS_BINDING_D3D12_KHR)
+	else if (pQueue)
 	{
 		CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), out_TextureSwapChain));
 		return EnumerateImages<XrSwapchainImageD3D12KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR, *out_TextureSwapChain);
