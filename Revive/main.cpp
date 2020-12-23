@@ -48,6 +48,26 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 	return TrueLoadLibrary(lpFileName);
 }
 
+void AttachDetours()
+{
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourAttach((PVOID*)&TrueLoadLibrary, HookLoadLibrary);
+	DetourAttach((PVOID*)&TrueOpenEvent, HookOpenEvent);
+	DetourAttach((PVOID*)&TrueDXGIFactory, HookDXGIFactory);
+	DetourTransactionCommit();
+}
+
+void DetachDetours()
+{
+	DetourTransactionBegin();
+	DetourUpdateThread(GetCurrentThread());
+	DetourDetach((PVOID*)&TrueLoadLibrary, HookLoadLibrary);
+	DetourDetach((PVOID*)&TrueOpenEvent, HookOpenEvent);
+	DetourDetach((PVOID*)&TrueDXGIFactory, HookDXGIFactory);
+	DetourTransactionCommit();
+}
+
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
 	if (DetourIsHelperProcess())
@@ -66,21 +86,10 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason_for_call, LPVOID lpReserve
 			swprintf(ovrModuleName, MAX_PATH, L"LibOVRRT%hs_%d.dll", pBitDepth, OVR_MAJOR_VERSION);
 
 			DetourRestoreAfterWith();
-
-			DetourTransactionBegin();
-			DetourUpdateThread(GetCurrentThread());
-			DetourAttach((PVOID*)&TrueLoadLibrary, HookLoadLibrary);
-			DetourAttach((PVOID*)&TrueOpenEvent, HookOpenEvent);
-			DetourAttach((PVOID*)&TrueDXGIFactory, HookDXGIFactory);
-			DetourTransactionCommit();
+			AttachDetours();
 			break;
 		case DLL_PROCESS_DETACH:
-			DetourTransactionBegin();
-			DetourUpdateThread(GetCurrentThread());
-			DetourDetach((PVOID*)&TrueLoadLibrary, HookLoadLibrary);
-			DetourDetach((PVOID*)&TrueOpenEvent, HookOpenEvent);
-			DetourDetach((PVOID*)&TrueDXGIFactory, HookDXGIFactory);
-			DetourTransactionCommit();
+			DetachDetours();
 			break;
 		default:
 			break;

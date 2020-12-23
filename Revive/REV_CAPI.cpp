@@ -88,6 +88,9 @@ bool LoadRenderDoc()
 	return LoadLibraryA(path) != NULL;
 }
 
+void AttachDetours();
+void DetachDetours();
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
 	if (g_InitError == vr::VRInitError_None)
@@ -105,7 +108,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 	g_MinorVersion = params->RequestedMinorVersion;
 
+	DetachDetours();
+
 	vr::VR_Init(&g_InitError, vr::VRApplication_Scene);
+
+	AttachDetours();
 
 	uint32_t timeout = params->ConnectionTimeoutMS;
 	if (timeout == 0)

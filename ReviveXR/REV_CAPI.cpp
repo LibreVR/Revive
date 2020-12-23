@@ -57,6 +57,9 @@ bool LoadRenderDoc()
 	return LoadLibraryA(path) != NULL;
 }
 
+void AttachDetours();
+void DetachDetours();
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 {
 	if (g_Instance)
@@ -74,6 +77,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 	g_MinorVersion = params->RequestedMinorVersion;
 
+	DetachDetours();
+
 	uint32_t size;
 	std::vector<XrExtensionProperties> properties;
 	CHK_XR(xrEnumerateInstanceExtensionProperties(nullptr, 0, &size, nullptr));
@@ -85,6 +90,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 
 	XrInstanceCreateInfo createInfo = g_Extensions.GetInstanceCreateInfo();
 	CHK_XR(xrCreateInstance(&createInfo, &g_Instance));
+
+	AttachDetours();
 
 	return ovrSuccess;
 }
