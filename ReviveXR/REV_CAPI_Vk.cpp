@@ -13,8 +13,7 @@ extern XrInstance g_Instance;
 
 HMODULE VulkanLibrary;
 XrGraphicsBindingVulkanKHR g_Binding = XR_TYPE(GRAPHICS_BINDING_VULKAN_KHR);
-VkDebugUtilsMessengerEXT g_Messenger;
-VkQueue g_Queue;
+VkQueue g_Queue = VK_NULL_HANDLE;
 
 // Global functions
 VK_DEFINE_FUNCTION(vkGetInstanceProcAddr)
@@ -157,6 +156,9 @@ ovr_CreateTextureSwapChainVk(
 		VK_DEVICE_FUNCTION(device, vkGetDeviceQueue)
 
 		auto findQueue = [device](VkQueue queue, uint32_t& familyIndex, uint32_t& queueIndex) {
+			if (queue == VK_NULL_HANDLE)
+				return false;
+
 			uint32_t familyCount = 0;
 			std::vector<VkQueueFamilyProperties> familyProps;
 			vkGetPhysicalDeviceQueueFamilyProperties(g_Binding.physicalDevice, &familyCount, nullptr);
