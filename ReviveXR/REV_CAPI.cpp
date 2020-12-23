@@ -1304,7 +1304,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 
 	LARGE_INTEGER li;
 	if (XR_FAILED(ConvertTimeToWin32PerformanceCounterKHR(session->Instance, displayTime, &li)))
-		return ovr_GetTimeInSeconds();
+		return 0.0;
 
 	return li.QuadPart * PerfFrequencyInverse;
 }
