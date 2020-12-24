@@ -206,7 +206,6 @@ int wmain(int argc, wchar_t *argv[]) {
 	{
 		if (wcscmp(argv[i], L"/xr") == 0)
 		{
-			dlls.add(moduleDir + std::string("\\openxr_loader.dll"));
 			dlls.add(moduleDir + std::string("\\LibRXRRT64.dll"));
 		}
 		else if (wcscmp(argv[i], L"/app") == 0)

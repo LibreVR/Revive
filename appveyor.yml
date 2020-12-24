@@ -8,6 +8,7 @@ install:
   # update vcpkg to the latest version
   - cd C:\Tools\vcpkg
   - git pull
+  - git apply %APPVEYOR_BUILD_FOLDER%\fix-vcpkg-openxr-static-loader.patch
   - .\bootstrap-vcpkg.bat
   - cd %APPVEYOR_BUILD_FOLDER%
   - git submodule update --init --recursive
@@ -32,7 +33,8 @@ build_script:
   # Ensure vcpkg dependencies are installed
   - ps: |
       vcpkg integrate install
-      vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
+      vcpkg install --triplet x86-windows-static openxr-loader glfw3
+      vcpkg install --triplet x64-windows-static openxr-loader glfw3
       mkdir C:\projects\Revive\ReviveXR\bin
       copy C:\Tools\vcpkg\installed\x64-windows\bin\openxr_loader.dll C:\projects\Revive\ReviveXR\bin\openxr_loader.dll
   # build Revive
