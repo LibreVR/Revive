@@ -33,8 +33,8 @@ build_script:
   # Ensure vcpkg dependencies are installed
   - ps: |
       vcpkg integrate install
-      vcpkg install --triplet x86-windows-static openxr-loader glfw3
-      vcpkg install --triplet x64-windows-static openxr-loader glfw3
+      vcpkg install --triplet x86-windows-static detours openxr-loader glfw3
+      vcpkg install --triplet x64-windows-static detours openxr-loader glfw3
   # build Revive
   - ps: |
       cd c:\projects\revive

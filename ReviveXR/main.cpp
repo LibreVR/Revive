@@ -4,7 +4,7 @@
 #include <d3d11.h>
 #include <Shlwapi.h>
 #include <string>
-#include <Detours.h>
+#include <detours/detours.h>
 
 #include "OVR_CAPI.h"
 #include "OVR_Version.h"

@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <thread>
 #include <wrl/client.h>
-#include <detours.h>
+#include <detours/detours.h>
 
 #define REV_DEFAULT_TIMEOUT 10000
 

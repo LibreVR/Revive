@@ -55,8 +55,8 @@ Write-Host "MSBuild found"
 
 # Ensure vcpkg dependencies are installed
 vcpkg integrate install
-vcpkg install --triplet x86-windows-static openxr-loader glfw3
-vcpkg install --triplet x64-windows-static openxr-loader glfw3
+vcpkg install --triplet x86-windows-static detours openxr-loader glfw3
+vcpkg install --triplet x64-windows-static detours openxr-loader glfw3
 
 # Build Revive a la carte
 Write-Host "Building Revive..."

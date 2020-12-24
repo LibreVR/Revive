@@ -8,7 +8,7 @@
 #include <Shlobj.h>
 #include <Shlwapi.h>
 #include <openvr.h>
-#include <detours.h>
+#include <detours/detours.h>
 
 extern FILE* g_LogFile;
 #define LOG(x, ...) if (g_LogFile) fprintf(g_LogFile, x, __VA_ARGS__); \

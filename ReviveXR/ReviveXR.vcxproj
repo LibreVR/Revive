@@ -270,11 +270,6 @@
   <ItemGroup>
     <ResourceCompile Include="Revive.rc" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Externals\Detours.vcxproj">
-      <Project>{8776bf45-11e0-4e82-9480-c9316cab5c42}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

@@ -12,7 +12,7 @@
 #include <dxgi1_2.h>
 #include <openvr.h>
 #include <Windows.h>
-#include <Detours.h>
+#include <detours/detours.h>
 #include <list>
 #include <algorithm>
 #include <thread>

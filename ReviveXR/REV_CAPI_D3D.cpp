@@ -5,7 +5,7 @@
 #include "SwapChain.h"
 #include "XR_Math.h"
 
-#include <detours.h>
+#include <detours/detours.h>
 #include <vector>
 #include <algorithm>
 

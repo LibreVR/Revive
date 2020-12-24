@@ -3,7 +3,7 @@
 #include <dxgi.h>
 #include <Shlwapi.h>
 #include <string>
-#include <Detours.h>
+#include <detours/detours.h>
 
 #include "Extras\OVR_CAPI_Util.h"
 #include "OVR_Version.h"
