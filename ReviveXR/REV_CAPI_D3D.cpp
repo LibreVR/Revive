@@ -1,7 +1,7 @@
 #include "OVR_CAPI_D3D.h"
 #include "Common.h"
 #include "Session.h"
-#include "RuntimeDetails.h"
+#include "Extensions.h"
 #include "SwapChain.h"
 #include "XR_Math.h"
 
@@ -160,6 +160,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		}
 		else if (pQueue)
 		{
+			if (!session->Extensions->Supports(XR_KHR_D3D12_ENABLE_EXTENSION_NAME))
+				return ovrError_Unsupported;
+
 			ID3D12Device* pDevice12 = nullptr;
 			if (FAILED(pQueue->GetDevice(__uuidof(*pDevice12), reinterpret_cast<void**>(&pDevice12))))
 				return ovrError_RuntimeException;

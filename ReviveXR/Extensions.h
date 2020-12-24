@@ -4,12 +4,10 @@
 #include <openxr/openxr.h>
 #include <vector>
 
-// TODO: This could be refactored into an instance class
 class Extensions
 {
 public:
-	void InitExtensionList(std::vector<XrExtensionProperties>& properties);
-	XrInstanceCreateInfo GetInstanceCreateInfo();
+	ovrResult CreateInstance(XrInstance* out_Instance);
 	bool Supports(const char* extensionName);
 
 	bool VisibilityMask;
@@ -19,4 +17,5 @@ public:
 
 private:
 	std::vector<const char*> m_extensions;
+	void InitExtensionList(std::vector<XrExtensionProperties>& properties);
 };

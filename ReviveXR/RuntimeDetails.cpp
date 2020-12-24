@@ -14,14 +14,14 @@ RuntimeDetails::HackInfo RuntimeDetails::m_known_hacks[] = {
 	{ nullptr, "SteamVR/OpenXR", HACK_VALVE_INDEX_PROFILE, true },
 };
 
-RuntimeDetails::RuntimeDetails(XrInstance instance)
+ovrResult RuntimeDetails::InitHacks(XrInstance instance)
 {
 	char filepath[MAX_PATH];
 	GetModuleFileNameA(NULL, filepath, MAX_PATH);
 	char* filename = PathFindFileNameA(filepath);
 
 	XrInstanceProperties props = XR_TYPE(INSTANCE_PROPERTIES);
-	assert(XR_SUCCEEDED(xrGetInstanceProperties(instance, &props)));
+	CHK_XR(xrGetInstanceProperties(instance, &props));
 
 	for (auto& hack : m_known_hacks)
 	{
@@ -37,10 +37,7 @@ RuntimeDetails::RuntimeDetails(XrInstance instance)
 			m_hacks.emplace(hack.m_hack, hack);
 		}
 	}
-}
-
-RuntimeDetails::~RuntimeDetails()
-{
+	return ovrSuccess;
 }
 
 bool RuntimeDetails::UseHack(Hack hack)

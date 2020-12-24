@@ -30,6 +30,7 @@ XrInstance g_Instance = XR_NULL_HANDLE;
 uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
 Extensions g_Extensions;
+RuntimeDetails g_Runtime;
 
 bool LoadRenderDoc()
 {
@@ -78,20 +79,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	g_MinorVersion = params->RequestedMinorVersion;
 
 	DetachDetours();
-
-	uint32_t size;
-	std::vector<XrExtensionProperties> properties;
-	CHK_XR(xrEnumerateInstanceExtensionProperties(nullptr, 0, &size, nullptr));
-	properties.resize(size);
-	for (XrExtensionProperties& props : properties)
-		props = XR_TYPE(EXTENSION_PROPERTIES);
-	CHK_XR(xrEnumerateInstanceExtensionProperties(nullptr, (uint32_t)properties.size(), &size, properties.data()));
-	g_Extensions.InitExtensionList(properties);
-
-	XrInstanceCreateInfo createInfo = g_Extensions.GetInstanceCreateInfo();
-	CHK_XR(xrCreateInstance(&createInfo, &g_Instance));
-
+	ovrResult result = g_Extensions.CreateInstance(&g_Instance);
 	AttachDetours();
+
+	CHK_OVR(g_Runtime.InitHacks(g_Instance));
 
 	return ovrSuccess;
 }
@@ -234,11 +225,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		session->DefaultEyeViews[i] = XR_TYPE(VIEW);
 	}
 
-	// Initialize hacks
-	session->Details.reset(new RuntimeDetails(session->Instance));
+	// Initialize pointers to runtime global
+	session->Extensions = &g_Extensions;
+	session->Details = &g_Runtime;
 
-	// Initialize input
-	session->Input.reset(new InputManager(session->Instance, session->Details.get()));
+	// Initialize input manager
+	session->Input.reset(new InputManager(session->Instance, session->Details));
 
 	XrSystemGetInfo systemInfo = XR_TYPE(SYSTEM_GET_INFO);
 	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
@@ -424,7 +416,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	sessionStatus->HasInputFocus = status.HasInputFocus;
 	sessionStatus->OverlayPresent = status.OverlayPresent;
 #if 0 // TODO: Re-enable once we figure out why this crashes Arktika.1
-	sessionStatus->DepthRequested = g_Extensions.CompositionDepth;
+	sessionStatus->DepthRequested = session->Extensions->CompositionDepth;
 #endif
 
 	return ovrSuccess;
@@ -1108,7 +1100,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 				if (texture->Images->type == XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR ? !upsideDown : upsideDown)
 					OVR::OVRMath_Swap(view.fov.angleUp, view.fov.angleDown);
 
-				if (type == ovrLayerType_EyeFovDepth && g_Extensions.CompositionDepth)
+				if (type == ovrLayerType_EyeFovDepth && session->Extensions->CompositionDepth)
 				{
 					depthData.emplace_back();
 					XrCompositionLayerDepthInfoKHR& depthInfo = depthData.back();
@@ -1159,7 +1151,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			quad.pose = XR::Posef(layer->Quad.QuadPoseCenter);
 			quad.size = XR::Vector2f(layer->Quad.QuadSize);
 		}
-		else if (type == ovrLayerType_Cylinder && g_Extensions.CompositionCylinder)
+		else if (type == ovrLayerType_Cylinder && session->Extensions->CompositionCylinder)
 		{
 			if (!layer->Cylinder.ColorTexture)
 				continue;
@@ -1175,7 +1167,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			cylinder.centralAngle = layer->Cylinder.CylinderAngle;
 			cylinder.aspectRatio = layer->Cylinder.CylinderAspectRatio;
 		}
-		else if (type == ovrLayerType_Cube && g_Extensions.CompositionCube)
+		else if (type == ovrLayerType_Cube && session->Extensions->CompositionCube)
 		{
 			if (!layer->Cube.CubeMapTexture)
 				continue;
@@ -1538,7 +1530,7 @@ ovr_GetFovStencil(
 	const ovrFovStencilDesc* fovStencilDesc,
 	ovrFovStencilMeshBuffer* meshBuffer)
 {
-	if (!g_Extensions.VisibilityMask)
+	if (!session->Extensions->VisibilityMask)
 		return ovrError_Unsupported;
 
 	if (!session)

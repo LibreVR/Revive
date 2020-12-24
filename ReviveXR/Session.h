@@ -8,6 +8,7 @@
 #include <mutex>
 #include <list>
 
+class Extensions;
 class RuntimeDetails;
 class InputManager;
 
@@ -57,8 +58,9 @@ struct ovrHmdStruct
 	SessionStatusBits SessionStatus;
 	ovrPosef CalibratedOrigin;
 
-	// Hacks
-	std::unique_ptr<RuntimeDetails> Details;
+	// Runtime
+	Extensions* Extensions;
+	RuntimeDetails* Details;
 
 	// Input
 	std::unique_ptr<InputManager> Input;

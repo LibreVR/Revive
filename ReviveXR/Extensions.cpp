@@ -8,13 +8,13 @@
 
 const char* requiredExtensions[] = {
 	"XR_KHR_win32_convert_performance_counter_time",
-	"XR_KHR_D3D11_enable",
-	"XR_KHR_D3D12_enable",
-	"XR_KHR_vulkan_enable",
-	"XR_KHR_opengl_enable"
+	"XR_KHR_D3D11_enable"
 };
 
 const char* optionalExtensions[] = {
+	"XR_KHR_D3D12_enable",
+	"XR_KHR_vulkan_enable",
+	"XR_KHR_opengl_enable",
 	XR_KHR_VISIBILITY_MASK_EXTENSION_NAME,
 	XR_KHR_COMPOSITION_LAYER_DEPTH_EXTENSION_NAME,
 	XR_KHR_COMPOSITION_LAYER_CUBE_EXTENSION_NAME,
@@ -45,13 +45,23 @@ void Extensions::InitExtensionList(std::vector<XrExtensionProperties>& propertie
 	CompositionCylinder = Supports(XR_KHR_COMPOSITION_LAYER_CYLINDER_EXTENSION_NAME);
 }
 
-XrInstanceCreateInfo Extensions::GetInstanceCreateInfo()
+ovrResult Extensions::CreateInstance(XrInstance* out_Instance)
 {
+	uint32_t size;
+	std::vector<XrExtensionProperties> properties;
+	CHK_XR(xrEnumerateInstanceExtensionProperties(nullptr, 0, &size, nullptr));
+	properties.resize(size);
+	for (XrExtensionProperties& props : properties)
+		props = XR_TYPE(EXTENSION_PROPERTIES);
+	CHK_XR(xrEnumerateInstanceExtensionProperties(nullptr, (uint32_t)properties.size(), &size, properties.data()));
+	InitExtensionList(properties);
+
 	XrInstanceCreateInfo createInfo = XR_TYPE(INSTANCE_CREATE_INFO);
 	createInfo.applicationInfo = { "Revive", REV_VERSION_INT, "Revive", REV_VERSION_INT, XR_CURRENT_API_VERSION };
 	createInfo.enabledExtensionCount = (uint32_t)m_extensions.size();
 	createInfo.enabledExtensionNames = m_extensions.data();
-	return createInfo;
+	CHK_XR(xrCreateInstance(&createInfo, out_Instance));
+	return ovrSuccess;
 }
 
 bool Extensions::Supports(const char* extensionName)

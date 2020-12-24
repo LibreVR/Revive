@@ -1,6 +1,7 @@
 #include "OVR_CAPI_Vk.h"
 #include "Common.h"
 #include "Session.h"
+#include "Extensions.h"
 #include "SwapChain.h"
 
 #include <vector>
@@ -175,6 +176,9 @@ ovr_CreateTextureSwapChainVk(
 
 	if (!session->Session)
 	{
+		if (!session->Extensions->Supports(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME))
+			return ovrError_Unsupported;
+
 		VK_DEVICE_FUNCTION(device, vkGetDeviceQueue);
 
 		auto findQueue = [device](VkQueue queue, uint32_t& familyIndex, uint32_t& queueIndex) {

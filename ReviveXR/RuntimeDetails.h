@@ -16,9 +16,7 @@ public:
 		HACK_VALVE_INDEX_PROFILE,
 	};
 
-	RuntimeDetails(XrInstance instance);
-	~RuntimeDetails();
-
+	ovrResult InitHacks(XrInstance);
 	bool UseHack(Hack hack);
 
 private:
