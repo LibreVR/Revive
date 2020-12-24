@@ -300,10 +300,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	// Calculate the pixels per tan angle
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
-		const XrFovf& fov = session->ViewFov[i].recommendedFov;
+		const XR::FovPort fov(session->ViewFov[i].recommendedFov);
 		session->PixelsPerTan[i] = OVR::Vector2f(
-			session->ViewConfigs[i].recommendedImageRectWidth / (fov.angleLeft + fov.angleRight),
-			session->ViewConfigs[i].recommendedImageRectHeight / (fov.angleUp + fov.angleDown)
+			(float)session->ViewConfigs[i].recommendedImageRectWidth / (fov.LeftTan + fov.RightTan),
+			(float)session->ViewConfigs[i].recommendedImageRectHeight / (fov.UpTan + fov.DownTan)
 		);
 	}
 
