@@ -53,6 +53,7 @@ struct ovrHmdStruct
 	XrReferenceSpaceType TrackingSpace;
 	XrViewConfigurationView ViewConfigs[ovrEye_Count];
 	XrViewConfigurationViewFovEPIC ViewFov[ovrEye_Count];
+	ovrVector2f PixelsPerTan;
 
 	// Session status
 	SessionStatusBits SessionStatus;
@@ -65,6 +66,6 @@ struct ovrHmdStruct
 	// Input
 	std::unique_ptr<InputManager> Input;
 
-	ovrResult BeginSession(void* graphicsBinding);
+	ovrResult BeginSession(void* graphicsBinding, bool waitFrame = true);
 	ovrResult EndSession();
 };

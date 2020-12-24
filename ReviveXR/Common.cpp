@@ -1,6 +1,8 @@
 #include "Common.h"
 
+#include <Windows.h>
 #include <openxr/openxr.h>
+#include <openxr/openxr_platform.h>
 
 extern XrInstance g_Instance;
 
@@ -65,6 +67,28 @@ ovrResult ResultToOvrResult(XrResult error)
 	case XR_ERROR_LOCALIZED_NAME_INVALID: return ovrError_InvalidParameter;
 	default: return ovrError_RuntimeException;
 	}
+}
+
+XrTime AbsTimeToXrTime(XrInstance instance, double absTime)
+{
+	XR_FUNCTION(instance, ConvertWin32PerformanceCounterToTimeKHR);
+
+	// Get back the XrTime
+	static double PerfFrequency = 0.0;
+	if (PerfFrequency == 0.0)
+	{
+		LARGE_INTEGER freq;
+		QueryPerformanceFrequency(&freq);
+		PerfFrequency = (double)freq.QuadPart;
+	}
+
+	XrResult rs;
+	XrTime time;
+	LARGE_INTEGER li;
+	li.QuadPart = (LONGLONG)(absTime * PerfFrequency);
+	rs = ConvertWin32PerformanceCounterToTimeKHR(instance, &li, &time);
+	assert(XR_SUCCEEDED(rs));
+	return time;
 }
 
 XrPath GetXrPath(const char* path)

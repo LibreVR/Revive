@@ -196,7 +196,6 @@ protected:
 
 	ovrTrackingState m_LastTrackingState;
 
-	static XrTime AbsTimeToXrTime(XrInstance instance, double absTime);
 	static unsigned int SpaceRelationToPoseState(const XrSpaceLocation& location, double time, ovrPoseStatef& lastPoseState, ovrPoseStatef& outPoseState);
 };
 

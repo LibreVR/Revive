@@ -79,12 +79,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	g_MinorVersion = params->RequestedMinorVersion;
 
 	DetachDetours();
-	ovrResult result = g_Extensions.CreateInstance(&g_Instance);
+	ovrResult rs = g_Extensions.CreateInstance(&g_Instance);
 	AttachDetours();
 
 	CHK_OVR(g_Runtime.InitHacks(g_Instance));
-
-	return ovrSuccess;
+	return rs;
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
@@ -227,9 +226,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	session->Extensions = &g_Extensions;
 	session->Details = &g_Runtime;
 
-	// Initialize input manager
-	session->Input.reset(new InputManager(session->Instance, session->Details));
-
 	XrSystemGetInfo systemInfo = XR_TYPE(SYSTEM_GET_INFO);
 	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 	CHK_XR(xrGetSystem(session->Instance, &systemInfo, &session->System));
@@ -275,30 +271,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
 		graphicsBinding.device = pDevice.Get();
 
-		XrSession fakeSession;
-		XrSessionCreateInfo createInfo = XR_TYPE(SESSION_CREATE_INFO);
-		createInfo.next = &graphicsBinding;
-		createInfo.systemId = session->System;
-		CHK_XR(xrCreateSession(session->Instance, &createInfo, &fakeSession));
-
-		XrSpace viewSpace;
-		XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
-		spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
-		spaceInfo.poseInReferenceSpace = XR::Posef(XR::Posef::Identity());
-		CHK_XR(xrCreateReferenceSpace(fakeSession, &spaceInfo, &viewSpace));
-
-		XrSessionBeginInfo beginInfo = XR_TYPE(SESSION_BEGIN_INFO);
-		beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-		CHK_XR(xrBeginSession(fakeSession, &beginInfo));
+		CHK_OVR(session->BeginSession(&graphicsBinding, false));
 
 		uint32_t numViews;
 		XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
 		XrViewState viewState = XR_TYPE(VIEW_STATE);
 		XrView views[ovrEye_Count] = { XR_TYPE(VIEW), XR_TYPE(VIEW) };
-		locateInfo.space = viewSpace;
-		locateInfo.viewConfigurationType = beginInfo.primaryViewConfigurationType;
-		locateInfo.displayTime = 1337;
-		XrResult rs = xrLocateViews(fakeSession, &locateInfo, &viewState, ovrEye_Count, &numViews, views);
+		locateInfo.space = session->ViewSpace;
+		locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+		locateInfo.displayTime = AbsTimeToXrTime(session->Instance, ovr_GetTimeInSeconds());
+		XrResult rs = xrLocateViews(session->Session, &locateInfo, &viewState, ovrEye_Count, &numViews, views);
 		assert(XR_SUCCEEDED(rs));
 		assert(numViews == ovrEye_Count);
 
@@ -312,8 +294,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 			session->ViewFov[i].maxMutableFov = session->ViewFov[i].recommendedFov;
 		}
 
-		CHK_XR(xrDestroySession(fakeSession));
+		CHK_OVR(session->EndSession());
 	}
+
+	// Initialize input manager
+	session->Input.reset(new InputManager(session->Instance, session->Details));
 
 	*pSession = session;
 	return ovrSuccess;

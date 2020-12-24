@@ -46,12 +46,6 @@ InputManager::InputManager(XrInstance instance, RuntimeDetails* details)
 
 InputManager::~InputManager()
 {
-	for (XrSpace space : m_ActionSpaces)
-	{
-		XrResult rs = xrDestroySpace(space);
-		assert(XR_SUCCEEDED(rs));
-	}
-
 	for (InputDevice* device : m_InputDevices)
 		delete device;
 }
@@ -140,28 +134,6 @@ ovrTouchHapticsDesc InputManager::GetTouchHapticsDesc(ovrControllerType controll
 	}
 
 	return desc;
-}
-
-XrTime InputManager::AbsTimeToXrTime(XrInstance instance, double absTime)
-{
-	XR_FUNCTION(instance, ConvertWin32PerformanceCounterToTimeKHR);
-
-	// Get back the XrTime
-	static double PerfFrequency = 0.0;
-	if (PerfFrequency == 0.0)
-	{
-		LARGE_INTEGER freq;
-		QueryPerformanceFrequency(&freq);
-		PerfFrequency = (double)freq.QuadPart;
-	}
-
-	XrResult rs;
-	XrTime time;
-	LARGE_INTEGER li;
-	li.QuadPart = (LONGLONG)(absTime * PerfFrequency);
-	rs = ConvertWin32PerformanceCounterToTimeKHR(instance, &li, &time);
-	assert(XR_SUCCEEDED(rs));
-	return time;
 }
 
 unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& location, double time, ovrPoseStatef& lastPoseState, ovrPoseStatef& outPoseState)
@@ -915,16 +887,23 @@ void InputManager::XboxGamepad::GetActiveSets(std::vector<XrActiveActionSet>& ou
 
 ovrResult InputManager::AttachSession(XrSession session)
 {
-	std::vector<XrActionSet> actionSets;
-	for (InputDevice* device : m_InputDevices)
-	{
-		device->GetActionSpaces(session, m_ActionSpaces);
-		actionSets.push_back(*device);
-	}
+	for (XrSpace space : m_ActionSpaces)
+		CHK_XR(xrDestroySpace(space));
+	m_ActionSpaces.clear();
 
-	XrSessionActionSetsAttachInfo attachInfo = XR_TYPE(SESSION_ACTION_SETS_ATTACH_INFO);
-	attachInfo.countActionSets = (uint32_t)actionSets.size();
-	attachInfo.actionSets = actionSets.data();
-	CHK_XR(xrAttachSessionActionSets(session, &attachInfo));
+	if (session)
+	{
+		std::vector<XrActionSet> actionSets;
+		for (InputDevice* device : m_InputDevices)
+		{
+			device->GetActionSpaces(session, m_ActionSpaces);
+			actionSets.push_back(*device);
+		}
+
+		XrSessionActionSetsAttachInfo attachInfo = XR_TYPE(SESSION_ACTION_SETS_ATTACH_INFO);
+		attachInfo.countActionSets = (uint32_t)actionSets.size();
+		attachInfo.actionSets = actionSets.data();
+		CHK_XR(xrAttachSessionActionSets(session, &attachInfo));
+	}
 	return ovrSuccess;
 }

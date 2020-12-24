@@ -6,7 +6,7 @@
 
 #include <thread>
 
-ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding)
+ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool waitFrame)
 {
 	XrSessionCreateInfo createInfo = XR_TYPE(SESSION_CREATE_INFO);
 	createInfo.next = graphicsBinding;
@@ -14,7 +14,8 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding)
 	CHK_XR(xrCreateSession(Instance, &createInfo, &Session));
 
 	// Attach it to the InputManager
-	Input->AttachSession(Session);
+	if (Input)
+		Input->AttachSession(Session);
 
 	// Create reference spaces
 	XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
@@ -31,8 +32,11 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding)
 	beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 	CHK_XR(xrBeginSession(Session, &beginInfo));
 
-	CHK_OVR(ovr_WaitToBeginFrame(this, 0));
-	CHK_OVR(ovr_BeginFrame(this, 0));
+	if (waitFrame)
+	{
+		CHK_OVR(ovr_WaitToBeginFrame(this, 0));
+		CHK_OVR(ovr_BeginFrame(this, 0));
+	}
 	return ovrSuccess;
 }
 
@@ -41,7 +45,13 @@ ovrResult ovrHmdStruct::EndSession()
 	if (!Session)
 		return ovrError_InvalidSession;
 
+	if (Input)
+		Input->AttachSession(nullptr);
+
 	CHK_XR(xrDestroySession(Session));
 	Session = XR_NULL_HANDLE;
+	ViewSpace = XR_NULL_HANDLE;
+	LocalSpace = XR_NULL_HANDLE;
+	StageSpace = XR_NULL_HANDLE;
 	return ovrSuccess;
 }

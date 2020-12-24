@@ -38,5 +38,6 @@ extern XrResult g_LastResult;
 		CHK_XR(xrGetInstanceProcAddr(instance, "xr" #func, (PFN_xrVoidFunction*)&##func));
 
 ovrResult ResultToOvrResult(XrResult error);
+XrTime AbsTimeToXrTime(XrInstance instance, double absTime);
 XrPath GetXrPath(const char* path);
 XrPath GetXrPath(std::string path);
