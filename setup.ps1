@@ -6,8 +6,8 @@ git submodule update --init --recursive
 mkdir -Force tmp_deps | Out-Null
 
 # Retrieve Oculus SDK
-Write-Host "Downloading Oculus SDK v1.43.0..."
-curl -o tmp_deps\oculus_sdk.html https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.43.0/
+Write-Host "Downloading Oculus SDK v23.0.0..."
+curl -o tmp_deps\oculus_sdk.html https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/23.0.0/
 $url = select-string -Path 'tmp_deps\oculus_sdk.html' -Pattern 'https:\/\/securecdn\.oculus\.com\/binaries\/download\/\?id=[0-9]+&amp;access_token=[0-9A-Za-z%]+' -AllMatches | % {$_.Matches} | % {$_.Value}
 Invoke-WebRequest -Uri $url -OutFile 'tmp_deps\oculus_sdk.zip'
 Write-Host "Extracting Oculus SDK into Externals/..."
@@ -55,7 +55,8 @@ Write-Host "MSBuild found"
 
 # Ensure vcpkg dependencies are installed
 vcpkg integrate install
-vcpkg install openxr-loader:x64-windows glfw3:x64-windows-static glfw3:x86-windows-static
+vcpkg install --triplet x86-windows-static openxr-loader glfw3
+vcpkg install --triplet x64-windows-static openxr-loader glfw3
 
 # Build Revive a la carte
 Write-Host "Building Revive..."
