@@ -8,7 +8,7 @@ install:
   - git submodule update --init --recursive
   - mkdir c:\projects\download_cache
   # query Oculus SDK website for download link
-  - curl -fsSL -o c:\projects\download_cache\oculus_sdk.html https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/1.41.0/
+  - curl -fsSL -o c:\projects\download_cache\oculus_sdk.html https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/23.0.0/
   # download and extract Oculus SDK
   - ps: |
       $url = select-string -Path 'c:\projects\download_cache\oculus_sdk.html'  -Pattern 'https:\/\/securecdn\.oculus\.com\/binaries\/download\/\?id=[0-9]+&amp;access_token=[0-9A-Za-z%]+' -AllMatches | % {$_.Matches} | % {$_.Value}
