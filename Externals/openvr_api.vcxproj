@@ -88,15 +88,19 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Common.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Common.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Common.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\Common.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -130,7 +134,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;WIN64;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)Detours\src;$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -146,7 +150,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)Detours\src;$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -164,7 +168,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)Detours\src;$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -184,7 +188,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;WIN64;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)Detours\src;$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
