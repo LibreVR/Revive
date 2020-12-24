@@ -115,6 +115,8 @@ install:
   RMDir /r "$INSTDIR\Revive"
 
   ; Delete outdated dependencies
+  Delete "$INSTDIR\LibRXRRT64.dll"
+  Delete "$INSTDIR\openxr_loader.dll"
   Delete "$INSTDIR\openxr_loader-1_0.dll"
   Delete "$INSTDIR\libeay32.dll"
   Delete "$INSTDIR\ssleay32.dll"
