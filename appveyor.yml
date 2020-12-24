@@ -5,6 +5,11 @@ environment:
   QTDIR: C:\Qt\5.13.2\msvc2017_64
 
 install:
+  # update vcpkg to the latest version
+  - cd C:\Tools\vcpkg
+  - git pull
+  - .\bootstrap-vcpkg.bat
+  - cd %APPVEYOR_BUILD_FOLDER%
   - git submodule update --init --recursive
   - mkdir c:\projects\download_cache
   # query Oculus SDK website for download link
