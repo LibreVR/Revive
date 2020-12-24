@@ -155,11 +155,8 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		// Compensate for the 3-DOF eye pose on pre-1.17
-		if (g_MinorVersion < 17)
-			desc.DefaultEyeFov[i] = OVR::FovPort::Uncant(XR::FovPort(session->DefaultEyeViews[i].fov), XR::Quatf(session->DefaultEyeViews[i].pose.orientation));
-		else
-			desc.DefaultEyeFov[i] = XR::FovPort(session->DefaultEyeViews[i].fov);
-		desc.MaxEyeFov[i] = desc.DefaultEyeFov[i];
+		desc.DefaultEyeFov[i] = XR::FovPort(session->ViewFov[i].recommendedFov);
+		desc.MaxEyeFov[i] = XR::FovPort(session->ViewFov[i].maxMutableFov);
 		desc.Resolution.w += (int)session->ViewConfigs[i].recommendedImageRectWidth;
 		desc.Resolution.h = std::max(desc.Resolution.h, (int)session->ViewConfigs[i].recommendedImageRectHeight);
 	}
@@ -222,7 +219,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		session->ViewConfigs[i] = XR_TYPE(VIEW_CONFIGURATION_VIEW);
-		session->DefaultEyeViews[i] = XR_TYPE(VIEW);
+		session->ViewFov[i] = XR_TYPE(VIEW_CONFIGURATION_VIEW_FOV_EPIC);
+		session->ViewConfigs[i].next = &session->ViewFov[i];
 	}
 
 	// Initialize pointers to runtime global
@@ -252,7 +250,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 	// Create a temporary session to retrieve the headset field-of-view
 	Microsoft::WRL::ComPtr<IDXGIFactory1> pFactory = NULL;
-	if (SUCCEEDED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory)))
+	if ((g_MinorVersion < 17 || !g_Extensions.Supports(XR_EPIC_VIEW_CONFIGURATION_FOV_EXTENSION_NAME)) &&
+		SUCCEEDED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory)))
 	{
 		Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
 		Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
@@ -292,18 +291,26 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 		CHK_XR(xrBeginSession(fakeSession, &beginInfo));
 
-		for (int i = 0; i < ovrEye_Count; i++)
-			session->DefaultEyeViews[i] = XR_TYPE(VIEW);
-
 		uint32_t numViews;
 		XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
 		XrViewState viewState = XR_TYPE(VIEW_STATE);
+		XrView views[ovrEye_Count] = { XR_TYPE(VIEW), XR_TYPE(VIEW) };
 		locateInfo.space = viewSpace;
 		locateInfo.viewConfigurationType = beginInfo.primaryViewConfigurationType;
 		locateInfo.displayTime = 1337;
-		XrResult rs = xrLocateViews(fakeSession, &locateInfo, &viewState, ovrEye_Count, &numViews, session->DefaultEyeViews);
+		XrResult rs = xrLocateViews(fakeSession, &locateInfo, &viewState, ovrEye_Count, &numViews, views);
 		assert(XR_SUCCEEDED(rs));
 		assert(numViews == ovrEye_Count);
+
+		for (int i = 0; i < ovrEye_Count; i++)
+		{
+			// Compensate for the 3-DOF eye pose on pre-1.17
+			if (g_MinorVersion < 17)
+				session->ViewFov[i].recommendedFov = XR::FovPort(OVR::FovPort::Uncant(XR::FovPort(views[i].fov), XR::Quatf(views[i].pose.orientation)));
+			else
+				session->ViewFov[i].recommendedFov = XR::FovPort(views[i].fov);
+			session->ViewFov[i].maxMutableFov = session->ViewFov[i].recommendedFov;
+		}
 
 		CHK_XR(xrDestroySession(fakeSession));
 	}
@@ -926,7 +933,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 		desc.DistortedViewport.Size.h / (fov.UpTan + fov.DownTan)
 	);
 
-	XR::Posef pose = session->DefaultEyeViews[eyeType].pose;
+	XR::Posef pose = XR::Posef::Identity();
 	if (session->Session)
 	{
 		uint32_t numViews;
@@ -940,11 +947,8 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 		assert(XR_SUCCEEDED(rs));
 		assert(numViews == ovrEye_Count);
 
-		// FIXME: WMR viewState flags are bugged
-		if (views[eyeType].pose.orientation.w != 0.0f)
-			pose = views[eyeType].pose;
+		pose = views[eyeType].pose;
 	}
-
 	desc.HmdToEyePose = pose;
 	return desc;
 }
@@ -1361,9 +1365,25 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 	if (session)
 	{
 		if (strcmp(propertyName, "IPD") == 0)
-			return XR::Vector3f(session->DefaultEyeViews[ovrEye_Left].pose.position).Distance(
-				XR::Vector3f(session->DefaultEyeViews[ovrEye_Right].pose.position)
+		{
+			// Locate the eyes in view space to compute the IPD
+			uint32_t numViews;
+			XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
+			XrViewState viewState = XR_TYPE(VIEW_STATE);
+			XrView views[ovrEye_Count] = { XR_TYPE(VIEW), XR_TYPE(VIEW) };
+			locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+			locateInfo.displayTime = (*session->CurrentFrame).predictedDisplayTime;
+			locateInfo.space = session->ViewSpace;
+			XrResult rs = xrLocateViews(session->Session, &locateInfo, &viewState, ovrEye_Count, &numViews, views);
+			assert(XR_SUCCEEDED(rs));
+			assert(numViews == ovrEye_Count);
+			if (XR_FAILED(rs))
+				return 0.0f;
+
+			return XR::Vector3f(views[ovrEye_Left].pose.position).Distance(
+				XR::Vector3f(views[ovrEye_Right].pose.position)
 			);
+		}
 
 		if (strcmp(propertyName, "VsyncToNextVsync") == 0)
 			return (*session->CurrentFrame).predictedDisplayPeriod / 1e9f;
