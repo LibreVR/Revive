@@ -526,15 +526,10 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(RuntimeDetails* details, 
 		ADD_BINDING(m_Button_Thumb, prefixes[i] + "/input/thumbstick/click");
 		ADD_BINDING(m_Touch_Thumb, prefixes[i] + "/input/thumbstick/touch");
 		if (details->UseHack(RuntimeDetails::HACK_VALVE_INDEX_PROFILE))
-		{
 			ADD_BINDING(m_Touch_ThumbRest, prefixes[i] + "/input/trackpad/touch");
-			ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/squeeze/force");
-		}
 		else
-		{
 			ADD_BINDING(m_Touch_ThumbRest, prefixes[i] + "/input/thumbrest/touch");
-			ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/squeeze/value");
-		}
+		ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/squeeze/value");
 		ADD_BINDING(m_Touch_IndexTrigger, prefixes[i] + "/input/trigger/touch");
 		ADD_BINDING(m_IndexTrigger, prefixes[i] + "/input/trigger/value");
 
