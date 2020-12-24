@@ -1,69 +1,14 @@
-diff --git a/ports/openxr-loader/fix-openxr-sdk-jsoncpp.patch b/ports/openxr-loader/fix-openxr-sdk-jsoncpp.patch
-index 24e6b5149..c1088f5b4 100644
---- a/ports/openxr-loader/fix-openxr-sdk-jsoncpp.patch
-+++ b/ports/openxr-loader/fix-openxr-sdk-jsoncpp.patch
-@@ -1,30 +1,58 @@
--diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
--index c75b145..386494c 100644
----- a/src/CMakeLists.txt
--+++ b/src/CMakeLists.txt
--@@ -66,7 +66,7 @@ if(NOT VULKAN_INCOMPATIBLE)
-- endif()
-- 
-- find_package(Threads REQUIRED)
---find_package(JsonCpp)
--+find_package(jsoncpp CONFIG REQUIRED)
-- 
-- ### All options defined here
-- option(BUILD_LOADER "Build loader" ON)
--diff --git a/src/loader/CMakeLists.txt b/src/loader/CMakeLists.txt
--index 6a88cf4..0821a3d 100644
----- a/src/loader/CMakeLists.txt
--+++ b/src/loader/CMakeLists.txt
--@@ -67,7 +67,11 @@ add_library(openxr_loader ${LIBRARY_TYPE}
--     ${openxr_loader_RESOURCE_FILE}
-- )
-- if(BUILD_WITH_SYSTEM_JSONCPP)
---    target_link_libraries(openxr_loader PRIVATE JsonCpp::JsonCpp)
--+    if(BUILD_SHARED_LIBS)
--+        target_link_libraries(openxr_loader PRIVATE jsoncpp_lib)
--+    else()
--+        target_link_libraries(openxr_loader PRIVATE jsoncpp_static)
--+    endif()
-- else()
--     target_sources(openxr_loader
--         PRIVATE
-+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-+index ce5a9a8..241bda2 100644
-+--- a/src/CMakeLists.txt
-++++ b/src/CMakeLists.txt
-+@@ -119,7 +119,7 @@ if(NOT VULKAN_INCOMPATIBLE)
-+ endif()
-+ 
-+ find_package(Threads REQUIRED)
-+-find_package(JsonCpp)
-++find_package(jsoncpp CONFIG REQUIRED)
-+ 
-+ ### All options defined here
-+ option(BUILD_LOADER "Build loader" ON)
+diff --git a/ports/openxr-loader/fix-static-loader.patch b/ports/openxr-loader/fix-static-loader.patch
+new file mode 100644
+index 000000000..de2f3e049
+--- /dev/null
++++ b/ports/openxr-loader/fix-static-loader.patch
+@@ -0,0 +1,32 @@
 +diff --git a/src/loader/CMakeLists.txt b/src/loader/CMakeLists.txt
-+index 3a6ff44..1d7999b 100644
++index 3a6ff44..c9b1c38 100644
 +--- a/src/loader/CMakeLists.txt
 ++++ b/src/loader/CMakeLists.txt
-+@@ -67,7 +67,11 @@ add_library(openxr_loader ${LIBRARY_TYPE}
-+     ${openxr_loader_RESOURCE_FILE}
-+ )
-+ if(BUILD_WITH_SYSTEM_JSONCPP)
-+-    target_link_libraries(openxr_loader PRIVATE JsonCpp::JsonCpp)
-++    if(BUILD_SHARED_LIBS)
-++        target_link_libraries(openxr_loader PRIVATE jsoncpp_lib)
-++    else()
-++        target_link_libraries(openxr_loader PRIVATE jsoncpp_static)
-++    endif()
-+ else()
-+     target_sources(openxr_loader
-+         PRIVATE
-+@@ -165,27 +169,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
++@@ -165,28 +165,5 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 +     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/openxr.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 + elseif(WIN32)
 +     if(MSVC)
@@ -90,12 +35,20 @@ index 24e6b5149..c1088f5b4 100644
 +-
 +         target_compile_options(openxr_loader PRIVATE /wd6386)
 +     endif()
-+ 
++-
 diff --git a/ports/openxr-loader/portfile.cmake b/ports/openxr-loader/portfile.cmake
-index f68094d18..781e56c3e 100644
+index f68094d18..a040d8b8d 100644
 --- a/ports/openxr-loader/portfile.cmake
 +++ b/ports/openxr-loader/portfile.cmake
-@@ -28,18 +28,6 @@ vcpkg_from_github(
+@@ -8,6 +8,7 @@ vcpkg_from_github(
+     HEAD_REF master
+     PATCHES
+         fix-openxr-sdk-jsoncpp.patch
++        fix-static-loader.patch
+ )
+ 
+ vcpkg_from_github(
+@@ -28,18 +29,6 @@ vcpkg_from_github(
      HEAD_REF master
  )
  
