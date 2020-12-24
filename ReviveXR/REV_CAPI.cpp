@@ -297,6 +297,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		CHK_OVR(session->EndSession());
 	}
 
+	// Calculate the pixels per tan angle
+	for (int i = 0; i < ovrEye_Count; i++)
+	{
+		const XrFovf& fov = session->ViewFov[i].recommendedFov;
+		session->PixelsPerTan[i] = OVR::Vector2f(
+			session->ViewConfigs[i].recommendedImageRectWidth / (fov.angleLeft + fov.angleRight),
+			session->ViewConfigs[i].recommendedImageRectHeight / (fov.angleUp + fov.angleDown)
+		);
+	}
+
 	// Initialize input manager
 	session->Input.reset(new InputManager(session->Instance, session->Details));
 
@@ -888,13 +898,11 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 {
 	REV_TRACE(ovr_GetFovTextureSize);
 
-	// TODO: Calculate the size from the fov
 	// TODO: Add support for pixelsPerDisplayPixel
 	ovrSizei size = {
-		(int)session->ViewConfigs[eye].recommendedImageRectWidth,
-		(int)session->ViewConfigs[eye].recommendedImageRectHeight,
+		(int)(session->PixelsPerTan[eye].x * (fov.LeftTan + fov.RightTan)),
+		(int)(session->PixelsPerTan[eye].y * (fov.UpTan + fov.DownTan)),
 	};
-
 	return size;
 }
 
@@ -912,11 +920,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 
 	desc.DistortedViewport.Size.w = session->ViewConfigs[eyeType].recommendedImageRectWidth;
 	desc.DistortedViewport.Size.h = session->ViewConfigs[eyeType].recommendedImageRectHeight;
-
-	desc.PixelsPerTanAngleAtCenter = OVR::Vector2f(
-		desc.DistortedViewport.Size.w / (fov.LeftTan + fov.RightTan),
-		desc.DistortedViewport.Size.h / (fov.UpTan + fov.DownTan)
-	);
+	desc.PixelsPerTanAngleAtCenter = session->PixelsPerTan[eyeType];
 
 	XR::Posef pose = XR::Posef::Identity();
 	if (session->Session)
