@@ -478,7 +478,7 @@ void InputManager::OculusTouch::HapticsThread(XrSession session, OculusTouch* de
 			}
 		}
 
-		// std::this_thread::sleep_for(freq);
+		std::this_thread::sleep_for(freq);
 	}
 }
 
