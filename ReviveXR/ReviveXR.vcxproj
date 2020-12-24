@@ -64,7 +64,6 @@
       <AdditionalLibraryDirectories>$(Externals)openxr\src\loader\$(Configuration)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Ws2_32.lib;openxr_loader.lib;opengl32.lib;d3d11.lib;dxgi.lib;dxguid.lib;dsound.lib;Winmm.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <FxCompile>
       <HeaderFileOutput>%(Filename).hlsl.h</HeaderFileOutput>
