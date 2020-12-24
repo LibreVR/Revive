@@ -14,6 +14,10 @@ public:
 		// Hack: SteamVR OpenXR runtime doesn't support the Oculus Touch interaction profile.
 		// Use the Valve Index interaction profile instead.
 		HACK_VALVE_INDEX_PROFILE,
+		// Hack: Some runtimes don't support the R11G11B10 swapchain format.
+		// Fall back to the R10G10B10A2 format instead.
+		// Use the Valve Index interaction profile instead.
+		HACK_10BIT_FORMAT,
 	};
 
 	ovrResult InitHacks(XrInstance);

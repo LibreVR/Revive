@@ -8,6 +8,9 @@
 
 ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool waitFrame)
 {
+	if (Session)
+		return ovrError_InvalidOperation;
+
 	XrSessionCreateInfo createInfo = XR_TYPE(SESSION_CREATE_INFO);
 	createInfo.next = graphicsBinding;
 	createInfo.systemId = System;
@@ -44,7 +47,7 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool waitFrame)
 ovrResult ovrHmdStruct::EndSession()
 {
 	if (!Session)
-		return ovrError_InvalidSession;
+		return ovrError_InvalidOperation;
 
 	if (Input)
 		Input->AttachSession(XR_NULL_HANDLE);

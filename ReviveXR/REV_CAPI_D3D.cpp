@@ -2,6 +2,7 @@
 #include "Common.h"
 #include "Session.h"
 #include "Extensions.h"
+#include "RuntimeDetails.h"
 #include "SwapChain.h"
 #include "XR_Math.h"
 
@@ -189,14 +190,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		}
 	}
 
+	DXGI_FORMAT format = TextureFormatToDXGIFormat(desc->Format);
+	if (format == DXGI_FORMAT_R11G11B10_FLOAT && session->Details->UseHack(RuntimeDetails::HACK_10BIT_FORMAT))
+		format = DXGI_FORMAT_R10G10B10A2_UNORM;
+
 	if (pDevice)
 	{
 		ovrTextureSwapChain chain;
-		CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), &chain));
+		CHK_OVR(CreateSwapChain(session->Session, desc, format, &chain));
 		CHK_OVR(EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR, chain));
 
 		D3D11_RENDER_TARGET_VIEW_DESC desc;
-		desc.Format = TextureFormatToDXGIFormat(chain->Desc.Format);
+		desc.Format = format;
 		desc.ViewDimension = DescToViewDimension(&chain->Desc);
 		if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY)
 		{
@@ -224,7 +229,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	}
 	else if (pQueue)
 	{
-		CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), out_TextureSwapChain));
+		CHK_OVR(CreateSwapChain(session->Session, desc, format, out_TextureSwapChain));
 		return EnumerateImages<XrSwapchainImageD3D12KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR, *out_TextureSwapChain);
 	}
 	else

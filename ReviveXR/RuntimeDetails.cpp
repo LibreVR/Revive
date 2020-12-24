@@ -12,6 +12,7 @@
 // TODO: test and port remaining hacks from Revive classic
 RuntimeDetails::HackInfo RuntimeDetails::m_known_hacks[] = {
 	{ nullptr, "SteamVR/OpenXR", HACK_VALVE_INDEX_PROFILE, true },
+	{ nullptr, "SteamVR/OpenXR", HACK_10BIT_FORMAT, true },
 };
 
 ovrResult RuntimeDetails::InitHacks(XrInstance instance)
