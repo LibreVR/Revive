@@ -8,7 +8,7 @@ index 000000000..de2f3e049
 +index 3a6ff44..c9b1c38 100644
 +--- a/src/loader/CMakeLists.txt
 ++++ b/src/loader/CMakeLists.txt
-+@@ -165,28 +165,5 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
++@@ -165,27 +165,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 +     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/openxr.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 + elseif(WIN32)
 +     if(MSVC)
@@ -35,7 +35,7 @@ index 000000000..de2f3e049
 +-
 +         target_compile_options(openxr_loader PRIVATE /wd6386)
 +     endif()
-+-
++
 diff --git a/ports/openxr-loader/portfile.cmake b/ports/openxr-loader/portfile.cmake
 index f68094d18..a040d8b8d 100644
 --- a/ports/openxr-loader/portfile.cmake
