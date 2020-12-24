@@ -1,6 +1,6 @@
 diff --git a/ports/openxr-loader/fix-static-loader.patch b/ports/openxr-loader/fix-static-loader.patch
 new file mode 100644
-index 000000000..de2f3e049
+index 000000000..4bf5c8950
 --- /dev/null
 +++ b/ports/openxr-loader/fix-static-loader.patch
 @@ -0,0 +1,32 @@
@@ -37,7 +37,7 @@ index 000000000..de2f3e049
 +     endif()
 +
 diff --git a/ports/openxr-loader/portfile.cmake b/ports/openxr-loader/portfile.cmake
-index f68094d18..a040d8b8d 100644
+index f68094d18..ff32d1335 100644
 --- a/ports/openxr-loader/portfile.cmake
 +++ b/ports/openxr-loader/portfile.cmake
 @@ -8,6 +8,7 @@ vcpkg_from_github(
@@ -48,7 +48,15 @@ index f68094d18..a040d8b8d 100644
  )
  
  vcpkg_from_github(
-@@ -28,18 +29,6 @@ vcpkg_from_github(
+@@ -18,6 +19,7 @@ vcpkg_from_github(
+     HEAD_REF master
+     PATCHES
+         fix-openxr-sdk-jsoncpp.patch
++        fix-static-loader.patch
+ )
+ 
+ vcpkg_from_github(
+@@ -28,18 +30,6 @@ vcpkg_from_github(
      HEAD_REF master
  )
  
