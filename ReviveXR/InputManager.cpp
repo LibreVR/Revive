@@ -214,7 +214,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
 
 	// Convert the hand poses
-	for (int i = 0; i < ovrHand_Count; i++)
+	for (uint32_t i = 0; i < ovrHand_Count; i++)
 	{
 		XrSpaceLocation handLocation = XR_TYPE(SPACE_LOCATION);
 		handLocation.next = &velocity;
