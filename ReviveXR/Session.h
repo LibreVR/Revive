@@ -53,6 +53,7 @@ struct ovrHmdStruct
 	XrReferenceSpaceType TrackingSpace;
 	XrViewConfigurationView ViewConfigs[ovrEye_Count];
 	XrViewConfigurationViewFovEPIC ViewFov[ovrEye_Count];
+	XrView ViewPoses[ovrEye_Count];
 	ovrVector2f PixelsPerTan[ovrEye_Count];
 
 	// Session status

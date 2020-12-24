@@ -13,6 +13,8 @@
 RuntimeDetails::HackInfo RuntimeDetails::m_known_hacks[] = {
 	{ nullptr, "SteamVR/OpenXR", HACK_VALVE_INDEX_PROFILE, true },
 	{ nullptr, "SteamVR/OpenXR", HACK_10BIT_FORMAT, true },
+	{ "echovr.exe", nullptr, HACK_FORCE_FOV_FALLBACK, true },
+	{ "loneecho.exe", nullptr, HACK_FORCE_FOV_FALLBACK, true },
 };
 
 ovrResult RuntimeDetails::InitHacks(XrInstance instance)
