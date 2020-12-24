@@ -12,6 +12,7 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool waitFrame)
 	createInfo.next = graphicsBinding;
 	createInfo.systemId = System;
 	CHK_XR(xrCreateSession(Instance, &createInfo, &Session));
+	memset(&SessionStatus, 0, sizeof(SessionStatus));
 
 	// Attach it to the InputManager
 	if (Input)
@@ -46,7 +47,7 @@ ovrResult ovrHmdStruct::EndSession()
 		return ovrError_InvalidSession;
 
 	if (Input)
-		Input->AttachSession(nullptr);
+		Input->AttachSession(XR_NULL_HANDLE);
 
 	CHK_XR(xrDestroySession(Session));
 	Session = XR_NULL_HANDLE;

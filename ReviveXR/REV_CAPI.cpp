@@ -452,6 +452,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
+	if (!session->Session)
+		return ovrError_InvalidHeadsetOrientation;
+
 	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
 	CHK_XR(xrLocateSpace(session->ViewSpace, session->LocalSpace, (*session->CurrentFrame).predictedDisplayTime, &relation));
 
@@ -494,7 +497,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 	ovrTrackingState state = { 0 };
 
-	if (session && session->Input)
+	if (session && session->Session && session->Input)
 		session->Input->GetTrackingState(session, &state, absTime);
 
 	return state;
@@ -594,14 +597,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 {
 	REV_TRACE(ovr_GetInputState);
 
-	if (!session || !session->Input)
+	if (!session)
 		return ovrError_InvalidSession;
 
 	if (!inputState)
 		return ovrError_InvalidParameter;
 
 	ovrInputState state = { 0 };
-	ovrResult result = session->Input->GetInputState(session, controllerType, &state);
+
+	ovrResult result = ovrSuccess;
+	if (session->Input && session->Session)
+		result = session->Input->GetInputState(session, controllerType, &state);
 
 	// We need to make sure we don't write outside of the bounds of the struct
 	// when the client expects a pre-1.7 version of LibOVR.
