@@ -402,9 +402,6 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
 
-	if (canonicalName == "ready-at-dawn-echo-arena" && !COculusPlatform::SharedInstance()->Connected())
-		CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_OculusNotLinked);
-
 	if (!m_OpenXREnabled && vr::VRApplications())
 	{
 		// Refresh the manifest after launching the application to aid application identification
