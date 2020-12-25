@@ -28,10 +28,10 @@ const char* Runtime::s_optional_extensions[] = {
 };
 
 Runtime::HackInfo Runtime::s_known_hacks[] = {
-	{ nullptr, "SteamVR/OpenXR", HACK_VALVE_INDEX_PROFILE, true },
-	{ nullptr, "SteamVR/OpenXR", HACK_10BIT_FORMAT, true },
-	{ "echovr.exe", nullptr, HACK_FORCE_FOV_FALLBACK, true },
-	{ "loneecho.exe", nullptr, HACK_FORCE_FOV_FALLBACK, true },
+	{ nullptr, "SteamVR/OpenXR", HACK_VALVE_INDEX_PROFILE, 0, 0, true },
+	{ nullptr, "SteamVR/OpenXR", HACK_10BIT_FORMAT, 0, 0, true },
+	{ "echovr.exe", nullptr, HACK_FORCE_FOV_FALLBACK, 0, 0, true },
+	{ "loneecho.exe", nullptr, HACK_FORCE_FOV_FALLBACK, 0, 0, true },
 };
 
 Runtime& Runtime::Get()
