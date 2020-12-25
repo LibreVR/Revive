@@ -66,16 +66,13 @@
     <ClInclude Include="XR_Math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Extensions.h">
-      <Filter>Header Files\LibRevive</Filter>
-    </ClInclude>
     <ClInclude Include="CImg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RuntimeDetails.h">
+    <ClInclude Include="Runtime.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
   </ItemGroup>
@@ -113,17 +110,14 @@
     <ClCompile Include="Swapchain.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
-    <ClCompile Include="Extensions.cpp">
-      <Filter>Source Files\LibRevive</Filter>
-    </ClCompile>
     <ClCompile Include="Session.cpp">
-      <Filter>Source Files\LibRevive</Filter>
-    </ClCompile>
-    <ClCompile Include="RuntimeDetails.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
     <ClCompile Include="..\Externals\glad\src\glad.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Runtime.cpp">
+      <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

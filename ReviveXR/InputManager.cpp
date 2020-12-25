@@ -1,7 +1,7 @@
 #include "InputManager.h"
 #include "Common.h"
 #include "Session.h"
-#include "RuntimeDetails.h"
+#include "Runtime.h"
 #include "OVR_CAPI.h"
 #include "XR_Math.h"
 #ifdef _DEBUG
@@ -16,7 +16,7 @@
 
 XrPath InputManager::s_SubActionPaths[ovrHand_Count] = { XR_NULL_PATH, XR_NULL_PATH };
 
-InputManager::InputManager(XrInstance instance, RuntimeDetails* details)
+InputManager::InputManager(XrInstance instance)
 	: m_InputDevices()
 {
 	s_SubActionPaths[ovrHand_Left] = GetXrPath("/user/hand/left");
@@ -31,7 +31,7 @@ InputManager::InputManager(XrInstance instance, RuntimeDetails* details)
 		device->GetActiveSets(m_ActionSets);
 
 		std::vector<XrActionSuggestedBinding> bindings;
-		XrPath profile = device->GetSuggestedBindings(details, bindings);
+		XrPath profile = device->GetSuggestedBindings(bindings);
 		if (!profile)
 			continue;
 
@@ -491,13 +491,13 @@ void InputManager::OculusTouch::StartHaptics(XrSession session)
 	m_HapticsThread = std::thread(HapticsThread, session, this);
 }
 
-XrPath InputManager::OculusTouch::GetSuggestedBindings(RuntimeDetails* details, std::vector<XrActionSuggestedBinding>& outBindings) const
+XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const
 {
 	std::string prefixes[ovrHand_Count] = { "/user/hand/left", "/user/hand/right" };
 
 #define ADD_BINDING(action, path) outBindings.push_back(XrActionSuggestedBinding{ action, GetXrPath(path) })
 
-	if (details->UseHack(RuntimeDetails::HACK_VALVE_INDEX_PROFILE))
+	if (Runtime::Get().UseHack(Runtime::HACK_VALVE_INDEX_PROFILE))
 	{
 		ADD_BINDING(m_Button_Enter, "/user/hand/left/input/trackpad/force");
 		ADD_BINDING(m_Button_AX, "/user/hand/left/input/a/click");
@@ -525,7 +525,7 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(RuntimeDetails* details, 
 		ADD_BINDING(m_Thumbstick, prefixes[i] + "/input/thumbstick");
 		ADD_BINDING(m_Button_Thumb, prefixes[i] + "/input/thumbstick/click");
 		ADD_BINDING(m_Touch_Thumb, prefixes[i] + "/input/thumbstick/touch");
-		if (details->UseHack(RuntimeDetails::HACK_VALVE_INDEX_PROFILE))
+		if (Runtime::Get().UseHack(Runtime::HACK_VALVE_INDEX_PROFILE))
 			ADD_BINDING(m_Touch_ThumbRest, prefixes[i] + "/input/trackpad/touch");
 		else
 			ADD_BINDING(m_Touch_ThumbRest, prefixes[i] + "/input/thumbrest/touch");
@@ -539,7 +539,7 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(RuntimeDetails* details, 
 
 #undef ADD_BINDING
 
-	return GetXrPath(details->UseHack(RuntimeDetails::HACK_VALVE_INDEX_PROFILE) ?
+	return GetXrPath(Runtime::Get().UseHack(Runtime::HACK_VALVE_INDEX_PROFILE) ?
 		"/interaction_profiles/valve/index_controller" :
 		"/interaction_profiles/oculus/touch_controller");
 }
@@ -764,7 +764,7 @@ InputManager::XboxGamepad::~XboxGamepad()
 {
 }
 
-XrPath InputManager::XboxGamepad::GetSuggestedBindings(RuntimeDetails* details, std::vector<XrActionSuggestedBinding>& outBindings) const
+XrPath InputManager::XboxGamepad::GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const
 {
 #define ADD_BINDING(action, path) outBindings.push_back(XrActionSuggestedBinding{ action, GetXrPath(std::string("/user/gamepad") + path) })
 

@@ -10,7 +10,7 @@
 #include <atomic>
 #include <mutex>
 
-class RuntimeDetails;
+class Runtime;
 
 class InputManager
 {
@@ -27,7 +27,7 @@ public:
 		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) = 0;
 
 		// Bindings
-		virtual XrPath GetSuggestedBindings(RuntimeDetails* details, std::vector<XrActionSuggestedBinding>& outBindings) const { return XR_NULL_PATH; }
+		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const { return XR_NULL_PATH; }
 		virtual void GetActionSpaces(XrSession session, std::vector<XrSpace>& outSpaces) const { }
 		virtual void GetActiveSets(std::vector<XrActiveActionSet>& outSets) const { }
 
@@ -76,7 +76,7 @@ public:
 		virtual ovrControllerType GetType() const override;
 		virtual bool IsConnected() const override;
 		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
-		virtual XrPath GetSuggestedBindings(RuntimeDetails* details, std::vector<XrActionSuggestedBinding>& outBindings) const override;
+		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const override;
 		virtual void GetActionSpaces(XrSession session, std::vector<XrSpace>& outSpaces) const override;
 		virtual void GetActiveSets(std::vector<XrActiveActionSet>& outSets) const override;
 
@@ -145,7 +145,7 @@ public:
 		virtual ovrControllerType GetType() const override { return ovrControllerType_XBox; }
 		virtual bool IsConnected() const override { return true; }
 		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
-		virtual XrPath GetSuggestedBindings(RuntimeDetails* details, std::vector<XrActionSuggestedBinding>& outBindings) const override;
+		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const override;
 		virtual void GetActiveSets(std::vector<XrActiveActionSet>& outSets) const override;
 		virtual ovrResult SetVibration(XrSession session, ovrControllerType controllerType, float frequency, float amplitude) override;
 
@@ -172,7 +172,7 @@ public:
 		Action m_LVibration;
 	};
 
-	InputManager(XrInstance instance, RuntimeDetails* details);
+	InputManager(XrInstance instance);
 	~InputManager();
 
 	ovrResult AttachSession(XrSession session);

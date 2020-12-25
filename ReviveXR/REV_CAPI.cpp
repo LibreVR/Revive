@@ -6,10 +6,9 @@
 
 #include "Common.h"
 #include "Session.h"
-#include "RuntimeDetails.h"
+#include "Runtime.h"
 #include "InputManager.h"
 #include "SwapChain.h"
-#include "Extensions.h"
 
 #define XR_USE_GRAPHICS_API_D3D11
 #include <d3d11.h>
@@ -27,10 +26,7 @@
 #define REV_DEFAULT_TIMEOUT 10000
 
 XrInstance g_Instance = XR_NULL_HANDLE;
-uint32_t g_MinorVersion = OVR_MINOR_VERSION;
 std::list<ovrHmdStruct> g_Sessions;
-Extensions g_Extensions;
-RuntimeDetails g_Runtime;
 
 bool LoadRenderDoc()
 {
@@ -76,13 +72,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	MicroProfileSetForceMetaCounters(true);
 	MicroProfileWebServerStart();
 
-	g_MinorVersion = params->RequestedMinorVersion;
-
 	DetachDetours();
-	ovrResult rs = g_Extensions.CreateInstance(&g_Instance);
+	ovrResult rs = Runtime::Get().CreateInstance(&g_Instance, params);
 	AttachDetours();
-
-	CHK_OVR(g_Runtime.InitHacks(g_Instance));
 	return rs;
 }
 
@@ -228,10 +220,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 		session->ViewConfigs[i].next = &session->ViewFov[i];
 	}
 
-	// Initialize pointers to runtime global
-	session->Extensions = &g_Extensions;
-	session->Details = &g_Runtime;
-
 	XrSystemGetInfo systemInfo = XR_TYPE(SYSTEM_GET_INFO);
 	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 	CHK_XR(xrGetSystem(session->Instance, &systemInfo, &session->System));
@@ -252,8 +240,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 	// Create a temporary session to retrieve the headset field-of-view
 	Microsoft::WRL::ComPtr<IDXGIFactory1> pFactory = NULL;
-	if (g_MinorVersion >= 17 && g_Extensions.Supports(XR_EPIC_VIEW_CONFIGURATION_FOV_EXTENSION_NAME) &&
-		!session->Details->UseHack(RuntimeDetails::HACK_FORCE_FOV_FALLBACK))
+	if (g_MinorVersion >= 17 && Runtime::Get().Supports(XR_EPIC_VIEW_CONFIGURATION_FOV_EXTENSION_NAME) &&
+		!Runtime::Get().UseHack(Runtime::HACK_FORCE_FOV_FALLBACK))
 	{
 		for (int i = 0; i < ovrEye_Count; i++)
 		{
@@ -307,7 +295,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	}
 
 	// Initialize input manager
-	session->Input.reset(new InputManager(session->Instance, session->Details));
+	session->Input.reset(new InputManager(session->Instance));
 
 	*pSession = session;
 	return ovrSuccess;
@@ -1084,7 +1072,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 				if (texture->Images->type == XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR ? !upsideDown : upsideDown)
 					OVR::OVRMath_Swap(view.fov.angleUp, view.fov.angleDown);
 
-				if (type == ovrLayerType_EyeFovDepth && session->Extensions->CompositionDepth)
+				if (type == ovrLayerType_EyeFovDepth && Runtime::Get().CompositionDepth)
 				{
 					depthData.emplace_back();
 					XrCompositionLayerDepthInfoKHR& depthInfo = depthData.back();
@@ -1135,7 +1123,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			quad.pose = XR::Posef(layer->Quad.QuadPoseCenter);
 			quad.size = XR::Vector2f(layer->Quad.QuadSize);
 		}
-		else if (type == ovrLayerType_Cylinder && session->Extensions->CompositionCylinder)
+		else if (type == ovrLayerType_Cylinder && Runtime::Get().CompositionCylinder)
 		{
 			if (!layer->Cylinder.ColorTexture)
 				continue;
@@ -1151,7 +1139,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			cylinder.centralAngle = layer->Cylinder.CylinderAngle;
 			cylinder.aspectRatio = layer->Cylinder.CylinderAspectRatio;
 		}
-		else if (type == ovrLayerType_Cube && session->Extensions->CompositionCube)
+		else if (type == ovrLayerType_Cube && Runtime::Get().CompositionCube)
 		{
 			if (!layer->Cube.CubeMapTexture)
 				continue;
@@ -1521,7 +1509,7 @@ ovr_GetFovStencil(
 	const ovrFovStencilDesc* fovStencilDesc,
 	ovrFovStencilMeshBuffer* meshBuffer)
 {
-	if (!session->Extensions->VisibilityMask)
+	if (!Runtime::Get().VisibilityMask)
 		return ovrError_Unsupported;
 
 	if (!session)

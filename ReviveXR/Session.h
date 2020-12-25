@@ -8,8 +8,7 @@
 #include <mutex>
 #include <list>
 
-class Extensions;
-class RuntimeDetails;
+class Runtime;
 class InputManager;
 
 struct SessionStatusBits {
@@ -59,10 +58,6 @@ struct ovrHmdStruct
 	// Session status
 	SessionStatusBits SessionStatus;
 	ovrPosef CalibratedOrigin;
-
-	// Runtime
-	Extensions* Extensions;
-	RuntimeDetails* Details;
 
 	// Input
 	std::unique_ptr<InputManager> Input;

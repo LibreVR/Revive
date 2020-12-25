@@ -1,7 +1,7 @@
 #include "OVR_CAPI_GL.h"
 #include "Common.h"
 #include "Session.h"
-#include "Extensions.h"
+#include "Runtime.h"
 #include "SwapChain.h"
 
 #include <vector>
@@ -48,7 +48,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 
 	if (!session->Session)
 	{
-		if (!session->Extensions->Supports(XR_KHR_OPENGL_ENABLE_EXTENSION_NAME))
+		if (!Runtime::Get().Supports(XR_KHR_OPENGL_ENABLE_EXTENSION_NAME))
 			return ovrError_Unsupported;
 
 		XR_FUNCTION(session->Instance, GetOpenGLGraphicsRequirementsKHR);

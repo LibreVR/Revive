@@ -235,10 +235,9 @@
     <ClInclude Include="..\microprofile\microprofileui.h" />
     <ClInclude Include="CImg.h" />
     <ClInclude Include="Debug.h" />
-    <ClInclude Include="Extensions.h" />
     <ClInclude Include="HapticsBuffer.h" />
     <ClInclude Include="OVR_CAPI.h" />
-    <ClInclude Include="RuntimeDetails.h" />
+    <ClInclude Include="Runtime.h" />
     <ClInclude Include="XR_Math.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Session.h" />
@@ -259,9 +258,8 @@
     <ClCompile Include="REV_CAPI_D3D.cpp" />
     <ClCompile Include="REV_CAPI_GL.cpp" />
     <ClCompile Include="Session.cpp" />
-    <ClCompile Include="RuntimeDetails.cpp" />
+    <ClCompile Include="Runtime.cpp" />
     <ClCompile Include="Swapchain.cpp" />
-    <ClCompile Include="Extensions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

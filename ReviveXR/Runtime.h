@@ -5,10 +5,13 @@
 
 #include <openxr/openxr.h>
 #include <map>
+#include <vector>
 
-class RuntimeDetails
+class Runtime
 {
 public:
+	static Runtime& Get();
+
 	enum Hack
 	{
 		// Hack: SteamVR OpenXR runtime doesn't support the Oculus Touch interaction profile.
@@ -22,8 +25,16 @@ public:
 		HACK_FORCE_FOV_FALLBACK,
 	};
 
-	ovrResult InitHacks(XrInstance);
 	bool UseHack(Hack hack);
+	ovrResult CreateInstance(XrInstance* out_Instance, const ovrInitParams* params);
+	bool Supports(const char* extensionName);
+
+	bool VisibilityMask;
+	bool CompositionDepth;
+	bool CompositionCube;
+	bool CompositionCylinder;
+
+	uint32_t MinorVersion;
 
 private:
 	struct HackInfo
@@ -36,6 +47,10 @@ private:
 		bool m_usehack;				// Should it use the hack?
 	};
 
-	static HackInfo m_known_hacks[];
+	static const char* s_required_extensions[];
+	static const char* s_optional_extensions[];
+	static HackInfo s_known_hacks[];
+
 	std::map<Hack, HackInfo> m_hacks;
+	std::vector<const char*> m_extensions;
 };
