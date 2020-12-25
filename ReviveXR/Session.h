@@ -42,6 +42,7 @@ struct ovrHmdStruct
 	// Frame state
 	XrIndexedFrameState FrameStats[ovrMaxProvidedFrameStats];
 	std::atomic<XrIndexedFrameState*> CurrentFrame;
+	ovrGraphicsLuid Adapter;
 
 	// Swapchain management
 	std::mutex ChainMutex;
@@ -62,6 +63,7 @@ struct ovrHmdStruct
 	// Input
 	std::unique_ptr<InputManager> Input;
 
+	ovrResult InitSession(XrInstance instance);
 	ovrResult BeginSession(void* graphicsBinding, bool waitFrame = true);
 	ovrResult EndSession();
 	ovrResult LocateViews(XrView out_Views[ovrEye_Count], XrViewStateFlags* out_Flags = nullptr) const;

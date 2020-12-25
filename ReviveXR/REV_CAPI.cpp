@@ -10,17 +10,13 @@
 #include "InputManager.h"
 #include "SwapChain.h"
 
-#define XR_USE_GRAPHICS_API_D3D11
-#include <d3d11.h>
-#include <dxgi1_2.h>
+#include <Windows.h>
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
-#include <Windows.h>
 #include <list>
 #include <vector>
 #include <algorithm>
 #include <thread>
-#include <wrl/client.h>
 #include <detours/detours.h>
 
 #define REV_DEFAULT_TIMEOUT 10000
@@ -127,7 +123,7 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 {
 	REV_TRACE(ovr_GetHmdDesc);
 
-	ovrHmdDesc desc = { g_MinorVersion < 38 ? ovrHmd_CV1 : ovrHmd_RiftS };
+	ovrHmdDesc desc = { Runtime::Get().MinorVersion < 38 ? ovrHmd_CV1 : ovrHmd_RiftS };
 	if (!session)
 		return desc;
 
@@ -146,7 +142,7 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 	for (int i = 0; i < ovrEye_Count; i++)
 	{
 		// Compensate for the 3-DOF eye pose on pre-1.17
-		if (g_MinorVersion < 17)
+		if (Runtime::Get().MinorVersion < 17)
 			desc.DefaultEyeFov[i] = OVR::FovPort::Uncant(XR::FovPort(session->ViewPoses[i].fov), XR::Quatf(session->ViewPoses[i].pose.orientation));
 		else
 			desc.DefaultEyeFov[i] = XR::FovPort(session->ViewFov[i].recommendedFov);
@@ -168,7 +164,7 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 		return ovrError_InvalidSession;
 
 	// Pre-1.37 applications need virtual sensors to avoid a loss of tracking being detected
-	return g_MinorVersion < 37 ? 3 : 0;
+	return Runtime::Get().MinorVersion < 37 ? 3 : 0;
 }
 
 OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsigned int trackerDescIndex)
@@ -193,110 +189,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	if (!pSession)
 		return ovrError_InvalidParameter;
 
-	XR_FUNCTION(g_Instance, GetD3D11GraphicsRequirementsKHR);
-
 	*pSession = nullptr;
 
-	// Initialize the opaque pointer with our own OpenVR-specific struct
+	// Initialize the opaque pointer with our own OpenXR-specific struct
 	g_Sessions.emplace_back();
-
-	// Initialize session members
 	ovrSession session = &g_Sessions.back();
-	memset(session->FrameStats, 0, sizeof(session->FrameStats));
-	for (int i = 0; i < ovrMaxProvidedFrameStats; i++)
-		session->FrameStats[i].type = XR_TYPE_FRAME_STATE;
-	session->CurrentFrame = session->FrameStats;
-	session->HookedFunction = std::make_pair(nullptr, nullptr);
-	session->Instance = g_Instance;
-	session->TrackingSpace = XR_REFERENCE_SPACE_TYPE_LOCAL;
-	session->SystemProperties = XR_TYPE(SYSTEM_PROPERTIES);
 
-	// Initialize view structures
-	for (int i = 0; i < ovrEye_Count; i++)
-	{
-		session->ViewConfigs[i] = XR_TYPE(VIEW_CONFIGURATION_VIEW);
-		session->ViewFov[i] = XR_TYPE(VIEW_CONFIGURATION_VIEW_FOV_EPIC);
-		session->ViewPoses[i] = XR_TYPE(VIEW);
-		session->ViewConfigs[i].next = &session->ViewFov[i];
-	}
-
-	XrSystemGetInfo systemInfo = XR_TYPE(SYSTEM_GET_INFO);
-	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
-	CHK_XR(xrGetSystem(session->Instance, &systemInfo, &session->System));
-	CHK_XR(xrGetSystemProperties(session->Instance, session->System, &session->SystemProperties));
-
-	uint32_t numViews;
-	CHK_XR(xrEnumerateViewConfigurationViews(session->Instance, session->System, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, ovrEye_Count, &numViews, session->ViewConfigs));
-	assert(numViews == ovrEye_Count);
-
-	XrGraphicsRequirementsD3D11KHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_D3D11_KHR);
-	CHK_XR(GetD3D11GraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
-
-	// Copy the LUID into the structure
-	static_assert(sizeof(graphicsReq.adapterLuid) == sizeof(ovrGraphicsLuid),
-		"The adapter LUID needs to fit in ovrGraphicsLuid");
+	// Initialize session, it will not be fully usable until a swapchain is created
+	session->InitSession(g_Instance);
 	if (pLuid)
-		memcpy(pLuid, &graphicsReq.adapterLuid, sizeof(ovrGraphicsLuid));
-
-	// Create a temporary session to retrieve the headset field-of-view
-	Microsoft::WRL::ComPtr<IDXGIFactory1> pFactory = NULL;
-	if (g_MinorVersion >= 17 && Runtime::Get().Supports(XR_EPIC_VIEW_CONFIGURATION_FOV_EXTENSION_NAME) &&
-		!Runtime::Get().UseHack(Runtime::HACK_FORCE_FOV_FALLBACK))
-	{
-		for (int i = 0; i < ovrEye_Count; i++)
-		{
-			session->ViewPoses[i].fov = session->ViewFov[i].recommendedFov;
-			session->ViewPoses[i].pose = XR::Posef::Identity();
-		}
-	}
-	else if (SUCCEEDED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&pFactory)))
-	{
-		Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
-		Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
-
-		for (UINT i = 0; pFactory->EnumAdapters1(i, &pAdapter) != DXGI_ERROR_NOT_FOUND; ++i)
-		{
-			DXGI_ADAPTER_DESC1 adapterDesc;
-			if (SUCCEEDED(pAdapter->GetDesc1(&adapterDesc)) &&
-				memcmp(&adapterDesc.AdapterLuid, &graphicsReq.adapterLuid, sizeof(graphicsReq.adapterLuid)) == 0)
-			{
-				break;
-			}
-		}
-
-		HRESULT hr = D3D11CreateDevice(pAdapter.Get(),
-			D3D_DRIVER_TYPE_UNKNOWN, 0, 0,
-			NULL, 0, D3D11_SDK_VERSION,
-			&pDevice, nullptr, nullptr);
-		assert(SUCCEEDED(hr));
-
-		XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
-		graphicsBinding.device = pDevice.Get();
-		CHK_OVR(session->BeginSession(&graphicsBinding, false));
-
-		CHK_OVR(session->LocateViews(session->ViewPoses));
-		for (int i = 0; i < ovrEye_Count; i++)
-		{
-			session->ViewFov[i].recommendedFov = session->ViewPoses[i].fov;
-			session->ViewFov[i].maxMutableFov = session->ViewPoses[i].fov;
-		}
-
-		CHK_OVR(session->EndSession());
-	}
-
-	// Calculate the pixels per tan angle
-	for (int i = 0; i < ovrEye_Count; i++)
-	{
-		const XR::FovPort fov(session->ViewFov[i].recommendedFov);
-		session->PixelsPerTan[i] = OVR::Vector2f(
-			(float)session->ViewConfigs[i].recommendedImageRectWidth / (fov.LeftTan + fov.RightTan),
-			(float)session->ViewConfigs[i].recommendedImageRectHeight / (fov.UpTan + fov.DownTan)
-		);
-	}
-
-	// Initialize input manager
-	session->Input.reset(new InputManager(session->Instance));
-
+		*pLuid = session->Adapter;
 	*pSession = session;
 	return ovrSuccess;
 }
@@ -598,9 +500,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControll
 
 	// We need to make sure we don't write outside of the bounds of the struct
 	// when the client expects a pre-1.7 version of LibOVR.
-	if (g_MinorVersion < 7)
+	if (Runtime::Get().MinorVersion < 7)
 		memcpy(inputState, &state, sizeof(ovrInputState1));
-	else if (g_MinorVersion < 11)
+	else if (Runtime::Get().MinorVersion < 11)
 		memcpy(inputState, &state, sizeof(ovrInputState2));
 	else
 		memcpy(inputState, &state, sizeof(ovrInputState));
@@ -1023,7 +925,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		// Version 1.25 introduced a 128-byte reserved parameter, so on older versions the actual data
 		// falls within this reserved parameter and we need to move the pointer back into the actual data area.
 		// NOTE: Do not read the header after this operation as it will fall outside of the layer memory.
-		if (g_MinorVersion < 25)
+		if (Runtime::Get().MinorVersion < 25)
 		{
 			layer = (ovrLayer_Union*)((char*)layer - sizeof(ovrLayerHeader::Reserved));
 		}
