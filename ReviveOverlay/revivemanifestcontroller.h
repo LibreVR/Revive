@@ -30,7 +30,7 @@ public:
 	CReviveManifestController();
 	virtual ~CReviveManifestController();
 
-	void EnableOpenXR(bool enabled) { m_OpenXREnabled = enabled; }
+	void UseLegacyRuntime(bool enabled) { m_LegacyRuntime = enabled; }
 
 	bool Init();
 	bool IsLibraryFound() { return m_bLibraryFound; }
@@ -73,7 +73,7 @@ private:
 	QString m_strBasePath;
 	QStringList m_lstLibraries;
 	QStringList m_lstLibrariesURL;
-	bool m_OpenXREnabled;
+	bool m_LegacyRuntime;
 };
 
 #endif // REVIVEMANIFESTCONTROLLER_H
