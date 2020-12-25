@@ -91,7 +91,8 @@ ovrResult Runtime::CreateInstance(XrInstance* out_Instance, const ovrInitParams*
 	{
 		if ((!hack.m_filename || _stricmp(filename, hack.m_filename) == 0) &&
 			(!hack.m_runtime || strcmp(props.runtimeName, hack.m_runtime) == 0) &&
-			(hack.m_versionstart <= props.runtimeVersion && props.runtimeVersion < hack.m_versionend))
+			(!hack.m_versionend || hack.m_versionstart <= props.runtimeVersion &&
+				props.runtimeVersion < hack.m_versionend))
 		{
 			if (hack.m_usehack)
 				m_hacks.emplace(hack.m_hack, hack);
