@@ -190,8 +190,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	}
 
 	DXGI_FORMAT format = TextureFormatToDXGIFormat(desc->Format);
-	if (format == DXGI_FORMAT_R11G11B10_FLOAT && Runtime::Get().UseHack(Runtime::HACK_10BIT_FORMAT))
-		format = DXGI_FORMAT_R10G10B10A2_UNORM;
+	if (format == DXGI_FORMAT_R11G11B10_FLOAT)
+	{
+		if (Runtime::Get().UseHack(Runtime::HACK_10BIT_FORMAT))
+			format = DXGI_FORMAT_R10G10B10A2_UNORM;
+		else if (Runtime::Get().UseHack(Runtime::HACK_NO_10BIT_FORMAT))
+			format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	}
 
 	if (pDevice)
 	{

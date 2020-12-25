@@ -497,40 +497,60 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSugge
 
 #define ADD_BINDING(action, path) outBindings.push_back(XrActionSuggestedBinding{ action, GetXrPath(path) })
 
-	if (Runtime::Get().UseHack(Runtime::HACK_VALVE_INDEX_PROFILE))
+	if (Runtime::Get().UseHack(Runtime::HACK_WMR_PROFILE))
 	{
-		ADD_BINDING(m_Button_Enter, "/user/hand/left/input/trackpad/force");
-		ADD_BINDING(m_Button_AX, "/user/hand/left/input/a/click");
-		ADD_BINDING(m_Button_BY, "/user/hand/left/input/b/click");
-		ADD_BINDING(m_Touch_AX, "/user/hand/left/input/a/touch");
-		ADD_BINDING(m_Touch_BY, "/user/hand/left/input/b/touch");
-		ADD_BINDING(m_Button_Home, "/user/hand/right/input/trackpad/force");
+		ADD_BINDING(m_Button_Enter, "/user/hand/left/input/menu/click");
+		ADD_BINDING(m_Button_Home, "/user/hand/right/input/menu/click");
 	}
 	else
 	{
-		ADD_BINDING(m_Button_Enter, "/user/hand/left/input/menu/click");
-		ADD_BINDING(m_Button_AX, "/user/hand/left/input/x/click");
-		ADD_BINDING(m_Button_BY, "/user/hand/left/input/y/click");
-		ADD_BINDING(m_Touch_AX, "/user/hand/left/input/x/touch");
-		ADD_BINDING(m_Touch_BY, "/user/hand/left/input/y/touch");
-		ADD_BINDING(m_Button_Home, "/user/hand/right/input/system/click");
+		if (Runtime::Get().UseHack(Runtime::HACK_VALVE_INDEX_PROFILE))
+		{
+			ADD_BINDING(m_Button_Enter, "/user/hand/left/input/trackpad/force");
+			ADD_BINDING(m_Button_AX, "/user/hand/left/input/a/click");
+			ADD_BINDING(m_Button_BY, "/user/hand/left/input/b/click");
+			ADD_BINDING(m_Touch_AX, "/user/hand/left/input/a/touch");
+			ADD_BINDING(m_Touch_BY, "/user/hand/left/input/b/touch");
+			ADD_BINDING(m_Button_Home, "/user/hand/right/input/trackpad/force");
+		}
+		else
+		{
+			ADD_BINDING(m_Button_Enter, "/user/hand/left/input/menu/click");
+			ADD_BINDING(m_Button_AX, "/user/hand/left/input/x/click");
+			ADD_BINDING(m_Button_BY, "/user/hand/left/input/y/click");
+			ADD_BINDING(m_Touch_AX, "/user/hand/left/input/x/touch");
+			ADD_BINDING(m_Touch_BY, "/user/hand/left/input/y/touch");
+			ADD_BINDING(m_Button_Home, "/user/hand/right/input/system/click");
+		}
+		ADD_BINDING(m_Button_AX, "/user/hand/right/input/a/click");
+		ADD_BINDING(m_Button_BY, "/user/hand/right/input/b/click");
+		ADD_BINDING(m_Touch_AX, "/user/hand/right/input/a/touch");
+		ADD_BINDING(m_Touch_BY, "/user/hand/right/input/b/touch");
 	}
-	ADD_BINDING(m_Button_AX, "/user/hand/right/input/a/click");
-	ADD_BINDING(m_Button_BY, "/user/hand/right/input/b/click");
-	ADD_BINDING(m_Touch_AX, "/user/hand/right/input/a/touch");
-	ADD_BINDING(m_Touch_BY, "/user/hand/right/input/b/touch");
 
 	for (int i = 0; i < ovrHand_Count; i++)
 	{
+		if (Runtime::Get().UseHack(Runtime::HACK_WMR_PROFILE))
+		{
+			ADD_BINDING(m_Button_AX, prefixes[i] + "/input/trackpad/click");
+			ADD_BINDING(m_Button_BY, prefixes[i] + "/input/trackpad/y");
+			ADD_BINDING(m_Touch_AX, prefixes[i] + "/input/trackpad/touch");
+			ADD_BINDING(m_Touch_BY, prefixes[i] + "/input/trackpad/y");
+		}
+
 		ADD_BINDING(m_Thumbstick, prefixes[i] + "/input/thumbstick");
 		ADD_BINDING(m_Button_Thumb, prefixes[i] + "/input/thumbstick/click");
-		ADD_BINDING(m_Touch_Thumb, prefixes[i] + "/input/thumbstick/touch");
 		if (Runtime::Get().UseHack(Runtime::HACK_VALVE_INDEX_PROFILE))
 			ADD_BINDING(m_Touch_ThumbRest, prefixes[i] + "/input/trackpad/touch");
+		else if (Runtime::Get().UseHack(Runtime::HACK_WMR_PROFILE))
+			ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/squeeze/click");
 		else
+		{
+			ADD_BINDING(m_Touch_IndexTrigger, prefixes[i] + "/input/trigger/touch");
+			ADD_BINDING(m_Touch_Thumb, prefixes[i] + "/input/thumbstick/touch");
 			ADD_BINDING(m_Touch_ThumbRest, prefixes[i] + "/input/thumbrest/touch");
-		ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/squeeze/value");
-		ADD_BINDING(m_Touch_IndexTrigger, prefixes[i] + "/input/trigger/touch");
+			ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/squeeze/value");
+		}
 		ADD_BINDING(m_IndexTrigger, prefixes[i] + "/input/trigger/value");
 
 		ADD_BINDING(m_Pose, prefixes[i] + "/input/aim/pose");
@@ -539,9 +559,12 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSugge
 
 #undef ADD_BINDING
 
-	return GetXrPath(Runtime::Get().UseHack(Runtime::HACK_VALVE_INDEX_PROFILE) ?
-		"/interaction_profiles/valve/index_controller" :
-		"/interaction_profiles/oculus/touch_controller");
+	if (Runtime::Get().UseHack(Runtime::HACK_VALVE_INDEX_PROFILE))
+		return GetXrPath("/interaction_profiles/valve/index_controller");
+	else if (Runtime::Get().UseHack(Runtime::HACK_WMR_PROFILE))
+		return GetXrPath("/interaction_profiles/microsoft/motion_controller");
+	else
+		return GetXrPath("/interaction_profiles/oculus/touch_controller");
 }
 
 void InputManager::OculusTouch::GetActionSpaces(XrSession session, std::vector<XrSpace>& outSpaces) const
@@ -581,17 +604,38 @@ bool InputManager::OculusTouch::GetInputState(XrSession session, ovrControllerTy
 		ovrHandType hand = (ovrHandType)i;
 		unsigned int buttons = 0, touches = 0;
 
-		if (m_Button_AX.GetDigital(session, hand))
-			buttons |= ovrButton_A;
+		if (Runtime::Get().UseHack(Runtime::HACK_WMR_PROFILE))
+		{
+			if (m_Button_AX.GetDigital(session, hand))
+			{
+				if (m_Button_BY.GetDigital(session, hand))
+					buttons |= ovrButton_B;
+				else
+					buttons |= ovrButton_A;
+			}
 
-		if (m_Touch_AX.GetDigital(session, hand))
-			touches |= ovrTouch_A;
+			if (m_Touch_AX.GetDigital(session, hand))
+			{
+				if (m_Touch_BY.GetDigital(session, hand))
+					touches |= ovrTouch_B;
+				else
+					touches |= ovrTouch_A;
+			}
+		}
+		else
+		{
+			if (m_Button_AX.GetDigital(session, hand))
+				buttons |= ovrButton_A;
 
-		if (m_Button_BY.GetDigital(session, hand))
-			buttons |= ovrButton_B;
+			if (m_Touch_AX.GetDigital(session, hand))
+				touches |= ovrTouch_A;
 
-		if (m_Touch_BY.GetDigital(session, hand))
-			touches |= ovrTouch_B;
+			if (m_Button_BY.GetDigital(session, hand))
+				buttons |= ovrButton_B;
+
+			if (m_Touch_BY.GetDigital(session, hand))
+				touches |= ovrTouch_B;
+		}
 
 		if (m_Button_Thumb.GetDigital(session, hand))
 			buttons |= ovrButton_RThumb;
