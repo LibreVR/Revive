@@ -341,9 +341,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	if (!session->Session)
-		return ovrError_InvalidHeadsetOrientation;
-
 	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
 	CHK_XR(xrLocateSpace(session->ViewSpace, session->LocalSpace, (*session->CurrentFrame).predictedDisplayTime, &relation));
 
@@ -386,7 +383,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 
 	ovrTrackingState state = { 0 };
 
-	if (session && session->Session && session->Input)
+	if (session && session->Input)
 		session->Input->GetTrackingState(session, &state, absTime);
 
 	return state;
@@ -845,7 +842,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 	REV_TRACE(ovr_WaitToBeginFrame);
 	MICROPROFILE_META_CPU("Wait Frame", (int)frameIndex);
 
-	if (!session || !session->Session)
+	if (!session)
 		return ovrError_InvalidSession;
 
 	XrIndexedFrameState* frameState = session->CurrentFrame + 1;
@@ -864,7 +861,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 	REV_TRACE(ovr_BeginFrame);
 	MICROPROFILE_META_CPU("Begin Frame", (int)frameIndex);
 
-	if (!session || !session->Session)
+	if (!session)
 		return ovrError_InvalidSession;
 
 	// Wait on all outstanding surfaces
@@ -904,7 +901,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	REV_TRACE(ovr_EndFrame);
 	MICROPROFILE_META_CPU("End Frame", (int)frameIndex);
 
-	if (!session || !session->Session)
+	if (!session)
 		return ovrError_InvalidSession;
 
 	std::vector<XrCompositionLayerBaseHeader*> layers;
@@ -1087,7 +1084,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 	REV_TRACE(ovr_SubmitFrame);
 	MICROPROFILE_META_CPU("Submit Frame", (int)frameIndex);
 
-	if (!session || !session->Session)
+	if (!session)
 		return ovrError_InvalidSession;
 
 	if (frameIndex <= 0)

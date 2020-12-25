@@ -19,8 +19,8 @@ ovrResult ResultToOvrResult(XrResult error)
 	case XR_SPACE_BOUNDS_UNAVAILABLE: return ovrSuccess_BoundaryInvalid;
 	case XR_SESSION_NOT_FOCUSED: return ovrSuccess_NotVisible;
 	case XR_FRAME_DISCARDED: return ovrSuccess_NotVisible;
-	case XR_ERROR_VALIDATION_FAILURE: return ovrError_InvalidParameter;
-	case XR_ERROR_RUNTIME_FAILURE: return ovrError_RuntimeException;
+	case XR_ERROR_VALIDATION_FAILURE: return ovrError_InvalidOperation;
+	case XR_ERROR_RUNTIME_FAILURE: return ovrError_DisplayLost;
 	case XR_ERROR_OUT_OF_MEMORY: return ovrError_MemoryAllocationFailure;
 	case XR_ERROR_API_VERSION_UNSUPPORTED: return ovrError_ServiceVersion;
 	case XR_ERROR_INITIALIZATION_FAILED: return ovrError_Initialize;
@@ -29,11 +29,11 @@ ovrResult ResultToOvrResult(XrResult error)
 	case XR_ERROR_EXTENSION_NOT_PRESENT: return ovrError_Unsupported;
 	case XR_ERROR_LIMIT_REACHED: return ovrError_DisplayLimitReached;
 	case XR_ERROR_SIZE_INSUFFICIENT: return ovrError_InsufficientArraySize;
-	case XR_ERROR_HANDLE_INVALID: return ovrError_InvalidSession;
+	case XR_ERROR_HANDLE_INVALID: return ovrError_InvalidOperation;
 	case XR_ERROR_INSTANCE_LOST: return ovrError_DisplayRemoved;
-	case XR_ERROR_SESSION_RUNNING: return ovrError_InvalidSession;
-	case XR_ERROR_SESSION_NOT_RUNNING: return ovrError_InvalidSession;
-	case XR_ERROR_SESSION_LOST: return ovrError_DisplayLost;
+	case XR_ERROR_SESSION_RUNNING: return ovrError_InvalidOperation;
+	case XR_ERROR_SESSION_NOT_RUNNING: return ovrError_InvalidOperation;
+	case XR_ERROR_SESSION_LOST: return ovrError_ServiceConnection;
 	case XR_ERROR_SYSTEM_INVALID: return ovrError_InvalidParameter;
 	case XR_ERROR_PATH_INVALID: return ovrError_InvalidParameter;
 	case XR_ERROR_PATH_COUNT_EXCEEDED: return ovrError_InvalidParameter;
@@ -65,6 +65,7 @@ ovrResult ResultToOvrResult(XrResult error)
 	case XR_ERROR_ACTIONSETS_ALREADY_ATTACHED: return ovrError_InvalidParameter;
 	case XR_ERROR_LOCALIZED_NAME_DUPLICATED: return ovrError_InvalidParameter;
 	case XR_ERROR_LOCALIZED_NAME_INVALID: return ovrError_InvalidParameter;
+	case XR_ERROR_GRAPHICS_REQUIREMENTS_CALL_MISSING: return ovrError_NotInitialized;
 	default: return ovrError_RuntimeException;
 	}
 }

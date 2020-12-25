@@ -110,6 +110,7 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 
 	// Initialize input manager
 	Input.reset(new InputManager(Instance));
+	return ovrSuccess;
 }
 
 ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool waitFrame)
@@ -183,7 +184,7 @@ ovrResult ovrHmdStruct::LocateViews(XrView out_Views[ovrEye_Count], XrViewStateF
 	locateInfo.space = ViewSpace;
 	locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 	locateInfo.displayTime = AbsTimeToXrTime(Instance, ovr_GetTimeInSeconds());
-	CHK_OVR(xrLocateViews(Session, &locateInfo, &viewState, ovrEye_Count, &numViews, out_Views));
+	CHK_XR(xrLocateViews(Session, &locateInfo, &viewState, ovrEye_Count, &numViews, out_Views));
 	assert(numViews == ovrEye_Count);
 	if (out_Flags)
 		*out_Flags = viewState.viewStateFlags;
