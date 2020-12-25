@@ -126,8 +126,8 @@ namespace XR {
 		FovPort(const XrFovf& s)
 			: OVR::FovPort(
 				tanf(s.angleUp),
-				-tanf(s.angleDown),
-				-tanf(s.angleLeft),
+				tanf(-s.angleDown),
+				tanf(-s.angleLeft),
 				tanf(s.angleRight)
 			)
 		{ }
@@ -136,10 +136,10 @@ namespace XR {
 		operator const XrFovf() const
 		{
 			return XrFovf{
-				atanf(-LeftTan),
+				-atanf(LeftTan),
 				atanf(RightTan),
 				atanf(UpTan),
-				atanf(-DownTan)
+				-atanf(DownTan)
 			};
 		}
 	};
