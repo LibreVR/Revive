@@ -69,4 +69,5 @@ struct ovrHmdStruct
 
 	ovrResult BeginSession(void* graphicsBinding, bool waitFrame = true);
 	ovrResult EndSession();
+	ovrResult LocateViews(XrView out_Views[ovrEye_Count], XrViewStateFlags* out_Flags = nullptr) const;
 };

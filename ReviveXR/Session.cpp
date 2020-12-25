@@ -59,3 +59,27 @@ ovrResult ovrHmdStruct::EndSession()
 	StageSpace = XR_NULL_HANDLE;
 	return ovrSuccess;
 }
+
+ovrResult ovrHmdStruct::LocateViews(XrView out_Views[ovrEye_Count], XrViewStateFlags* out_Flags) const
+{
+	if (!Session)
+	{
+		// If the session is not fully initialized, return the cached values
+		memcpy(out_Views, ViewPoses, sizeof(ViewPoses));
+		if (out_Flags)
+			*out_Flags = 0;
+		return ovrSuccess;
+	}
+
+	uint32_t numViews;
+	XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
+	XrViewState viewState = XR_TYPE(VIEW_STATE);
+	locateInfo.space = ViewSpace;
+	locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+	locateInfo.displayTime = AbsTimeToXrTime(Instance, ovr_GetTimeInSeconds());
+	CHK_OVR(xrLocateViews(Session, &locateInfo, &viewState, ovrEye_Count, &numViews, out_Views));
+	assert(numViews == ovrEye_Count);
+	if (out_Flags)
+		*out_Flags = viewState.viewStateFlags;
+	return ovrSuccess;
+}

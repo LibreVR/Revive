@@ -284,19 +284,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 
 		XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
 		graphicsBinding.device = pDevice.Get();
-
 		CHK_OVR(session->BeginSession(&graphicsBinding, false));
 
-		uint32_t numViews;
-		XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
-		XrViewState viewState = XR_TYPE(VIEW_STATE);
-		locateInfo.space = session->ViewSpace;
-		locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-		locateInfo.displayTime = AbsTimeToXrTime(session->Instance, ovr_GetTimeInSeconds());
-		XrResult rs = xrLocateViews(session->Session, &locateInfo, &viewState, ovrEye_Count, &numViews, session->ViewPoses);
-		assert(XR_SUCCEEDED(rs));
-		assert(numViews == ovrEye_Count);
-
+		CHK_OVR(session->LocateViews(session->ViewPoses));
 		for (int i = 0; i < ovrEye_Count; i++)
 		{
 			session->ViewFov[i].recommendedFov = session->ViewPoses[i].fov;
@@ -937,23 +927,9 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	desc.DistortedViewport.Size.h = session->ViewConfigs[eyeType].recommendedImageRectHeight;
 	desc.PixelsPerTanAngleAtCenter = session->PixelsPerTan[eyeType];
 
-	XR::Posef pose(session->ViewPoses[eyeType].pose);
-	if (session->Session)
-	{
-		uint32_t numViews;
-		XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
-		XrViewState viewState = XR_TYPE(VIEW_STATE);
-		XrView views[ovrEye_Count] = { XR_TYPE(VIEW), XR_TYPE(VIEW) };
-		locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-		locateInfo.displayTime = (*session->CurrentFrame).predictedDisplayTime;
-		locateInfo.space = session->ViewSpace;
-		XrResult rs = xrLocateViews(session->Session, &locateInfo, &viewState, ovrEye_Count, &numViews, views);
-		assert(XR_SUCCEEDED(rs));
-		assert(numViews == ovrEye_Count);
-
-		pose = views[eyeType].pose;
-	}
-	desc.HmdToEyePose = pose;
+	XrView views[ovrEye_Count] = { XR_TYPE(VIEW), XR_TYPE(VIEW) };
+	session->LocateViews(views);
+	desc.HmdToEyePose = XR::Posef(views[eyeType].pose);
 	return desc;
 }
 
@@ -1371,19 +1347,9 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 		if (strcmp(propertyName, "IPD") == 0)
 		{
 			// Locate the eyes in view space to compute the IPD
-			XrView views[ovrEye_Count] = { session->ViewPoses[ovrEye_Left], session->ViewPoses[ovrEye_Right] };
-			if (session->Session)
-			{
-				uint32_t numViews;
-				XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
-				XrViewState viewState = XR_TYPE(VIEW_STATE);
-				locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-				locateInfo.displayTime = (*session->CurrentFrame).predictedDisplayTime;
-				locateInfo.space = session->ViewSpace;
-				XrResult rs = xrLocateViews(session->Session, &locateInfo, &viewState, ovrEye_Count, &numViews, views);
-				assert(XR_SUCCEEDED(rs));
-				assert(numViews == ovrEye_Count);
-			}
+			XrView views[ovrEye_Count] = { XR_TYPE(VIEW), XR_TYPE(VIEW) };
+			if (OVR_FAILURE(session->LocateViews(views)))
+				return 0.0f;
 
 			return XR::Vector3f(views[ovrEye_Left].pose.position).Distance(
 				XR::Vector3f(views[ovrEye_Right].pose.position)
