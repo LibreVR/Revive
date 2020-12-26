@@ -932,9 +932,19 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		// falls within this reserved parameter and we need to move the pointer back into the actual data area.
 		// NOTE: Do not read the header after this operation as it will fall outside of the layer memory.
 		if (Runtime::Get().MinorVersion < 25)
-		{
 			layer = (ovrLayer_Union*)((char*)layer - sizeof(ovrLayerHeader::Reserved));
-		}
+
+		// The oculus runtime is very tolerant of invalid viewports, so this lambda ensures we submit valid ones.
+		auto ClampRect = [](ovrRecti rect, ovrTextureSwapChain chain)
+		{
+			OVR::Sizei chainSize(chain->Desc.Width, chain->Desc.Height);
+
+			if (rect.Size.w < 0 || rect.Size.h < 0)
+				return XR::Recti(OVR::Vector2i::Max(rect.Pos, OVR::Vector2i()), chainSize);
+
+			return XR::Recti(OVR::Vector2i::Max(rect.Pos, OVR::Vector2i()),
+				OVR::Sizei::Min(rect.Size, chainSize));
+		};
 
 		layerData.emplace_back();
 		XrCompositionLayerUnion& newLayer = layerData.back();
@@ -968,12 +978,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 				{
 					view.pose = XR::Posef(layer->EyeFov.RenderPose[i]);
 
-					// The Climb specifies an invalid fov in the first frame
+					// The Climb specifies an invalid fov in the first frame, ignore the layer
 					XR::FovPort Fov(layer->EyeFov.Fov[i]);
 					if (Fov.GetMaxSideTan() > 0.0f)
 						view.fov = Fov;
 					else
-						break;
+						continue;
 				}
 
 				// Flip the field-of-view to flip the image, invert the check for OpenGL
@@ -986,8 +996,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					XrCompositionLayerDepthInfoKHR& depthInfo = depthData.back();
 					depthInfo = XR_TYPE(COMPOSITION_LAYER_DEPTH_INFO_KHR);
 
-					depthInfo.subImage.swapchain = layer->EyeFovDepth.DepthTexture[i]->Swapchain;
-					depthInfo.subImage.imageRect = XR::Recti(layer->EyeFovDepth.Viewport[i]);
+					ovrTextureSwapChain depthTexture = layer->EyeFovDepth.DepthTexture[i];
+					depthInfo.subImage.swapchain = depthTexture->Swapchain;
+					depthInfo.subImage.imageRect = ClampRect(layer->EyeFovDepth.Viewport[i], depthTexture);
 					depthInfo.subImage.imageArrayIndex = 0;
 
 					const ovrTimewarpProjectionDesc& projDesc = layer->EyeFovDepth.ProjectionDesc;
@@ -1006,11 +1017,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 				}
 
 				view.subImage.swapchain = texture->Swapchain;
-				view.subImage.imageRect = XR::Recti(layer->EyeFov.Viewport[i]);
+				view.subImage.imageRect = ClampRect(layer->EyeFov.Viewport[i], texture);
 				view.subImage.imageArrayIndex = 0;
 			}
 
-			// Verify all views were initialized without errors
+			// Verify all views were initialized without errors, otherwise ignore the layer
 			if (i < ovrEye_Count)
 				continue;
 
@@ -1019,28 +1030,30 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		}
 		else if (type == ovrLayerType_Quad)
 		{
-			if (!layer->Quad.ColorTexture)
+			ovrTextureSwapChain texture = layer->Quad.ColorTexture;
+			if (!texture)
 				continue;
 
 			XrCompositionLayerQuad& quad = newLayer.Quad;
 			quad = XR_TYPE(COMPOSITION_LAYER_QUAD);
 			quad.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
-			quad.subImage.swapchain = layer->Quad.ColorTexture->Swapchain;
-			quad.subImage.imageRect = XR::Recti(layer->Quad.Viewport);
+			quad.subImage.swapchain = texture->Swapchain;
+			quad.subImage.imageRect = ClampRect(layer->Quad.Viewport, texture);
 			quad.subImage.imageArrayIndex = 0;
 			quad.pose = XR::Posef(layer->Quad.QuadPoseCenter);
 			quad.size = XR::Vector2f(layer->Quad.QuadSize);
 		}
 		else if (type == ovrLayerType_Cylinder && Runtime::Get().CompositionCylinder)
 		{
-			if (!layer->Cylinder.ColorTexture)
+			ovrTextureSwapChain texture = layer->Cylinder.ColorTexture;
+			if (!texture)
 				continue;
 
 			XrCompositionLayerCylinderKHR& cylinder = newLayer.Cylinder;
 			cylinder = XR_TYPE(COMPOSITION_LAYER_CYLINDER_KHR);
 			cylinder.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
-			cylinder.subImage.swapchain = layer->Cylinder.ColorTexture->Swapchain;
-			cylinder.subImage.imageRect = XR::Recti(layer->Cylinder.Viewport);
+			cylinder.subImage.swapchain = texture->Swapchain;
+			cylinder.subImage.imageRect = ClampRect(layer->Cylinder.Viewport, texture);
 			cylinder.subImage.imageArrayIndex = 0;
 			cylinder.pose = XR::Posef(layer->Cylinder.CylinderPoseCenter);
 			cylinder.radius = layer->Cylinder.CylinderRadius;
@@ -1061,6 +1074,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		}
 		else
 		{
+			// Layer type not recognized or disabled, ignore the layer
+			assert(type == ovrLayerType_Disabled);
 			continue;
 		}
 
