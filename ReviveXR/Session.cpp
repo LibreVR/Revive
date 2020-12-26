@@ -21,7 +21,6 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 	for (int i = 0; i < ovrMaxProvidedFrameStats; i++)
 		FrameStats[i].type = XR_TYPE_FRAME_STATE;
 	CurrentFrame = FrameStats;
-	HookedFunction = std::make_pair(nullptr, nullptr);
 	Instance = instance;
 	TrackingSpace = XR_REFERENCE_SPACE_TYPE_LOCAL;
 	SystemProperties = XR_TYPE(SYSTEM_PROPERTIES);

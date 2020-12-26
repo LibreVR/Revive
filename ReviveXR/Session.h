@@ -3,7 +3,7 @@
 #include <OVR_CAPI.h>
 #include <openxr/openxr.h>
 #include <memory>
-#include <utility>
+#include <map>
 #include <atomic>
 #include <mutex>
 #include <list>
@@ -29,7 +29,7 @@ typedef struct XrIndexedFrameState : public XrFrameState
 
 struct ovrHmdStruct
 {
-	std::pair<void**, void*> HookedFunction;
+	std::map<void**, void*> HookedFunctions;
 
 	// OpenXR handles
 	XrInstance Instance;

@@ -214,11 +214,12 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 
 	session->EndSession();
 
-	if (session->HookedFunction.first)
+	if (!session->HookedFunctions.empty())
 	{
 		DetourTransactionBegin();
 		DetourUpdateThread(GetCurrentThread());
-		DetourDetach(session->HookedFunction.first, session->HookedFunction.second);
+		for (auto it : session->HookedFunctions)
+		DetourDetach(it.first, it.second);
 		DetourTransactionCommit();
 	}
 

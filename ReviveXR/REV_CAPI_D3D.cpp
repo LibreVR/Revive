@@ -28,31 +28,54 @@ LONG DetourVirtual(PVOID pInstance, UINT methodPos, PVOID *ppPointer, PVOID pDet
 // {EBA3BA6A-76A2-4A9B-B150-681FC1020EDE}
 static const GUID RXR_RTV_DESC =
 { 0xeba3ba6a, 0x76a2, 0x4a9b,{ 0xb1, 0x50, 0x68, 0x1f, 0xc1, 0x2, 0xe, 0xde } };
+// {FD3C4A2A-F328-4CC7-9495-A96CF78DEE46}
+static const GUID RXR_SRV_DESC =
+{ 0xfd3c4a2a, 0xf328, 0x4cc7, { 0x94, 0x95, 0xa9, 0x6c, 0xf7, 0x8d, 0xee, 0x46 } };
 
+typedef HRESULT(WINAPI* _CreateShaderResourceView)(
+	ID3D11Device						  *This,
+	ID3D11Resource                        *pResource,
+	const D3D11_SHADER_RESOURCE_VIEW_DESC *pDesc,
+	ID3D11ShaderResourceView              **ppSRView);
 typedef HRESULT(WINAPI* _CreateRenderTargetView)(
-	ID3D11Device						*pDevice,
+	ID3D11Device						*This,
 	ID3D11Resource                      *pResource,
 	const D3D11_RENDER_TARGET_VIEW_DESC *pDesc,
-	ID3D11RenderTargetView              **ppSRView
-	);
+	ID3D11RenderTargetView              **ppRTView);
 
+_CreateShaderResourceView TrueCreateShaderResourceView;
 _CreateRenderTargetView TrueCreateRenderTargetView;
 
 HRESULT WINAPI HookCreateRenderTargetView(
-	ID3D11Device						*pDevice,
+	ID3D11Device						*This,
 	ID3D11Resource                      *pResource,
 	const D3D11_RENDER_TARGET_VIEW_DESC *pDesc,
-	ID3D11RenderTargetView              **ppSRView
-)
+	ID3D11RenderTargetView              **ppRTView)
 {
 	D3D11_RENDER_TARGET_VIEW_DESC desc;
 	UINT size = (UINT)sizeof(desc);
 	if (!pDesc && SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
 	{
-		return TrueCreateRenderTargetView(pDevice, pResource, &desc, ppSRView);
+		return TrueCreateRenderTargetView(This, pResource, &desc, ppRTView);
 	}
 
-	return TrueCreateRenderTargetView(pDevice, pResource, pDesc, ppSRView);
+	return TrueCreateRenderTargetView(This, pResource, pDesc, ppRTView);
+}
+
+HRESULT WINAPI HookCreateShaderResourceView(
+	ID3D11Device						  *This,
+	ID3D11Resource                        *pResource,
+	const D3D11_SHADER_RESOURCE_VIEW_DESC *pDesc,
+	ID3D11ShaderResourceView              **ppSRView)
+{
+	D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+	UINT size = (UINT)sizeof(desc);
+	if (!pDesc && SUCCEEDED(pResource->GetPrivateData(RXR_SRV_DESC, &size, &desc)))
+	{
+		return TrueCreateShaderResourceView(This, pResource, &desc, ppSRView);
+	}
+
+	return TrueCreateShaderResourceView(This, pResource, pDesc, ppSRView);
 }
 
 DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format)
@@ -96,21 +119,21 @@ DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format)
 	}
 }
 
-D3D11_RTV_DIMENSION DescToViewDimension(const ovrTextureSwapChainDesc* desc)
+D3D_SRV_DIMENSION DescToViewDimension(const ovrTextureSwapChainDesc* desc)
 {
 	if (desc->ArraySize > 1)
 	{
 		if (desc->SampleCount > 1)
-			return D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY;
+			return D3D_SRV_DIMENSION_TEXTURE2DMSARRAY;
 		else
-			return D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+			return D3D_SRV_DIMENSION_TEXTURE2DARRAY;
 	}
 	else
 	{
 		if (desc->SampleCount > 1)
-			return D3D11_RTV_DIMENSION_TEXTURE2DMS;
+			return D3D_SRV_DIMENSION_TEXTURE2DMS;
 		else
-			return D3D11_RTV_DIMENSION_TEXTURE2D;
+			return D3D_SRV_DIMENSION_TEXTURE2D;
 	}
 }
 
@@ -150,9 +173,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 			// This fixes Echo Arena.
 			DetourTransactionBegin();
 			DetourUpdateThread(GetCurrentThread());
+			DetourVirtual(pDevice, 7, (PVOID*)&TrueCreateShaderResourceView, HookCreateShaderResourceView);
 			DetourVirtual(pDevice, 9, (PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
 			DetourTransactionCommit();
-			session->HookedFunction = std::make_pair((PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
+			session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateShaderResourceView, HookCreateShaderResourceView));
+			session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView));
 
 			XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
 			graphicsBinding.device = pDevice;
@@ -204,26 +229,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		CHK_OVR(CreateSwapChain(session->Session, desc, format, &chain));
 		CHK_OVR(EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR, chain));
 
-		D3D11_RENDER_TARGET_VIEW_DESC desc;
-		desc.Format = format;
-		desc.ViewDimension = DescToViewDimension(&chain->Desc);
-		if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY)
-		{
-			desc.Texture2DMSArray.FirstArraySlice = 0;
-			desc.Texture2DMSArray.ArraySize = chain->Desc.ArraySize;
-		}
-		else
-		{
-			desc.Texture2DArray.MipSlice = 0;
-			desc.Texture2DArray.FirstArraySlice = 0;
-			desc.Texture2DArray.ArraySize = chain->Desc.ArraySize;
-		}
+		CD3D11_SHADER_RESOURCE_VIEW_DESC srv(DescToViewDimension(&chain->Desc), format);
+		CD3D11_RENDER_TARGET_VIEW_DESC rtv((D3D11_RTV_DIMENSION)DescToViewDimension(&chain->Desc), format);
 
 		for (uint32_t i = 0; i < chain->Length; i++)
 		{
 			XrSwapchainImageD3D11KHR image = ((XrSwapchainImageD3D11KHR*)chain->Images)[i];
 
-			HRESULT hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D11_RENDER_TARGET_VIEW_DESC), &desc);
+			HRESULT hr = image.texture->SetPrivateData(RXR_SRV_DESC, sizeof(CD3D11_SHADER_RESOURCE_VIEW_DESC), &srv);
+			if (SUCCEEDED(hr))
+				hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D11_RENDER_TARGET_VIEW_DESC), &rtv);
 			if (FAILED(hr))
 				return ovrError_RuntimeException;
 		}
