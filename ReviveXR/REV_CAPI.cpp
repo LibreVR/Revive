@@ -983,7 +983,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					if (Fov.GetMaxSideTan() > 0.0f)
 						view.fov = Fov;
 					else
-						continue;
+						break;
 				}
 
 				// Flip the field-of-view to flip the image, invert the check for OpenGL
