@@ -201,6 +201,9 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 {
 	double calledTime = absTime;
 
+	if (!session->Session)
+		return;
+
 	XrResult rs;
 	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
 	XrSpaceVelocity velocity = XR_TYPE(SPACE_VELOCITY);
