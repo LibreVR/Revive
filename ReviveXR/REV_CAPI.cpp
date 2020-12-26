@@ -939,7 +939,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		{
 			OVR::Sizei chainSize(chain->Desc.Width, chain->Desc.Height);
 
-			if (rect.Size.w < 0 || rect.Size.h < 0)
+			if (rect.Size.w <= 0 || rect.Size.h <= 0)
 				return XR::Recti(OVR::Vector2i::Max(rect.Pos, OVR::Vector2i()), chainSize);
 
 			return XR::Recti(OVR::Vector2i::Max(rect.Pos, OVR::Vector2i()),
