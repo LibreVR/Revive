@@ -751,12 +751,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	XrSwapchainImageReleaseInfo releaseInfo = XR_TYPE(SWAPCHAIN_IMAGE_RELEASE_INFO);
 	CHK_XR(xrReleaseSwapchainImage(chain->Swapchain, &releaseInfo));
 
-	XrSwapchainImageAcquireInfo acquireInfo = XR_TYPE(SWAPCHAIN_IMAGE_ACQUIRE_INFO);
-	CHK_XR(xrAcquireSwapchainImage(chain->Swapchain, &acquireInfo, &chain->CurrentIndex));
-
+	if (!chain->Desc.StaticImage)
 	{
-		std::unique_lock<std::mutex> lk(session->ChainMutex);
-		session->AcquiredChains.push_back(chain->Swapchain);
+		XrSwapchainImageAcquireInfo acquireInfo = XR_TYPE(SWAPCHAIN_IMAGE_ACQUIRE_INFO);
+		CHK_XR(xrAcquireSwapchainImage(chain->Swapchain, &acquireInfo, &chain->CurrentIndex));
+
+		{
+			std::unique_lock<std::mutex> lk(session->ChainMutex);
+			session->AcquiredChains.push_back(chain->Swapchain);
+		}
 	}
 
 	return ovrSuccess;
