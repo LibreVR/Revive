@@ -29,7 +29,8 @@ const char* Runtime::s_optional_extensions[] = {
 
 Runtime::HackInfo Runtime::s_known_hacks[] = {
 	{ nullptr, "SteamVR/OpenXR", HACK_VALVE_INDEX_PROFILE, 0, 0, true },
-	{ nullptr, "SteamVR/OpenXR", HACK_10BIT_FORMAT, 0, 0, true },
+	{ nullptr, "SteamVR/OpenXR", HACK_NO_11BIT_FORMAT, 0, 0, true },
+	{ nullptr, "SteamVR/OpenXR", HACK_NO_8BIT_LINEAR, 0, 0, true },
 	{ nullptr, "Windows Mixed Reality Runtime", HACK_WMR_PROFILE, 0, 0, true },
 	{ nullptr, "Windows Mixed Reality Runtime", HACK_NO_10BIT_FORMAT, 0, 0, true },
 	{ "echovr.exe", nullptr, HACK_FORCE_FOV_FALLBACK, 0, 0, true },

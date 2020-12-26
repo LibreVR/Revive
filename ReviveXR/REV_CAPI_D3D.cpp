@@ -217,14 +217,20 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	DXGI_FORMAT format = TextureFormatToDXGIFormat(desc->Format);
 	if (format == DXGI_FORMAT_R11G11B10_FLOAT)
 	{
-		if (Runtime::Get().UseHack(Runtime::HACK_10BIT_FORMAT))
+		if (Runtime::Get().UseHack(Runtime::HACK_NO_11BIT_FORMAT))
 			format = DXGI_FORMAT_R10G10B10A2_UNORM;
 		else if (Runtime::Get().UseHack(Runtime::HACK_NO_10BIT_FORMAT))
 			format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	}
+	else if (format == DXGI_FORMAT_R8G8B8A8_UNORM || format == DXGI_FORMAT_B8G8R8A8_UNORM)
+	{
+		if (Runtime::Get().UseHack(Runtime::HACK_NO_8BIT_LINEAR))
+			format = DXGI_FORMAT_R10G10B10A2_UNORM;
+	}
 
 	if (pDevice)
 	{
+
 		ovrTextureSwapChain chain;
 		CHK_OVR(CreateSwapChain(session->Session, desc, format, &chain));
 		CHK_OVR(EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR, chain));
