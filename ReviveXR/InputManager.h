@@ -37,7 +37,7 @@ public:
 		virtual void GetVibrationState(ovrHandType hand, ovrHapticsPlaybackState* outState) { }
 		virtual void StartHaptics(XrSession session) { }
 
-		operator XrActionSet() const { return m_ActionSet; }
+		XrActionSet ActionSet() const { return m_ActionSet; }
 
 	protected:
 		static ovrVector2f ApplyDeadzone(ovrVector2f axis, float deadZone);
@@ -51,7 +51,6 @@ public:
 	public:
 		Action() : m_Action(XR_NULL_HANDLE) {}
 		Action(InputDevice* device, XrActionType type, const char* actionName, const char* localizedName, bool handedAction = false);
-		~Action();
 
 		bool GetDigital(XrSession session, ovrHandType hand = ovrHand_Left) const;
 		bool IsPressed(XrSession session, ovrHandType hand = ovrHand_Left) const;
@@ -101,6 +100,9 @@ public:
 		Action m_IndexTrigger;
 		Action m_HandTrigger;
 		Action m_Thumbstick;
+
+		// For WMR profile hack
+		Action m_Trackpad_Buttons;
 
 		Action m_Pose;
 		Action m_Vibration;

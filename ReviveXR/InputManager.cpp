@@ -292,17 +292,8 @@ InputManager::Action::Action(InputDevice* device, XrActionType type, const char*
 		createInfo.countSubactionPaths = ovrHand_Count;
 		createInfo.subactionPaths = s_SubActionPaths;
 	}
-	XrResult rs = xrCreateAction((XrActionSet)*device, &createInfo, &m_Action);
+	XrResult rs = xrCreateAction(device->ActionSet(), &createInfo, &m_Action);
 	assert(XR_SUCCEEDED(rs));
-}
-
-InputManager::Action::~Action()
-{
-	if (m_Action)
-	{
-		XrResult rs = xrDestroyAction(m_Action);
-		assert(XR_SUCCEEDED(rs));
-	}
 }
 
 bool InputManager::Action::GetDigital(XrSession session, ovrHandType hand) const
@@ -471,6 +462,8 @@ InputManager::OculusTouch::OculusTouch(XrInstance instance)
 	, m_Pose(this, XR_ACTION_TYPE_POSE_INPUT, "pose", "Controller pose", true)
 	, m_Vibration(this, XR_ACTION_TYPE_VIBRATION_OUTPUT, "vibration", "Vibration", true)
 {
+	if (Runtime::Get().UseHack(Runtime::HACK_WMR_PROFILE))
+		m_Trackpad_Buttons = Action(this, XR_ACTION_TYPE_FLOAT_INPUT, "trackpad-buttons", "Trackpad Buttons", true);
 }
 
 InputManager::OculusTouch::~OculusTouch()
@@ -530,10 +523,11 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSugge
 	{
 		if (Runtime::Get().UseHack(Runtime::HACK_WMR_PROFILE))
 		{
+			ADD_BINDING(m_Trackpad_Buttons, prefixes[i] + "/input/trackpad/y");
 			ADD_BINDING(m_Button_AX, prefixes[i] + "/input/trackpad/click");
-			ADD_BINDING(m_Button_BY, prefixes[i] + "/input/trackpad/y");
+			ADD_BINDING(m_Button_BY, prefixes[i] + "/input/trackpad/click");
 			ADD_BINDING(m_Touch_AX, prefixes[i] + "/input/trackpad/touch");
-			ADD_BINDING(m_Touch_BY, prefixes[i] + "/input/trackpad/y");
+			ADD_BINDING(m_Touch_BY, prefixes[i] + "/input/trackpad/touch");
 
 			ADD_BINDING(m_Thumbstick, prefixes[i] + "/input/thumbstick");
 			ADD_BINDING(m_Button_Thumb, prefixes[i] + "/input/thumbstick/click");
@@ -607,17 +601,17 @@ bool InputManager::OculusTouch::GetInputState(XrSession session, ovrControllerTy
 
 		if (Runtime::Get().UseHack(Runtime::HACK_WMR_PROFILE))
 		{
-			if (m_Button_AX.GetDigital(session, hand))
+			if (m_Button_AX.GetDigital(session, hand) || m_Button_BY.GetDigital(session, hand))
 			{
-				if (m_Button_BY.GetDigital(session, hand))
+				if (m_Trackpad_Buttons.GetAnalog(session, hand) > 0.0f)
 					buttons |= ovrButton_B;
 				else
 					buttons |= ovrButton_A;
 			}
 
-			if (m_Touch_AX.GetDigital(session, hand))
+			if (m_Touch_AX.GetDigital(session, hand) || m_Touch_BY.GetDigital(session, hand))
 			{
-				if (m_Touch_BY.GetDigital(session, hand))
+				if (m_Trackpad_Buttons.GetAnalog(session, hand) > 0.0f)
 					touches |= ovrTouch_B;
 				else
 					touches |= ovrTouch_A;
@@ -937,7 +931,7 @@ ovrResult InputManager::AttachSession(XrSession session)
 		for (InputDevice* device : m_InputDevices)
 		{
 			device->GetActionSpaces(session, m_ActionSpaces);
-			actionSets.push_back(*device);
+			actionSets.push_back(device->ActionSet());
 		}
 
 		XrSessionActionSetsAttachInfo attachInfo = XR_TYPE(SESSION_ACTION_SETS_ATTACH_INFO);
