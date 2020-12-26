@@ -204,30 +204,23 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	if (!session->Session)
 		return;
 
-	XrResult rs;
 	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
 	XrSpaceVelocity velocity = XR_TYPE(SPACE_VELOCITY);
+	location.next = &velocity;
 	XrTime displayTime = absTime <= 0.0 ? (*session->CurrentFrame).predictedDisplayTime : AbsTimeToXrTime(session->Instance, absTime);
 	XrSpace space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ? session->StageSpace : session->LocalSpace;
 
 	// Get space relation for the head
-	location.next = &velocity;
-	rs = xrLocateSpace(session->ViewSpace, space, displayTime, &location);
-	assert(XR_SUCCEEDED(rs));
-	outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
+	if (XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, space, displayTime, &location)))
+		outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
 
 	// Convert the hand poses
 	for (uint32_t i = 0; i < ovrHand_Count; i++)
 	{
 		XrSpaceLocation handLocation = XR_TYPE(SPACE_LOCATION);
 		handLocation.next = &velocity;
-		if (i < m_ActionSpaces.size())
-		{
-			rs = xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation);
-			assert(XR_SUCCEEDED(rs));
-		}
-
-		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
+		if (i < m_ActionSpaces.size() && XR_SUCCEEDED(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation)))
+			outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
 	}
 
 #ifdef PLOT_TRACKING
@@ -243,10 +236,12 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 
 ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
 {
-	XrTime displayTime = AbsTimeToXrTime(session->Instance, absTime);
+	XrTime displayTime = absTime <= 0.0 ? (*session->CurrentFrame).predictedDisplayTime : AbsTimeToXrTime(session->Instance, absTime);
 	XrSpace space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ? session->StageSpace : session->LocalSpace;
 
-	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
+	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
+	XrSpaceVelocity velocity = XR_TYPE(SPACE_VELOCITY);
+	location.next = &velocity;
 	for (int i = 0; i < deviceCount; i++)
 	{
 		// Get the space for device types we recognize
@@ -270,8 +265,8 @@ ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType*
 
 		if (space && pLastState)
 		{
-			CHK_XR(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &relation));
-			SpaceRelationToPoseState(relation, absTime, *pLastState, outDevicePoses[i]);
+			CHK_XR(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &location));
+			SpaceRelationToPoseState(location, absTime, *pLastState, outDevicePoses[i]);
 		}
 		else
 		{
