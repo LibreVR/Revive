@@ -534,22 +534,25 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSugge
 			ADD_BINDING(m_Button_BY, prefixes[i] + "/input/trackpad/y");
 			ADD_BINDING(m_Touch_AX, prefixes[i] + "/input/trackpad/touch");
 			ADD_BINDING(m_Touch_BY, prefixes[i] + "/input/trackpad/y");
-		}
 
-		ADD_BINDING(m_Thumbstick, prefixes[i] + "/input/thumbstick");
-		ADD_BINDING(m_Button_Thumb, prefixes[i] + "/input/thumbstick/click");
-		if (Runtime::Get().UseHack(Runtime::HACK_VALVE_INDEX_PROFILE))
-			ADD_BINDING(m_Touch_ThumbRest, prefixes[i] + "/input/trackpad/touch");
-		else if (Runtime::Get().UseHack(Runtime::HACK_WMR_PROFILE))
+			ADD_BINDING(m_Thumbstick, prefixes[i] + "/input/thumbstick");
+			ADD_BINDING(m_Button_Thumb, prefixes[i] + "/input/thumbstick/click");
 			ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/squeeze/click");
+			ADD_BINDING(m_IndexTrigger, prefixes[i] + "/input/trigger/value");
+		}
 		else
 		{
-			ADD_BINDING(m_Touch_IndexTrigger, prefixes[i] + "/input/trigger/touch");
+			ADD_BINDING(m_Thumbstick, prefixes[i] + "/input/thumbstick");
+			ADD_BINDING(m_Button_Thumb, prefixes[i] + "/input/thumbstick/click");
 			ADD_BINDING(m_Touch_Thumb, prefixes[i] + "/input/thumbstick/touch");
-			ADD_BINDING(m_Touch_ThumbRest, prefixes[i] + "/input/thumbrest/touch");
+			if (Runtime::Get().UseHack(Runtime::HACK_VALVE_INDEX_PROFILE))
+				ADD_BINDING(m_Touch_ThumbRest, prefixes[i] + "/input/trackpad/touch");
+			else
+				ADD_BINDING(m_Touch_ThumbRest, prefixes[i] + "/input/thumbrest/touch");
 			ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/squeeze/value");
+			ADD_BINDING(m_Touch_IndexTrigger, prefixes[i] + "/input/trigger/touch");
+			ADD_BINDING(m_IndexTrigger, prefixes[i] + "/input/trigger/value");
 		}
-		ADD_BINDING(m_IndexTrigger, prefixes[i] + "/input/trigger/value");
 
 		ADD_BINDING(m_Pose, prefixes[i] + "/input/aim/pose");
 		ADD_BINDING(m_Vibration, prefixes[i] + "/output/haptic");
