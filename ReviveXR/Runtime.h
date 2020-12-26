@@ -14,7 +14,7 @@ public:
 
 	enum Hack
 	{
-		// Hack: SteamVR OpenXR runtime doesn't support the Oculus Touch interaction profile.
+		// Hack: SteamVR runtime doesn't support the Oculus Touch interaction profile.
 		// Use the Valve Index interaction profile instead.
 		HACK_VALVE_INDEX_PROFILE,
 		// Hack: WMR runtime doesn't support the Oculus Touch interaction profile.
@@ -32,6 +32,9 @@ public:
 		// Hack: Some games only call GetRenderDesc once before the session is fully initialized.
 		// Therefore we need to force the fallback field-of-view query so we get full ViewPoses.
 		HACK_FORCE_FOV_FALLBACK,
+		// Hack: SteamVR runtime has some inflexibilities in its swapchain creation.
+		// To work around that we hook the D3D11 texture creation function and force our own parameters.
+		HACK_HOOK_CREATE_TEXTURE,
 	};
 
 	bool UseHack(Hack hack);
