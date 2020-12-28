@@ -915,6 +915,24 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	if (!session)
 		return ovrError_InvalidSession;
 
+	// The oculus runtime is very tolerant of invalid viewports, so this lambda ensures we submit valid ones.
+	// This fixes UE4 games which can at times submit uninitialized viewports due to a bug in OVR_Math.h.
+	const auto ClampRect = [](ovrRecti rect, ovrTextureSwapChain chain)
+	{
+		OVR::Sizei chainSize(chain->Desc.Width, chain->Desc.Height);
+
+		// Clamp the rectangle size within the chain size
+		rect.Size = OVR::Sizei::Min(OVR::Sizei::Max(rect.Size, OVR::Sizei(1, 1)), chainSize);
+
+		// Set any invalid coordinates to zero
+		if (rect.Pos.x < 0 || rect.Pos.x >= rect.Size.w || rect.Pos.x + rect.Size.w > chainSize.w)
+			rect.Pos.x = 0;
+		if (rect.Pos.y < 0 || rect.Pos.y >= rect.Size.h || rect.Pos.y + rect.Size.h > chainSize.h)
+			rect.Pos.y = 0;
+
+		return XR::Recti(rect);
+	};
+
 	std::vector<XrCompositionLayerBaseHeader*> layers;
 	std::list<XrCompositionLayerUnion> layerData;
 	std::list<XrCompositionLayerProjectionViewStereo> viewData;
@@ -935,19 +953,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		// NOTE: Do not read the header after this operation as it will fall outside of the layer memory.
 		if (Runtime::Get().MinorVersion < 25)
 			layer = (ovrLayer_Union*)((char*)layer - sizeof(ovrLayerHeader::Reserved));
-
-		// The oculus runtime is very tolerant of invalid viewports, so this lambda ensures we submit valid ones.
-		const auto ClampRect = [](ovrRecti rect, ovrTextureSwapChain chain)
-		{
-			OVR::Sizei chainSize(chain->Desc.Width, chain->Desc.Height);
-
-			// If any of the coordinates are invalid we make our own viewport
-			if (rect.Pos.x < 0 || rect.Pos.y < 0 || rect.Size.w <= 0 || rect.Size.h <= 0)
-				return XR::Recti(OVR::Vector2i(), chainSize);
-
-			return XR::Recti(OVR::Vector2i::Max(rect.Pos, OVR::Vector2i()),
-				OVR::Sizei::Min(rect.Size, chainSize));
-		};
 
 		layerData.emplace_back();
 		XrCompositionLayerUnion& newLayer = layerData.back();
