@@ -935,12 +935,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			layer = (ovrLayer_Union*)((char*)layer - sizeof(ovrLayerHeader::Reserved));
 
 		// The oculus runtime is very tolerant of invalid viewports, so this lambda ensures we submit valid ones.
-		auto ClampRect = [](ovrRecti rect, ovrTextureSwapChain chain)
+		const auto ClampRect = [](ovrRecti rect, ovrTextureSwapChain chain)
 		{
 			OVR::Sizei chainSize(chain->Desc.Width, chain->Desc.Height);
 
-			if (rect.Size.w <= 0 || rect.Size.h <= 0)
-				return XR::Recti(OVR::Vector2i::Max(rect.Pos, OVR::Vector2i()), chainSize);
+			// If any of the coordinates are invalid we make our own viewport
+			if (rect.Pos.x < 0 || rect.Pos.y < 0 || rect.Size.w <= 0 || rect.Size.h <= 0)
+				return XR::Recti(OVR::Vector2i(), chainSize);
 
 			return XR::Recti(OVR::Vector2i::Max(rect.Pos, OVR::Vector2i()),
 				OVR::Sizei::Min(rect.Size, chainSize));
