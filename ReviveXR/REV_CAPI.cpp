@@ -925,9 +925,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		rect.Size = OVR::Sizei::Min(OVR::Sizei::Max(rect.Size, OVR::Sizei(1, 1)), chainSize);
 
 		// Set any invalid coordinates to zero
-		if (rect.Pos.x < 0 || rect.Pos.x >= rect.Size.w || rect.Pos.x + rect.Size.w > chainSize.w)
+		if (rect.Pos.x < 0 || rect.Pos.x + rect.Size.w > chainSize.w)
 			rect.Pos.x = 0;
-		if (rect.Pos.y < 0 || rect.Pos.y >= rect.Size.h || rect.Pos.y + rect.Size.h > chainSize.h)
+		if (rect.Pos.y < 0 || rect.Pos.y + rect.Size.h > chainSize.h)
 			rect.Pos.y = 0;
 
 		return XR::Recti(rect);
