@@ -171,8 +171,11 @@ ovr_CreateTextureSwapChainVk(
 	if (!session)
 		return ovrError_InvalidSession;
 
-	if (!device || !desc || !out_TextureSwapChain || desc->Type != ovrTexture_2D)
+	if (!device || !desc || !out_TextureSwapChain || desc->Type == ovrTexture_2D_External)
 		return ovrError_InvalidParameter;
+
+	if (desc->Type == ovrTexture_Cube && !Runtime::Get().CompositionCube)
+		return ovrError_Unsupported;
 
 	if (!session->Session)
 	{
