@@ -706,7 +706,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainLength(ovrSession session,
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	MICROPROFILE_META_CPU("Identifier", (int)chain->Swapchain);
+	MICROPROFILE_META_CPU("Identifier", PtrToInt(chain->Swapchain));
 	*out_Length = chain->Length;
 	return ovrSuccess;
 }
@@ -718,7 +718,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainCurrentIndex(ovrSession se
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	MICROPROFILE_META_CPU("Identifier", (int)chain->Swapchain);
+	MICROPROFILE_META_CPU("Identifier", PtrToInt(chain->Swapchain));
 	MICROPROFILE_META_CPU("Index", chain->CurrentIndex);
 	*out_Index = chain->CurrentIndex;
 	return ovrSuccess;
@@ -731,7 +731,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainDesc(ovrSession session, o
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	MICROPROFILE_META_CPU("Identifier", (int)chain->Swapchain);
+	MICROPROFILE_META_CPU("Identifier", PtrToInt(chain->Swapchain));
 	*out_Desc = chain->Desc;
 	return ovrSuccess;
 }
@@ -746,7 +746,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	if (!chain)
 		return ovrError_InvalidParameter;
 
-	MICROPROFILE_META_CPU("Identifier", (int)chain->Swapchain);
+	MICROPROFILE_META_CPU("Identifier", PtrToInt(chain->Swapchain));
 	MICROPROFILE_META_CPU("CurrentIndex", chain->CurrentIndex);
 
 	XrSwapchainImageReleaseInfo releaseInfo = XR_TYPE(SWAPCHAIN_IMAGE_RELEASE_INFO);
@@ -880,6 +880,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 		std::unique_lock<std::mutex> lk(session->ChainMutex);
 		while (!session->AcquiredChains.empty())
 		{
+			MICROPROFILE_SCOPEI("Revive", "WaitSwapchain", 0x00ff00);
+			MICROPROFILE_META_CPU("Identifier", PtrToInt(session->AcquiredChains.front()));
 			CHK_XR(xrWaitSwapchainImage(session->AcquiredChains.front(), &chainWaitInfo));
 			session->AcquiredChains.pop_front();
 		}
