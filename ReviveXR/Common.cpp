@@ -36,11 +36,11 @@ ovrResult ResultToOvrResult(XrResult error)
 	case XR_ERROR_SESSION_LOST: return ovrError_ServiceConnection;
 	case XR_ERROR_SYSTEM_INVALID: return ovrError_InvalidParameter;
 	case XR_ERROR_PATH_INVALID: return ovrError_InvalidParameter;
-	case XR_ERROR_PATH_COUNT_EXCEEDED: return ovrError_InvalidParameter;
+	case XR_ERROR_PATH_COUNT_EXCEEDED: return ovrError_InvalidOperation;
 	case XR_ERROR_PATH_FORMAT_INVALID: return ovrError_InvalidParameter;
 	case XR_ERROR_PATH_UNSUPPORTED: return ovrError_InvalidParameter;
-	case XR_ERROR_LAYER_INVALID: return ovrError_InvalidParameter;
-	case XR_ERROR_LAYER_LIMIT_EXCEEDED: return ovrError_InvalidParameter;
+	case XR_ERROR_LAYER_INVALID: return ovrError_TextureSwapChainInvalid;
+	case XR_ERROR_LAYER_LIMIT_EXCEEDED: return ovrError_InvalidOperation;
 	case XR_ERROR_SWAPCHAIN_RECT_INVALID: return ovrError_InvalidParameter;
 	case XR_ERROR_SWAPCHAIN_FORMAT_UNSUPPORTED: return ovrError_InvalidParameter;
 	case XR_ERROR_ACTION_TYPE_MISMATCH: return ovrError_InvalidParameter;
