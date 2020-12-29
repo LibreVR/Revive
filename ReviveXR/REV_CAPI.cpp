@@ -437,7 +437,8 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 		OVR::Posef trackerPose = poses[trackerPoseIndex];
 
 		XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
-		if (XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, session->LocalSpace, (*session->CurrentFrame).predictedDisplayTime, &relation)))
+		if (session->Session && XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, session->LocalSpace,
+			(*session->CurrentFrame).predictedDisplayTime, &relation)))
 		{
 			// Create a leveled head pose
 			if (relation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT)
@@ -446,6 +447,8 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 				XR::Posef headPose(relation.pose);
 				headPose.Rotation.GetYawPitchRoll(&yaw, nullptr, nullptr);
 				headPose.Rotation = OVR::Quatf(OVR::Axis_Y, yaw);
+
+				// Rotate the trackers with the headset so that the headset is always in view
 				trackerPose = headPose * trackerPose;
 			}
 		}
