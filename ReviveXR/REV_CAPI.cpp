@@ -1463,7 +1463,7 @@ ovr_GetFovStencil(
 	if (!session)
 		return ovrError_InvalidSession;
 
-	if (!meshBuffer)
+	if (!meshBuffer || !fovStencilDesc)
 		return ovrError_InvalidParameter;
 
 	if (fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
