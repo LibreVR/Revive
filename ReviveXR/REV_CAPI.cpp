@@ -1486,7 +1486,7 @@ ovr_GetFovStencil(
 	OVR::ScaleAndOffset2D scaleAndOffset = OVR::FovPort::CreateNDCScaleAndOffsetFromFov(
 		XR::FovPort(session->ViewFov[fovStencilDesc->Eye].recommendedFov));
 
-	// Visibility masks are in view space, so we need to construct a matrix to project these to UV space
+	// Visibility masks are in view space, so we need to construct a matrix to project these to NDC space
 	// TODO: Support the eye orientation in fovStencilDesc
 	OVR::Matrix3f matrix(
 		scaleAndOffset.Scale.x, 0.0f, scaleAndOffset.Offset.x,
@@ -1495,7 +1495,7 @@ ovr_GetFovStencil(
 
 	if (meshBuffer->VertexBuffer)
 	{
-		// Translate all vertices to UV space coordinate range [0,1]
+		// Translate all NDC space vertices to UV space coordinate range [0,1]
 		const float scale = fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft ? 2.0f : -2.0f;
 		for (int i = 0; i < meshBuffer->AllocVertexCount; i++)
 			meshBuffer->VertexBuffer[i] = matrix.Transform(XR::Vector2f(mask.first[i])) / scale + OVR::Vector2f(0.5f);
