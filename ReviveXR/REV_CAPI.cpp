@@ -1488,16 +1488,17 @@ ovr_GetFovStencil(
 
 	// Visibility masks are in view space, so we need to construct a matrix to project these to UV space
 	// TODO: Support the eye orientation in fovStencilDesc
-	const float flip = fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft ? 1.0f : -1.0f;
 	OVR::Matrix3f matrix(
 		scaleAndOffset.Scale.x, 0.0f, scaleAndOffset.Offset.x,
-		0.0f, flip * scaleAndOffset.Scale.y, flip * scaleAndOffset.Offset.y,
+		0.0f, scaleAndOffset.Scale.y, scaleAndOffset.Offset.y,
 		0.0f, 0.0f, 1.0f);
 
 	if (meshBuffer->VertexBuffer)
 	{
+		// Translate all vertices to UV space coordinate range [0,1]
+		const float scale = fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft ? 2.0f : -2.0f;
 		for (int i = 0; i < meshBuffer->AllocVertexCount; i++)
-			meshBuffer->VertexBuffer[i] = matrix.Transform(XR::Vector2f(mask.first[i])) / 2.0f + OVR::Vector2f(0.5f);
+			meshBuffer->VertexBuffer[i] = matrix.Transform(XR::Vector2f(mask.first[i])) / scale + OVR::Vector2f(0.5f);
 	}
 
 	if (meshBuffer->IndexBuffer)
