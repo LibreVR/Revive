@@ -300,6 +300,20 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 			}
 			break;
 		}
+		case XR_TYPE_EVENT_DATA_VISIBILITY_MASK_CHANGED_KHR:
+		{
+			const XrEventDataVisibilityMaskChangedKHR& maskChange =
+				reinterpret_cast<XrEventDataVisibilityMaskChangedKHR&>(event);
+
+			if (maskChange.viewConfigurationType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO
+				&& maskChange.viewIndex < ovrEye_Count)
+			{
+				session->UpdateStencil((ovrEyeType)maskChange.viewIndex, XR_VISIBILITY_MASK_TYPE_HIDDEN_TRIANGLE_MESH_KHR);
+				session->UpdateStencil((ovrEyeType)maskChange.viewIndex, XR_VISIBILITY_MASK_TYPE_VISIBLE_TRIANGLE_MESH_KHR);
+				session->UpdateStencil((ovrEyeType)maskChange.viewIndex, XR_VISIBILITY_MASK_TYPE_LINE_LOOP_KHR);
+			}
+			break;
+		}
 		}
 		event = XR_TYPE(EVENT_DATA_BUFFER);
 	}
@@ -1463,30 +1477,33 @@ ovr_GetFovStencil(
 		return ovrSuccess;
 	}
 
-	std::vector<uint32_t> indexBuffer;
-	if (meshBuffer->AllocIndexCount > 0)
-		indexBuffer.resize(meshBuffer->AllocIndexCount);
-
 	XrVisibilityMaskTypeKHR type = (XrVisibilityMaskTypeKHR)(fovStencilDesc->StencilType + 1);
-	XrVisibilityMaskKHR mask = XR_TYPE(VISIBILITY_MASK_KHR);
-	mask.vertexCapacityInput = meshBuffer->AllocVertexCount;
-	mask.vertices = (XrVector2f*)meshBuffer->VertexBuffer;
-	mask.indexCapacityInput = meshBuffer->AllocIndexCount;
-	mask.indices = meshBuffer->IndexBuffer ? indexBuffer.data() : nullptr;
-	CHK_XR(GetVisibilityMaskKHR(session->Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, fovStencilDesc->Eye, type, &mask));
-	meshBuffer->UsedVertexCount = mask.vertexCountOutput;
-	meshBuffer->UsedIndexCount = mask.indexCountOutput;
+	const StencilMask& mask = session->VisibilityMasks[fovStencilDesc->Eye][type];
 
-	if (meshBuffer->VertexBuffer && !(fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft))
+	meshBuffer->UsedVertexCount = mask.first.size();
+	meshBuffer->UsedIndexCount = mask.second.size();
+
+	OVR::ScaleAndOffset2D scaleAndOffset = OVR::FovPort::CreateNDCScaleAndOffsetFromFov(
+		XR::FovPort(session->ViewFov[fovStencilDesc->Eye].recommendedFov));
+
+	// Visibility masks are in view space, so we need to construct a matrix to project these to UV space
+	// TODO: Support the eye orientation in fovStencilDesc
+	const float flip = fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft ? 1.0f : -1.0f;
+	OVR::Matrix3f matrix(
+		scaleAndOffset.Scale.x, 0.0f, scaleAndOffset.Offset.x,
+		0.0f, flip * scaleAndOffset.Scale.y, flip * scaleAndOffset.Offset.y,
+		0.0f, 0.0f, 1.0f);
+
+	if (meshBuffer->VertexBuffer)
 	{
 		for (int i = 0; i < meshBuffer->AllocVertexCount; i++)
-			meshBuffer->VertexBuffer[i].y = 1.0f - meshBuffer->VertexBuffer[i].y;
+			meshBuffer->VertexBuffer[i] = matrix.Transform(XR::Vector2f(mask.first[i])) / 2.0f + OVR::Vector2f(0.5f);
 	}
 
 	if (meshBuffer->IndexBuffer)
 	{
 		for (int i = 0; i < meshBuffer->AllocIndexCount; i++)
-			meshBuffer->IndexBuffer[i] = (uint16_t)indexBuffer[i];
+			meshBuffer->IndexBuffer[i] = (uint16_t)mask.second[i];
 	}
 
 	return ovrSuccess;

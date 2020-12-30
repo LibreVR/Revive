@@ -112,7 +112,7 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 	return ovrSuccess;
 }
 
-ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool waitFrame)
+ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 {
 	if (Session)
 		return ovrError_InvalidOperation;
@@ -138,11 +138,23 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool waitFrame)
 	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &StageSpace));
 	CalibratedOrigin = OVR::Posef::Identity();
 
+	// Update the visibility mask for both eyes
+	if (Runtime::Get().VisibilityMask)
+	{
+		for (uint32_t i = 0; i < ovrEye_Count; i++)
+		{
+			UpdateStencil((ovrEyeType)i, XR_VISIBILITY_MASK_TYPE_HIDDEN_TRIANGLE_MESH_KHR);
+			UpdateStencil((ovrEyeType)i, XR_VISIBILITY_MASK_TYPE_VISIBLE_TRIANGLE_MESH_KHR);
+			UpdateStencil((ovrEyeType)i, XR_VISIBILITY_MASK_TYPE_LINE_LOOP_KHR);
+		}
+	}
+
 	XrSessionBeginInfo beginInfo = XR_TYPE(SESSION_BEGIN_INFO);
 	beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 	CHK_XR(xrBeginSession(Session, &beginInfo));
 
-	if (waitFrame)
+	// Start the first frame immediately if requested
+	if (beginFrame)
 	{
 		CHK_OVR(ovr_WaitToBeginFrame(this, 0));
 		CHK_OVR(ovr_BeginFrame(this, 0));
@@ -187,5 +199,23 @@ ovrResult ovrHmdStruct::LocateViews(XrView out_Views[ovrEye_Count], XrViewStateF
 	assert(numViews == ovrEye_Count);
 	if (out_Flags)
 		*out_Flags = viewState.viewStateFlags;
+	return ovrSuccess;
+}
+
+ovrResult ovrHmdStruct::UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR type)
+{
+	XR_FUNCTION(Instance, GetVisibilityMaskKHR);
+
+	StencilMask& stencil = VisibilityMasks[view][type];
+	XrVisibilityMaskKHR mask = XR_TYPE(VISIBILITY_MASK_KHR);
+	CHK_XR(GetVisibilityMaskKHR(Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, view, type, &mask));
+	stencil.first.resize(mask.vertexCountOutput);
+	stencil.second.resize(mask.indexCountOutput);
+
+	mask.vertexCapacityInput = stencil.first.size();
+	mask.vertices = stencil.first.data();
+	mask.indexCapacityInput = stencil.second.size();
+	mask.indices = stencil.second.data();
+	CHK_XR(GetVisibilityMaskKHR(Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, view, type, &mask));
 	return ovrSuccess;
 }

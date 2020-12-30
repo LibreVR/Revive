@@ -7,6 +7,8 @@
 #include <atomic>
 #include <mutex>
 #include <list>
+#include <vector>
+#include <utility>
 
 class Runtime;
 class InputManager;
@@ -26,6 +28,9 @@ typedef struct XrIndexedFrameState : public XrFrameState
 {
 	long long frameIndex;
 } XrIndexedFrameState;
+
+typedef std::pair<std::vector<XrVector2f>,
+	std::vector<uint32_t>> StencilMask;
 
 struct ovrHmdStruct
 {
@@ -60,11 +65,16 @@ struct ovrHmdStruct
 	SessionStatusBits SessionStatus;
 	ovrPosef CalibratedOrigin;
 
+	// Field-of-view stencil
+	std::map<XrVisibilityMaskTypeKHR, StencilMask> VisibilityMasks[ovrEye_Count];
+
 	// Input
 	std::unique_ptr<InputManager> Input;
 
 	ovrResult InitSession(XrInstance instance);
-	ovrResult BeginSession(void* graphicsBinding, bool waitFrame = true);
+	ovrResult BeginSession(void* graphicsBinding, bool beginFrame = true);
 	ovrResult EndSession();
+
+	ovrResult UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR type);
 	ovrResult LocateViews(XrView out_Views[ovrEye_Count], XrViewStateFlags* out_Flags = nullptr) const;
 };
