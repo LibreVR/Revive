@@ -30,7 +30,7 @@ typedef struct XrIndexedFrameState : public XrFrameState
 } XrIndexedFrameState;
 
 typedef std::pair<std::vector<XrVector2f>,
-	std::vector<uint32_t>> StencilMask;
+	std::vector<uint32_t>> VisibilityMask;
 
 struct ovrHmdStruct
 {
@@ -66,7 +66,7 @@ struct ovrHmdStruct
 	ovrPosef CalibratedOrigin;
 
 	// Field-of-view stencil
-	std::map<XrVisibilityMaskTypeKHR, StencilMask> VisibilityMasks[ovrEye_Count];
+	std::map<XrVisibilityMaskTypeKHR, VisibilityMask> VisibilityMasks[ovrEye_Count];
 
 	// Input
 	std::unique_ptr<InputManager> Input;

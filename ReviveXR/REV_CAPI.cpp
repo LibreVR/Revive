@@ -1479,7 +1479,7 @@ ovr_GetFovStencil(
 	}
 
 	XrVisibilityMaskTypeKHR type = (XrVisibilityMaskTypeKHR)(fovStencilDesc->StencilType + 1);
-	const StencilMask& mask = session->VisibilityMasks[fovStencilDesc->Eye][type];
+	const VisibilityMask& mask = session->VisibilityMasks[fovStencilDesc->Eye][type];
 
 	meshBuffer->UsedVertexCount = mask.first.size();
 	meshBuffer->UsedIndexCount = mask.second.size();

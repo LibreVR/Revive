@@ -206,16 +206,16 @@ ovrResult ovrHmdStruct::UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR t
 {
 	XR_FUNCTION(Instance, GetVisibilityMaskKHR);
 
-	StencilMask& stencil = VisibilityMasks[view][type];
+	VisibilityMask& result = VisibilityMasks[view][type];
 	XrVisibilityMaskKHR mask = XR_TYPE(VISIBILITY_MASK_KHR);
 	CHK_XR(GetVisibilityMaskKHR(Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, view, type, &mask));
-	stencil.first.resize(mask.vertexCountOutput);
-	stencil.second.resize(mask.indexCountOutput);
+	result.first.resize(mask.vertexCountOutput);
+	result.second.resize(mask.indexCountOutput);
 
-	mask.vertexCapacityInput = stencil.first.size();
-	mask.vertices = stencil.first.data();
-	mask.indexCapacityInput = stencil.second.size();
-	mask.indices = stencil.second.data();
+	mask.vertexCapacityInput = result.first.size();
+	mask.vertices = result.first.data();
+	mask.indexCapacityInput = result.second.size();
+	mask.indices = result.second.data();
 	CHK_XR(GetVisibilityMaskKHR(Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, view, type, &mask));
 	return ovrSuccess;
 }
