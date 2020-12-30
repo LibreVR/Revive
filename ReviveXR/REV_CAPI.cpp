@@ -1463,7 +1463,8 @@ ovr_GetFovStencil(
 	if (!session)
 		return ovrError_InvalidSession;
 
-	XR_FUNCTION(session->Instance, GetVisibilityMaskKHR);
+	if (!meshBuffer)
+		return ovrError_InvalidParameter;
 
 	if (fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
 	{
