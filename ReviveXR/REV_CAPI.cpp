@@ -1440,17 +1440,6 @@ ovr_GetViewportStencil(
 	return ovr_GetFovStencil(session, &fovStencilDesc, outMeshBuffer);
 }
 
-static const XrVector2f VisibleRectangle[] = {
-	{ 0.0f, 0.0f },
-	{ 1.0f, 0.0f },
-	{ 1.0f, 1.0f },
-	{ 0.0f, 1.0f }
-};
-
-static const uint16_t VisibleRectangleIndices[] = {
-	0, 1, 2, 0, 2, 3
-};
-
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_GetFovStencil(
 	ovrSession session,
@@ -1466,47 +1455,96 @@ ovr_GetFovStencil(
 	if (!meshBuffer || !fovStencilDesc)
 		return ovrError_InvalidParameter;
 
-	if (fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
-	{
-		meshBuffer->UsedVertexCount = sizeof(VisibleRectangle) / sizeof(XrVector2f);
-		meshBuffer->UsedIndexCount = sizeof(VisibleRectangleIndices) / sizeof(uint16_t);
-
-		if (meshBuffer->AllocVertexCount >= meshBuffer->UsedVertexCount)
-			memcpy(meshBuffer->VertexBuffer, VisibleRectangle, sizeof(VisibleRectangle));
-		if (meshBuffer->AllocIndexCount >= meshBuffer->UsedIndexCount)
-			memcpy(meshBuffer->IndexBuffer, VisibleRectangleIndices, sizeof(VisibleRectangleIndices));
-		return ovrSuccess;
-	}
-
-	XrVisibilityMaskTypeKHR type = (XrVisibilityMaskTypeKHR)(fovStencilDesc->StencilType + 1);
+	XrVisibilityMaskTypeKHR type = std::min((XrVisibilityMaskTypeKHR)(fovStencilDesc->StencilType + 1),
+		XR_VISIBILITY_MASK_TYPE_LINE_LOOP_KHR);
 	const VisibilityMask& mask = session->VisibilityMasks[fovStencilDesc->Eye][type];
-
-	meshBuffer->UsedVertexCount = mask.first.size();
-	meshBuffer->UsedIndexCount = mask.second.size();
 
 	OVR::ScaleAndOffset2D scaleAndOffset = OVR::FovPort::CreateNDCScaleAndOffsetFromFov(
 		XR::FovPort(session->ViewFov[fovStencilDesc->Eye].recommendedFov));
 
-	// Visibility masks are in view space, so we need to construct a matrix to project these to NDC space
+	// Visibility masks are in view space at z=-1, so we need to construct
+	// a right-handed 2D projection matrix to project the mask to NDC space
 	// TODO: Support the eye orientation in fovStencilDesc
 	OVR::Matrix3f matrix(
-		scaleAndOffset.Scale.x, 0.0f, scaleAndOffset.Offset.x,
-		0.0f, scaleAndOffset.Scale.y, scaleAndOffset.Offset.y,
-		0.0f, 0.0f, 1.0f);
+		scaleAndOffset.Scale.x, 0.0f, -scaleAndOffset.Offset.x,
+		0.0f, scaleAndOffset.Scale.y, -scaleAndOffset.Offset.y,
+		0.0f, 0.0f, 0.0f); // We're not interested in the Z value
 
-	if (meshBuffer->VertexBuffer)
+	const float scale = fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft ? 2.0f : -2.0f;
+	auto ToUVSpace = [matrix, scale](XR::Vector2f v)
 	{
+		// Transform the vertex at the correct distance from the eye
+		OVR::Vector3f result = matrix.Transform(OVR::Vector3f(v.x, v.y, -1.0f));
+
 		// Translate all NDC space vertices to UV space coordinate range [0,1]
-		const float scale = fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft ? 2.0f : -2.0f;
+		return OVR::Vector2f(result.x, result.y) / scale + OVR::Vector2f(0.5f);
+	};
+
+	// For the visible rectangle we use the line loop to find rectangle that fits in the visible area
+	if (fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
+	{
+		meshBuffer->UsedVertexCount = 4;
+		meshBuffer->UsedIndexCount = 6;
+		if (!meshBuffer->AllocVertexCount && !meshBuffer->AllocIndexCount)
+			return ovrSuccess;
+		else if (meshBuffer->AllocVertexCount < meshBuffer->UsedVertexCount ||
+			meshBuffer->AllocIndexCount < meshBuffer->UsedIndexCount ||
+			!meshBuffer->VertexBuffer || !meshBuffer->IndexBuffer)
+			return ovrError_InvalidParameter;
+
+		// Find a line segment in each quadrant closest to diagonal, these will serve as the vertices of our rectangle
+		ovrVector2f vertices[] = { { -1.0f, 1.0f }, { 1.0f, 1.0f },
+			{ 1.0f, -1.0f},  { -1.0f, -1.0f } };
+		float distance[] = { MATH_FLOAT_MAXVALUE, MATH_FLOAT_MAXVALUE,
+			MATH_FLOAT_MAXVALUE,  MATH_FLOAT_MAXVALUE };
+		for (size_t i = 0; i < mask.first.size(); i++)
+		{
+			// Compute the line segment and normalize it for comparison
+			OVR::Vector2f line = XR::Vector2f(mask.first[(i + 1) % mask.first.size()]) - XR::Vector2f(mask.first[i]);
+			OVR::Vector2f normalized = line.Normalized();
+
+			// Find out the quadrant we're in based on a clockwise order starting from top-left
+			uint8_t quadrant = abs((mask.first[i].y < 0) * 3 - (mask.first[i].x > 0));
+
+			// Find out how close this segment is to being diagonal
+			float delta = abs(abs(normalized.x) - abs(normalized.y));
+			if (delta < distance[quadrant])
+			{
+				// Put the vertex half-way along the line segment
+				vertices[quadrant] = XR::Vector2f(mask.first[i]) + line / 2.0f;
+				distance[quadrant] = delta;
+			}
+		}
+
+		// Align the rectangle to the axes
+		vertices[0].x = vertices[3].x = std::max(vertices[0].x, vertices[3].x);
+		vertices[0].y = vertices[1].y = std::min(vertices[0].y, vertices[1].y);
+		vertices[1].x = vertices[2].x = std::min(vertices[1].x, vertices[2].x);
+		vertices[2].y = vertices[3].y = std::max(vertices[2].y, vertices[3].y);
+
+		// Translate all NDC space vertices to UV space coordinate range [0,1]
 		for (int i = 0; i < meshBuffer->AllocVertexCount; i++)
-			meshBuffer->VertexBuffer[i] = matrix.Transform(XR::Vector2f(mask.first[i])) / scale + OVR::Vector2f(0.5f);
+			meshBuffer->VertexBuffer[i] = ToUVSpace(vertices[i]);
+
+		uint16_t indices[] = { 0, 1, 2, 0, 2, 3 };
+		memcpy(meshBuffer->IndexBuffer, indices, sizeof(indices));
+		return ovrSuccess;
 	}
 
-	if (meshBuffer->IndexBuffer)
-	{
-		for (int i = 0; i < meshBuffer->AllocIndexCount; i++)
-			meshBuffer->IndexBuffer[i] = (uint16_t)mask.second[i];
-	}
+	meshBuffer->UsedVertexCount = (int)mask.first.size();
+	meshBuffer->UsedIndexCount = (int)mask.second.size();
+	if (!meshBuffer->AllocVertexCount && !meshBuffer->AllocIndexCount)
+		return ovrSuccess;
+	else if (meshBuffer->AllocVertexCount < meshBuffer->UsedVertexCount ||
+			meshBuffer->AllocIndexCount < meshBuffer->UsedIndexCount ||
+			!meshBuffer->VertexBuffer || !meshBuffer->IndexBuffer)
+		return ovrError_InvalidParameter;
+
+	for (int i = 0; i < meshBuffer->AllocVertexCount; i++)
+		meshBuffer->VertexBuffer[i] = ToUVSpace(mask.first[i]);
+
+	for (int i = 0; i < meshBuffer->AllocIndexCount; i++)
+		meshBuffer->IndexBuffer[i] = (uint16_t)mask.second[i];
 
 	return ovrSuccess;
 }
