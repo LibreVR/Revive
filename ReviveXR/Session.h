@@ -49,10 +49,6 @@ struct ovrHmdStruct
 	std::atomic<XrIndexedFrameState*> CurrentFrame;
 	ovrGraphicsLuid Adapter;
 
-	// Swapchain management
-	std::mutex ChainMutex;
-	std::list<XrSwapchain> AcquiredChains;
-
 	// OpenXR properties
 	XrSystemProperties SystemProperties;
 	XrReferenceSpaceType TrackingSpace;

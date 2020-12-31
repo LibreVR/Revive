@@ -774,10 +774,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 		XrSwapchainImageAcquireInfo acquireInfo = XR_TYPE(SWAPCHAIN_IMAGE_ACQUIRE_INFO);
 		CHK_XR(xrAcquireSwapchainImage(chain->Swapchain, &acquireInfo, &chain->CurrentIndex));
 
-		{
-			std::unique_lock<std::mutex> lk(session->ChainMutex);
-			session->AcquiredChains.push_back(chain->Swapchain);
-		}
+		XrSwapchainImageWaitInfo waitInfo = XR_TYPE(SWAPCHAIN_IMAGE_WAIT_INFO);
+		waitInfo.timeout = (*session->CurrentFrame).predictedDisplayPeriod;
+		CHK_XR(xrWaitSwapchainImage(chain->Swapchain, &waitInfo));
 	}
 
 	return ovrSuccess;
@@ -789,11 +788,6 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTex
 
 	if (!chain)
 		return;
-
-	{
-		std::unique_lock<std::mutex> lk(session->ChainMutex);
-		session->AcquiredChains.remove(chain->Swapchain);
-	}
 
 	XrResult rs = xrDestroySwapchain(chain->Swapchain);
 	assert(XR_SUCCEEDED(rs));
@@ -889,20 +883,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 
 	if (!session)
 		return ovrError_InvalidSession;
-
-	// Wait on all outstanding surfaces
-	XrSwapchainImageWaitInfo chainWaitInfo = XR_TYPE(SWAPCHAIN_IMAGE_WAIT_INFO);
-	chainWaitInfo.timeout = XR_NO_DURATION;
-	{
-		std::unique_lock<std::mutex> lk(session->ChainMutex);
-		while (!session->AcquiredChains.empty())
-		{
-			MICROPROFILE_SCOPEI("Revive", "WaitSwapchain", 0x00ff00);
-			MICROPROFILE_META_CPU("Identifier", PtrToInt(session->AcquiredChains.front()));
-			CHK_XR(xrWaitSwapchainImage(session->AcquiredChains.front(), &chainWaitInfo));
-			session->AcquiredChains.pop_front();
-		}
-	}
 
 	XrFrameBeginInfo beginInfo = XR_TYPE(FRAME_BEGIN_INFO);
 	CHK_XR(xrBeginFrame(session->Session, &beginInfo));
