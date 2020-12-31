@@ -217,5 +217,12 @@ ovrResult ovrHmdStruct::UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR t
 	mask.indexCapacityInput = (uint32_t)result.second.size();
 	mask.indices = result.second.data();
 	CHK_XR(GetVisibilityMaskKHR(Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, view, type, &mask));
+
+	if (type == XR_VISIBILITY_MASK_TYPE_LINE_LOOP_KHR && Runtime::Get().UseHack(Runtime::HACK_BROKEN_LINE_LOOP))
+	{
+		// There are actually only 27 valid vertices in this line loop
+		result.first.resize(27);
+		result.second.resize(27);
+	}
 	return ovrSuccess;
 }

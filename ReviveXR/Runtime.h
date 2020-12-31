@@ -35,6 +35,9 @@ public:
 		// Hack: SteamVR runtime has some inflexibilities in its swapchain creation.
 		// To work around that we hook the D3D11 texture creation function and force our own parameters.
 		HACK_HOOK_CREATE_TEXTURE,
+		// Hack: SteamVR runtime allocates a buffer that is too big for the visibility line loop.
+		// Causes the rest of the buffer to be filled with uninitialized coordinates.
+		HACK_BROKEN_LINE_LOOP,
 	};
 
 	bool UseHack(Hack hack);
