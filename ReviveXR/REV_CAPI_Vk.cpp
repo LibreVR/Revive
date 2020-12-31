@@ -70,16 +70,29 @@ ovr_GetInstanceExtensionsVk(
 	char* extensionNames,
 	uint32_t* inoutExtensionNamesSize)
 {
-	XR_FUNCTION(g_Instance, GetVulkanInstanceExtensionsKHR);
-
 	if (!inoutExtensionNamesSize)
 		ovrError_InvalidParameter;
 
-	XrSystemId system;
-	XrSystemGetInfo info = XR_TYPE(SYSTEM_GET_INFO);
-	info.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
-	CHK_XR(xrGetSystem(g_Instance, &info, &system));
-	CHK_XR(GetVulkanInstanceExtensionsKHR(g_Instance, system, *inoutExtensionNamesSize, inoutExtensionNamesSize, extensionNames));
+	if (Runtime::Get().Supports(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME))
+	{
+		XR_FUNCTION(g_Instance, GetVulkanInstanceExtensionsKHR);
+
+		XrSystemId system;
+		XrSystemGetInfo info = XR_TYPE(SYSTEM_GET_INFO);
+		info.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
+		CHK_XR(xrGetSystem(g_Instance, &info, &system));
+		CHK_XR(GetVulkanInstanceExtensionsKHR(g_Instance, system, *inoutExtensionNamesSize, inoutExtensionNamesSize, extensionNames));
+	}
+	else
+	{
+		uint32_t size = *inoutExtensionNamesSize;
+		*inoutExtensionNamesSize = 1;
+
+		if (extensionNames && size >= 1)
+			*extensionNames = '\0';
+		if (size < 1)
+			return ovrError_InsufficientArraySize;
+	}
 	return ovrSuccess;
 }
 
@@ -89,16 +102,29 @@ ovr_GetDeviceExtensionsVk(
 	char* extensionNames,
 	uint32_t* inoutExtensionNamesSize)
 {
-	XR_FUNCTION(g_Instance, GetVulkanDeviceExtensionsKHR);
-
 	if (!inoutExtensionNamesSize)
 		ovrError_InvalidParameter;
 
-	XrSystemId system;
-	XrSystemGetInfo info = XR_TYPE(SYSTEM_GET_INFO);
-	info.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
-	CHK_XR(xrGetSystem(g_Instance, &info, &system));
-	CHK_XR(GetVulkanDeviceExtensionsKHR(g_Instance, system, *inoutExtensionNamesSize, inoutExtensionNamesSize, extensionNames));
+	if (Runtime::Get().Supports(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME))
+	{
+		XR_FUNCTION(g_Instance, GetVulkanDeviceExtensionsKHR);
+
+		XrSystemId system;
+		XrSystemGetInfo info = XR_TYPE(SYSTEM_GET_INFO);
+		info.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
+		CHK_XR(xrGetSystem(g_Instance, &info, &system));
+		CHK_XR(GetVulkanDeviceExtensionsKHR(g_Instance, system, *inoutExtensionNamesSize, inoutExtensionNamesSize, extensionNames));
+	}
+	else
+	{
+		uint32_t size = *inoutExtensionNamesSize;
+		*inoutExtensionNamesSize = 1;
+
+		if (extensionNames && size >= 1)
+			*extensionNames = '\0';
+		if (size < 1)
+			return ovrError_InsufficientArraySize;
+	}
 	return ovrSuccess;
 }
 
