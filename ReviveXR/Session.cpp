@@ -209,6 +209,9 @@ ovrResult ovrHmdStruct::UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR t
 	VisibilityMask& result = VisibilityMasks[view][type];
 	XrVisibilityMaskKHR mask = XR_TYPE(VISIBILITY_MASK_KHR);
 	CHK_XR(GetVisibilityMaskKHR(Session, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, view, type, &mask));
+	if (!mask.vertexCountOutput || !mask.indexCountOutput)
+		return ovrError_Unsupported;
+
 	result.first.resize(mask.vertexCountOutput);
 	result.second.resize(mask.indexCountOutput);
 

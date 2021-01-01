@@ -1439,6 +1439,10 @@ ovr_GetFovStencil(
 		XR_VISIBILITY_MASK_TYPE_LINE_LOOP_KHR);
 	const VisibilityMask& mask = session->VisibilityMasks[fovStencilDesc->Eye][type];
 
+	// Some runtime advertise support for the extension, but don't return valid masks
+	if (mask.first.empty() || mask.second.empty())
+		return ovrError_Unsupported;
+
 	OVR::ScaleAndOffset2D scaleAndOffset = OVR::FovPort::CreateNDCScaleAndOffsetFromFov(
 		XR::FovPort(session->ViewFov[fovStencilDesc->Eye].recommendedFov));
 
