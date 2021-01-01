@@ -17,10 +17,13 @@
 #include <vector>
 #include <algorithm>
 #include <thread>
+#include <chrono>
 #include <detours/detours.h>
 
 XrInstance g_Instance = XR_NULL_HANDLE;
 std::list<ovrHmdStruct> g_Sessions;
+
+using namespace std::chrono_literals;
 
 bool LoadRenderDoc()
 {
@@ -866,7 +869,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 	{
 		// Wait until the session is running, since the render thread may still be initializing
 		std::unique_lock<std::mutex> lk(session->Running.first);
-		session->Running.second.wait(lk, [session] { return session->Session != XR_NULL_HANDLE; });
+		if (!session->Running.second.wait_for(lk, 10s, [session] { return session->Session != XR_NULL_HANDLE; }))
+			return ovrError_Timeout;
 	}
 
 	XrIndexedFrameState* frameState = session->CurrentFrame + 1;
