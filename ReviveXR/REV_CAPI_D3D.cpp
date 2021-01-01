@@ -92,7 +92,7 @@ HRESULT WINAPI HookCreateRenderTargetView(
 {
 	D3D11_RENDER_TARGET_VIEW_DESC desc;
 	UINT size = (UINT)sizeof(desc);
-	if (!pDesc && SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
+	if (SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
 	{
 		return TrueCreateRenderTargetView(This, pResource, &desc, ppRTView);
 	}
@@ -108,7 +108,7 @@ HRESULT WINAPI HookCreateShaderResourceView(
 {
 	D3D11_SHADER_RESOURCE_VIEW_DESC desc;
 	UINT size = (UINT)sizeof(desc);
-	if (!pDesc && SUCCEEDED(pResource->GetPrivateData(RXR_SRV_DESC, &size, &desc)))
+	if (SUCCEEDED(pResource->GetPrivateData(RXR_SRV_DESC, &size, &desc)))
 	{
 		return TrueCreateShaderResourceView(This, pResource, &desc, ppSRView);
 	}
@@ -285,18 +285,22 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		g_SwapChainDesc = nullptr;
 		CHK_OVR(EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR, chain));
 
-		CD3D11_SHADER_RESOURCE_VIEW_DESC srv(DescToViewDimension(&chain->Desc), format);
-		CD3D11_RENDER_TARGET_VIEW_DESC rtv((D3D11_RTV_DIMENSION)DescToViewDimension(&chain->Desc), format);
-
-		for (uint32_t i = 0; i < chain->Length; i++)
+		// If the app doesn't expect a typeless texture we need to attach the fully qualified format to each texture.
+		if (!(desc->MiscFlags & ovrTextureMisc_DX_Typeless))
 		{
-			XrSwapchainImageD3D11KHR image = ((XrSwapchainImageD3D11KHR*)chain->Images)[i];
+			CD3D11_SHADER_RESOURCE_VIEW_DESC srv(DescToViewDimension(&chain->Desc), format);
+			CD3D11_RENDER_TARGET_VIEW_DESC rtv((D3D11_RTV_DIMENSION)DescToViewDimension(&chain->Desc), format);
 
-			HRESULT hr = image.texture->SetPrivateData(RXR_SRV_DESC, sizeof(CD3D11_SHADER_RESOURCE_VIEW_DESC), &srv);
-			if (SUCCEEDED(hr))
-				hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D11_RENDER_TARGET_VIEW_DESC), &rtv);
-			if (FAILED(hr))
-				return ovrError_RuntimeException;
+			for (uint32_t i = 0; i < chain->Length; i++)
+			{
+				XrSwapchainImageD3D11KHR image = ((XrSwapchainImageD3D11KHR*)chain->Images)[i];
+
+				HRESULT hr = image.texture->SetPrivateData(RXR_SRV_DESC, sizeof(CD3D11_SHADER_RESOURCE_VIEW_DESC), &srv);
+				if (SUCCEEDED(hr))
+					hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D11_RENDER_TARGET_VIEW_DESC), &rtv);
+				if (FAILED(hr))
+					return ovrError_RuntimeException;
+			}
 		}
 
 		*out_TextureSwapChain = chain;
