@@ -2,9 +2,10 @@
 
 #include <OVR_CAPI.h>
 #include <openxr/openxr.h>
-#include <memory>
-#include <map>
 #include <atomic>
+#include <condition_variable>
+#include <map>
+#include <memory>
 #include <mutex>
 #include <list>
 #include <vector>
@@ -34,6 +35,9 @@ typedef std::pair<std::vector<XrVector2f>,
 
 struct ovrHmdStruct
 {
+	std::pair<std::mutex,
+		std::condition_variable> Running;
+
 	std::map<void**, void*> HookedFunctions;
 
 	// OpenXR handles

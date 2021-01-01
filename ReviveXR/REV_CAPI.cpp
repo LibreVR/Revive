@@ -863,9 +863,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 	if (!session)
 		return ovrError_InvalidSession;
 
-	// The first frame will automatically start when beginning the session
-	if (!session->Session)
-		return ovrSuccess;
+	{
+		// Wait until the session is running, since the render thread may still be initializing
+		std::unique_lock<std::mutex> lk(session->Running.first);
+		session->Running.second.wait(lk, [session] { return session->Session != XR_NULL_HANDLE; });
+	}
 
 	XrIndexedFrameState* frameState = session->CurrentFrame + 1;
 	if (frameState > &session->FrameStats[ovrMaxProvidedFrameStats - 1])
@@ -885,10 +887,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 
 	if (!session)
 		return ovrError_InvalidSession;
-
-	// The first frame will automatically start when beginning the session
-	if (!session->Session)
-		return ovrSuccess;
 
 	XrFrameBeginInfo beginInfo = XR_TYPE(FRAME_BEGIN_INFO);
 	CHK_XR(xrBeginFrame(session->Session, &beginInfo));

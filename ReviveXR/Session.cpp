@@ -153,6 +153,8 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 	beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 	CHK_XR(xrBeginSession(Session, &beginInfo));
 
+	Running.second.notify_all();
+
 	// Start the first frame immediately if requested
 	if (beginFrame)
 	{
