@@ -1474,8 +1474,8 @@ ovr_GetFovStencil(
 
 		// Find a line segment in each quadrant closest to diagonal, these will serve as the vertices of our rectangle
 		ovrVector2f vertices[] = { { -1.0f, 1.0f }, { 1.0f, 1.0f },
-			{ 1.0f, -1.0f},  { -1.0f, -1.0f } };
-		float distance[] = { MATH_FLOAT_MAXVALUE, MATH_FLOAT_MAXVALUE,
+			{ 1.0f, -1.0f },  { -1.0f, -1.0f } };
+		float diagonality[] = { MATH_FLOAT_MAXVALUE, MATH_FLOAT_MAXVALUE,
 			MATH_FLOAT_MAXVALUE,  MATH_FLOAT_MAXVALUE };
 		for (size_t i = 0; i < mask.first.size(); i++)
 		{
@@ -1486,13 +1486,17 @@ ovr_GetFovStencil(
 			// Find out the quadrant we're in based on a clockwise order starting from top-left
 			uint8_t quadrant = abs((mask.first[i].y < 0) * 3 - (mask.first[i].x > 0));
 
+			// Ignore line segments that are straight
+			if (normalized.x == 0 || normalized.y == 0)
+				continue;
+
 			// Find out how close this segment is to being diagonal
 			float delta = abs(abs(normalized.x) - abs(normalized.y));
-			if (delta < distance[quadrant])
+			if (delta < diagonality[quadrant])
 			{
 				// Put the vertex half-way along the line segment
 				vertices[quadrant] = XR::Vector2f(mask.first[i]) + line / 2.0f;
-				distance[quadrant] = delta;
+				diagonality[quadrant] = delta;
 			}
 		}
 
