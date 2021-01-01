@@ -233,8 +233,6 @@
     <ClInclude Include="..\microprofile\microprofiledraw.h" />
     <ClInclude Include="..\microprofile\microprofilehtml.h" />
     <ClInclude Include="..\microprofile\microprofileui.h" />
-    <ClInclude Include="CImg.h" />
-    <ClInclude Include="Debug.h" />
     <ClInclude Include="HapticsBuffer.h" />
     <ClInclude Include="OVR_CAPI.h" />
     <ClInclude Include="Runtime.h" />

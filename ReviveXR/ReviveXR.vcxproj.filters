@@ -66,12 +66,6 @@
     <ClInclude Include="XR_Math.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CImg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Debug.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Runtime.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>

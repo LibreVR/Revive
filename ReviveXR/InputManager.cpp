@@ -4,9 +4,6 @@
 #include "Runtime.h"
 #include "OVR_CAPI.h"
 #include "XR_Math.h"
-#ifdef _DEBUG
-#include "Debug.h"
-#endif
 
 #include <Windows.h>
 #include <openxr/openxr.h>
@@ -193,10 +190,6 @@ unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& locat
 	return flags;
 }
 
-#ifdef PLOT_TRACKING
-ReviveTrackingPlotter trackingPlotter(1000);
-#endif
-
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
 {
 	double calledTime = absTime;
@@ -222,12 +215,6 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		if (i < m_ActionSpaces.size() && XR_SUCCEEDED(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation)))
 			outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
 	}
-
-#ifdef PLOT_TRACKING
-	trackingPlotter.SampleValue(*outState, (*session->CurrentFrame).frameIndex, absTime, calledTime);
-	if ((trackingPlotter.size() % 8) == 0)
-		trackingPlotter.plot();
-#endif
 
 	m_LastTrackingState = *outState;
 
