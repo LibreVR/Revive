@@ -19,8 +19,6 @@
 #include <thread>
 #include <detours/detours.h>
 
-#define REV_DEFAULT_TIMEOUT 10000
-
 XrInstance g_Instance = XR_NULL_HANDLE;
 std::list<ovrHmdStruct> g_Sessions;
 
