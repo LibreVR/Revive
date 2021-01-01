@@ -863,6 +863,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 	if (!session)
 		return ovrError_InvalidSession;
 
+	// The first frame will automatically start when beginning the session
+	if (!session->Session)
+		return ovrSuccess;
+
 	XrIndexedFrameState* frameState = session->CurrentFrame + 1;
 	if (frameState > &session->FrameStats[ovrMaxProvidedFrameStats - 1])
 		frameState = session->FrameStats;
@@ -881,6 +885,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 
 	if (!session)
 		return ovrError_InvalidSession;
+
+	// The first frame will automatically start when beginning the session
+	if (!session->Session)
+		return ovrSuccess;
 
 	XrFrameBeginInfo beginInfo = XR_TYPE(FRAME_BEGIN_INFO);
 	CHK_XR(xrBeginFrame(session->Session, &beginInfo));
