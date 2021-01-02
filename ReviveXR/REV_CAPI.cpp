@@ -1175,7 +1175,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 {
 	REV_TRACE(ovr_GetPerfStats);
 
-	return ovrError_Unsupported;
+	if (Runtime::Get().MinorVersion < 11)
+		memset(outStats, 0, sizeof(ovrPerfStats1));
+	else
+		memset(outStats, 0, sizeof(ovrPerfStats));
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetPerfStats(ovrSession session)
