@@ -873,13 +873,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 			return ovrError_Timeout;
 	}
 
-	XrIndexedFrameState* frameState = session->CurrentFrame + 1;
-	if (frameState > &session->FrameStats[ovrMaxProvidedFrameStats - 1])
-		frameState = session->FrameStats;
-
+	XrIndexedFrameState* frameState = &session->FrameStats[frameIndex % ovrMaxProvidedFrameStats];
 	XrFrameWaitInfo waitInfo = XR_TYPE(FRAME_WAIT_INFO);
 	CHK_XR(xrWaitFrame(session->Session, &waitInfo, frameState));
-	frameState->frameIndex = frameIndex + 1;
+	frameState->frameIndex = frameIndex;
 	session->CurrentFrame = frameState;
 	return ovrSuccess;
 }
@@ -891,6 +888,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 
 	if (!session)
 		return ovrError_InvalidSession;
+
+	assert(frameIndex == (*session->CurrentFrame).frameIndex);
 
 	XrFrameBeginInfo beginInfo = XR_TYPE(FRAME_BEGIN_INFO);
 	CHK_XR(xrBeginFrame(session->Session, &beginInfo));
