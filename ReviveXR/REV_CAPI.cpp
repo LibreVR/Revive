@@ -1200,7 +1200,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	XrTime displayTime = CurrentFrame->predictedDisplayTime;
 
 	if (frameIndex > 0)
-		displayTime += CurrentFrame->predictedDisplayPeriod * (CurrentFrame->frameIndex - frameIndex);
+		displayTime += CurrentFrame->predictedDisplayPeriod * (frameIndex - CurrentFrame->frameIndex);
 
 	static double PerfFrequencyInverse = 0.0;
 	if (PerfFrequencyInverse == 0.0)
