@@ -200,7 +200,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
 	XrSpaceVelocity velocity = XR_TYPE(SPACE_VELOCITY);
 	location.next = &velocity;
-	XrTime displayTime = absTime <= 0.0 ? (*session->CurrentFrame).predictedDisplayTime : AbsTimeToXrTime(session->Instance, absTime);
+	XrTime displayTime = absTime <= 0.0 ? AbsTimeToXrTime(session->Instance, ovr_GetTimeInSeconds()) : AbsTimeToXrTime(session->Instance, absTime);
 	XrSpace space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ? session->StageSpace : session->LocalSpace;
 
 	// Get space relation for the head
