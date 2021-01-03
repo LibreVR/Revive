@@ -1103,7 +1103,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	}
 
 	XrFrameEndInfo endInfo = XR_TYPE(FRAME_END_INFO);
-	endInfo.displayTime = (*session->CurrentFrame).predictedDisplayTime;
+	endInfo.displayTime = session->FrameStats[frameIndex % ovrMaxProvidedFrameStats].predictedDisplayTime;
 	endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 	endInfo.layerCount = (uint32_t)layers.size();
 	endInfo.layers = layers.data();
