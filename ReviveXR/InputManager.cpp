@@ -519,6 +519,7 @@ XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSugge
 			ADD_BINDING(m_Thumbstick, prefixes[i] + "/input/thumbstick");
 			ADD_BINDING(m_Button_Thumb, prefixes[i] + "/input/thumbstick/click");
 			ADD_BINDING(m_HandTrigger, prefixes[i] + "/input/squeeze/click");
+			ADD_BINDING(m_Touch_IndexTrigger, prefixes[i] + "/input/trigger/value");
 			ADD_BINDING(m_IndexTrigger, prefixes[i] + "/input/trigger/value");
 		}
 		else
