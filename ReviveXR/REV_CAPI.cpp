@@ -1197,9 +1197,21 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 
 	XrIndexedFrameState* CurrentFrame = session->CurrentFrame;
 	XrTime displayTime = CurrentFrame->predictedDisplayTime;
-
-	if (frameIndex > 0)
+	if (frameIndex > CurrentFrame->frameIndex)
+	{
+		// There is no predicted display period for this frame yet, synthesize one
 		displayTime += CurrentFrame->predictedDisplayPeriod * (frameIndex - CurrentFrame->frameIndex);
+	}
+	else if (frameIndex < CurrentFrame->frameIndex)
+	{
+		// We keep a history of older frames, check if this is within the history range
+		// If not, then synthesize an older display time
+		long long delta = CurrentFrame->frameIndex - frameIndex;
+		if (delta < ovrMaxProvidedFrameStats)
+			displayTime = session->FrameStats[frameIndex % ovrMaxProvidedFrameStats].predictedDisplayTime;
+		else
+			displayTime -= CurrentFrame->predictedDisplayPeriod * delta;
+	}
 
 	static double PerfFrequencyInverse = 0.0;
 	if (PerfFrequencyInverse == 0.0)
