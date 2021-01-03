@@ -158,8 +158,8 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 	// Start the first frame immediately if requested
 	if (beginFrame)
 	{
-		CHK_OVR(ovr_WaitToBeginFrame(this, 0));
-		CHK_OVR(ovr_BeginFrame(this, 0));
+		CHK_OVR(ovr_WaitToBeginFrame(this, 1));
+		CHK_OVR(ovr_BeginFrame(this, 1));
 	}
 	return ovrSuccess;
 }
