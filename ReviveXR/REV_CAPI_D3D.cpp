@@ -175,6 +175,18 @@ D3D_SRV_DIMENSION DescToViewDimension(const ovrTextureSwapChainDesc* desc)
 	}
 }
 
+bool IsDepthFormat(ovrTextureFormat format)
+{
+	switch (format)
+	{
+		case OVR_FORMAT_D16_UNORM:            return true;
+		case OVR_FORMAT_D24_UNORM_S8_UINT:    return true;
+		case OVR_FORMAT_D32_FLOAT:            return true;
+		case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return true;
+		default: return false;
+	}
+}
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
                                                             IUnknown* d3dPtr,
                                                             const ovrTextureSwapChainDesc* desc,
@@ -286,7 +298,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		CHK_OVR(EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR, chain));
 
 		// If the app doesn't expect a typeless texture we need to attach the fully qualified format to each texture.
-		if (!(desc->MiscFlags & ovrTextureMisc_DX_Typeless))
+		if (!(desc->MiscFlags & ovrTextureMisc_DX_Typeless) && !IsDepthFormat(desc->Format))
 		{
 			CD3D11_SHADER_RESOURCE_VIEW_DESC srv(DescToViewDimension(&chain->Desc), format);
 			CD3D11_RENDER_TARGET_VIEW_DESC rtv((D3D11_RTV_DIMENSION)DescToViewDimension(&chain->Desc), format);
