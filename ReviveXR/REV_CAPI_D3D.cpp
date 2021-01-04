@@ -94,6 +94,12 @@ HRESULT WINAPI HookCreateRenderTargetView(
 	UINT size = (UINT)sizeof(desc);
 	if (SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
 	{
+		if (pDesc)
+		{
+			DXGI_FORMAT format = desc.Format;
+			desc = *pDesc;
+			desc.Format = format;
+		}
 		return TrueCreateRenderTargetView(This, pResource, &desc, ppRTView);
 	}
 
@@ -110,6 +116,12 @@ HRESULT WINAPI HookCreateShaderResourceView(
 	UINT size = (UINT)sizeof(desc);
 	if (SUCCEEDED(pResource->GetPrivateData(RXR_SRV_DESC, &size, &desc)))
 	{
+		if (pDesc)
+		{
+			DXGI_FORMAT format = desc.Format;
+			desc = *pDesc;
+			desc.Format = format;
+		}
 		return TrueCreateShaderResourceView(This, pResource, &desc, ppSRView);
 	}
 
