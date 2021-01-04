@@ -310,6 +310,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		CHK_OVR(EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR, chain));
 
 		// If the app doesn't expect a typeless texture we need to attach the fully qualified format to each texture.
+		// Depth formats are always considered typeless in the Oculus SDK, so no need to hook those.
 		if (!(desc->MiscFlags & ovrTextureMisc_DX_Typeless) && !IsDepthFormat(desc->Format))
 		{
 			CD3D11_SHADER_RESOURCE_VIEW_DESC srv(DescToViewDimension(&chain->Desc), format);
@@ -319,7 +320,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 			{
 				XrSwapchainImageD3D11KHR image = ((XrSwapchainImageD3D11KHR*)chain->Images)[i];
 
-				HRESULT hr = image.texture->SetPrivateData(RXR_SRV_DESC, sizeof(CD3D11_SHADER_RESOURCE_VIEW_DESC), &srv);
+				HRESULT hr = image.texture->SetPrivateData(RXR_SRV_DESC, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC), &srv);
 				if (SUCCEEDED(hr))
 					hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D11_RENDER_TARGET_VIEW_DESC), &rtv);
 				if (FAILED(hr))
