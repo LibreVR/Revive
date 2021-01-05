@@ -1102,6 +1102,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		layers.push_back(&newLayer.Header);
 	}
 
+	// If this frame index is beyond the current frame, then target the current frame instead
+	XrIndexedFrameState* CurrentFrame = session->CurrentFrame;
+	if (frameIndex > CurrentFrame->frameIndex)
+		frameIndex = CurrentFrame->frameIndex;
+
 	XrFrameEndInfo endInfo = XR_TYPE(FRAME_END_INFO);
 	endInfo.displayTime = session->FrameStats[frameIndex % ovrMaxProvidedFrameStats].predictedDisplayTime;
 	endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
