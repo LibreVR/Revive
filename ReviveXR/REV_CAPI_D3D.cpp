@@ -63,14 +63,6 @@ HRESULT WINAPI HookCreateTexture2D(
 	{
 		D3D11_TEXTURE2D_DESC desc = *pDesc;
 
-		// Force support for 8-bit linear formats
-		if (desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB &&
-			g_SwapChainDesc->Format == OVR_FORMAT_R8G8B8A8_UNORM)
-			desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		else if (desc.Format == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB &&
-			g_SwapChainDesc->Format == OVR_FORMAT_B8G8R8A8_UNORM)
-			desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-
 		// Force support for swapchain mipmaps
 		desc.MipLevels = g_SwapChainDesc->MipLevels;
 		if (desc.MipLevels > 1)
@@ -130,7 +122,6 @@ HRESULT WINAPI HookCreateShaderResourceView(
 
 DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format)
 {
-	// TODO: sRGB support
 	// OpenXR always uses typeless formats
 	switch (format)
 	{
@@ -142,8 +133,8 @@ DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format)
 		case OVR_FORMAT_R8G8B8A8_UNORM_SRGB:  return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		case OVR_FORMAT_B8G8R8A8_UNORM:       return DXGI_FORMAT_B8G8R8A8_UNORM;
 		case OVR_FORMAT_B8G8R8A8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-		case OVR_FORMAT_B8G8R8X8_UNORM:       return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+		case OVR_FORMAT_B8G8R8X8_UNORM:       return DXGI_FORMAT_B8G8R8X8_UNORM;
+		case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
 		case OVR_FORMAT_R16G16B16A16_FLOAT:   return DXGI_FORMAT_R16G16B16A16_FLOAT;
 		case OVR_FORMAT_R11G11B10_FLOAT:      return DXGI_FORMAT_R11G11B10_FLOAT;
 
@@ -284,20 +275,34 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		}
 	}
 
+	// Do some format compatibility conversions before creating the swapchain
 	DXGI_FORMAT format = TextureFormatToDXGIFormat(desc->Format);
 	if (format == DXGI_FORMAT_R11G11B10_FLOAT)
 	{
+		// We may need to use a lower percision format and rely on data conversion rules
 		if (Runtime::Get().UseHack(Runtime::HACK_NO_11BIT_FORMAT))
 			format = DXGI_FORMAT_R10G10B10A2_UNORM;
 		else if (Runtime::Get().UseHack(Runtime::HACK_NO_10BIT_FORMAT))
-			format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	}
-	else if ((format == DXGI_FORMAT_R8G8B8A8_UNORM || format == DXGI_FORMAT_B8G8R8A8_UNORM) &&
-		Runtime::Get().UseHack(Runtime::HACK_NO_8BIT_LINEAR))
+
+	// No runtime supports 8-bit formats without alpha, but easy to convert
+	if (format == DXGI_FORMAT_B8G8R8X8_UNORM)
+		format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	else if (format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB)
+		format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+
+	// Some runtimes don't support 8-bit linear, but most apps shouldn't be using it anyway
+	if (Runtime::Get().UseHack(Runtime::HACK_NO_8BIT_LINEAR))
 	{
+		// Most apps will be fine if we convert their values from linear to sRGB
 		if (format == DXGI_FORMAT_R8G8B8A8_UNORM)
 			format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		else
+		else if (format == DXGI_FORMAT_R8G8B8A8_UNORM)
+			format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		else if (format == DXGI_FORMAT_B8G8R8A8_UNORM)
+			format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+		else if (format == DXGI_FORMAT_B8G8R8A8_UNORM)
 			format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 	}
 
@@ -313,8 +318,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		// Depth formats are always considered typeless in the Oculus SDK, so no need to hook those.
 		if (!(desc->MiscFlags & ovrTextureMisc_DX_Typeless) && !IsDepthFormat(desc->Format))
 		{
-			CD3D11_SHADER_RESOURCE_VIEW_DESC srv(DescToViewDimension(&chain->Desc), format);
-			CD3D11_RENDER_TARGET_VIEW_DESC rtv((D3D11_RTV_DIMENSION)DescToViewDimension(&chain->Desc), format);
+			// Create the SRVs and RTVs with the real format that the application expects
+			CD3D11_SHADER_RESOURCE_VIEW_DESC srv(DescToViewDimension(&chain->Desc), TextureFormatToDXGIFormat(desc->Format));
+			CD3D11_RENDER_TARGET_VIEW_DESC rtv((D3D11_RTV_DIMENSION)DescToViewDimension(&chain->Desc), TextureFormatToDXGIFormat(desc->Format));
 
 			for (uint32_t i = 0; i < chain->Length; i++)
 			{

@@ -27,7 +27,7 @@ public:
 		// Fall back to the 8-bit sRGB format instead.
 		HACK_NO_10BIT_FORMAT,
 		// Hack: Some runtimes don't support 8-bit linear swapchain formats.
-		// Fall back to the sRGB formats instead.
+		// But most apps shouldn't be using sRGB formats instead anyway.
 		HACK_NO_8BIT_LINEAR,
 		// Hack: Some games only call GetRenderDesc once before the session is fully initialized.
 		// Therefore we need to force the fallback field-of-view query so we get full ViewPoses.
