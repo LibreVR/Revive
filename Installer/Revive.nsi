@@ -1,8 +1,12 @@
+!ifdef NIGHTLY
+!define BASE_DIR "..\Nightly"
+!else
 !define BASE_DIR "..\Release"
+!endif
 !define SRC_DIR "..\Revive"
 !define DASH_DIR "..\ReviveOverlay"
 
-!ifdef DEV_BUILD
+!ifdef NIGHTLY
 Function .onInit
     MessageBox MB_YESNO "Looks like you downloaded a beta release, these releases are unstable and only intended for experimentation.$\r$\n$\r$\nDo you want to install a stable release instead?" IDYES abort IDNO continue
     abort:

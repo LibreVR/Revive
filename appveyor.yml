@@ -38,35 +38,31 @@ build_script:
   # build Revive
   - ps: |
       cd c:\projects\revive
-      msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x64
-      msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x86
+      msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x64
+      msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x86
       
 after_build:
-  # copy additional files to the release folders
+  # copy additional files to the nightly folders
   - ps: |
-      cd c:\projects\revive\release
+      cd C:\Projects\Revive\Nightly
       copy ..\Externals\WinSparkle\x64\Release\WinSparkle.dll .
       copy ..\ReviveOverlay\SupportAssets . -Filter "*.jpg" -Recurse -Container
       copy C:\openssl-v111-win64\bin\libcrypto-1_1-x64.dll .
       copy C:\openssl-v111-win64\bin\libssl-1_1-x64.dll .
   # gather built Revive files
   - cmd: |
-      cd c:\projects\Revive\Release
+      cd C:\Projects\Revive\Nightly
       7z a Revive.zip ReviveInjector.exe LibRevive32.dll LibRevive64.dll LibReviveXR64.dll LibReviveXR32.dll
   # Run NSIS to generate installer
   - ps: |
-      cd c:\projects\Revive\Installer
+      cd C:\Projects\Revive\Installer
       $env:Path += ";C:\Program Files (x86)\NSIS"
-      If ($env:APPVEYOR_REPO_TAG -eq "false" -Or $env:APPVEYOR_REPO_TAG_NAME -like "*beta") {
-        makensis /DDEV_BUILD Revive.nsi
-      } Else {
-        makensis Revive.nsi
-      }
+      makensis /DNIGHTLY Revive.nsi
 
 artifacts:
   - path: Installer\ReviveInstaller.exe
     name: Revive Installer
-  - path: Release\Revive.zip
+  - path: Nightly\Revive.zip
     name: Revive Build
 
 deploy:
