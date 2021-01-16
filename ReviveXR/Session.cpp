@@ -153,6 +153,13 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 	beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 	CHK_XR(xrBeginSession(Session, &beginInfo));
 
+	// Enumerate formats
+	uint32_t formatCount = 0;
+	CHK_XR(xrEnumerateSwapchainFormats(Session, 0, &formatCount, nullptr));
+	SupportedFormats.resize(formatCount);
+	CHK_XR(xrEnumerateSwapchainFormats(Session, (uint32_t)SupportedFormats.size(), &formatCount, SupportedFormats.data()));
+	assert(formatCount == SupportedFormats.size());
+
 	Running.second.notify_all();
 
 	// Start the first frame immediately if requested
@@ -230,4 +237,9 @@ ovrResult ovrHmdStruct::UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR t
 		result.second.resize(27);
 	}
 	return ovrSuccess;
+}
+
+bool ovrHmdStruct::SupportsFormat(int64_t format) const
+{
+	return std::find(SupportedFormats.begin(), SupportedFormats.end(), format) != SupportedFormats.end();
 }

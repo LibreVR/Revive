@@ -2,21 +2,20 @@
 #include "Common.h"
 
 #include <openxr/openxr.h>
-#include <vector>
 
-XrSwapchainCreateInfo DescToCreateInfo(const ovrTextureSwapChainDesc* desc, int64_t format)
+ovrResult CreateSwapChain(XrSession session, const ovrTextureSwapChainDesc* desc, int64_t format, ovrTextureSwapChain* out)
 {
+	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
+	swapChain->Desc = *desc;
+
 	XrSwapchainCreateInfo createInfo = XR_TYPE(SWAPCHAIN_CREATE_INFO);
-
-	// TODO: Support typeless flag
-	//assert(!(desc->MiscFlags & ovrTextureMisc_DX_Typeless));
-
 	if (desc->MiscFlags & ovrTextureMisc_ProtectedContent)
 		createInfo.createFlags |= XR_SWAPCHAIN_CREATE_PROTECTED_CONTENT_BIT;
 
 	if (desc->StaticImage)
 		createInfo.createFlags |= XR_SWAPCHAIN_CREATE_STATIC_IMAGE_BIT;
 
+	// All Oculus swapchains allow sampling
 	createInfo.usageFlags |= XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
 
 	if (desc->BindFlags & ovrTextureBind_DX_RenderTarget)
@@ -35,28 +34,6 @@ XrSwapchainCreateInfo DescToCreateInfo(const ovrTextureSwapChainDesc* desc, int6
 	createInfo.faceCount = desc->ArraySize; // This is actually face count
 	createInfo.arraySize = 1;
 	createInfo.mipCount = desc->MipLevels;
-	return createInfo;
-}
-
-ovrResult CreateSwapChain(XrSession session, const ovrTextureSwapChainDesc* desc, int64_t format, ovrTextureSwapChain* out)
-{
-	// Enumerate formats
-	uint32_t formatCount = 0;
-	xrEnumerateSwapchainFormats(session, 0, &formatCount, nullptr);
-	std::vector<int64_t> formats;
-	formats.resize(formatCount);
-	xrEnumerateSwapchainFormats(session, (uint32_t)formats.size(), &formatCount, formats.data());
-	assert(formats.size() == formatCount);
-
-	ovrTextureSwapChain swapChain = new ovrTextureSwapChainData();
-
-	// Check if the format is supported
-	if (std::find(formats.begin(), formats.end(), format) == formats.end()) {
-		return ovrError_InvalidParameter;
-	}
-
-	swapChain->Desc = *desc;
-	XrSwapchainCreateInfo createInfo = DescToCreateInfo(desc, format);
 	CHK_XR(xrCreateSwapchain(session, &createInfo, &swapChain->Swapchain));
 
 	XrSwapchainImageAcquireInfo acqInfo = XR_TYPE(SWAPCHAIN_IMAGE_ACQUIRE_INFO);

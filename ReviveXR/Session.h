@@ -60,6 +60,7 @@ struct ovrHmdStruct
 	XrViewConfigurationViewFovEPIC ViewFov[ovrEye_Count];
 	XrView ViewPoses[ovrEye_Count];
 	ovrVector2f PixelsPerTan[ovrEye_Count];
+	std::vector<int64_t> SupportedFormats;
 
 	// Session status
 	SessionStatusBits SessionStatus;
@@ -77,4 +78,5 @@ struct ovrHmdStruct
 
 	ovrResult UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR type);
 	ovrResult LocateViews(XrView out_Views[ovrEye_Count], XrViewStateFlags* out_Flags = nullptr) const;
+	bool SupportsFormat(int64_t format) const;
 };

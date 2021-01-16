@@ -275,36 +275,44 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		}
 	}
 
-	// Do some format compatibility conversions before creating the swapchain
-	DXGI_FORMAT format = TextureFormatToDXGIFormat(desc->Format);
-	if (format == DXGI_FORMAT_R11G11B10_FLOAT)
+	const auto NegotiateFormat = [session](DXGI_FORMAT format)
 	{
-		// We may need to use a lower percision format and rely on data conversion rules
-		if (Runtime::Get().UseHack(Runtime::HACK_NO_11BIT_FORMAT))
-			format = DXGI_FORMAT_R10G10B10A2_UNORM;
-		else if (Runtime::Get().UseHack(Runtime::HACK_NO_10BIT_FORMAT))
-			format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	}
+		if (session->SupportsFormat(format))
+			return format;
 
-	// No runtime supports 8-bit formats without alpha, but easy to convert
-	if (format == DXGI_FORMAT_B8G8R8X8_UNORM)
-		format = DXGI_FORMAT_B8G8R8A8_UNORM;
-	else if (format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB)
-		format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+		// Do some format compatibility conversions before creating the swapchain
+		if (format == DXGI_FORMAT_R11G11B10_FLOAT)
+		{
+			// We may need to use a lower percision format and rely on data conversion rules
+			if (session->SupportsFormat(DXGI_FORMAT_R10G10B10A2_UNORM))
+				return DXGI_FORMAT_R10G10B10A2_UNORM;
+			else if (session->SupportsFormat(DXGI_FORMAT_R8G8B8A8_UNORM))
+				return DXGI_FORMAT_R8G8B8A8_UNORM;
+		}
 
-	// Some runtimes don't support 8-bit linear, but most apps shouldn't be using it anyway
-	if (Runtime::Get().UseHack(Runtime::HACK_NO_8BIT_LINEAR))
-	{
+		// No runtime supports 8-bit formats without alpha, but easy to convert
+		if (format == DXGI_FORMAT_B8G8R8X8_UNORM)
+			return session->SupportsFormat(DXGI_FORMAT_B8G8R8A8_UNORM) ?
+			DXGI_FORMAT_B8G8R8A8_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+		else if (format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB)
+			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+
+		// Some runtimes don't support 8-bit linear, but most apps shouldn't be using it anyway
 		// Most apps will be fine if we convert their values from linear to sRGB
 		if (format == DXGI_FORMAT_R8G8B8A8_UNORM)
-			format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		else if (format == DXGI_FORMAT_R8G8B8A8_UNORM)
-			format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		else if (format == DXGI_FORMAT_B8G8R8A8_UNORM)
-			format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 		else if (format == DXGI_FORMAT_B8G8R8A8_UNORM)
-			format = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-	}
+			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+
+		return format;
+	};
+
+	DXGI_FORMAT format = NegotiateFormat(TextureFormatToDXGIFormat(desc->Format));
+	assert(session->SupportsFormat(format));
 
 	if (pDevice)
 	{
