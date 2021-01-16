@@ -1102,10 +1102,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		layers.push_back(&newLayer.Header);
 	}
 
-	// If this frame index is beyond the current frame, then target the current frame instead
+	// If this frame index is beyond the current frame, then discard the frame instead
+	// TODO: Should we allow apps to target frames that have not been waited on?
 	XrIndexedFrameState* CurrentFrame = session->CurrentFrame;
 	if (frameIndex > CurrentFrame->frameIndex)
-		frameIndex = CurrentFrame->frameIndex;
+		return ovrSuccess_NotVisible;
 
 	XrFrameEndInfo endInfo = XR_TYPE(FRAME_END_INFO);
 	endInfo.displayTime = session->FrameStats[frameIndex % ovrMaxProvidedFrameStats].predictedDisplayTime;
@@ -1128,13 +1129,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 	if (!session)
 		return ovrError_InvalidSession;
 
+	long long currentIndex = (*session->CurrentFrame).frameIndex;
 	if (frameIndex <= 0)
-		frameIndex = (*session->CurrentFrame).frameIndex;
+		frameIndex = currentIndex;
 
-	CHK_OVR(ovr_EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount));
+	// Some older games submit frames redundantly, so we discard old frames in the legacy call
+	if (frameIndex < currentIndex)
+		CHK_OVR(ovr_EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount));
 	CHK_OVR(ovr_WaitToBeginFrame(session, frameIndex + 1));
 	CHK_OVR(ovr_BeginFrame(session, frameIndex + 1));
-	return ovrSuccess;
+	return frameIndex < currentIndex ? ovrSuccess_NotVisible : ovrSuccess;
 }
 
 typedef struct OVR_ALIGNAS(4) ovrViewScaleDesc1_ {
