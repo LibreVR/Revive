@@ -280,20 +280,19 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		if (session->SupportsFormat(format))
 			return format;
 
-		// Do some format compatibility conversions before creating the swapchain
-		if (format == DXGI_FORMAT_R11G11B10_FLOAT)
+		// We may need to use a lower percision format and rely on data conversion rules
+		if (format == DXGI_FORMAT_R11G11B10_FLOAT || format == DXGI_FORMAT_R16G16B16A16_FLOAT)
 		{
-			// We may need to use a lower percision format and rely on data conversion rules
 			if (session->SupportsFormat(DXGI_FORMAT_R10G10B10A2_UNORM))
 				return DXGI_FORMAT_R10G10B10A2_UNORM;
-			else if (session->SupportsFormat(DXGI_FORMAT_R8G8B8A8_UNORM))
-				return DXGI_FORMAT_R8G8B8A8_UNORM;
+			else if (session->SupportsFormat(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB))
+				return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		}
 
 		// No runtime supports 8-bit formats without alpha, but easy to convert
 		if (format == DXGI_FORMAT_B8G8R8X8_UNORM)
 			return session->SupportsFormat(DXGI_FORMAT_B8G8R8A8_UNORM) ?
-			DXGI_FORMAT_B8G8R8A8_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+				DXGI_FORMAT_B8G8R8A8_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 		else if (format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB)
 			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 
@@ -311,6 +310,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		return format;
 	};
 
+	// Do some format compatibility conversions before creating the swapchain
 	DXGI_FORMAT format = NegotiateFormat(TextureFormatToDXGIFormat(desc->Format));
 	assert(session->SupportsFormat(format));
 
