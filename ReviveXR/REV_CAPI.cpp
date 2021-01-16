@@ -1556,10 +1556,10 @@ ovr_GetFovStencil(
 			!meshBuffer->VertexBuffer || !meshBuffer->IndexBuffer)
 		return ovrError_InvalidParameter;
 
-	for (int i = 0; i < meshBuffer->AllocVertexCount; i++)
+	for (int i = 0; i < meshBuffer->UsedVertexCount; i++)
 		meshBuffer->VertexBuffer[i] = ToUVSpace(mask.first[i]);
 
-	for (int i = 0; i < meshBuffer->AllocIndexCount; i++)
+	for (int i = 0; i < meshBuffer->UsedIndexCount; i++)
 		meshBuffer->IndexBuffer[i] = (uint16_t)mask.second[i];
 
 	return ovrSuccess;
