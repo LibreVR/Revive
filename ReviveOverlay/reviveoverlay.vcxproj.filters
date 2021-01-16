@@ -55,6 +55,9 @@
       <Extensions>cpp;moc</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
+    <Filter Include="Generated Files\Nightly">
+      <UniqueIdentifier>{7bb5e624-6921-4d43-a08e-480d5f5579e3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -110,6 +113,21 @@
     </ClCompile>
     <ClCompile Include="Release\moc_oculusplatform.cpp">
       <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Nightly\moc_oculusplatform.cpp">
+      <Filter>Generated Files\Nightly</Filter>
+    </ClCompile>
+    <ClCompile Include="Nightly\moc_openvroverlaycontroller.cpp">
+      <Filter>Generated Files\Nightly</Filter>
+    </ClCompile>
+    <ClCompile Include="Nightly\moc_qquickwindowscaled.cpp">
+      <Filter>Generated Files\Nightly</Filter>
+    </ClCompile>
+    <ClCompile Include="Nightly\moc_revivemanifestcontroller.cpp">
+      <Filter>Generated Files\Nightly</Filter>
+    </ClCompile>
+    <ClCompile Include="Nightly\moc_trayiconcontroller.cpp">
+      <Filter>Generated Files\Nightly</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
