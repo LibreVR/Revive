@@ -919,11 +919,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	if (!session)
 		return ovrError_InvalidSession;
 
-	// If this frame index did not target the current frame, then we discard it
-	XrIndexedFrameState* CurrentFrame = session->CurrentFrame;
-	if (frameIndex != CurrentFrame->frameIndex)
-		return ovrSuccess_NotVisible;
-
 	// The oculus runtime is very tolerant of invalid viewports, so this lambda ensures we submit valid ones.
 	// This fixes UE4 games which can at times submit uninitialized viewports due to a bug in OVR_Math.h.
 	const auto ClampRect = [](ovrRecti rect, ovrTextureSwapChain chain)
@@ -1106,6 +1101,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 
 		layers.push_back(&newLayer.Header);
 	}
+
+	// If this frame index is beyond the current frame, then target the current frame instead
+	XrIndexedFrameState* CurrentFrame = session->CurrentFrame;
+	if (frameIndex > CurrentFrame->frameIndex)
+		frameIndex = CurrentFrame->frameIndex;
 
 	XrFrameEndInfo endInfo = XR_TYPE(FRAME_END_INFO);
 	endInfo.displayTime = session->FrameStats[frameIndex % ovrMaxProvidedFrameStats].predictedDisplayTime;
