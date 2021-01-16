@@ -310,12 +310,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		return format;
 	};
 
-	// Do some format compatibility conversions before creating the swapchain
-	DXGI_FORMAT format = NegotiateFormat(TextureFormatToDXGIFormat(desc->Format));
-	assert(session->SupportsFormat(format));
-
 	if (pDevice)
 	{
+		// Do some format compatibility conversions before creating the swapchain
+		DXGI_FORMAT format = NegotiateFormat(TextureFormatToDXGIFormat(desc->Format));
+		assert(session->SupportsFormat(format));
+
 		ovrTextureSwapChain chain;
 		g_SwapChainDesc = desc;
 		CHK_OVR(CreateSwapChain(session->Session, desc, format, &chain));
@@ -347,7 +347,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	}
 	else if (pQueue)
 	{
-		CHK_OVR(CreateSwapChain(session->Session, desc, format, out_TextureSwapChain));
+		CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), out_TextureSwapChain));
 		return EnumerateImages<XrSwapchainImageD3D12KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR, *out_TextureSwapChain);
 	}
 	else
