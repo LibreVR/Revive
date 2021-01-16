@@ -242,32 +242,26 @@ ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType*
 	{
 		// Get the space for device types we recognize
 		XrSpace space = XR_NULL_HANDLE;
-      ovrPoseStatef* pLastState = nullptr;
+		ovrPoseStatef* pLastState = nullptr;
 		switch (deviceTypes[i])
 		{
-		case ovrTrackedDevice_HMD:
-			space = session->ViewSpace;
-         pLastState = &m_LastTrackingState.HeadPose;
-			break;
-		case ovrTrackedDevice_LTouch:
-			space = m_ActionSpaces[ovrHand_Left];
-         pLastState = &m_LastTrackingState.HandPoses[ovrHand_Left];
-			break;
-		case ovrTrackedDevice_RTouch:
-			space = m_ActionSpaces[ovrHand_Right];
-         pLastState = &m_LastTrackingState.HandPoses[ovrHand_Right];
-			break;
+			case ovrTrackedDevice_HMD:
+				space = session->ViewSpace;
+				pLastState = &m_LastTrackingState.HeadPose;
+				break;
+			case ovrTrackedDevice_LTouch:
+				space = m_ActionSpaces[ovrHand_Left];
+				pLastState = &m_LastTrackingState.HandPoses[ovrHand_Left];
+				break;
+			case ovrTrackedDevice_RTouch:
+				space = m_ActionSpaces[ovrHand_Right];
+				pLastState = &m_LastTrackingState.HandPoses[ovrHand_Right];
+				break;
 		}
 
 		if (space && pLastState)
-		{
 			CHK_XR(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &location));
-			SpaceRelationToPoseState(location, absTime, *pLastState, outDevicePoses[i]);
-		}
-		else
-		{
-			outDevicePoses[i] = ovrPoseStatef{ OVR::Posef::Identity() };
-		}
+		SpaceRelationToPoseState(location, absTime, *pLastState, outDevicePoses[i]);
 	}
 
 	return ovrSuccess;
