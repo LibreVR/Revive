@@ -1467,9 +1467,55 @@ ovr_GetFovStencil(
 		XR_VISIBILITY_MASK_TYPE_LINE_LOOP_KHR);
 	const VisibilityMask& mask = session->VisibilityMasks[fovStencilDesc->Eye][type];
 
-	// Some runtime advertise support for the extension, but don't return valid masks
+	// Some runtime advertise support for the extension, but don't always return valid masks
 	if (mask.first.empty() || mask.second.empty())
-		return ovrError_Unsupported;
+	{
+		std::vector<ovrVector2f> vertices;
+		std::vector<uint16_t> indices;
+		if (fovStencilDesc->StencilType == ovrFovStencil_HiddenArea)
+		{
+			vertices.push_back(OVR::Vector2f());
+			indices.push_back(0);
+			indices.push_back(0);
+			indices.push_back(0);
+		}
+		else if (fovStencilDesc->StencilType == ovrFovStencil_VisibleArea)
+		{
+			vertices.push_back(OVR::Vector2f(0,0));
+			vertices.push_back(OVR::Vector2f(1,0));
+			vertices.push_back(OVR::Vector2f(1,1));
+			vertices.push_back(OVR::Vector2f(0,1));
+			indices.push_back(0);
+			indices.push_back(1);
+			indices.push_back(3);
+			indices.push_back(1);
+			indices.push_back(2);
+			indices.push_back(3);
+		}
+		else if (fovStencilDesc->StencilType == ovrFovStencil_BorderLine || fovStencilDesc->StencilType == ovrFovStencil_VisibleRectangle)
+		{
+			vertices.push_back(OVR::Vector2f(0,0));
+			vertices.push_back(OVR::Vector2f(1,0));
+			vertices.push_back(OVR::Vector2f(1,1));
+			vertices.push_back(OVR::Vector2f(0,1));
+			indices.push_back(0);
+			indices.push_back(1);
+			indices.push_back(2);
+			indices.push_back(3);
+		}
+
+		meshBuffer->UsedVertexCount = vertices.size();
+		meshBuffer->UsedIndexCount = indices.size();
+		if (!meshBuffer->AllocVertexCount && !meshBuffer->AllocIndexCount)
+			return ovrSuccess;
+		else if (meshBuffer->AllocVertexCount < meshBuffer->UsedVertexCount ||
+			meshBuffer->AllocIndexCount < meshBuffer->UsedIndexCount ||
+			!meshBuffer->VertexBuffer || !meshBuffer->IndexBuffer)
+			return ovrError_InvalidParameter;
+
+		memcpy(meshBuffer->VertexBuffer, vertices.data(), vertices.size() * sizeof(ovrVector2f));
+		memcpy(meshBuffer->IndexBuffer, indices.data(), indices.size() * sizeof(uint16_t));
+	}
 
 	OVR::ScaleAndOffset2D scaleAndOffset = OVR::FovPort::CreateNDCScaleAndOffsetFromFov(
 		XR::FovPort(session->ViewFov[fovStencilDesc->Eye].recommendedFov));
