@@ -211,20 +211,18 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	XrSpace space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ? session->StageSpace : session->LocalSpace;
 
 	// Get space relation for the head
-	if (XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, space, displayTime, &location)))
-		outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
-	else
-		outState->HeadPose.ThePose = OVR::Posef::Identity();
+	if (XR_FAILED(xrLocateSpace(session->ViewSpace, space, displayTime, &location)))
+		OutputDebugStringA("Revive: Failed to locate head space");
+	outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
 
 	// Convert the hand poses
 	for (uint32_t i = 0; i < ovrHand_Count && i < m_ActionSpaces.size(); i++)
 	{
 		XrSpaceLocation handLocation = XR_TYPE(SPACE_LOCATION);
 		handLocation.next = &velocity;
-		if (XR_SUCCEEDED(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation)))
-			outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
-		else
-			outState->HandPoses[i].ThePose = OVR::Posef::Identity();
+		if (XR_FAILED(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation)))
+			OutputDebugStringA("Revive: Failed to locate hand space");
+		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
 	}
 
 	m_LastTrackingState = *outState;
