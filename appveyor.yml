@@ -30,39 +30,56 @@ install:
       copy Unicode\Plugins\AccessControl.dll 'C:\Program Files (x86)\NSIS\Plugins\x86-unicode'
       
 build_script:
-  # Ensure vcpkg dependencies are installed
+  # ensure vcpkg dependencies are installed
   - ps: |
       vcpkg integrate install
       vcpkg install --triplet x86-windows-static detours openxr-loader glfw3
       vcpkg install --triplet x64-windows-static detours openxr-loader glfw3
-  # build Revive
+  # build the solution
   - ps: |
-      cd c:\projects\revive
-      msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x64
-      msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x86
+      cd C:\Projects\Revive
+      If ($env:APPVEYOR_REPO_TAG -eq "true") {
+        msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x64
+        msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x86
+      } Else {
+        msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x64
+        msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x86
+      }
       
 after_build:
-  # copy additional files to the nightly folders
+  # copy additional files to the build folder
   - ps: |
-      cd C:\Projects\Revive\Nightly
+      If ($env:APPVEYOR_REPO_TAG -eq "true") {
+        cd C:\Projects\Revive\Release
+      } Else {
+        cd C:\Projects\Revive\Nightly
+      }
       copy ..\Externals\WinSparkle\x64\Release\WinSparkle.dll .
       copy ..\ReviveOverlay\SupportAssets . -Filter "*.jpg" -Recurse -Container
       copy C:\openssl-v111-win64\bin\libcrypto-1_1-x64.dll .
       copy C:\openssl-v111-win64\bin\libssl-1_1-x64.dll .
-  # gather built Revive files
-  - cmd: |
-      cd C:\Projects\Revive\Nightly
-      7z a Revive.zip ReviveInjector.exe LibRevive32.dll LibRevive64.dll LibReviveXR64.dll LibReviveXR32.dll
-  # Run NSIS to generate installer
+  # gather build artifacts
+  - ps: |
+      If ($env:APPVEYOR_REPO_TAG -eq "true") {
+        cd C:\Projects\Revive\Release
+      } Else {
+        cd C:\Projects\Revive\Nightly
+      }
+      7z a ..\Installer\Revive.zip ReviveInjector.exe LibRevive32.dll LibRevive64.dll LibReviveXR64.dll LibReviveXR32.dll
+  # run NSIS to generate installer
   - ps: |
       cd C:\Projects\Revive\Installer
       $env:Path += ";C:\Program Files (x86)\NSIS"
-      makensis /DNIGHTLY Revive.nsi
+      If ($env:APPVEYOR_REPO_TAG -eq "true") {
+        makensis Revive.nsi
+      } Else {
+        makensis /DNIGHTLY Revive.nsi
+      }
 
 artifacts:
   - path: Installer\ReviveInstaller.exe
     name: Revive Installer
-  - path: Nightly\Revive.zip
+  - path: Installer\Revive.zip
     name: Revive Build
 
 deploy:
