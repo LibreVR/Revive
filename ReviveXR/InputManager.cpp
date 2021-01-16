@@ -209,14 +209,18 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	// Get space relation for the head
 	if (XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, space, displayTime, &location)))
 		outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
+	else
+		outState->HeadPose.ThePose = OVR::Posef::Identity();
 
 	// Convert the hand poses
-	for (uint32_t i = 0; i < ovrHand_Count; i++)
+	for (uint32_t i = 0; i < ovrHand_Count && i < m_ActionSpaces.size(); i++)
 	{
 		XrSpaceLocation handLocation = XR_TYPE(SPACE_LOCATION);
 		handLocation.next = &velocity;
-		if (i < m_ActionSpaces.size() && XR_SUCCEEDED(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation)))
+		if (XR_SUCCEEDED(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation)))
 			outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
+		else
+			outState->HandPoses[i].ThePose = OVR::Posef::Identity();
 	}
 
 	m_LastTrackingState = *outState;
