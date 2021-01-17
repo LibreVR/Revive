@@ -919,6 +919,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	if (!session)
 		return ovrError_InvalidSession;
 
+	// Discard the frame if the index is beyond the current frame or older than the last one.
+	// TODO: Should we allow apps to target frames that have not been waited on?
+	XrIndexedFrameState* CurrentFrame = session->CurrentFrame;
+	if (frameIndex > CurrentFrame->frameIndex || frameIndex <= session->LastFrameIndex)
+		return ovrSuccess_NotVisible;
+
 	// The oculus runtime is very tolerant of invalid viewports, so this lambda ensures we submit valid ones.
 	// This fixes UE4 games which can at times submit uninitialized viewports due to a bug in OVR_Math.h.
 	const auto ClampRect = [](ovrRecti rect, ovrTextureSwapChain chain)
@@ -1102,12 +1108,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		layers.push_back(&newLayer.Header);
 	}
 
-	// If this frame index is beyond the current frame, then discard the frame instead
-	// TODO: Should we allow apps to target frames that have not been waited on?
-	XrIndexedFrameState* CurrentFrame = session->CurrentFrame;
-	if (frameIndex > CurrentFrame->frameIndex)
-		return ovrSuccess_NotVisible;
-
 	XrFrameEndInfo endInfo = XR_TYPE(FRAME_END_INFO);
 	endInfo.displayTime = session->FrameStats[frameIndex % ovrMaxProvidedFrameStats].predictedDisplayTime;
 	endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
@@ -1115,6 +1115,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	endInfo.layers = layers.data();
 	CHK_XR(xrEndFrame(session->Session, &endInfo));
 
+	session->LastFrameIndex = frameIndex;
 	MicroProfileFlip();
 
 	return ovrSuccess;
@@ -1129,16 +1130,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 	if (!session)
 		return ovrError_InvalidSession;
 
-	long long currentIndex = (*session->CurrentFrame).frameIndex;
 	if (frameIndex <= 0)
-		frameIndex = currentIndex;
+		frameIndex = (*session->CurrentFrame).frameIndex;
 
 	// Some older games submit frames redundantly, so we discard old frames in the legacy call
-	if (frameIndex < currentIndex)
-		CHK_OVR(ovr_EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount));
+	CHK_OVR(ovr_EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount));
 	CHK_OVR(ovr_WaitToBeginFrame(session, frameIndex + 1));
 	CHK_OVR(ovr_BeginFrame(session, frameIndex + 1));
-	return frameIndex < currentIndex ? ovrSuccess_NotVisible : ovrSuccess;
+	return ovrSuccess;
 }
 
 typedef struct OVR_ALIGNAS(4) ovrViewScaleDesc1_ {
@@ -1508,8 +1507,8 @@ ovr_GetFovStencil(
 			indices.push_back(3);
 		}
 
-		meshBuffer->UsedVertexCount = vertices.size();
-		meshBuffer->UsedIndexCount = indices.size();
+		meshBuffer->UsedVertexCount = (int)vertices.size();
+		meshBuffer->UsedIndexCount = (int)indices.size();
 		if (!meshBuffer->AllocVertexCount && !meshBuffer->AllocIndexCount)
 			return ovrSuccess;
 		else if (meshBuffer->AllocVertexCount < meshBuffer->UsedVertexCount ||
