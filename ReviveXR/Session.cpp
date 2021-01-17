@@ -161,6 +161,7 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 	CHK_XR(xrEnumerateSwapchainFormats(Session, (uint32_t)SupportedFormats.size(), &formatCount, SupportedFormats.data()));
 	assert(formatCount == SupportedFormats.size());
 
+	LastFrameIndex = 0;
 	Running.second.notify_all();
 
 	// Start the first frame immediately if requested
