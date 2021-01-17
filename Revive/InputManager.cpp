@@ -577,7 +577,7 @@ bool InputManager::OculusRemote::GetInputState(ovrSession session, ovrInputState
 		buttons |= ovrButton_VolDown;
 
 	inputState->Buttons |= buttons;
-	return true;
+	return buttons != 0;
 }
 
 InputManager::XboxGamepad::XboxGamepad(vr::VRActionSetHandle_t actionSet)
@@ -678,7 +678,8 @@ bool InputManager::XboxGamepad::GetInputState(ovrSession session, ovrInputState*
 		inputState->HandTriggerRaw[hand] = inputState->HandTriggerNoDeadzone[hand];
 	}
 
-	return true;
+	inputState->Buttons |= buttons;
+	return buttons != 0;
 }
 
 void InputManager::XboxGamepad::SetVibration(float frequency, float amplitude)

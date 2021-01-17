@@ -724,7 +724,7 @@ bool InputManager::OculusRemote::IsConnected() const
 
 bool InputManager::OculusRemote::GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
-	unsigned int buttons;
+	unsigned int buttons = 0;
 
 	// Allow the user to enable/disable the remote
 	if (m_Toggle_Connected.IsPressed(session))
@@ -755,7 +755,7 @@ bool InputManager::OculusRemote::GetInputState(XrSession session, ovrControllerT
 		buttons |= ovrButton_VolDown;
 
 	inputState->Buttons |= buttons;
-	return true;
+	return buttons != 0;
 }
 
 void InputManager::OculusRemote::GetActiveSets(std::vector<XrActiveActionSet>& outSets) const
@@ -889,7 +889,8 @@ bool InputManager::XboxGamepad::GetInputState(XrSession session, ovrControllerTy
 		inputState->HandTriggerRaw[hand] = inputState->HandTriggerNoDeadzone[hand];
 	}
 
-	return true;
+	inputState->Buttons |= buttons;
+	return buttons != 0;
 }
 
 ovrResult InputManager::XboxGamepad::SetVibration(XrSession session, ovrControllerType controllerType, float frequency, float amplitude)
