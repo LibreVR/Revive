@@ -191,13 +191,7 @@ ovrResult ovrHmdStruct::EndSession()
 ovrResult ovrHmdStruct::LocateViews(XrView out_Views[ovrEye_Count], XrViewStateFlags* out_Flags) const
 {
 	if (!Session)
-	{
-		// If the session is not fully initialized, return the cached values
-		memcpy(out_Views, ViewPoses, sizeof(ViewPoses));
-		if (out_Flags)
-			*out_Flags = 0;
-		return ovrSuccess;
-	}
+		return ovrError_InvalidSession;
 
 	uint32_t numViews;
 	XrViewLocateInfo locateInfo = XR_TYPE(VIEW_LOCATE_INFO);
@@ -214,6 +208,9 @@ ovrResult ovrHmdStruct::LocateViews(XrView out_Views[ovrEye_Count], XrViewStateF
 
 ovrResult ovrHmdStruct::UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR type)
 {
+	if (!Session)
+		return ovrError_InvalidSession;
+
 	XR_FUNCTION(Instance, GetVisibilityMaskKHR);
 
 	VisibilityMask& result = VisibilityMasks[view][type];

@@ -783,6 +783,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 		XrSwapchainImageAcquireInfo acquireInfo = XR_TYPE(SWAPCHAIN_IMAGE_ACQUIRE_INFO);
 		CHK_XR(xrAcquireSwapchainImage(chain->Swapchain, &acquireInfo, &chain->CurrentIndex));
 
+		// TODO: We could move this wait to the end of EndFrame so we submit earlier
 		XrSwapchainImageWaitInfo waitInfo = XR_TYPE(SWAPCHAIN_IMAGE_WAIT_INFO);
 		waitInfo.timeout = (*session->CurrentFrame).predictedDisplayPeriod;
 		CHK_XR(xrWaitSwapchainImage(chain->Swapchain, &waitInfo));
@@ -842,10 +843,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	desc.DistortedViewport.Size.w = session->ViewConfigs[eyeType].recommendedImageRectWidth;
 	desc.DistortedViewport.Size.h = session->ViewConfigs[eyeType].recommendedImageRectHeight;
 	desc.PixelsPerTanAngleAtCenter = session->PixelsPerTan[eyeType];
-
-	XrView views[ovrEye_Count] = { XR_TYPE(VIEW), XR_TYPE(VIEW) };
-	session->LocateViews(views);
-	desc.HmdToEyePose = XR::Posef(views[eyeType].pose);
+	desc.HmdToEyePose = XR::Posef(session->ViewPoses[eyeType].pose);
 	return desc;
 }
 
@@ -1300,16 +1298,8 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 	if (session)
 	{
 		if (strcmp(propertyName, "IPD") == 0)
-		{
-			// Locate the eyes in view space to compute the IPD
-			XrView views[ovrEye_Count] = { XR_TYPE(VIEW), XR_TYPE(VIEW) };
-			if (OVR_FAILURE(session->LocateViews(views)))
-				return 0.0f;
-
-			return XR::Vector3f(views[ovrEye_Left].pose.position).Distance(
-				XR::Vector3f(views[ovrEye_Right].pose.position)
-			);
-		}
+			return XR::Vector3f(session->ViewPoses[ovrEye_Left].pose.position).Distance(
+				XR::Vector3f(session->ViewPoses[ovrEye_Right].pose.position));
 
 		if (strcmp(propertyName, "VsyncToNextVsync") == 0)
 			return (*session->CurrentFrame).predictedDisplayPeriod / 1e9f;
