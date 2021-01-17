@@ -681,9 +681,9 @@ ovrResult InputManager::OculusTouch::SetVibration(XrSession session, ovrControll
 		if (frequency > 0.0f)
 		{
 			XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
-			vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+			vibration.frequency = frequency;
 			vibration.amplitude = amplitude;
-			vibration.duration = 2500000000UL;
+			vibration.duration = XR_NO_DURATION;
 			CHK_XR(xrApplyHapticFeedback(session, &info, (XrHapticBaseHeader*)&vibration));
 		}
 		else
