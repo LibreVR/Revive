@@ -94,10 +94,8 @@ ovrResult InputManager::SubmitControllerVibration(ovrSession session, ovrControl
 {
 	for (InputDevice* device : m_InputDevices)
 	{
-		if (controllerType & device->GetType() && device->IsConnected()) {
-			device->StartHaptics(session->Session);
+		if (controllerType & device->GetType() && device->IsConnected())
 			device->SubmitVibration(controllerType, buffer);
-		}
 	}
 
 	return ovrSuccess;
@@ -925,6 +923,7 @@ ovrResult InputManager::AttachSession(XrSession session)
 		for (InputDevice* device : m_InputDevices)
 		{
 			device->GetActionSpaces(session, m_ActionSpaces);
+			device->StartHaptics(session);
 			actionSets.push_back(device->ActionSet());
 		}
 
