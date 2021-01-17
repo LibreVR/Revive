@@ -515,6 +515,7 @@ typedef struct ovrInputState2_
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
 	REV_TRACE(ovr_GetInputState);
+	MICROPROFILE_META_CPU("Controller Type", controllerType);
 
 	if (!session)
 		return ovrError_InvalidSession;
@@ -550,13 +551,25 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetConnectedControllerTypes(ovrSession ses
 OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession session, ovrControllerType controllerType)
 {
 	REV_TRACE(ovr_GetTouchHapticsDesc);
+	MICROPROFILE_META_CPU("Controller Type", controllerType);
 
-	return InputManager::GetTouchHapticsDesc(controllerType);
+	ovrTouchHapticsDesc desc = { 0 };
+	if (session && controllerType & ovrControllerType_Touch)
+	{
+		desc.SampleRateHz = (int)(1000000000i64 / (*session->CurrentFrame).predictedDisplayPeriod);
+		desc.SampleSizeInBytes = sizeof(uint8_t);
+		desc.SubmitMaxSamples = OVR_HAPTICS_BUFFER_SAMPLES_MAX;
+		desc.SubmitMinSamples = 1;
+		desc.SubmitOptimalSamples = 20;
+		desc.QueueMinSizeToAvoidStarvation = 5;
+	}
+	return desc;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude)
 {
 	REV_TRACE(ovr_SetControllerVibration);
+	MICROPROFILE_META_CPU("Controller Type", controllerType);
 
 	if (!session || !session->Input)
 		return ovrError_InvalidSession;
@@ -567,6 +580,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetControllerVibration(ovrSession session, ov
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer)
 {
 	REV_TRACE(ovr_SubmitControllerVibration);
+	MICROPROFILE_META_CPU("Controller Type", controllerType);
 
 	if (!session || !session->Input)
 		return ovrError_InvalidSession;
@@ -577,6 +591,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitControllerVibration(ovrSession session,
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState)
 {
 	REV_TRACE(ovr_GetControllerVibrationState);
+	MICROPROFILE_META_CPU("Controller Type", controllerType);
 
 	if (!session || !session->Input)
 		return ovrError_InvalidSession;
@@ -886,7 +901,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 	session->CurrentFrame = frameState;
 
 	if (session->Input)
-		session->Input->SyncInputState(session->Session);
+		session->Input->SyncInputState(session->Session, frameState->predictedDisplayPeriod);
 	return ovrSuccess;
 }
 

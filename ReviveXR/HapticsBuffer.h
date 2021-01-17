@@ -5,8 +5,6 @@
 #include <atomic>
 #include <mutex>
 
-#define REV_HAPTICS_SAMPLE_RATE 320
-
 class HapticsBuffer
 {
 public:

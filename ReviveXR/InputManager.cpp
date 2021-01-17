@@ -109,23 +109,6 @@ ovrResult InputManager::GetControllerVibrationState(ovrSession session, ovrContr
 	return ovrSuccess;
 }
 
-ovrTouchHapticsDesc InputManager::GetTouchHapticsDesc(ovrControllerType controllerType)
-{
-	ovrTouchHapticsDesc desc = { 0 };
-
-	if (controllerType & ovrControllerType_Touch)
-	{
-		desc.SampleRateHz = REV_HAPTICS_SAMPLE_RATE;
-		desc.SampleSizeInBytes = sizeof(uint8_t);
-		desc.SubmitMaxSamples = OVR_HAPTICS_BUFFER_SAMPLES_MAX;
-		desc.SubmitMinSamples = 1;
-		desc.SubmitOptimalSamples = 20;
-		desc.QueueMinSizeToAvoidStarvation = 5;
-	}
-
-	return desc;
-}
-
 unsigned int InputManager::SpaceRelationToPoseState(const XrSpaceLocation& location, double time, ovrPoseStatef& lastPoseState, ovrPoseStatef& outPoseState)
 {
 	unsigned int flags = 0;
@@ -399,37 +382,8 @@ ovrButton InputManager::InputDevice::TrackpadToDPad(ovrVector2f trackpad)
 	}
 }
 
-void InputManager::OculusTouch::HapticsThread(XrSession session, OculusTouch* device)
-{
-	std::chrono::microseconds freq(std::chrono::seconds(1));
-	freq /= REV_HAPTICS_SAMPLE_RATE;
-
-	while (device->m_bHapticsRunning)
-	{
-		for (int i = 0; i < ovrHand_Count; i++)
-		{
-			float amplitude = device->m_HapticsBuffer[i].GetSample();
-			if (amplitude > 0.0f)
-			{
-				XrHapticActionInfo info = XR_TYPE(HAPTIC_ACTION_INFO);
-				info.action = device->m_Vibration;
-				info.subactionPath = s_SubActionPaths[i];
-				XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
-				vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
-				vibration.amplitude = amplitude;
-				vibration.duration = (XrDuration)std::chrono::nanoseconds(freq).count();
-				XrResult rs = xrApplyHapticFeedback(session, &info, (XrHapticBaseHeader*)&vibration);
-				assert(XR_SUCCEEDED(rs));
-			}
-		}
-
-		std::this_thread::sleep_for(freq);
-	}
-}
-
 InputManager::OculusTouch::OculusTouch(XrInstance instance)
 	: InputDevice(instance, "touch", "Oculus Touch")
-	, m_bHapticsRunning(false)
 	, m_Button_Enter(this, XR_ACTION_TYPE_BOOLEAN_INPUT, "enter-click", "Menu button")
 	, m_Button_Home(this, XR_ACTION_TYPE_BOOLEAN_INPUT, "home-click", "Home button")
 	, m_Button_AX(this, XR_ACTION_TYPE_BOOLEAN_INPUT, "ax-click", "A/X pressed", true)
@@ -452,18 +406,26 @@ InputManager::OculusTouch::OculusTouch(XrInstance instance)
 
 InputManager::OculusTouch::~OculusTouch()
 {
-	m_bHapticsRunning = false;
-	if (m_HapticsThread.joinable())
-		m_HapticsThread.join();
 }
 
-void InputManager::OculusTouch::StartHaptics(XrSession session)
+void InputManager::OculusTouch::UpdateHaptics(XrSession session, XrDuration displayPeriod)
 {
-	if (m_bHapticsRunning)
-		return;
-
-	m_bHapticsRunning = true;
-	m_HapticsThread = std::thread(HapticsThread, session, this);
+	for (int i = 0; i < ovrHand_Count; i++)
+	{
+		float amplitude = m_HapticsBuffer[i].GetSample();
+		if (amplitude > 0.0f)
+		{
+			XrHapticActionInfo info = XR_TYPE(HAPTIC_ACTION_INFO);
+			info.action = m_Vibration;
+			info.subactionPath = s_SubActionPaths[i];
+			XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
+			vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+			vibration.amplitude = amplitude;
+			vibration.duration = displayPeriod;
+			XrResult rs = xrApplyHapticFeedback(session, &info, (XrHapticBaseHeader*)&vibration);
+			assert(XR_SUCCEEDED(rs));
+		}
+	}
 }
 
 XrPath InputManager::OculusTouch::GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const
@@ -917,7 +879,6 @@ ovrResult InputManager::AttachSession(XrSession session)
 		for (InputDevice* device : m_InputDevices)
 		{
 			device->GetActionSpaces(session, m_ActionSpaces);
-			device->StartHaptics(session);
 			actionSets.push_back(device->ActionSet());
 		}
 
@@ -929,11 +890,14 @@ ovrResult InputManager::AttachSession(XrSession session)
 	return ovrSuccess;
 }
 
-ovrResult InputManager::SyncInputState(XrSession session)
+ovrResult InputManager::SyncInputState(XrSession session, XrDuration displayPeriod)
 {
 	XrActionsSyncInfo syncInfo = XR_TYPE(ACTIONS_SYNC_INFO);
 	syncInfo.countActiveActionSets = (uint32_t)m_ActionSets.size();
 	syncInfo.activeActionSets = m_ActionSets.data();
 	CHK_XR(xrSyncActions(session, &syncInfo));
+
+	for (InputDevice* device : m_InputDevices)
+		device->UpdateHaptics(session, displayPeriod);
 	return ovrSuccess;
 }

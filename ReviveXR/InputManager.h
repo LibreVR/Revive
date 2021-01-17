@@ -5,10 +5,7 @@
 #include "HapticsBuffer.h"
 
 #include <openxr/openxr.h>
-#include <thread>
 #include <vector>
-#include <atomic>
-#include <mutex>
 
 class Runtime;
 
@@ -35,7 +32,7 @@ public:
 		virtual ovrResult SetVibration(XrSession session, ovrControllerType controllerType, float frequency, float amplitude) { return ovrSuccess; }
 		virtual void SubmitVibration(ovrControllerType controllerType, const ovrHapticsBuffer* buffer) { }
 		virtual void GetVibrationState(ovrHandType hand, ovrHapticsPlaybackState* outState) { }
-		virtual void StartHaptics(XrSession session) { }
+		virtual void UpdateHaptics(XrSession session, XrDuration displayPeriod) { }
 
 		XrActionSet ActionSet() const { return m_ActionSet; }
 
@@ -82,7 +79,7 @@ public:
 		virtual ovrResult SetVibration(XrSession session, ovrControllerType controllerType, float frequency, float amplitude) override;
 		virtual void SubmitVibration(ovrControllerType controllerType, const ovrHapticsBuffer* buffer) override;
 		virtual void GetVibrationState(ovrHandType hand, ovrHapticsPlaybackState* outState) override { *outState = m_HapticsBuffer[hand].GetState(); }
-		virtual void StartHaptics(XrSession session) override;
+		virtual void UpdateHaptics(XrSession session, XrDuration displayPeriod) override;
 
 	private:
 		Action m_Button_AX;
@@ -106,11 +103,7 @@ public:
 
 		Action m_Pose;
 		Action m_Vibration;
-		std::atomic_bool m_bHapticsRunning;
 		HapticsBuffer m_HapticsBuffer[ovrHand_Count];
-
-		std::thread m_HapticsThread;
-		static void HapticsThread(XrSession session, OculusTouch* device);
 	};
 
 	class OculusRemote : public InputDevice
@@ -178,9 +171,8 @@ public:
 	~InputManager();
 
 	ovrResult AttachSession(XrSession session);
-	ovrResult SyncInputState(XrSession session);
+	ovrResult SyncInputState(XrSession session, XrDuration displayPeriod);
 
-	static ovrTouchHapticsDesc GetTouchHapticsDesc(ovrControllerType controllerType);
 	ovrResult SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude);
 	ovrResult GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState);
 	ovrResult SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer);
