@@ -682,14 +682,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryGeometry(ovrSession session, ovrBo
 	{
 		ovrVector3f bounds;
 		CHK_OVR(ovr_GetBoundaryDimensions(session, boundaryType, &bounds));
-		for (int i = 0; i < 4; i++)
-		{
-			outFloorPoints[i] = (OVR::Vector3f(bounds) / 2.0f);
-			if (i % 2 == 0)
-				outFloorPoints[i].x *= -1.0f;
-			if (i / 2 == 0)
-				outFloorPoints[i].z *= -1.0f;
-		}
+		ovrVector3f floorPoints[] = {
+			{ bounds.x / -2.0f, bounds.y, bounds.z /  2.0f},
+			{ bounds.x /  2.0f, bounds.y, bounds.z /  2.0f},
+			{ bounds.x /  2.0f, bounds.y, bounds.z / -2.0f},
+			{ bounds.x / -2.0f, bounds.y, bounds.z / -2.0f}
+		};
+		memcpy(outFloorPoints, floorPoints, sizeof(floorPoints));
 	}
 	if (outFloorPointsCount)
 		*outFloorPointsCount = 4;
