@@ -22,7 +22,7 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 		FrameStats[i].type = XR_TYPE_FRAME_STATE;
 	CurrentFrame = FrameStats;
 	Instance = instance;
-	TrackingSpace = XR_REFERENCE_SPACE_TYPE_LOCAL;
+	TrackingOrigin = ovrTrackingOrigin_EyeLevel;
 	SystemProperties = XR_TYPE(SYSTEM_PROPERTIES);
 
 	// Initialize view structures
@@ -133,10 +133,11 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 	spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
 	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &ViewSpace));
 	spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
-	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &LocalSpace));
+	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &TrackingSpaces[ovrTrackingOrigin_EyeLevel]));
 	spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
-	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &StageSpace));
-	CalibratedOrigin = OVR::Posef::Identity();
+	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &TrackingSpaces[ovrTrackingOrigin_FloorLevel]));
+	for (uint32_t i = 0; i < ovrTrackingOrigin_Count; i++)
+		CalibratedOrigin[i] = OVR::Posef::Identity();
 
 	// Update the visibility mask for both eyes
 	if (Runtime::Get().VisibilityMask)
@@ -182,8 +183,8 @@ ovrResult ovrHmdStruct::EndSession()
 	CHK_XR(xrDestroySession(Session));
 	Session = XR_NULL_HANDLE;
 	ViewSpace = XR_NULL_HANDLE;
-	LocalSpace = XR_NULL_HANDLE;
-	StageSpace = XR_NULL_HANDLE;
+	for (uint32_t i = 0; i < ovrTrackingOrigin_Count; i++)
+		TrackingSpaces[i] = XR_NULL_HANDLE;
 	return ovrSuccess;
 }
 

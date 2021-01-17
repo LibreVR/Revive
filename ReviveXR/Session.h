@@ -45,8 +45,7 @@ struct ovrHmdStruct
 	XrSystemId System;
 	XrSession Session;
 	XrSpace ViewSpace;
-	XrSpace	LocalSpace;
-	XrSpace StageSpace;
+	XrSpace	TrackingSpaces[ovrTrackingOrigin_Count];
 
 	// Frame state
 	XrIndexedFrameState FrameStats[ovrMaxProvidedFrameStats];
@@ -55,7 +54,6 @@ struct ovrHmdStruct
 
 	// OpenXR properties
 	XrSystemProperties SystemProperties;
-	XrReferenceSpaceType TrackingSpace;
 	XrViewConfigurationView ViewConfigs[ovrEye_Count];
 	XrViewConfigurationViewFovEPIC ViewFov[ovrEye_Count];
 	XrView ViewPoses[ovrEye_Count];
@@ -64,7 +62,8 @@ struct ovrHmdStruct
 
 	// Session status
 	SessionStatusBits SessionStatus;
-	ovrPosef CalibratedOrigin;
+	ovrTrackingOrigin TrackingOrigin;
+	ovrPosef CalibratedOrigin[ovrTrackingOrigin_Count];
 
 	// Field-of-view stencil
 	std::map<XrVisibilityMaskTypeKHR, VisibilityMask> VisibilityMasks[ovrEye_Count];

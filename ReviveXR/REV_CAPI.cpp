@@ -293,12 +293,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 		{
 			const XrEventDataReferenceSpaceChangePending& spaceChange =
 				reinterpret_cast<XrEventDataReferenceSpaceChangePending&>(event);
-			if (spaceChange.referenceSpaceType == XR_REFERENCE_SPACE_TYPE_LOCAL)
-			{
-				if (spaceChange.poseValid)
-					session->CalibratedOrigin = XR::Posef(session->CalibratedOrigin) * XR::Posef(spaceChange.poseInPreviousSpace);
-				status.ShouldRecenter = true;
-			}
+			OVR::Posef origin(session->CalibratedOrigin[session->TrackingOrigin]);
+			if (spaceChange.poseValid)
+				session->CalibratedOrigin[session->TrackingOrigin] = origin * XR::Posef(spaceChange.poseInPreviousSpace);
+			status.ShouldRecenter = true;
 			break;
 		}
 		case XR_TYPE_EVENT_DATA_VISIBILITY_MASK_CHANGED_KHR:
@@ -341,7 +339,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 	if (!session)
 		return ovrError_InvalidSession;
 
-	session->TrackingSpace = (XrReferenceSpaceType)(XR_REFERENCE_SPACE_TYPE_LOCAL + origin);
+	session->TrackingOrigin = origin;
 	return ovrSuccess;
 }
 
@@ -352,7 +350,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 	if (!session)
 		return ovrTrackingOrigin_EyeLevel;
 
-	return (ovrTrackingOrigin)(session->TrackingSpace - XR_REFERENCE_SPACE_TYPE_LOCAL);
+	return session->TrackingOrigin;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
@@ -362,8 +360,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
+	XrSpace space = session->TrackingSpaces[session->TrackingOrigin];
 	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
-	CHK_XR(xrLocateSpace(session->ViewSpace, session->LocalSpace, (*session->CurrentFrame).predictedDisplayTime, &relation));
+	CHK_XR(xrLocateSpace(session->ViewSpace, space, (*session->CurrentFrame).predictedDisplayTime, &relation));
 
 	if (!(relation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
 		return ovrError_InvalidHeadsetOrientation;
@@ -376,17 +375,27 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovr
 	if (!session)
 		return ovrError_InvalidSession;
 
-	// Get a leveled head pose
+	// Get the yaw orientation from the origin pose
 	float yaw;
 	OVR::Quatf(originPose.Orientation).GetYawPitchRoll(&yaw, nullptr, nullptr);
-	OVR::Posef newOrigin = OVR::Posef(session->CalibratedOrigin) * OVR::Posef(OVR::Quatf(OVR::Axis_Y, yaw), originPose.Position);
-	session->CalibratedOrigin = newOrigin.Normalized();
 
-	XrSpace oldSpace = session->LocalSpace;
+	// For floor level spaces we keep the height at the floor
+	if (session->TrackingOrigin == ovrTrackingOrigin_FloorLevel)
+		originPose.Position.y = 0.0f;
+
+	// Apply the new origin pose to the old one
+	OVR::Posef newOrigin = OVR::Posef(session->CalibratedOrigin[session->TrackingOrigin]) *
+		OVR::Posef(OVR::Quatf(OVR::Axis_Y, yaw), originPose.Position);
+
+	// Store the new calibrated origin
+	session->CalibratedOrigin[session->TrackingOrigin] = newOrigin.Normalized();
+
+	// Replace the tracking space with the newly calibrated one
+	XrSpace oldSpace = session->TrackingSpaces[session->TrackingOrigin];
 	XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
-	spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
-	spaceInfo.poseInReferenceSpace = XR::Posef(session->CalibratedOrigin);
-	CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->LocalSpace));
+	spaceInfo.referenceSpaceType = static_cast<XrReferenceSpaceType>(XR_REFERENCE_SPACE_TYPE_LOCAL + session->TrackingOrigin);
+	spaceInfo.poseInReferenceSpace = XR::Posef(session->CalibratedOrigin[session->TrackingOrigin]);
+	CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->TrackingSpaces[session->TrackingOrigin]));
 	CHK_XR(xrDestroySpace(oldSpace));
 
 	ovr_ClearShouldRecenterFlag(session);
@@ -452,7 +461,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 		OVR::Posef trackerPose = poses[trackerPoseIndex];
 
 		XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
-		if (session->Session && XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, session->LocalSpace,
+		if (session->Session && XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, session->TrackingSpaces[ovrTrackingOrigin_EyeLevel],
 			(*session->CurrentFrame).predictedDisplayTime, &relation)))
 		{
 			// Create a leveled head pose
@@ -1096,8 +1105,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		if (headLocked)
 			header.space = session->ViewSpace;
 		else
-			header.space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ?
-				session->StageSpace : session->LocalSpace;
+			header.space = session->TrackingSpaces[session->TrackingOrigin];
 
 		layers.push_back(&newLayer.Header);
 	}
@@ -1508,8 +1516,8 @@ ovr_GetFovStencil(
 			indices.push_back(3);
 		}
 
-		meshBuffer->UsedVertexCount = vertices.size();
-		meshBuffer->UsedIndexCount = indices.size();
+		meshBuffer->UsedVertexCount = (int)vertices.size();
+		meshBuffer->UsedIndexCount = (int)indices.size();
 		if (!meshBuffer->AllocVertexCount && !meshBuffer->AllocIndexCount)
 			return ovrSuccess;
 		else if (meshBuffer->AllocVertexCount < meshBuffer->UsedVertexCount ||

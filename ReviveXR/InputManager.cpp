@@ -208,11 +208,11 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	XrSpaceVelocity velocity = XR_TYPE(SPACE_VELOCITY);
 	location.next = &velocity;
 	XrTime displayTime = AbsTimeToXrTime(session->Instance, absTime);
-	XrSpace space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ? session->StageSpace : session->LocalSpace;
+	XrSpace space = session->TrackingSpaces[session->TrackingOrigin];
 
 	// Get space relation for the head
 	if (XR_FAILED(xrLocateSpace(session->ViewSpace, space, displayTime, &location)))
-		OutputDebugStringA("Revive: Failed to locate head space");
+		OutputDebugStringA("Revive: Failed to locate head space\n");
 	outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
 
 	// Convert the hand poses
@@ -221,19 +221,22 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		XrSpaceLocation handLocation = XR_TYPE(SPACE_LOCATION);
 		handLocation.next = &velocity;
 		if (XR_FAILED(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation)))
-			OutputDebugStringA("Revive: Failed to locate hand space");
+			OutputDebugStringA("Revive: Failed to locate hand space\n");
 		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
 	}
 
 	m_LastTrackingState = *outState;
 
-	outState->CalibratedOrigin = session->CalibratedOrigin;
+	outState->CalibratedOrigin = OVR::Posef(session->CalibratedOrigin[session->TrackingOrigin]).Inverted();
 }
 
 ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
 {
-	XrTime displayTime = absTime <= 0.0 ? (*session->CurrentFrame).predictedDisplayTime : AbsTimeToXrTime(session->Instance, absTime);
-	XrSpace space = (session->TrackingSpace == XR_REFERENCE_SPACE_TYPE_STAGE) ? session->StageSpace : session->LocalSpace;
+	if (absTime <= 0.0)
+		absTime = ovr_GetTimeInSeconds();
+
+	XrTime displayTime = AbsTimeToXrTime(session->Instance, absTime);
+	XrSpace space = session->TrackingSpaces[session->TrackingOrigin];
 
 	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
 	XrSpaceVelocity velocity = XR_TYPE(SPACE_VELOCITY);
