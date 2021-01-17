@@ -234,8 +234,6 @@ ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType*
 		absTime = ovr_GetTimeInSeconds();
 
 	XrTime displayTime = AbsTimeToXrTime(session->Instance, absTime);
-	XrSpace space = session->TrackingSpaces[session->TrackingOrigin];
-
 	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
 	XrSpaceVelocity velocity = XR_TYPE(SPACE_VELOCITY);
 	location.next = &velocity;
@@ -261,7 +259,7 @@ ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType*
 		}
 
 		if (space && pLastState)
-			CHK_XR(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &location));
+			CHK_XR(xrLocateSpace(space, session->TrackingSpaces[session->TrackingOrigin], displayTime, &location));
 		SpaceRelationToPoseState(location, absTime, *pLastState, outDevicePoses[i]);
 	}
 
