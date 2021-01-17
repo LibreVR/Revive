@@ -16,7 +16,6 @@
 #include <list>
 #include <vector>
 #include <algorithm>
-#include <set>
 #include <thread>
 #include <chrono>
 #include <detours/detours.h>
@@ -798,6 +797,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	{
 		XrSwapchainImageAcquireInfo acquireInfo = XR_TYPE(SWAPCHAIN_IMAGE_ACQUIRE_INFO);
 		CHK_XR(xrAcquireSwapchainImage(chain->Swapchain, &acquireInfo, &chain->CurrentIndex));
+
+		// TODO: We could move this wait to the end of EndFrame so we submit earlier
+		XrSwapchainImageWaitInfo waitInfo = XR_TYPE(SWAPCHAIN_IMAGE_WAIT_INFO);
+		waitInfo.timeout = (*session->CurrentFrame).predictedDisplayPeriod;
+		CHK_XR(xrWaitSwapchainImage(chain->Swapchain, &waitInfo));
 	}
 
 	return ovrSuccess;
@@ -939,6 +943,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 	if (!session)
 		return ovrError_InvalidSession;
 
+	// Discard the frame if the index is beyond the current frame or older than the last one.
+	// TODO: Should we allow apps to target frames that have not been waited on?
+	XrIndexedFrameState* CurrentFrame = session->CurrentFrame;
+	if (frameIndex > CurrentFrame->frameIndex || frameIndex <= session->LastFrameIndex)
+		return ovrSuccess_NotVisible;
+
 	// The oculus runtime is very tolerant of invalid viewports, so this lambda ensures we submit valid ones.
 	// This fixes UE4 games which can at times submit uninitialized viewports due to a bug in OVR_Math.h.
 	const auto ClampRect = [](ovrRecti rect, ovrTextureSwapChain chain)
@@ -957,7 +967,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		return XR::Recti(rect);
 	};
 
-	std::set<XrSwapchain> chains;
 	std::vector<XrCompositionLayerBaseHeader*> layers;
 	std::list<XrCompositionLayerUnion> layerData;
 	std::list<XrCompositionLayerProjectionViewStereo> viewData;
@@ -1023,7 +1032,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 				if (texture->Images->type == XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR ? !upsideDown : upsideDown)
 					OVR::OVRMath_Swap(view.fov.angleUp, view.fov.angleDown);
 
-				if (type == ovrLayerType_EyeFovDepth)
+				if (type == ovrLayerType_EyeFovDepth && Runtime::Get().CompositionDepth)
 				{
 					depthData.emplace_back();
 					XrCompositionLayerDepthInfoKHR& depthInfo = depthData.back();
@@ -1033,7 +1042,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 					depthInfo.subImage.swapchain = depthTexture->Swapchain;
 					depthInfo.subImage.imageRect = ClampRect(layer->EyeFovDepth.Viewport[i], depthTexture);
 					depthInfo.subImage.imageArrayIndex = 0;
-					chains.insert(depthTexture->Swapchain);
 
 					const ovrTimewarpProjectionDesc& projDesc = layer->EyeFovDepth.ProjectionDesc;
 					depthInfo.minDepth = 0.0f;
@@ -1047,14 +1055,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 						depthInfo.farZ *= viewScaleDesc->HmdSpaceToWorldScaleInMeters;
 					}
 
-					if (Runtime::Get().CompositionDepth)
-						view.next = &depthData.back();
+					view.next = &depthData.back();
 				}
 
 				view.subImage.swapchain = texture->Swapchain;
 				view.subImage.imageRect = ClampRect(layer->EyeFov.Viewport[i], texture);
 				view.subImage.imageArrayIndex = 0;
-				chains.insert(texture->Swapchain);
 			}
 
 			// Verify all views were initialized without errors, otherwise ignore the layer
@@ -1078,7 +1084,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			quad.subImage.imageArrayIndex = 0;
 			quad.pose = XR::Posef(layer->Quad.QuadPoseCenter);
 			quad.size = XR::Vector2f(layer->Quad.QuadSize);
-			chains.insert(texture->Swapchain);
 		}
 		else if (type == ovrLayerType_Cylinder && Runtime::Get().CompositionCylinder)
 		{
@@ -1096,21 +1101,18 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 			cylinder.radius = layer->Cylinder.CylinderRadius;
 			cylinder.centralAngle = layer->Cylinder.CylinderAngle;
 			cylinder.aspectRatio = layer->Cylinder.CylinderAspectRatio;
-			chains.insert(texture->Swapchain);
 		}
 		else if (type == ovrLayerType_Cube && Runtime::Get().CompositionCube)
 		{
-		ovrTextureSwapChain texture = layer->Cube.CubeMapTexture;
-			if (!texture)
+			if (!layer->Cube.CubeMapTexture)
 				continue;
 
 			XrCompositionLayerCubeKHR& cube = newLayer.Cube;
 			cube = XR_TYPE(COMPOSITION_LAYER_CUBE_KHR);
 			cube.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
-			cube.swapchain = texture->Swapchain;
+			cube.swapchain = layer->Cube.CubeMapTexture->Swapchain;
 			cube.imageArrayIndex = 0;
 			cube.orientation = XR::Quatf(layer->Cube.Orientation);
-			chains.insert(texture->Swapchain);
 		}
 		else
 		{
@@ -1129,32 +1131,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		layers.push_back(&newLayer.Header);
 	}
 
-	// Discard the frame if the index is beyond the current frame or older than the last submitted one.
-	// TODO: Should we allow apps to target frames that have not been waited on?
-	XrResult result = XR_FRAME_DISCARDED;
-	XrIndexedFrameState* CurrentFrame = session->CurrentFrame;
-	if (frameIndex <= CurrentFrame->frameIndex && frameIndex > session->LastFrameIndex)
-	{
-		XrFrameEndInfo endInfo = XR_TYPE(FRAME_END_INFO);
-		endInfo.displayTime = session->FrameStats[frameIndex % ovrMaxProvidedFrameStats].predictedDisplayTime;
-		endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-		endInfo.layerCount = (uint32_t)layers.size();
-		endInfo.layers = layers.data();
-		result = xrEndFrame(session->Session, &endInfo);
-	}
+	XrFrameEndInfo endInfo = XR_TYPE(FRAME_END_INFO);
+	endInfo.displayTime = session->FrameStats[frameIndex % ovrMaxProvidedFrameStats].predictedDisplayTime;
+	endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+	endInfo.layerCount = (uint32_t)layers.size();
+	endInfo.layers = layers.data();
+	CHK_XR(xrEndFrame(session->Session, &endInfo));
 
 	session->LastFrameIndex = frameIndex;
 	MicroProfileFlip();
 
-	for (XrSwapchain chain : chains)
-	{
-		MICROPROFILE_META_CPU("Identifier", PtrToInt(chain));
-		XrSwapchainImageWaitInfo waitInfo = XR_TYPE(SWAPCHAIN_IMAGE_WAIT_INFO);
-		waitInfo.timeout = XR_NO_DURATION;
-		CHK_XR(xrWaitSwapchainImage(chain, &waitInfo));
-	}
-
-	CHK_XR(result);
 	return ovrSuccess;
 }
 
