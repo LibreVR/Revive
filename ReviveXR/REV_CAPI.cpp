@@ -1547,6 +1547,9 @@ ovr_GetFovStencil(
 		0.0f, scaleAndOffset.Scale.y, -scaleAndOffset.Offset.y,
 		0.0f, 0.0f, 0.0f); // We're not interested in the Z value
 
+	if (Runtime::Get().UseHack(Runtime::HACK_NDC_MASKS))
+		matrix = OVR::Matrix3f::Identity();
+
 	const float scale = fovStencilDesc->StencilFlags & ovrFovStencilFlag_MeshOriginAtBottomLeft ? 2.0f : -2.0f;
 	auto ToUVSpace = [matrix, scale](XR::Vector2f v)
 	{

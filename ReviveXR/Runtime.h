@@ -29,6 +29,9 @@ public:
 		// Hack: SteamVR runtime allocates a buffer that is too big for the visibility line loop.
 		// Causes the rest of the buffer to be filled with uninitialized coordinates.
 		HACK_BROKEN_LINE_LOOP,
+		// Hack: Oculus runtime visibility masks are in Normalized Device Coordinates.
+		// Simply set the projection matrix to the identity matrix as a workaround.
+		HACK_NDC_MASKS,
 	};
 
 	bool UseHack(Hack hack);

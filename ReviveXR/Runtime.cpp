@@ -31,6 +31,7 @@ Runtime::HackInfo Runtime::s_known_hacks[] = {
 	{ nullptr, "SteamVR/OpenXR", HACK_VALVE_INDEX_PROFILE, 0, 0, true },
 	{ nullptr, "SteamVR/OpenXR", HACK_HOOK_CREATE_TEXTURE, 0, 0, true },
 	{ nullptr, "SteamVR/OpenXR", HACK_BROKEN_LINE_LOOP, 0, 0x100000000, true },
+	{ nullptr, "Oculus", HACK_NDC_MASKS, 0, 0, true },
 	{ "echovr.exe", nullptr, HACK_FORCE_FOV_FALLBACK, 0, 0, true },
 	{ "loneecho.exe", nullptr, HACK_FORCE_FOV_FALLBACK, 0, 0, true },
 };
