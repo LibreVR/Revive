@@ -1134,7 +1134,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 		frameIndex = currentIndex;
 
 	// Some older games submit frames redundantly, so we discard old frames in the legacy call
-	if (frameIndex < currentIndex)
+	if (frameIndex >= currentIndex)
 		CHK_OVR(ovr_EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount));
 	CHK_OVR(ovr_WaitToBeginFrame(session, frameIndex + 1));
 	CHK_OVR(ovr_BeginFrame(session, frameIndex + 1));
