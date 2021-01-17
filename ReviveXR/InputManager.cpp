@@ -66,22 +66,18 @@ ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType cont
 {
 	memset(inputState, 0, sizeof(ovrInputState));
 
-	uint32_t types = 0;
+	if (controllerType == ovrControllerType_Active)
+		controllerType = ovrControllerType_Touch;
+
 	for (InputDevice* device : m_InputDevices)
 	{
 		ovrControllerType type = device->GetType();
-		if (device->IsConnected())
-		{
-			if (controllerType & type)
-			{
-				if (device->GetInputState(session->Session, controllerType, inputState))
-					types |= type;
-			}
-		}
+		if (controllerType & type && device->IsConnected())
+			device->GetInputState(session->Session, controllerType, inputState);
 	}
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
-	inputState->ControllerType = (ovrControllerType)types;
+	inputState->ControllerType = controllerType;
 	return ovrSuccess;
 }
 
@@ -531,7 +527,7 @@ bool InputManager::OculusTouch::IsConnected() const
 	return true;
 }
 
-bool InputManager::OculusTouch::GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState)
+void InputManager::OculusTouch::GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
 	if (m_Button_Enter.GetDigital(session))
 		inputState->Buttons |= ovrButton_Enter;
@@ -618,8 +614,6 @@ bool InputManager::OculusTouch::GetInputState(XrSession session, ovrControllerTy
 		inputState->Buttons |= (hand == ovrHand_Left) ? buttons << 8 : buttons;
 		inputState->Touches |= (hand == ovrHand_Left) ? touches << 8 : touches;
 	}
-
-	return true;
 }
 
 ovrResult InputManager::OculusTouch::SetVibration(XrSession session, ovrControllerType controllerType, float frequency, float amplitude)
@@ -679,7 +673,7 @@ bool InputManager::OculusRemote::IsConnected() const
 	return m_IsConnected;
 }
 
-bool InputManager::OculusRemote::GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState)
+void InputManager::OculusRemote::GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
 	unsigned int buttons = 0;
 
@@ -712,7 +706,6 @@ bool InputManager::OculusRemote::GetInputState(XrSession session, ovrControllerT
 		buttons |= ovrButton_VolDown;
 
 	inputState->Buttons |= buttons;
-	return buttons != 0;
 }
 
 void InputManager::OculusRemote::GetActiveSets(std::vector<XrActiveActionSet>& outSets) const
@@ -780,7 +773,7 @@ XrPath InputManager::XboxGamepad::GetSuggestedBindings(std::vector<XrActionSugge
 	return GetXrPath("/interaction_profiles/microsoft/xbox_controller");
 }
 
-bool InputManager::XboxGamepad::GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState)
+void InputManager::XboxGamepad::GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
 	unsigned int buttons = 0;
 
@@ -847,7 +840,6 @@ bool InputManager::XboxGamepad::GetInputState(XrSession session, ovrControllerTy
 	}
 
 	inputState->Buttons |= buttons;
-	return buttons != 0;
 }
 
 ovrResult InputManager::XboxGamepad::SetVibration(XrSession session, ovrControllerType controllerType, float frequency, float amplitude)

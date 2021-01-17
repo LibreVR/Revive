@@ -21,7 +21,7 @@ public:
 		// Input
 		virtual ovrControllerType GetType() const = 0;
 		virtual bool IsConnected() const = 0;
-		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) = 0;
+		virtual void GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) = 0;
 
 		// Bindings
 		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const { return XR_NULL_PATH; }
@@ -71,7 +71,7 @@ public:
 
 		virtual ovrControllerType GetType() const override;
 		virtual bool IsConnected() const override;
-		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
+		virtual void GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
 		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const override;
 		virtual void GetActionSpaces(XrSession session, std::vector<XrSpace>& outSpaces) const override;
 		virtual void GetActiveSets(std::vector<XrActiveActionSet>& outSets) const override;
@@ -114,7 +114,7 @@ public:
 
 		virtual ovrControllerType GetType() const override { return ovrControllerType_Remote; }
 		virtual bool IsConnected() const override;
-		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
+		virtual void GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
 		virtual void GetActiveSets(std::vector<XrActiveActionSet>& outSets) const override;
 
 	private:
@@ -139,7 +139,7 @@ public:
 
 		virtual ovrControllerType GetType() const override { return ovrControllerType_XBox; }
 		virtual bool IsConnected() const override { return true; }
-		virtual bool GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
+		virtual void GetInputState(XrSession session, ovrControllerType controllerType, ovrInputState* inputState) override;
 		virtual XrPath GetSuggestedBindings(std::vector<XrActionSuggestedBinding>& outBindings) const override;
 		virtual void GetActiveSets(std::vector<XrActiveActionSet>& outSets) const override;
 		virtual ovrResult SetVibration(XrSession session, ovrControllerType controllerType, float frequency, float amplitude) override;
