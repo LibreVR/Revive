@@ -51,7 +51,6 @@ struct ovrHmdStruct
 	// Frame state
 	XrIndexedFrameState FrameStats[ovrMaxProvidedFrameStats];
 	std::atomic<XrIndexedFrameState*> CurrentFrame;
-	std::atomic_llong LastFrameIndex;
 	ovrGraphicsLuid Adapter;
 
 	// OpenXR properties
