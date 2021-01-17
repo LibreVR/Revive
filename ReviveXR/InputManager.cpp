@@ -66,11 +66,6 @@ ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType cont
 {
 	memset(inputState, 0, sizeof(ovrInputState));
 
-	XrActionsSyncInfo syncInfo = XR_TYPE(ACTIONS_SYNC_INFO);
-	syncInfo.countActiveActionSets = (uint32_t)m_ActionSets.size();
-	syncInfo.activeActionSets = m_ActionSets.data();
-	CHK_XR(xrSyncActions(session->Session, &syncInfo));
-
 	uint32_t types = 0;
 	for (InputDevice* device : m_InputDevices)
 	{
@@ -931,5 +926,14 @@ ovrResult InputManager::AttachSession(XrSession session)
 		attachInfo.actionSets = actionSets.data();
 		CHK_XR(xrAttachSessionActionSets(session, &attachInfo));
 	}
+	return ovrSuccess;
+}
+
+ovrResult InputManager::SyncInputState(XrSession session)
+{
+	XrActionsSyncInfo syncInfo = XR_TYPE(ACTIONS_SYNC_INFO);
+	syncInfo.countActiveActionSets = (uint32_t)m_ActionSets.size();
+	syncInfo.activeActionSets = m_ActionSets.data();
+	CHK_XR(xrSyncActions(session, &syncInfo));
 	return ovrSuccess;
 }

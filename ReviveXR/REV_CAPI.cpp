@@ -884,6 +884,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 	CHK_XR(xrWaitFrame(session->Session, &waitInfo, frameState));
 	frameState->frameIndex = frameIndex;
 	session->CurrentFrame = frameState;
+
+	if (session->Input)
+		session->Input->SyncInputState(session->Session);
 	return ovrSuccess;
 }
 

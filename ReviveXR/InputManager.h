@@ -178,6 +178,7 @@ public:
 	~InputManager();
 
 	ovrResult AttachSession(XrSession session);
+	ovrResult SyncInputState(XrSession session);
 
 	static ovrTouchHapticsDesc GetTouchHapticsDesc(ovrControllerType controllerType);
 	ovrResult SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude);
