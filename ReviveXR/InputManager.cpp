@@ -11,6 +11,9 @@
 #include <algorithm>
 #include <vector>
 
+// Oculus SDK defines that constant vibration lasts 2.5 seconds
+#define MAX_VIBRATION_DURATION 2500000000i64
+
 XrPath InputManager::s_SubActionPaths[ovrHand_Count] = { XR_NULL_PATH, XR_NULL_PATH };
 
 InputManager::InputManager(XrInstance instance)
@@ -632,9 +635,10 @@ ovrResult InputManager::OculusTouch::SetVibration(XrSession session, ovrControll
 		if (frequency > 0.0f)
 		{
 			XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
-			vibration.frequency = frequency;
+			vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
 			vibration.amplitude = amplitude;
-			vibration.duration = XR_NO_DURATION;
+			vibration.duration = Runtime::Get().UseHack(Runtime::HACK_MIN_HAPTIC_DURATION) ?
+				XR_MIN_HAPTIC_DURATION : MAX_VIBRATION_DURATION;
 			CHK_XR(xrApplyHapticFeedback(session, &info, (XrHapticBaseHeader*)&vibration));
 		}
 		else
@@ -849,7 +853,8 @@ ovrResult InputManager::XboxGamepad::SetVibration(XrSession session, ovrControll
 	XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
 	vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
 	vibration.amplitude = amplitude;
-	vibration.duration = XR_NO_DURATION;
+	vibration.duration = Runtime::Get().UseHack(Runtime::HACK_MIN_HAPTIC_DURATION) ?
+		XR_MIN_HAPTIC_DURATION : MAX_VIBRATION_DURATION;
 	CHK_XR(xrApplyHapticFeedback(session, &info, (XrHapticBaseHeader*)&vibration));
 	return ovrSuccess;
 }
