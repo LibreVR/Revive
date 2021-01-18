@@ -849,7 +849,7 @@ ovrResult InputManager::XboxGamepad::SetVibration(XrSession session, ovrControll
 	XrHapticVibration vibration = XR_TYPE(HAPTIC_VIBRATION);
 	vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
 	vibration.amplitude = amplitude;
-	vibration.duration = 2500000000UL;
+	vibration.duration = XR_NO_DURATION;
 	CHK_XR(xrApplyHapticFeedback(session, &info, (XrHapticBaseHeader*)&vibration));
 	return ovrSuccess;
 }
