@@ -304,9 +304,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 		{
 			const XrEventDataReferenceSpaceChangePending& spaceChange =
 				reinterpret_cast<XrEventDataReferenceSpaceChangePending&>(event);
-			OVR::Posef origin(session->CalibratedOrigin[session->TrackingOrigin]);
-			if (spaceChange.poseValid)
-				session->CalibratedOrigin[session->TrackingOrigin] = origin * XR::Posef(spaceChange.poseInPreviousSpace);
 			status.ShouldRecenter = true;
 			break;
 		}
@@ -370,17 +367,34 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
-	{
-		std::shared_lock<std::shared_mutex> lk(session->TrackingMutex);
-		XrSpace space = session->TrackingSpaces[session->TrackingOrigin];
-		CHK_XR(xrLocateSpace(session->ViewSpace, space, (*session->CurrentFrame).predictedDisplayTime, &relation));
-	}
+	ovr_ClearShouldRecenterFlag(session);
 
-	if (!(relation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
+	std::lock_guard<std::shared_mutex> lk(session->TrackingMutex);
+	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
+	CHK_XR(xrLocateSpace(session->ViewSpace, session->OriginSpaces[session->TrackingOrigin],
+		(*session->CurrentFrame).predictedDisplayTime, &location));
+
+	if (!(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
 		return ovrError_InvalidHeadsetOrientation;
 
-	return ovr_SpecifyTrackingOrigin(session, XR::Posef(relation.pose));
+	// Get the yaw orientation from the view pose
+	float yaw;
+	XR::Quatf(location.pose.orientation).GetYawPitchRoll(&yaw, nullptr, nullptr);
+
+	// Construct the new origin pose
+	XR::Posef newOrigin(OVR::Quatf(OVR::Axis_Y, yaw), XR::Vector3f(location.pose.position));
+
+	// For floor level spaces we keep the height at the floor
+	if (session->TrackingOrigin == ovrTrackingOrigin_FloorLevel)
+		newOrigin.Translation.y = 0.0f;
+
+	// Replace the tracking space with the newly calibrated one
+	XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
+	spaceInfo.referenceSpaceType = static_cast<XrReferenceSpaceType>(XR_REFERENCE_SPACE_TYPE_LOCAL + session->TrackingOrigin);
+	spaceInfo.poseInReferenceSpace = newOrigin;
+	CHK_XR(xrDestroySpace(session->TrackingSpaces[session->TrackingOrigin]));
+	CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->TrackingSpaces[session->TrackingOrigin]));
+	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovrPosef originPose)
@@ -390,26 +404,29 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovr
 
 	ovr_ClearShouldRecenterFlag(session);
 
+	std::lock_guard<std::shared_mutex> lk(session->TrackingMutex);
+	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
+	CHK_XR(xrLocateSpace(session->TrackingSpaces[session->TrackingOrigin], session->OriginSpaces[session->TrackingOrigin],
+		(*session->CurrentFrame).predictedDisplayTime, &location));
+
+	if (!(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
+		return ovrError_InvalidParameter;
+
 	// Get the yaw orientation from the origin pose
 	float yaw;
 	OVR::Quatf(originPose.Orientation).GetYawPitchRoll(&yaw, nullptr, nullptr);
 
+	// Construct the new origin pose
+	XR::Posef newOrigin(OVR::Quatf(OVR::Axis_Y, yaw), originPose.Position);
+
 	// For floor level spaces we keep the height at the floor
 	if (session->TrackingOrigin == ovrTrackingOrigin_FloorLevel)
-		originPose.Position.y = 0.0f;
+		newOrigin.Translation.y = 0.0f;
 
-	// Apply the new origin pose to the old one
-	OVR::Posef newOrigin = OVR::Posef(session->CalibratedOrigin[session->TrackingOrigin]) *
-		OVR::Posef(OVR::Quatf(OVR::Axis_Y, yaw), originPose.Position);
-
-	// Store the new calibrated origin
-	session->CalibratedOrigin[session->TrackingOrigin] = newOrigin.Normalized();
-
-	// Replace the tracking space with the newly calibrated one by exclusively acquiring the tracking mutex
-	std::lock_guard<std::shared_mutex> lk(session->TrackingMutex);
+	// Replace the tracking space with the newly calibrated one
 	XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
 	spaceInfo.referenceSpaceType = static_cast<XrReferenceSpaceType>(XR_REFERENCE_SPACE_TYPE_LOCAL + session->TrackingOrigin);
-	spaceInfo.poseInReferenceSpace = XR::Posef(session->CalibratedOrigin[session->TrackingOrigin]);
+	spaceInfo.poseInReferenceSpace = XR::Posef(XR::Posef(location.pose) * newOrigin);
 	CHK_XR(xrDestroySpace(session->TrackingSpaces[session->TrackingOrigin]));
 	CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->TrackingSpaces[session->TrackingOrigin]));
 	return ovrSuccess;

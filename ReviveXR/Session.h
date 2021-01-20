@@ -43,11 +43,15 @@ struct ovrHmdStruct
 		std::condition_variable> Running;
 	std::shared_mutex TrackingMutex;
 
-	// OpenXR handles
+	// System handles
 	XrInstance Instance;
 	XrSystemId System;
 	XrSession Session;
+
+	// Tracking handles
 	XrSpace ViewSpace;
+	std::atomic<ovrTrackingOrigin> TrackingOrigin;
+	XrSpace OriginSpaces[ovrTrackingOrigin_Count];
 	XrSpace	TrackingSpaces[ovrTrackingOrigin_Count];
 
 	// Frame state
@@ -65,8 +69,6 @@ struct ovrHmdStruct
 
 	// Session status
 	SessionStatusBits SessionStatus;
-	std::atomic<ovrTrackingOrigin> TrackingOrigin;
-	ovrPosef CalibratedOrigin[ovrTrackingOrigin_Count];
 
 	// Field-of-view stencil
 	std::map<XrVisibilityMaskTypeKHR, VisibilityMask> VisibilityMasks[ovrEye_Count];

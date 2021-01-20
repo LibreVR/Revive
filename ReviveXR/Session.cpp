@@ -133,11 +133,11 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 	spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
 	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &ViewSpace));
 	spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
+	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &OriginSpaces[ovrTrackingOrigin_EyeLevel]));
 	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &TrackingSpaces[ovrTrackingOrigin_EyeLevel]));
 	spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_STAGE;
+	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &OriginSpaces[ovrTrackingOrigin_FloorLevel]));
 	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &TrackingSpaces[ovrTrackingOrigin_FloorLevel]));
-	for (uint32_t i = 0; i < ovrTrackingOrigin_Count; i++)
-		CalibratedOrigin[i] = OVR::Posef::Identity();
 
 	// Update the visibility mask for both eyes
 	if (Runtime::Get().VisibilityMask)
@@ -184,7 +184,10 @@ ovrResult ovrHmdStruct::EndSession()
 	Session = XR_NULL_HANDLE;
 	ViewSpace = XR_NULL_HANDLE;
 	for (uint32_t i = 0; i < ovrTrackingOrigin_Count; i++)
+	{
+		OriginSpaces[i] = XR_NULL_HANDLE;
 		TrackingSpaces[i] = XR_NULL_HANDLE;
+	}
 	return ovrSuccess;
 }
 
