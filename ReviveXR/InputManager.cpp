@@ -595,12 +595,12 @@ void InputManager::OculusTouch::GetInputState(XrSession session, ovrControllerTy
 		inputState->HandTriggerNoDeadzone[i] = m_HandTrigger.GetAnalog(session, hand);
 
 		// Derive gestures from touch flags
-		if (!Runtime::Get().UseHack(Runtime::HACK_WMR_PROFILE) || inputState->HandTriggerNoDeadzone[i] > 0.5f)
+		if (inputState->HandTriggerNoDeadzone[i] > 0.5f)
 		{
 			if (!(touches & ovrTouch_RIndexTrigger))
 				touches |= ovrTouch_RIndexPointing;
 
-			if (!(touches & (ovrTouch_A | ovrTouch_B | ovrTouch_RThumb | ovrTouch_RThumbRest)))
+			if (!(touches & ~(ovrTouch_RIndexTrigger | ovrTouch_RIndexPointing)))
 				touches |= ovrTouch_RThumbUp;
 		}
 
