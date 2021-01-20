@@ -249,7 +249,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	if (!sessionStatus)
 		return ovrError_InvalidParameter;
 
-	SessionStatusBits& status = session->SessionStatus;
+	assert(session->SessionStatus.is_lock_free());
+	SessionStatusBits status = session->SessionStatus;
 	XrEventDataBuffer event = XR_TYPE(EVENT_DATA_BUFFER);
 	while (xrPollEvent(session->Instance, &event) == XR_SUCCESS)
 	{
@@ -324,6 +325,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 		}
 		event = XR_TYPE(EVENT_DATA_BUFFER);
 	}
+	session->SessionStatus = status;
 
 	sessionStatus->IsVisible = status.IsVisible;
 	sessionStatus->HmdPresent = status.HmdPresent;
@@ -346,6 +348,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 	if (!session)
 		return ovrError_InvalidSession;
 
+	assert(session->TrackingOrigin.is_lock_free());
 	session->TrackingOrigin = origin;
 	return ovrSuccess;
 }
@@ -437,7 +440,9 @@ OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session)
 	if (!session)
 		return;
 
-	session->SessionStatus.ShouldRecenter = false;
+	SessionStatusBits status = session->SessionStatus;
+	status.ShouldRecenter = false;
+	session->SessionStatus = status;
 }
 
 OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, double absTime, ovrBool latencyMarker)
@@ -930,6 +935,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 			return ovrError_Timeout;
 	}
 
+	assert(session->CurrentFrame.is_lock_free());
 	XrIndexedFrameState* frameState = &session->FrameStats[frameIndex % ovrMaxProvidedFrameStats];
 	XrFrameWaitInfo waitInfo = XR_TYPE(FRAME_WAIT_INFO);
 	CHK_XR(xrWaitFrame(session->Session, &waitInfo, frameState));

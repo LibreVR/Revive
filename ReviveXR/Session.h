@@ -68,7 +68,7 @@ struct ovrHmdStruct
 	std::vector<int64_t> SupportedFormats;
 
 	// Session status
-	SessionStatusBits SessionStatus;
+	std::atomic<SessionStatusBits> SessionStatus;
 
 	// Field-of-view stencil
 	std::map<XrVisibilityMaskTypeKHR, VisibilityMask> VisibilityMasks[ovrEye_Count];
