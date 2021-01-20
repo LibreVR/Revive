@@ -124,7 +124,17 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 {
 	REV_TRACE(ovr_GetHmdDesc);
 
-	ovrHmdDesc desc = { Runtime::Get().MinorVersion < 38 ? ovrHmd_CV1 : ovrHmd_RiftS };
+	ovrHmdDesc desc = { ovrHmd_None };
+
+	if (!g_Instance)
+		return desc;
+
+	XrSystemId System;
+	XrSystemGetInfo systemInfo = XR_TYPE(SYSTEM_GET_INFO);
+	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
+	if (session || XR_SUCCEEDED(xrGetSystem(g_Instance, &systemInfo, &System)))
+		desc.Type = Runtime::Get().MinorVersion < 38 ? ovrHmd_CV1 : ovrHmd_RiftS;
+
 	if (!session)
 		return desc;
 
@@ -202,7 +212,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 	ovrSession session = &g_Sessions.back();
 
 	// Initialize session, it will not be fully usable until a swapchain is created
-	session->InitSession(g_Instance);
+	CHK_OVR(session->InitSession(g_Instance));
 	if (pLuid)
 		*pLuid = session->Adapter;
 	*pSession = session;
@@ -1221,6 +1231,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_ResetPerfStats(ovrSession session)
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long long frameIndex)
 {
+	if (!session)
+		return ovr_GetTimeInSeconds();
+
 	REV_TRACE(ovr_GetPredictedDisplayTime);
 	XR_FUNCTION(session->Instance, ConvertTimeToWin32PerformanceCounterKHR);
 
