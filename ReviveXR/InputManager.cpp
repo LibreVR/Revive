@@ -202,7 +202,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 
 	m_LastTrackingState = *outState;
 
-	outState->CalibratedOrigin = OVR::Posef(session->CalibratedOrigin[session->TrackingOrigin]).Inverted();
+	outState->CalibratedOrigin = session->CalibratedOrigin[session->TrackingOrigin];
 }
 
 ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
