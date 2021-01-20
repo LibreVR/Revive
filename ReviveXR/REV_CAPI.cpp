@@ -16,6 +16,7 @@
 #include <list>
 #include <vector>
 #include <algorithm>
+#include <shared_mutex>
 #include <thread>
 #include <chrono>
 #include <detours/detours.h>
@@ -369,9 +370,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	XrSpace space = session->TrackingSpaces[session->TrackingOrigin];
 	XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
-	CHK_XR(xrLocateSpace(session->ViewSpace, space, (*session->CurrentFrame).predictedDisplayTime, &relation));
+	{
+		std::shared_lock<std::shared_mutex> lk(session->TrackingMutex);
+		XrSpace space = session->TrackingSpaces[session->TrackingOrigin];
+		CHK_XR(xrLocateSpace(session->ViewSpace, space, (*session->CurrentFrame).predictedDisplayTime, &relation));
+	}
 
 	if (!(relation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
 		return ovrError_InvalidHeadsetOrientation;
@@ -383,6 +387,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovr
 {
 	if (!session)
 		return ovrError_InvalidSession;
+
+	ovr_ClearShouldRecenterFlag(session);
 
 	// Get the yaw orientation from the origin pose
 	float yaw;
@@ -399,20 +405,21 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovr
 	// Store the new calibrated origin
 	session->CalibratedOrigin[session->TrackingOrigin] = newOrigin.Normalized();
 
-	// Replace the tracking space with the newly calibrated one
-	XrSpace oldSpace = session->TrackingSpaces[session->TrackingOrigin];
+	// Replace the tracking space with the newly calibrated one by exclusively acquiring the tracking mutex
+	std::lock_guard<std::shared_mutex> lk(session->TrackingMutex);
 	XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
 	spaceInfo.referenceSpaceType = static_cast<XrReferenceSpaceType>(XR_REFERENCE_SPACE_TYPE_LOCAL + session->TrackingOrigin);
 	spaceInfo.poseInReferenceSpace = XR::Posef(session->CalibratedOrigin[session->TrackingOrigin]);
+	CHK_XR(xrDestroySpace(session->TrackingSpaces[session->TrackingOrigin]));
 	CHK_XR(xrCreateReferenceSpace(session->Session, &spaceInfo, &session->TrackingSpaces[session->TrackingOrigin]));
-	CHK_XR(xrDestroySpace(oldSpace));
-
-	ovr_ClearShouldRecenterFlag(session);
 	return ovrSuccess;
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_ClearShouldRecenterFlag(ovrSession session)
 {
+	if (!session)
+		return;
+
 	session->SessionStatus.ShouldRecenter = false;
 }
 
@@ -421,10 +428,11 @@ OVR_PUBLIC_FUNCTION(ovrTrackingState) ovr_GetTrackingState(ovrSession session, d
 	REV_TRACE(ovr_GetTrackingState);
 
 	ovrTrackingState state = { 0 };
-
 	if (session && session->Input)
+	{
+		std::shared_lock<std::shared_mutex> lk(session->TrackingMutex);
 		session->Input->GetTrackingState(session, &state, absTime);
-
+	}
 	return state;
 }
 
@@ -432,9 +440,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetDevicePoses(ovrSession session, ovrTracked
 {
 	REV_TRACE(ovr_GetDevicePoses);
 
-	if (!session)
+	if (!session || !session->Input)
 		return ovrError_InvalidSession;
 
+	std::shared_lock<std::shared_mutex> lk(session->TrackingMutex);
 	return session->Input->GetDevicePoses(session, deviceTypes, deviceCount, absTime, outDevicePoses);
 }
 
@@ -469,6 +478,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 		};
 		OVR::Posef trackerPose = poses[trackerPoseIndex];
 
+		std::shared_lock<std::shared_mutex> lk(session->TrackingMutex);
 		XrSpaceLocation relation = XR_TYPE(SPACE_LOCATION);
 		if (session->Session && XR_SUCCEEDED(xrLocateSpace(session->ViewSpace, session->TrackingSpaces[ovrTrackingOrigin_EyeLevel],
 			(*session->CurrentFrame).predictedDisplayTime, &relation)))
@@ -951,6 +961,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 
 	if (!session)
 		return ovrError_InvalidSession;
+
+	// We are going to use some space handles here, don't destroy them
+	std::shared_lock<std::shared_mutex> lk(session->TrackingMutex);
 
 	// The oculus runtime is very tolerant of invalid viewports, so this lambda ensures we submit valid ones.
 	// This fixes UE4 games which can at times submit uninitialized viewports due to a bug in OVR_Math.h.

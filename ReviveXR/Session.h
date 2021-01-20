@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <list>
 #include <vector>
 #include <utility>
@@ -35,10 +36,12 @@ typedef std::pair<std::vector<XrVector2f>,
 
 struct ovrHmdStruct
 {
+	std::map<void**, void*> HookedFunctions;
+
+	// Synchronization
 	std::pair<std::mutex,
 		std::condition_variable> Running;
-
-	std::map<void**, void*> HookedFunctions;
+	std::shared_mutex TrackingMutex;
 
 	// OpenXR handles
 	XrInstance Instance;
@@ -62,7 +65,7 @@ struct ovrHmdStruct
 
 	// Session status
 	SessionStatusBits SessionStatus;
-	ovrTrackingOrigin TrackingOrigin;
+	std::atomic<ovrTrackingOrigin> TrackingOrigin;
 	ovrPosef CalibratedOrigin[ovrTrackingOrigin_Count];
 
 	// Field-of-view stencil
