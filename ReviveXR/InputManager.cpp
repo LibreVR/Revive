@@ -185,26 +185,32 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	XrTime displayTime = AbsTimeToXrTime(session->Instance, absTime);
 	XrSpace space = session->TrackingSpaces[session->TrackingOrigin];
 
-	// Get space relation for the head
+	// Get the head space location
 	if (XR_FAILED(xrLocateSpace(session->ViewSpace, space, displayTime, &location)))
-		OutputDebugStringA("Revive: Failed to locate head space\n");
+	{
+		// Arktika.1 does a player height measurement at startup, if it fails then all seated sections are offset
+		// Thus we ensure that there's always a sensible floor level pose available even if locating the head fails
+		if (session->TrackingOrigin == ovrTrackingOrigin_FloorLevel)
+			location.pose = XR::Posef(OVR::Quatf::Identity(), OVR::Vector3f(0.0f, OVR_DEFAULT_PLAYER_HEIGHT));
+		else
+			location.pose = XR::Posef::Identity();
+		location.locationFlags = XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT;
+	}
 	outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
 
-	// Convert the hand poses
+	// Get the hand space locations
 	for (uint32_t i = 0; i < ovrHand_Count && i < m_ActionSpaces.size(); i++)
 	{
 		XrSpaceLocation handLocation = XR_TYPE(SPACE_LOCATION);
 		handLocation.next = &velocity;
-		if (XR_FAILED(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation)))
-			OutputDebugStringA("Revive: Failed to locate hand space\n");
+		xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation);
 		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
 	}
 
+	// Locate the origin of the calibrated space, we don't care about the velocity
 	location.next = nullptr;
-	if (XR_FAILED(xrLocateSpace(session->TrackingSpaces[session->TrackingOrigin], session->OriginSpaces[session->TrackingOrigin], displayTime, &location)))
-		OutputDebugStringA("Revive: Failed to locate calibrated origin\n");
-
-	if (location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT)
+	xrLocateSpace(session->TrackingSpaces[session->TrackingOrigin], session->OriginSpaces[session->TrackingOrigin], displayTime, &location);
+	if (location.locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
 		outState->CalibratedOrigin = XR::Posef(location.pose);
 	else
 		outState->CalibratedOrigin = OVR::Posef::Identity();
