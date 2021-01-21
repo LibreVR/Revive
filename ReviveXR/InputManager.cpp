@@ -187,7 +187,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 
 	// Get the head space location
 	if (XR_FAILED(xrLocateSpace(session->ViewSpace, space, displayTime, &location)))
-		OutputDebugStringA("Revive: Failed to locate head space\n");
+		xrLocateSpace(session->ViewSpace, space, (*session->CurrentFrame).predictedDisplayTime, &location);
 	outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
 
 	// Get the hand space locations
@@ -196,13 +196,14 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		XrSpaceLocation handLocation = XR_TYPE(SPACE_LOCATION);
 		handLocation.next = &velocity;
 		if (XR_FAILED(xrLocateSpace(m_ActionSpaces[i], space, displayTime, &handLocation)))
-			OutputDebugStringA("Revive: Failed to locate hand space\n");
+			xrLocateSpace(m_ActionSpaces[i], space, (*session->CurrentFrame).predictedDisplayTime, &handLocation);
 		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
 	}
 
+	XrSpace origin = session->OriginSpaces[session->TrackingOrigin];
 	location.next = nullptr;
-	if (XR_FAILED(xrLocateSpace(session->TrackingSpaces[session->TrackingOrigin], session->OriginSpaces[session->TrackingOrigin], displayTime, &location)))
-		OutputDebugStringA("Revive: Failed to locate calibrated origin\n");
+	if (XR_FAILED(xrLocateSpace(space, origin, displayTime, &location)))
+		xrLocateSpace(space, origin, (*session->CurrentFrame).predictedDisplayTime, &location);
 
 	if (location.locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
 		outState->CalibratedOrigin = XR::Posef(location.pose);
