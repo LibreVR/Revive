@@ -200,8 +200,6 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		outState->HandStatusFlags[i] = SpaceRelationToPoseState(handLocation, absTime, m_LastTrackingState.HandPoses[i], outState->HandPoses[i]);
 	}
 
-	m_LastTrackingState = *outState;
-
 	location.next = nullptr;
 	if (XR_FAILED(xrLocateSpace(session->TrackingSpaces[session->TrackingOrigin], session->OriginSpaces[session->TrackingOrigin], displayTime, &location)))
 		OutputDebugStringA("Revive: Failed to locate calibrated origin\n");
@@ -210,6 +208,8 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		outState->CalibratedOrigin = XR::Posef(location.pose);
 	else
 		outState->CalibratedOrigin = OVR::Posef::Identity();
+
+	m_LastTrackingState = *outState;
 }
 
 ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
