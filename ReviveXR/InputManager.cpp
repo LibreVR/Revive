@@ -185,12 +185,12 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	XrTime displayTime = AbsTimeToXrTime(session->Instance, absTime);
 	XrSpace space = session->TrackingSpaces[session->TrackingOrigin];
 
-	// Get space relation for the head
+	// Get the head space location
 	if (XR_FAILED(xrLocateSpace(session->ViewSpace, space, displayTime, &location)))
 		OutputDebugStringA("Revive: Failed to locate head space\n");
 	outState->StatusFlags = SpaceRelationToPoseState(location, absTime, m_LastTrackingState.HeadPose, outState->HeadPose);
 
-	// Convert the hand poses
+	// Get the hand space locations
 	for (uint32_t i = 0; i < ovrHand_Count && i < m_ActionSpaces.size(); i++)
 	{
 		XrSpaceLocation handLocation = XR_TYPE(SPACE_LOCATION);
@@ -204,7 +204,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	if (XR_FAILED(xrLocateSpace(session->TrackingSpaces[session->TrackingOrigin], session->OriginSpaces[session->TrackingOrigin], displayTime, &location)))
 		OutputDebugStringA("Revive: Failed to locate calibrated origin\n");
 
-	if (location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT)
+	if (location.locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))
 		outState->CalibratedOrigin = XR::Posef(location.pose);
 	else
 		outState->CalibratedOrigin = OVR::Posef::Identity();
