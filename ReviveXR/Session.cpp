@@ -167,6 +167,7 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 	if (beginFrame)
 	{
 		CHK_OVR(ovr_WaitToBeginFrame(this, 0));
+		CHK_OVR(RecenterSpace(ovrTrackingOrigin_EyeLevel, ViewSpace));
 		CHK_OVR(ovr_BeginFrame(this, 0));
 	}
 	return ovrSuccess;
@@ -237,6 +238,35 @@ ovrResult ovrHmdStruct::UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR t
 		result.first.resize(27);
 		result.second.resize(27);
 	}
+	return ovrSuccess;
+}
+
+ovrResult ovrHmdStruct::RecenterSpace(ovrTrackingOrigin origin, XrSpace anchor, ovrPosef offset)
+{
+	std::lock_guard<std::shared_mutex> lk(TrackingMutex);
+	XrSpaceLocation location = XR_TYPE(SPACE_LOCATION);
+	CHK_XR(xrLocateSpace(anchor, OriginSpaces[origin], (*CurrentFrame).predictedDisplayTime, &location));
+
+	if (!(location.locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT)))
+		return ovrError_InvalidHeadsetOrientation;
+
+	// Get the yaw orientation from the view pose
+	float yaw;
+	XR::Quatf(location.pose.orientation).GetYawPitchRoll(&yaw, nullptr, nullptr);
+
+	// Construct the new origin pose
+	XR::Posef newOrigin(OVR::Quatf(OVR::Axis_Y, yaw), XR::Vector3f(location.pose.position));
+
+	// For floor level spaces we keep the height at the floor
+	if (origin == ovrTrackingOrigin_FloorLevel)
+		newOrigin.Translation.y = 0.0f;
+
+	// Replace the tracking space with the newly calibrated one
+	XrReferenceSpaceCreateInfo spaceInfo = XR_TYPE(REFERENCE_SPACE_CREATE_INFO);
+	spaceInfo.referenceSpaceType = static_cast<XrReferenceSpaceType>(XR_REFERENCE_SPACE_TYPE_LOCAL + origin);
+	spaceInfo.poseInReferenceSpace = XR::Posef(newOrigin * offset);
+	CHK_XR(xrDestroySpace(TrackingSpaces[origin]));
+	CHK_XR(xrCreateReferenceSpace(Session, &spaceInfo, &TrackingSpaces[origin]));
 	return ovrSuccess;
 }
 

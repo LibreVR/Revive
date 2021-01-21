@@ -1,6 +1,8 @@
 #pragma once
 
-#include <OVR_CAPI.h>
+#include "OVR_CAPI.h"
+#include "Extras/OVR_Math.h"
+
 #include <openxr/openxr.h>
 #include <atomic>
 #include <condition_variable>
@@ -82,5 +84,6 @@ struct ovrHmdStruct
 
 	ovrResult UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR type);
 	ovrResult LocateViews(XrView out_Views[ovrEye_Count], XrViewStateFlags* out_Flags = nullptr) const;
+	ovrResult RecenterSpace(ovrTrackingOrigin origin, XrSpace anchor, ovrPosef offset = OVR::Posef::Identity());
 	bool SupportsFormat(int64_t format) const;
 };
