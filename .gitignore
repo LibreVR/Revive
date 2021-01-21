@@ -15,6 +15,7 @@
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+[Nn]ightly/
 x64/
 x86/
 bld/
@@ -267,3 +268,8 @@ Installer/*.exe
 GeneratedFiles
 *.qmlc
 *.jsc
+.qmake.stash
+msvc_make.bat
+
+# Ignore generated proxy file
+LibOVRProxy/OVR_CAPIShim.c

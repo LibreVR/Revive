@@ -209,6 +209,10 @@ int wmain(int argc, wchar_t *argv[]) {
 			dlls.add(moduleDir + std::string("\\openvr_api64.dll"));
 			dlls.add(moduleDir + std::string("\\LibRevive64.dll"));
 		}
+		else if (wcscmp(argv[i], L"/proxy") == 0)
+		{
+			dlls.add(moduleDir + std::string("\\LibOVRProxy64.dll"));
+		}
 		else if (wcscmp(argv[i], L"/app") == 0)
 		{
 			appKey = "application.generated.revive.app." + std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(argv[++i]);

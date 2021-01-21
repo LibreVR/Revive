@@ -144,6 +144,9 @@
     <ProjectReference Include="..\Externals\openvr_api.vcxproj">
       <Project>{8940fe26-e0d4-4977-8a24-ab26ae687432}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\LibOVRProxy\LibOVRProxy.vcxproj">
+      <Project>{520a780b-aef3-436a-93af-9cbe65b7fd41}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\ReviveXR\ReviveXR.vcxproj">
       <Project>{cd882909-7404-4cfc-bc8e-47364cc4727d}</Project>
     </ProjectReference>
