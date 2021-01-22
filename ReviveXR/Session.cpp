@@ -167,7 +167,7 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 	if (beginFrame)
 	{
 		CHK_OVR(ovr_WaitToBeginFrame(this, 0));
-		CHK_OVR(RecenterSpace(ovrTrackingOrigin_EyeLevel, ViewSpace));
+		RecenterSpace(ovrTrackingOrigin_EyeLevel, ViewSpace);
 		CHK_OVR(ovr_BeginFrame(this, 0));
 	}
 	return ovrSuccess;
