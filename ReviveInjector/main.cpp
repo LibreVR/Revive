@@ -199,6 +199,7 @@ int wmain(int argc, wchar_t *argv[]) {
 	GetModuleFileNameA(NULL, moduleDir, MAX_PATH);
 	PathRemoveFileSpecA(moduleDir);
 
+	bool debug = false;
 	StringArray dlls;
 	std::string appKey;
 	wchar_t path[MAX_PATH] = { 0 };
@@ -233,6 +234,10 @@ int wmain(int argc, wchar_t *argv[]) {
 			}
 			wcsncat(path, L"\\", MAX_PATH);
 		}
+		else if (wcscmp(argv[i], L"/debug") == 0)
+		{
+			debug = true;
+		}
 		else
 		{
 			// Concatenate all other arguments
@@ -242,9 +247,7 @@ int wmain(int argc, wchar_t *argv[]) {
 	}
 
 	if (dlls.empty())
-	{
 		dlls.add(moduleDir + std::string("\\LibReviveXR64.dll"));
-	}
 	
 	LOG("Command for injector is: %ls\n", path);
 
@@ -267,10 +270,28 @@ int wmain(int argc, wchar_t *argv[]) {
 	if (file)
 		*file = L'\0';
 
-	if (!DetourCreateProcessWithDlls(NULL, path, NULL, NULL, FALSE, 0, NULL, (file && ext) ? workingDir : NULL, &si, &pi, (DWORD)dlls.size(), dlls.c_str(), NULL))
+	if (!DetourCreateProcessWithDlls(NULL, path, NULL, NULL, FALSE,
+		debug ? CREATE_SUSPENDED | DEBUG_ONLY_THIS_PROCESS : 0,
+		NULL, (file && ext) ? workingDir : NULL, &si, &pi,
+		(DWORD)dlls.size(), dlls.c_str(), NULL))
 	{
 		LOG("Failed to create process\n");
 		return -1;
+	}
+
+	if (debug)
+	{
+		if (!DebugActiveProcessStop(pi.dwProcessId))
+		{
+			LOG("Failed to stop debugging\n");
+			return -1;
+		}
+
+		if (ResumeThread(pi.hThread) == -1)
+		{
+			LOG("Failed to resume process\n");
+			return -1;
+		}
 	}
 
 	LOG("Succesfully injected!\n");

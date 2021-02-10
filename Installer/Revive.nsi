@@ -91,6 +91,7 @@ install:
   
   ; Main application files
   File "..\LICENSE"
+  File "..\hook.cmd"
   File "${DASH_DIR}\app.vrmanifest"
   File "${DASH_DIR}\support.vrmanifest"
   File /r "${BASE_DIR}\*.exe"
@@ -117,6 +118,9 @@ install:
 
   ; Delete the old Revive injector
   RMDir /r "$INSTDIR\Revive"
+
+  ; Delete the old XInput proxy
+  RMDir /r "$INSTDIR\xinput"
 
   ; Delete outdated dependencies
   Delete "$INSTDIR\LibRXRRT64.dll"
