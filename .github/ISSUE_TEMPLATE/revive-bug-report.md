@@ -31,9 +31,5 @@ A clear and concise description of what you expected to happen.
  - Revive:
  - SteamVR:
 
-**Create a system report**
-Right-click your SteamVR status window and click "Create System Report",
-save the result to a file and drag and drop that file into this text box.
-
 **Additional context**
 Add any other context about the problem here.
