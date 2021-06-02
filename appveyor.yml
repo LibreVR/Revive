@@ -26,8 +26,8 @@ install:
       Invoke-WebRequest -Uri 'https://nsis.sourceforge.io/mediawiki/images/4/4a/AccessControl.zip' -OutFile 'c:\projects\download_cache\NSIS_AccessControl.zip'
       cd c:\projects\download_cache
       unzip NSIS_AccessControl.zip
-      copy Plugins\AccessControl.dll 'C:\Program Files (x86)\NSIS\Plugins\x86-ansi'
-      copy Unicode\Plugins\AccessControl.dll 'C:\Program Files (x86)\NSIS\Plugins\x86-unicode'
+      copy Plugins\i386-ansi\AccessControl.dll 'C:\Program Files (x86)\NSIS\Plugins\x86-ansi'
+      copy Plugins\i386-unicode\AccessControl.dll 'C:\Program Files (x86)\NSIS\Plugins\x86-unicode'
       
 build_script:
   # ensure vcpkg dependencies are installed
