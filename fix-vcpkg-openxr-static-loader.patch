@@ -56,8 +56,8 @@ index f68094d18..ff32d1335 100644
  )
  
  vcpkg_from_github(
-@@ -28,15 +30,11 @@ vcpkg_from_github(
-     HEAD_REF master
+@@ -30,15 +32,11 @@ vcpkg_from_github(
+         002-fix-hpp-gen.patch
  )
  
 -# Weird behavior inside the OpenXR loader.  On Windows they force shared libraries to use static crt, and
