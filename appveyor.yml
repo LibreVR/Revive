@@ -13,12 +13,9 @@ install:
   - cd %APPVEYOR_BUILD_FOLDER%
   - git submodule update --init --recursive
   - mkdir c:\projects\download_cache
-  # query Oculus SDK website for download link
-  - curl -fsSL -o c:\projects\download_cache\oculus_sdk.html https://developer.oculus.com/downloads/package/oculus-sdk-for-windows/23.0.0/
   # download and extract Oculus SDK
   - ps: |
-      $url = select-string -Path 'c:\projects\download_cache\oculus_sdk.html'  -Pattern 'https:\/\/securecdn\.oculus\.com\/binaries\/download\/\?id=[0-9]+&amp;access_token=[0-9A-Za-z%]+' -AllMatches | % {$_.Matches} | % {$_.Value}
-      Invoke-WebRequest -Uri $url -OutFile 'c:\projects\download_cache\oculus_sdk.zip'
+      Invoke-WebRequest -Uri 'https://securecdn.oculus.com/binaries/download/?id=4377593722298679' -OutFile 'c:\projects\download_cache\oculus_sdk.zip'
       cd c:\projects\revive\Externals
       unzip c:\projects\download_cache\oculus_sdk.zip
   # install required NSIS plugins
