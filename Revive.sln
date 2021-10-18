@@ -87,10 +87,8 @@ Global
 		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Nightly|x64.Build.0 = Nightly|x64
 		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Nightly|x86.ActiveCfg = Nightly|Win32
 		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Nightly|x86.Build.0 = Nightly|Win32
-		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Release|x64.ActiveCfg = Release|x64
-		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Release|x64.Build.0 = Release|x64
-		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Release|x86.ActiveCfg = Release|Win32
-		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Release|x86.Build.0 = Release|Win32
+		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Release|x64.ActiveCfg = Nightly|x64
+		{520A780B-AEF3-436A-93AF-9CBE65B7FD41}.Release|x86.ActiveCfg = Nightly|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
