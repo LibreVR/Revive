@@ -43,11 +43,10 @@ HMODULE WINAPI HookLoadLibraryW(LPCWSTR lpFileName)
 	size_t length = ext - name;
 
 	// Load our own library again so the ref count is incremented.
-	if (wcsncmp(name, ovrModuleName, length) == 0) {
+	if (wcsncmp(name, ovrModuleName, length) == 0) 
 		return TrueLoadLibraryW(revModuleName);
-	}
-		return TrueLoadLibraryW(lpFileName);
-
+	
+	return TrueLoadLibraryW(lpFileName);
 }
 
 HMODULE WINAPI HookLoadLibraryExW(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
@@ -57,11 +56,10 @@ HMODULE WINAPI HookLoadLibraryExW(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwF
 	size_t length = ext - name;
 
 	// Load our own library again so the ref count is incremented.
-	if (wcsncmp(name, ovrModuleName, length) == 0) {
+	if (wcsncmp(name, ovrModuleName, length) == 0) 
 		return TrueLoadLibraryExW(revModuleName, hFile, dwFlags);
-	}
+	
 	return TrueLoadLibraryExW(lpLibFileName, hFile, dwFlags);
-
 }
 
 void AttachDetours()
