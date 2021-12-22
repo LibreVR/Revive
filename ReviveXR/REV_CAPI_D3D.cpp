@@ -47,10 +47,22 @@ typedef HRESULT(WINAPI* _CreateRenderTargetView)(
 	ID3D11Resource                      *pResource,
 	const D3D11_RENDER_TARGET_VIEW_DESC *pDesc,
 	ID3D11RenderTargetView              **ppRTView);
+typedef HRESULT(WINAPI* _CreateShaderResourceView12)(
+	ID3D12Device* This,
+	ID3D12Resource* pResource,
+	const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc,
+	D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor);
+typedef HRESULT(WINAPI* _CreateRenderTargetView12)(
+	ID3D12Device* This,
+	ID3D12Resource* pResource,
+	const D3D12_RENDER_TARGET_VIEW_DESC* pDesc,
+	D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor);
 
 _CreateTexture2D TrueCreateTexture2D;
 _CreateShaderResourceView TrueCreateShaderResourceView;
 _CreateRenderTargetView TrueCreateRenderTargetView;
+_CreateShaderResourceView12 TrueCreateShaderResourceView12;
+_CreateRenderTargetView12 TrueCreateRenderTargetView12;
 
 thread_local const ovrTextureSwapChainDesc* g_SwapChainDesc = nullptr;
 HRESULT WINAPI HookCreateTexture2D(
@@ -84,7 +96,7 @@ HRESULT WINAPI HookCreateRenderTargetView(
 {
 	D3D11_RENDER_TARGET_VIEW_DESC desc;
 	UINT size = (UINT)sizeof(desc);
-	if (SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
+	if (pResource && SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
 	{
 		if (pDesc)
 		{
@@ -106,7 +118,7 @@ HRESULT WINAPI HookCreateShaderResourceView(
 {
 	D3D11_SHADER_RESOURCE_VIEW_DESC desc;
 	UINT size = (UINT)sizeof(desc);
-	if (SUCCEEDED(pResource->GetPrivateData(RXR_SRV_DESC, &size, &desc)))
+	if (pResource && SUCCEEDED(pResource->GetPrivateData(RXR_SRV_DESC, &size, &desc)))
 	{
 		if (pDesc)
 		{
@@ -118,6 +130,34 @@ HRESULT WINAPI HookCreateShaderResourceView(
 	}
 
 	return TrueCreateShaderResourceView(This, pResource, pDesc, ppSRView);
+}
+
+HRESULT WINAPI HookCreateRenderTargetView12(
+	ID3D12Device* This,
+	ID3D12Resource* pResource,
+	const D3D12_RENDER_TARGET_VIEW_DESC* pDesc,
+	D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
+{
+	D3D12_RENDER_TARGET_VIEW_DESC desc;
+	UINT size = (UINT)sizeof(desc);
+	if (!pDesc && pResource && SUCCEEDED(pResource->GetPrivateData(RXR_RTV_DESC, &size, &desc)))
+		return TrueCreateRenderTargetView12(This, pResource, &desc, DestDescriptor);
+
+	return TrueCreateRenderTargetView12(This, pResource, pDesc, DestDescriptor);
+}
+
+HRESULT WINAPI HookCreateShaderResourceView12(
+	ID3D12Device* This,
+	ID3D12Resource* pResource,
+	const D3D12_SHADER_RESOURCE_VIEW_DESC* pDesc,
+	D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC desc;
+	UINT size = (UINT)sizeof(desc);
+	if (!pDesc && pResource && SUCCEEDED(pResource->GetPrivateData(RXR_SRV_DESC, &size, &desc)))
+		return TrueCreateShaderResourceView12(This, pResource, &desc, DestDescriptor);
+
+	return TrueCreateShaderResourceView12(This, pResource, pDesc, DestDescriptor);
 }
 
 DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format)
@@ -232,7 +272,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 				DetourVirtual(pDevice, 5, (PVOID*)&TrueCreateTexture2D, HookCreateTexture2D);
 				session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateTexture2D, HookCreateTexture2D));
 			}
-			// Install a hook D3D11 functions so we can ensure NULL descriptors keep working on typeless formats
+			// Hook D3D11 functions so we can ensure NULL descriptors keep working on typeless formats
 			// This fixes Echo Arena, among others. May need to port this hack to D3D12 in the future.
 			DetourVirtual(pDevice, 7, (PVOID*)&TrueCreateShaderResourceView, HookCreateShaderResourceView);
 			session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateShaderResourceView, HookCreateShaderResourceView));
@@ -263,6 +303,16 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 			if (levels.MaxSupportedFeatureLevel < graphicsReq.minFeatureLevel)
 				return ovrError_IncompatibleGPU;
+
+			// Hook D3D12 functions so we can ensure NULL descriptors keep working on typeless formats
+			// This fixes Echo Arena, among others. May need to port this hack to D3D12 in the future.
+			DetourTransactionBegin();
+			DetourUpdateThread(GetCurrentThread());
+			DetourVirtual(pDevice12, 18, (PVOID*)&TrueCreateShaderResourceView12, HookCreateShaderResourceView12);
+			session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateShaderResourceView12, HookCreateShaderResourceView12));
+			DetourVirtual(pDevice12, 20, (PVOID*)&TrueCreateRenderTargetView12, HookCreateRenderTargetView12);
+			session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateRenderTargetView12, HookCreateRenderTargetView12));
+			DetourTransactionCommit();
 
 			XrGraphicsBindingD3D12KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D12_KHR);
 			graphicsBinding.device = pDevice12;
@@ -347,8 +397,42 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	}
 	else if (pQueue)
 	{
-		CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), out_TextureSwapChain));
-		return EnumerateImages<XrSwapchainImageD3D12KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR, *out_TextureSwapChain);
+		// Do some format compatibility conversions before creating the swapchain
+		DXGI_FORMAT format = NegotiateFormat(TextureFormatToDXGIFormat(desc->Format));
+		assert(session->SupportsFormat(format));
+
+		ovrTextureSwapChain chain;
+		CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), &chain));
+		CHK_OVR(EnumerateImages<XrSwapchainImageD3D12KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR, chain));
+
+		// If the app doesn't expect a typeless texture we need to attach the fully qualified format to each texture.
+		// Depth formats are always considered typeless in the Oculus SDK, so no need to hook those.
+		if (!(desc->MiscFlags & ovrTextureMisc_DX_Typeless) && !IsDepthFormat(desc->Format))
+		{
+			// Create the SRVs and RTVs with the real format that the application expects
+			D3D12_SHADER_RESOURCE_VIEW_DESC srv = { format, (D3D12_SRV_DIMENSION)DescToViewDimension(&chain->Desc), D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING };
+			D3D12_RENDER_TARGET_VIEW_DESC rtv = { format, (D3D12_RTV_DIMENSION)DescToViewDimension(&chain->Desc) };
+			srv.Texture2D.MipLevels = chain->Desc.MipLevels;
+			if (chain->Desc.ArraySize > 1)
+			{
+				srv.Texture2DArray.ArraySize = chain->Desc.ArraySize;
+				rtv.Texture2DArray.ArraySize = chain->Desc.ArraySize;
+			}
+
+			for (uint32_t i = 0; i < chain->Length; i++)
+			{
+				XrSwapchainImageD3D12KHR image = ((XrSwapchainImageD3D12KHR*)chain->Images)[i];
+
+				HRESULT hr = image.texture->SetPrivateData(RXR_SRV_DESC, sizeof(D3D12_SHADER_RESOURCE_VIEW_DESC), &srv);
+				if (SUCCEEDED(hr))
+					hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D12_RENDER_TARGET_VIEW_DESC), &rtv);
+				if (FAILED(hr))
+					return ovrError_RuntimeException;
+			}
+		}
+
+		*out_TextureSwapChain = chain;
+		return ovrSuccess;
 	}
 	else
 	{
