@@ -75,71 +75,39 @@
     <ClCompile Include="windowsservices.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Debug\moc_openvroverlaycontroller.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="Release\moc_openvroverlaycontroller.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="Debug\moc_revivemanifestcontroller.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="Release\moc_revivemanifestcontroller.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="Debug\moc_trayiconcontroller.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="Release\moc_trayiconcontroller.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\qrc_overlay.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Debug\moc_qquickwindowscaled.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="Release\moc_qquickwindowscaled.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
+    
+    
+    
+    
+    
+    
+    
+    
+    
     <ClCompile Include="qquickwindowscaled.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="oculusplatform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Debug\moc_oculusplatform.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="Release\moc_oculusplatform.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="Nightly\moc_oculusplatform.cpp">
-      <Filter>Generated Files\Nightly</Filter>
-    </ClCompile>
-    <ClCompile Include="Nightly\moc_openvroverlaycontroller.cpp">
-      <Filter>Generated Files\Nightly</Filter>
-    </ClCompile>
-    <ClCompile Include="Nightly\moc_qquickwindowscaled.cpp">
-      <Filter>Generated Files\Nightly</Filter>
-    </ClCompile>
-    <ClCompile Include="Nightly\moc_revivemanifestcontroller.cpp">
-      <Filter>Generated Files\Nightly</Filter>
-    </ClCompile>
-    <ClCompile Include="Nightly\moc_trayiconcontroller.cpp">
-      <Filter>Generated Files\Nightly</Filter>
-    </ClCompile>
+    
+    
+    
+    
+    
+    
+    
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="openvroverlaycontroller.h">
+    <QtMoc Include="openvroverlaycontroller.h">
       <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="revivemanifestcontroller.h">
+    </QtMoc>
+    <QtMoc Include="revivemanifestcontroller.h">
       <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="trayiconcontroller.h">
+    </QtMoc>
+    <QtMoc Include="trayiconcontroller.h">
       <Filter>Header Files</Filter>
-    </CustomBuild>
+    </QtMoc>
     <CustomBuild Include="Oculus.js" />
     <CustomBuild Include="Overlay.qml" />
     <CustomBuild Include="windowsservices.h">
@@ -175,17 +143,17 @@
     <CustomBuild Include="revive_overlay.png">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="qquickwindowscaled.h">
+    <QtMoc Include="qquickwindowscaled.h">
       <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="oculusplatform.h">
+    </QtMoc>
+    <QtMoc Include="oculusplatform.h">
       <Filter>Header Files</Filter>
-    </CustomBuild>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="overlay.qrc">
+    <QtRcc Include="overlay.qrc">
       <Filter>Resource Files</Filter>
-    </CustomBuild>
+    </QtRcc>
   </ItemGroup>
   <ItemGroup>
     <None Include="support.vrmanifest">
