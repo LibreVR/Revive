@@ -8,7 +8,8 @@
 #include "Extras\OVR_CAPI_Util.h"
 #include "OVR_Version.h"
 
-static HMODULE(WINAPI* TrueLoadLibrary)(LPCWSTR lpFileName) = LoadLibraryW;
+static HMODULE(WINAPI* TrueLoadLibraryW)(LPCWSTR lpFileName) = LoadLibraryW;
+static HMODULE(WINAPI* TrueLoadLibraryExW)(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags) = LoadLibraryExW;
 static HANDLE(WINAPI* TrueOpenEvent)(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName) = OpenEventW;
 static HRESULT(WINAPI* TrueDXGIFactory)(REFIID riid, void **ppFactory) = CreateDXGIFactory;
 
@@ -35,24 +36,38 @@ HANDLE WINAPI HookOpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR 
 	return TrueOpenEvent(dwDesiredAccess, bInheritHandle, lpName);
 }
 
-HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
+HMODULE WINAPI HookLoadLibraryW(LPCWSTR lpFileName)
 {
 	LPCWSTR name = PathFindFileNameW(lpFileName);
 	LPCWSTR ext = PathFindExtensionW(name);
 	size_t length = ext - name;
 
 	// Load our own library again so the ref count is incremented.
-	if (wcsncmp(name, ovrModuleName, length) == 0)
-		return TrueLoadLibrary(revModuleName);
+	if (wcsncmp(name, ovrModuleName, length) == 0) 
+		return TrueLoadLibraryW(revModuleName);
+	
+	return TrueLoadLibraryW(lpFileName);
+}
 
-	return TrueLoadLibrary(lpFileName);
+HMODULE WINAPI HookLoadLibraryExW(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
+{
+	LPCWSTR name = PathFindFileNameW(lpLibFileName);
+	LPCWSTR ext = PathFindExtensionW(name);
+	size_t length = ext - name;
+
+	// Load our own library again so the ref count is incremented.
+	if (wcsncmp(name, ovrModuleName, length) == 0) 
+		return TrueLoadLibraryExW(revModuleName, hFile, dwFlags);
+	
+	return TrueLoadLibraryExW(lpLibFileName, hFile, dwFlags);
 }
 
 void AttachDetours()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourAttach((PVOID*)&TrueLoadLibrary, HookLoadLibrary);
+	DetourAttach((PVOID*)&TrueLoadLibraryW, HookLoadLibraryW);
+	DetourAttach((PVOID*)&TrueLoadLibraryExW, HookLoadLibraryExW);
 	DetourAttach((PVOID*)&TrueOpenEvent, HookOpenEvent);
 	DetourAttach((PVOID*)&TrueDXGIFactory, HookDXGIFactory);
 	DetourTransactionCommit();
@@ -62,7 +77,8 @@ void DetachDetours()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourDetach((PVOID*)&TrueLoadLibrary, HookLoadLibrary);
+	DetourDetach((PVOID*)&TrueLoadLibraryW, HookLoadLibraryW);
+	DetourDetach((PVOID*)&TrueLoadLibraryExW, HookLoadLibraryExW);
 	DetourDetach((PVOID*)&TrueOpenEvent, HookOpenEvent);
 	DetourDetach((PVOID*)&TrueDXGIFactory, HookDXGIFactory);
 	DetourTransactionCommit();
