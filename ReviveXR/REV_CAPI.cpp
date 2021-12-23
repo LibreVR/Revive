@@ -8,7 +8,7 @@
 #include "Session.h"
 #include "Runtime.h"
 #include "InputManager.h"
-#include "SwapChain.h"
+#include "Swapchain.h"
 
 #include <Windows.h>
 #include <openxr/openxr.h>
@@ -780,19 +780,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	MICROPROFILE_META_CPU("Identifier", PtrToInt(chain->Swapchain));
 	MICROPROFILE_META_CPU("CurrentIndex", chain->CurrentIndex);
 
-	XrSwapchainImageReleaseInfo releaseInfo = XR_TYPE(SWAPCHAIN_IMAGE_RELEASE_INFO);
-	CHK_XR(xrReleaseSwapchainImage(chain->Swapchain, &releaseInfo));
-
-	if (!chain->Desc.StaticImage)
-	{
-		XrSwapchainImageAcquireInfo acquireInfo = XR_TYPE(SWAPCHAIN_IMAGE_ACQUIRE_INFO);
-		CHK_XR(xrAcquireSwapchainImage(chain->Swapchain, &acquireInfo, &chain->CurrentIndex));
-
-		// TODO: We could move this wait to the end of EndFrame so we submit earlier
-		XrSwapchainImageWaitInfo waitInfo = XR_TYPE(SWAPCHAIN_IMAGE_WAIT_INFO);
-		waitInfo.timeout = (*session->CurrentFrame).predictedDisplayPeriod;
-		CHK_XR(xrWaitSwapchainImage(chain->Swapchain, &waitInfo));
-	}
+	chain->Commit(session);
 
 	return ovrSuccess;
 }

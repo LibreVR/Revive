@@ -2,7 +2,8 @@
 #include "Common.h"
 #include "Session.h"
 #include "Runtime.h"
-#include "SwapChain.h"
+#include "SwapchainD3D11.h"
+#include "SwapchainD3D12.h"
 #include "XR_Math.h"
 
 #include <detours/detours.h>
@@ -25,18 +26,6 @@ LONG DetourVirtual(PVOID pInstance, UINT methodPos, PVOID *ppPointer, PVOID pDet
 	return DetourAttach(ppPointer, pDetour);
 }
 
-// {EBA3BA6A-76A2-4A9B-B150-681FC1020EDE}
-static const GUID RXR_RTV_DESC =
-{ 0xeba3ba6a, 0x76a2, 0x4a9b,{ 0xb1, 0x50, 0x68, 0x1f, 0xc1, 0x2, 0xe, 0xde } };
-// {FD3C4A2A-F328-4CC7-9495-A96CF78DEE46}
-static const GUID RXR_SRV_DESC =
-{ 0xfd3c4a2a, 0xf328, 0x4cc7, { 0x94, 0x95, 0xa9, 0x6c, 0xf7, 0x8d, 0xee, 0x46 } };
-
-typedef HRESULT(WINAPI* _CreateTexture2D)(
-	ID3D11Device                 *This,
-	const D3D11_TEXTURE2D_DESC   *pDesc,
-	const D3D11_SUBRESOURCE_DATA *pInitialData,
-	ID3D11Texture2D              **ppTexture2D);
 typedef HRESULT(WINAPI* _CreateShaderResourceView)(
 	ID3D11Device						  *This,
 	ID3D11Resource                        *pResource,
@@ -58,35 +47,10 @@ typedef HRESULT(WINAPI* _CreateRenderTargetView12)(
 	const D3D12_RENDER_TARGET_VIEW_DESC* pDesc,
 	D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor);
 
-_CreateTexture2D TrueCreateTexture2D;
 _CreateShaderResourceView TrueCreateShaderResourceView;
 _CreateRenderTargetView TrueCreateRenderTargetView;
 _CreateShaderResourceView12 TrueCreateShaderResourceView12;
 _CreateRenderTargetView12 TrueCreateRenderTargetView12;
-
-thread_local const ovrTextureSwapChainDesc* g_SwapChainDesc = nullptr;
-HRESULT WINAPI HookCreateTexture2D(
-	ID3D11Device                 *This,
-	const D3D11_TEXTURE2D_DESC   *pDesc,
-	const D3D11_SUBRESOURCE_DATA *pInitialData,
-	ID3D11Texture2D              **ppTexture2D)
-{
-	if (g_SwapChainDesc)
-	{
-		D3D11_TEXTURE2D_DESC desc = *pDesc;
-
-		// Force support for swapchain mipmaps
-		desc.MipLevels = g_SwapChainDesc->MipLevels;
-		if (desc.MipLevels > 1)
-			desc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
-
-		// Force support for XR_SWAPCHAIN_USAGE_SAMPLED_BIT on all formats
-		desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
-		return TrueCreateTexture2D(This, &desc, pInitialData, ppTexture2D);
-	}
-
-	return TrueCreateTexture2D(This, pDesc, pInitialData, ppTexture2D);
-}
 
 HRESULT WINAPI HookCreateRenderTargetView(
 	ID3D11Device						*This,
@@ -160,76 +124,6 @@ HRESULT WINAPI HookCreateShaderResourceView12(
 	return TrueCreateShaderResourceView12(This, pResource, pDesc, DestDescriptor);
 }
 
-DXGI_FORMAT TextureFormatToDXGIFormat(ovrTextureFormat format)
-{
-	// OpenXR always uses typeless formats
-	switch (format)
-	{
-		case OVR_FORMAT_UNKNOWN:              return DXGI_FORMAT_UNKNOWN;
-		case OVR_FORMAT_B5G6R5_UNORM:         return DXGI_FORMAT_B5G6R5_UNORM;
-		case OVR_FORMAT_B5G5R5A1_UNORM:       return DXGI_FORMAT_B5G5R5A1_UNORM;
-		case OVR_FORMAT_B4G4R4A4_UNORM:       return DXGI_FORMAT_B4G4R4A4_UNORM;
-		case OVR_FORMAT_R8G8B8A8_UNORM:       return DXGI_FORMAT_R8G8B8A8_UNORM;
-		case OVR_FORMAT_R8G8B8A8_UNORM_SRGB:  return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		case OVR_FORMAT_B8G8R8A8_UNORM:       return DXGI_FORMAT_B8G8R8A8_UNORM;
-		case OVR_FORMAT_B8G8R8A8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-		case OVR_FORMAT_B8G8R8X8_UNORM:       return DXGI_FORMAT_B8G8R8X8_UNORM;
-		case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
-		case OVR_FORMAT_R16G16B16A16_FLOAT:   return DXGI_FORMAT_R16G16B16A16_FLOAT;
-		case OVR_FORMAT_R11G11B10_FLOAT:      return DXGI_FORMAT_R11G11B10_FLOAT;
-
-		// Depth formats
-		case OVR_FORMAT_D16_UNORM:            return DXGI_FORMAT_D16_UNORM;
-		case OVR_FORMAT_D24_UNORM_S8_UINT:    return DXGI_FORMAT_D24_UNORM_S8_UINT;
-		case OVR_FORMAT_D32_FLOAT:            return DXGI_FORMAT_D32_FLOAT;
-		case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-
-		// Added in 1.5 compressed formats can be used for static layers
-		case OVR_FORMAT_BC1_UNORM:            return DXGI_FORMAT_BC1_UNORM;
-		case OVR_FORMAT_BC1_UNORM_SRGB:       return DXGI_FORMAT_BC1_UNORM;
-		case OVR_FORMAT_BC2_UNORM:            return DXGI_FORMAT_BC2_UNORM;
-		case OVR_FORMAT_BC2_UNORM_SRGB:       return DXGI_FORMAT_BC2_UNORM;
-		case OVR_FORMAT_BC3_UNORM:            return DXGI_FORMAT_BC3_UNORM;
-		case OVR_FORMAT_BC3_UNORM_SRGB:       return DXGI_FORMAT_BC3_UNORM;
-		case OVR_FORMAT_BC6H_UF16:            return DXGI_FORMAT_BC6H_UF16;
-		case OVR_FORMAT_BC6H_SF16:            return DXGI_FORMAT_BC6H_SF16;
-		case OVR_FORMAT_BC7_UNORM:            return DXGI_FORMAT_BC7_UNORM;
-		case OVR_FORMAT_BC7_UNORM_SRGB:       return DXGI_FORMAT_BC7_UNORM;
-
-		default: return DXGI_FORMAT_UNKNOWN;
-	}
-}
-
-D3D_SRV_DIMENSION DescToViewDimension(const ovrTextureSwapChainDesc* desc)
-{
-	if (desc->ArraySize > 1)
-	{
-		if (desc->SampleCount > 1)
-			return D3D_SRV_DIMENSION_TEXTURE2DMSARRAY;
-		else
-			return D3D_SRV_DIMENSION_TEXTURE2DARRAY;
-	}
-	else
-	{
-		if (desc->SampleCount > 1)
-			return D3D_SRV_DIMENSION_TEXTURE2DMS;
-		else
-			return D3D_SRV_DIMENSION_TEXTURE2D;
-	}
-}
-
-bool IsDepthFormat(ovrTextureFormat format)
-{
-	switch (format)
-	{
-		case OVR_FORMAT_D16_UNORM:            return true;
-		case OVR_FORMAT_D24_UNORM_S8_UINT:    return true;
-		case OVR_FORMAT_D32_FLOAT:            return true;
-		case OVR_FORMAT_D32_FLOAT_S8X24_UINT: return true;
-		default: return false;
-	}
-}
-
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
                                                             IUnknown* d3dPtr,
                                                             const ovrTextureSwapChainDesc* desc,
@@ -267,11 +161,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 
 			DetourTransactionBegin();
 			DetourUpdateThread(GetCurrentThread());
-			if (Runtime::Get().UseHack(Runtime::HACK_HOOK_CREATE_TEXTURE))
-			{
-				DetourVirtual(pDevice, 5, (PVOID*)&TrueCreateTexture2D, HookCreateTexture2D);
-				session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateTexture2D, HookCreateTexture2D));
-			}
 			// Hook D3D11 functions so we can ensure NULL descriptors keep working on typeless formats
 			// This fixes Echo Arena, among others. May need to port this hack to D3D12 in the future.
 			DetourVirtual(pDevice, 7, (PVOID*)&TrueCreateShaderResourceView, HookCreateShaderResourceView);
@@ -325,114 +214,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 		}
 	}
 
-	const auto NegotiateFormat = [session](DXGI_FORMAT format)
-	{
-		if (session->SupportsFormat(format))
-			return format;
-
-		// We may need to use a lower percision format and rely on data conversion rules
-		if (format == DXGI_FORMAT_R11G11B10_FLOAT || format == DXGI_FORMAT_R16G16B16A16_FLOAT)
-		{
-			if (session->SupportsFormat(DXGI_FORMAT_R10G10B10A2_UNORM))
-				return DXGI_FORMAT_R10G10B10A2_UNORM;
-			else if (session->SupportsFormat(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB))
-				return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		}
-
-		// No runtime supports 8-bit formats without alpha, but easy to convert
-		if (format == DXGI_FORMAT_B8G8R8X8_UNORM)
-			return session->SupportsFormat(DXGI_FORMAT_B8G8R8A8_UNORM) ?
-				DXGI_FORMAT_B8G8R8A8_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-		else if (format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB)
-			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-
-		// Some runtimes don't support 8-bit linear, but most apps shouldn't be using it anyway
-		// Most apps will be fine if we convert their values from linear to sRGB
-		if (format == DXGI_FORMAT_R8G8B8A8_UNORM)
-			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		else if (format == DXGI_FORMAT_R8G8B8A8_UNORM)
-			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-		else if (format == DXGI_FORMAT_B8G8R8A8_UNORM)
-			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-		else if (format == DXGI_FORMAT_B8G8R8A8_UNORM)
-			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-
-		return format;
-	};
-
 	if (pDevice)
 	{
-		// Do some format compatibility conversions before creating the swapchain
-		DXGI_FORMAT format = NegotiateFormat(TextureFormatToDXGIFormat(desc->Format));
-		assert(session->SupportsFormat(format));
-
-		ovrTextureSwapChain chain;
-		g_SwapChainDesc = desc;
-		CHK_OVR(CreateSwapChain(session->Session, desc, format, &chain));
-		g_SwapChainDesc = nullptr;
-		CHK_OVR(EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR, chain));
-
-		// If the app doesn't expect a typeless texture we need to attach the fully qualified format to each texture.
-		// Depth formats are always considered typeless in the Oculus SDK, so no need to hook those.
-		if (!(desc->MiscFlags & ovrTextureMisc_DX_Typeless) && !IsDepthFormat(desc->Format))
-		{
-			// Create the SRVs and RTVs with the real format that the application expects
-			CD3D11_SHADER_RESOURCE_VIEW_DESC srv(DescToViewDimension(&chain->Desc), format);
-			CD3D11_RENDER_TARGET_VIEW_DESC rtv((D3D11_RTV_DIMENSION)DescToViewDimension(&chain->Desc), format);
-
-			for (uint32_t i = 0; i < chain->Length; i++)
-			{
-				XrSwapchainImageD3D11KHR image = ((XrSwapchainImageD3D11KHR*)chain->Images)[i];
-
-				HRESULT hr = image.texture->SetPrivateData(RXR_SRV_DESC, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC), &srv);
-				if (SUCCEEDED(hr))
-					hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D11_RENDER_TARGET_VIEW_DESC), &rtv);
-				if (FAILED(hr))
-					return ovrError_RuntimeException;
-			}
-		}
-
-		*out_TextureSwapChain = chain;
-		return ovrSuccess;
+		return ovrTextureSwapChainD3D11::Create(session, desc, out_TextureSwapChain);
 	}
 	else if (pQueue)
 	{
-		// Do some format compatibility conversions before creating the swapchain
-		DXGI_FORMAT format = NegotiateFormat(TextureFormatToDXGIFormat(desc->Format));
-		assert(session->SupportsFormat(format));
-
-		ovrTextureSwapChain chain;
-		CHK_OVR(CreateSwapChain(session->Session, desc, TextureFormatToDXGIFormat(desc->Format), &chain));
-		CHK_OVR(EnumerateImages<XrSwapchainImageD3D12KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR, chain));
-
-		// If the app doesn't expect a typeless texture we need to attach the fully qualified format to each texture.
-		// Depth formats are always considered typeless in the Oculus SDK, so no need to hook those.
-		if (!(desc->MiscFlags & ovrTextureMisc_DX_Typeless) && !IsDepthFormat(desc->Format))
-		{
-			// Create the SRVs and RTVs with the real format that the application expects
-			D3D12_SHADER_RESOURCE_VIEW_DESC srv = { format, (D3D12_SRV_DIMENSION)DescToViewDimension(&chain->Desc), D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING };
-			D3D12_RENDER_TARGET_VIEW_DESC rtv = { format, (D3D12_RTV_DIMENSION)DescToViewDimension(&chain->Desc) };
-			srv.Texture2D.MipLevels = chain->Desc.MipLevels;
-			if (chain->Desc.ArraySize > 1)
-			{
-				srv.Texture2DArray.ArraySize = chain->Desc.ArraySize;
-				rtv.Texture2DArray.ArraySize = chain->Desc.ArraySize;
-			}
-
-			for (uint32_t i = 0; i < chain->Length; i++)
-			{
-				XrSwapchainImageD3D12KHR image = ((XrSwapchainImageD3D12KHR*)chain->Images)[i];
-
-				HRESULT hr = image.texture->SetPrivateData(RXR_SRV_DESC, sizeof(D3D12_SHADER_RESOURCE_VIEW_DESC), &srv);
-				if (SUCCEEDED(hr))
-					hr = image.texture->SetPrivateData(RXR_RTV_DESC, sizeof(D3D12_RENDER_TARGET_VIEW_DESC), &rtv);
-				if (FAILED(hr))
-					return ovrError_RuntimeException;
-			}
-		}
-
-		*out_TextureSwapChain = chain;
-		return ovrSuccess;
+		return ovrTextureSwapChainD3D12::Create(session, desc, out_TextureSwapChain);
 	}
 	else
 	{

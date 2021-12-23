@@ -57,7 +57,7 @@
     <ClInclude Include="OVR_CAPI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SwapChain.h">
+    <ClInclude Include="Swapchain.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
     <ClInclude Include="Common.h">
@@ -67,6 +67,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Runtime.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapchainD3D11.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapchainD3D12.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapchainVk.h">
+      <Filter>Header Files\LibRevive</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapchainGL.h">
       <Filter>Header Files\LibRevive</Filter>
     </ClInclude>
   </ItemGroup>
@@ -111,6 +123,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Runtime.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapchainD3D11.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapchainD3D12.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapchainVk.cpp">
+      <Filter>Source Files\LibRevive</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapchainGL.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
   </ItemGroup>

@@ -351,11 +351,15 @@
     <ClInclude Include="HapticsBuffer.h" />
     <ClInclude Include="OVR_CAPI.h" />
     <ClInclude Include="Runtime.h" />
+    <ClInclude Include="SwapchainD3D11.h" />
+    <ClInclude Include="SwapchainD3D12.h" />
+    <ClInclude Include="SwapchainGL.h" />
+    <ClInclude Include="SwapchainVk.h" />
     <ClInclude Include="XR_Math.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Common.h" />
-    <ClInclude Include="SwapChain.h" />
+    <ClInclude Include="Swapchain.h" />
     <ClInclude Include="vulkan.h" />
   </ItemGroup>
   <ItemGroup>
@@ -373,6 +377,10 @@
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Runtime.cpp" />
     <ClCompile Include="Swapchain.cpp" />
+    <ClCompile Include="SwapchainD3D11.cpp" />
+    <ClCompile Include="SwapchainD3D12.cpp" />
+    <ClCompile Include="SwapchainGL.cpp" />
+    <ClCompile Include="SwapchainVk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
