@@ -964,6 +964,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		if (Runtime::Get().MinorVersion < 25)
 			layer = (ovrLayer_Union*)((char*)layer - sizeof(ovrLayerHeader::Reserved));
 
+		if (type == ovrLayerType_Disabled)
+			continue;
+
 		layerData.emplace_back();
 		XrCompositionLayerUnion& newLayer = layerData.back();
 
@@ -1093,7 +1096,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		else
 		{
 			// Layer type not recognized or disabled, ignore the layer
-			assert(type == ovrLayerType_Disabled);
+			assert(false);
 			continue;
 		}
 
