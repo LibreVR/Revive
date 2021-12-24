@@ -50,6 +50,13 @@ extern XrResult g_LastResult;
 		if (OVR_FAILURE(__LastResult)) return __LastResult; \
 	}
 
+#define CHK_HR(x) \
+	{ \
+		HRESULT __LastHResult = (x); \
+		assert(SUCCEEDED(__LastHResult)); \
+		if (OVR_FAILURE(__LastHResult)) return ovrError_RuntimeException; \
+	}
+
 #define XR_TYPE(x) { XR_TYPE_##x, nullptr }
 
 #define XR_FUNCTION(instance, func) \

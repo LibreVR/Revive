@@ -7,8 +7,11 @@
 #include "XR_Math.h"
 
 #include <detours/detours.h>
+#include <wrl/client.h>
 #include <vector>
 #include <algorithm>
+
+using Microsoft::WRL::ComPtr;
 
 #define XR_USE_GRAPHICS_API_D3D11
 #define XR_USE_GRAPHICS_API_D3D12
@@ -140,11 +143,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	if (desc->Type == ovrTexture_Cube && !Runtime::Get().CompositionCube)
 		return ovrError_Unsupported;
 
-	ID3D11Device* pDevice = nullptr;
-	ID3D12CommandQueue* pQueue = nullptr;
-	if (FAILED(d3dPtr->QueryInterface(&pDevice)))
+	ComPtr<ID3D11Device> pDevice = nullptr;
+	ComPtr<ID3D12CommandQueue> pQueue = nullptr;
+	if (FAILED(d3dPtr->QueryInterface(IID_PPV_ARGS(&pDevice))))
 	{
-		if (FAILED(d3dPtr->QueryInterface(&pQueue)))
+		if (FAILED(d3dPtr->QueryInterface(IID_PPV_ARGS(&pQueue))))
 			return ovrError_InvalidParameter;
 	}
 
@@ -163,14 +166,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 			DetourUpdateThread(GetCurrentThread());
 			// Hook D3D11 functions so we can ensure NULL descriptors keep working on typeless formats
 			// This fixes Echo Arena, among others. May need to port this hack to D3D12 in the future.
-			DetourVirtual(pDevice, 7, (PVOID*)&TrueCreateShaderResourceView, HookCreateShaderResourceView);
+			DetourVirtual(pDevice.Get(), 7, (PVOID*)&TrueCreateShaderResourceView, HookCreateShaderResourceView);
 			session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateShaderResourceView, HookCreateShaderResourceView));
-			DetourVirtual(pDevice, 9, (PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
+			DetourVirtual(pDevice.Get(), 9, (PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
 			session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView));
 			DetourTransactionCommit();
 
 			XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
-			graphicsBinding.device = pDevice;
+			graphicsBinding.device = pDevice.Get();
 			session->BeginSession(&graphicsBinding);
 		}
 		else if (pQueue)
@@ -178,8 +181,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 			if (!Runtime::Get().Supports(XR_KHR_D3D12_ENABLE_EXTENSION_NAME))
 				return ovrError_Unsupported;
 
-			ID3D12Device* pDevice12 = nullptr;
-			if (FAILED(pQueue->GetDevice(__uuidof(*pDevice12), reinterpret_cast<void**>(&pDevice12))))
+			ComPtr<ID3D12Device> pDevice12 = nullptr;
+			if (FAILED(pQueue->GetDevice(IID_PPV_ARGS(&pDevice12))))
 				return ovrError_RuntimeException;
 
 			XR_FUNCTION(session->Instance, GetD3D12GraphicsRequirementsKHR);
@@ -197,15 +200,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 			// This fixes Echo Arena, among others. May need to port this hack to D3D12 in the future.
 			DetourTransactionBegin();
 			DetourUpdateThread(GetCurrentThread());
-			DetourVirtual(pDevice12, 18, (PVOID*)&TrueCreateShaderResourceView12, HookCreateShaderResourceView12);
+			DetourVirtual(pDevice12.Get(), 18, (PVOID*)&TrueCreateShaderResourceView12, HookCreateShaderResourceView12);
 			session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateShaderResourceView12, HookCreateShaderResourceView12));
-			DetourVirtual(pDevice12, 20, (PVOID*)&TrueCreateRenderTargetView12, HookCreateRenderTargetView12);
+			DetourVirtual(pDevice12.Get(), 20, (PVOID*)&TrueCreateRenderTargetView12, HookCreateRenderTargetView12);
 			session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateRenderTargetView12, HookCreateRenderTargetView12));
 			DetourTransactionCommit();
 
 			XrGraphicsBindingD3D12KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D12_KHR);
-			graphicsBinding.device = pDevice12;
-			graphicsBinding.queue = pQueue;
+			graphicsBinding.device = pDevice12.Get();
+			graphicsBinding.queue = pQueue.Get();
 			session->BeginSession(&graphicsBinding);
 		}
 		else
@@ -220,7 +223,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	}
 	else if (pQueue)
 	{
-		return ovrTextureSwapChainD3D12::Create(session, desc, out_TextureSwapChain);
+		return ovrTextureSwapChainD3D12::Create(session, pQueue.Get(), desc, out_TextureSwapChain);
 	}
 	else
 	{

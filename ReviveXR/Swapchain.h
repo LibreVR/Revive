@@ -24,7 +24,8 @@ public:
 	uint32_t Length;
 	uint32_t CurrentIndex;
 
-	ovrResult Commit(ovrSession session);
+	virtual ovrResult Commit(ovrSession session);
+
 	ovrResult Init(XrSession session, const ovrTextureSwapChainDesc* desc, int64_t format);
 
 protected:
