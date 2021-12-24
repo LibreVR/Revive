@@ -35,12 +35,15 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 		XrGraphicsRequirementsOpenGLKHR graphicsReq = XR_TYPE(GRAPHICS_REQUIREMENTS_OPENGL_KHR);
 		CHK_XR(GetOpenGLGraphicsRequirementsKHR(session->Instance, session->System, &graphicsReq));
 
-		GLint major, minor;
-		glGetIntegerv(GL_MAJOR_VERSION, &major);
-		glGetIntegerv(GL_MINOR_VERSION, &minor);
-		XrVersion version = XR_MAKE_VERSION(major, minor, 0);
-		if (version < graphicsReq.minApiVersionSupported)
-			return ovrError_IncompatibleGPU;
+		if (gladLoadGL())
+		{
+			GLint major, minor;
+			glGetIntegerv(GL_MAJOR_VERSION, &major);
+			glGetIntegerv(GL_MINOR_VERSION, &minor);
+			XrVersion version = XR_MAKE_VERSION(major, minor, 0);
+			if (version < graphicsReq.minApiVersionSupported)
+				return ovrError_IncompatibleGPU;
+		}
 
 		XrGraphicsBindingOpenGLWin32KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_OPENGL_WIN32_KHR);
 		graphicsBinding.hDC = wglGetCurrentDC();
