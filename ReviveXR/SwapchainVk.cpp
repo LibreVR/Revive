@@ -49,7 +49,7 @@ ovrResult ovrTextureSwapChainVk::Create(ovrSession session, const ovrTextureSwap
 {
 	ovrTextureSwapChain chain = new ovrTextureSwapChainVk();
 	CHK_OVR(chain->Init(session->Session, desc, TextureFormatToVkFormat(desc->Format)));
-	CHK_OVR(EnumerateImages<XrSwapchainImageVulkanKHR>(XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR, chain));
+	CHK_OVR(chain->EnumerateImages<XrSwapchainImageVulkanKHR>(XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR));
 	*out_TextureSwapChain = chain;
 	return ovrSuccess;
 }

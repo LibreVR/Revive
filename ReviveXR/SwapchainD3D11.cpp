@@ -14,7 +14,7 @@ ovrResult ovrTextureSwapChainD3D11::Create(ovrSession session, const ovrTextureS
 
 	ovrTextureSwapChain chain = new ovrTextureSwapChainD3D11();
 	CHK_OVR(chain->Init(session->Session, desc, format));
-	CHK_OVR(EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR, chain));
+	CHK_OVR(chain->EnumerateImages<XrSwapchainImageD3D11KHR>(XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR));
 
 	// If the app doesn't expect a typeless texture we need to attach the fully qualified format to each texture.
 	// Depth formats are always considered typeless in the Oculus SDK, so no need to hook those.

@@ -34,7 +34,7 @@ ovrResult ovrTextureSwapChainGL::Create(ovrSession session, const ovrTextureSwap
 {
 	ovrTextureSwapChain chain = new ovrTextureSwapChainGL();
 	CHK_OVR(chain->Init(session->Session, desc, TextureFormatToGLFormat(desc->Format)));
-	CHK_OVR(EnumerateImages<XrSwapchainImageOpenGLKHR>(XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR, chain));
+	CHK_OVR(chain->EnumerateImages<XrSwapchainImageOpenGLKHR>(XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR));
 	*out_TextureSwapChain = chain;
 	return ovrSuccess;
 }

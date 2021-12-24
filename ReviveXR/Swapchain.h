@@ -17,7 +17,6 @@ static const GUID RXR_SRV_DESC =
 
 struct ovrTextureSwapChainData
 {
-public:
 	ovrTextureSwapChainDesc Desc;
 	XrSwapchain Swapchain;
 	XrSwapchainImageBaseHeader* Images;
@@ -28,19 +27,17 @@ public:
 
 	ovrResult Init(XrSession session, const ovrTextureSwapChainDesc* desc, int64_t format);
 
-protected:
 	template<typename T>
-	static ovrResult EnumerateImages(XrStructureType type, ovrTextureSwapChain swapChain)
+	ovrResult EnumerateImages(XrStructureType type)
 	{
-		CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, 0, &swapChain->Length, nullptr));
-		T* images = new T[swapChain->Length]();
-		for (uint32_t i = 0; i < swapChain->Length; i++)
-			images[i].type = type;
-		swapChain->Images = (XrSwapchainImageBaseHeader*)images;
+		CHK_XR(xrEnumerateSwapchainImages(Swapchain, 0, &Length, nullptr));
+		Images = (XrSwapchainImageBaseHeader*)new T[Length]();
+		for (uint32_t i = 0; i < Length; i++)
+			Images[i].type = type;
 
 		uint32_t finalLength;
-		CHK_XR(xrEnumerateSwapchainImages(swapChain->Swapchain, swapChain->Length, &finalLength, swapChain->Images));
-		assert(swapChain->Length == finalLength);
+		CHK_XR(xrEnumerateSwapchainImages(Swapchain, Length, &finalLength, Images));
+		assert(Length == finalLength);
 		return ovrSuccess;
 	}
 
