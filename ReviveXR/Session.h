@@ -63,6 +63,7 @@ struct ovrHmdStruct
 
 	// OpenXR properties
 	XrSystemProperties SystemProperties;
+	XrSystemColorSpacePropertiesFB SystemColorSpace;
 	XrViewConfigurationView ViewConfigs[ovrEye_Count];
 	XrViewConfigurationViewFovEPIC ViewFov[ovrEye_Count];
 	XrView ViewPoses[ovrEye_Count];

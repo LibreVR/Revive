@@ -1427,7 +1427,7 @@ OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_EnableExtension(ovrSession session, ovrExtensions extension)
 {
 	// TODO: Extensions support
-	return ovrError_InvalidOperation;
+	return ovrError_Unsupported;
 }
 
 typedef struct ovrViewportStencilDesc_ {
@@ -1618,6 +1618,76 @@ ovr_GetFovStencil(
 	return ovrSuccess;
 }
 
+OVR_PUBLIC_FUNCTION(ovrHmdColorDesc)
+ovr_GetHmdColorDesc(ovrSession session)
+{
+	ovrHmdColorDesc desc = { ovrColorSpace_Unknown };
+	if (session && Runtime::Get().ColorSpace)
+	{
+		switch (session->SystemColorSpace.colorSpace)
+		{
+		case XR_COLOR_SPACE_REC2020_FB:
+			desc.ColorSpace = ovrColorSpace_Rec_2020;
+			break;
+		case XR_COLOR_SPACE_REC709_FB:
+			desc.ColorSpace = ovrColorSpace_Rec_709;
+			break;
+		case XR_COLOR_SPACE_RIFT_CV1_FB:
+			desc.ColorSpace = ovrColorSpace_Rift_CV1;
+			break;
+		case XR_COLOR_SPACE_RIFT_S_FB:
+			desc.ColorSpace = ovrColorSpace_Rift_S;
+			break;
+		case XR_COLOR_SPACE_QUEST_FB:
+			desc.ColorSpace = ovrColorSpace_Quest;
+			break;
+		default:
+			desc.ColorSpace = ovrColorSpace(session->SystemColorSpace.colorSpace + 1);
+			break;
+		}
+	}
+	return desc;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_SetClientColorDesc(ovrSession session, const ovrHmdColorDesc* colorDesc)
+{
+	if (!Runtime::Get().ColorSpace)
+		return ovrError_Unsupported;
+
+	if (!session)
+		return ovrError_InvalidSession;
+
+	XR_FUNCTION(session->Instance, SetColorSpaceFB);
+
+	XrColorSpaceFB colorSpace = XR_COLOR_SPACE_UNMANAGED_FB;
+	switch (colorDesc->ColorSpace)
+	{
+	case ovrColorSpace_Rec_2020:
+		colorSpace = XR_COLOR_SPACE_REC2020_FB;
+		break;
+	case ovrColorSpace_Rec_709:
+		colorSpace = XR_COLOR_SPACE_REC709_FB;
+		break;
+	case ovrColorSpace_Unknown:
+	case ovrColorSpace_Rift_CV1:
+		colorSpace = XR_COLOR_SPACE_RIFT_CV1_FB;
+		break;
+	case ovrColorSpace_Rift_S:
+		colorSpace = XR_COLOR_SPACE_RIFT_S_FB;
+		break;
+	case ovrColorSpace_Quest:
+		colorSpace = XR_COLOR_SPACE_QUEST_FB;
+		break;
+	default:
+		colorSpace = XrColorSpaceFB(colorDesc->ColorSpace - 1);
+		break;
+	}
+
+	CHK_XR(SetColorSpaceFB(session->Session, colorSpace));
+	return ovrSuccess;
+}
+
 struct ovrDesktopWindowDesc_;
 typedef struct ovrDesktopWindowDesc_ ovrDesktopWindowDesc;
 
@@ -1681,19 +1751,6 @@ ovr_EnableHybridRaycast()
 
 OVR_PUBLIC_FUNCTION(ovrResult)
 ovr_QueryDistortion()
-{
-	return ovrError_Unsupported;
-}
-
-OVR_PUBLIC_FUNCTION(ovrHmdColorDesc)
-ovr_GetHmdColorDesc(ovrSession session)
-{
-	ovrHmdColorDesc desc = { ovrColorSpace_Unknown };
-	return desc;
-}
-
-OVR_PUBLIC_FUNCTION(ovrResult)
-ovr_SetClientColorDesc(ovrSession session, const ovrHmdColorDesc* colorDesc)
 {
 	return ovrError_Unsupported;
 }

@@ -29,7 +29,7 @@ public:
 		// Hack: Oculus runtime visibility masks are in Normalized Device Coordinates.
 		// Simply set the projection matrix to the identity matrix as a workaround.
 		HACK_NDC_MASKS,
-		// Hack: SteamVR runtime ignore haptic pulses with a long duration.
+		// Hack: SteamVR runtime ignores haptic pulses with a long duration.
 		// Set the duration to the minimum duration as a workaround.
 		HACK_MIN_HAPTIC_DURATION,
 	};
@@ -42,6 +42,7 @@ public:
 	bool CompositionDepth;
 	bool CompositionCube;
 	bool CompositionCylinder;
+	bool ColorSpace;
 
 	uint32_t MinorVersion;
 

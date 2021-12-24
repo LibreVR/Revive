@@ -24,6 +24,7 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 	Instance = instance;
 	TrackingOrigin = ovrTrackingOrigin_EyeLevel;
 	SystemProperties = XR_TYPE(SYSTEM_PROPERTIES);
+	SystemColorSpace = XR_TYPE(SYSTEM_COLOR_SPACE_PROPERTIES_FB);
 
 	// Initialize view structures
 	for (int i = 0; i < ovrEye_Count; i++)
@@ -35,6 +36,8 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 	}
 
 	XrSystemGetInfo systemInfo = XR_TYPE(SYSTEM_GET_INFO);
+	if (Runtime::Get().ColorSpace)
+		systemInfo.next = &SystemColorSpace;
 	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 	CHK_XR(xrGetSystem(Instance, &systemInfo, &System));
 	CHK_XR(xrGetSystemProperties(Instance, System, &SystemProperties));

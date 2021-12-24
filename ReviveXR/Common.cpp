@@ -66,6 +66,7 @@ ovrResult ResultToOvrResult(XrResult error)
 	case XR_ERROR_LOCALIZED_NAME_DUPLICATED: return ovrError_InvalidParameter;
 	case XR_ERROR_LOCALIZED_NAME_INVALID: return ovrError_InvalidParameter;
 	case XR_ERROR_GRAPHICS_REQUIREMENTS_CALL_MISSING: return ovrError_NotInitialized;
+	case XR_ERROR_COLOR_SPACE_UNSUPPORTED_FB: return ovrError_Unsupported;
 	default: return ovrError_RuntimeException;
 	}
 }

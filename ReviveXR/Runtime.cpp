@@ -24,7 +24,8 @@ const char* Runtime::s_optional_extensions[] = {
 	XR_KHR_COMPOSITION_LAYER_DEPTH_EXTENSION_NAME,
 	XR_KHR_COMPOSITION_LAYER_CUBE_EXTENSION_NAME,
 	XR_KHR_COMPOSITION_LAYER_CYLINDER_EXTENSION_NAME,
-	XR_EPIC_VIEW_CONFIGURATION_FOV_EXTENSION_NAME
+	XR_EPIC_VIEW_CONFIGURATION_FOV_EXTENSION_NAME,
+	XR_FB_COLOR_SPACE_EXTENSION_NAME
 };
 
 Runtime::HackInfo Runtime::s_known_hacks[] = {
@@ -75,6 +76,7 @@ ovrResult Runtime::CreateInstance(XrInstance* out_Instance, const ovrInitParams*
 	CompositionDepth = Supports(XR_KHR_COMPOSITION_LAYER_DEPTH_EXTENSION_NAME);
 	CompositionCube = Supports(XR_KHR_COMPOSITION_LAYER_CUBE_EXTENSION_NAME);
 	CompositionCylinder = Supports(XR_KHR_COMPOSITION_LAYER_CYLINDER_EXTENSION_NAME);
+	ColorSpace = Supports(XR_FB_COLOR_SPACE_EXTENSION_NAME);
 
 	XrInstanceCreateInfo createInfo = XR_TYPE(INSTANCE_CREATE_INFO);
 	createInfo.applicationInfo = { "Revive", REV_VERSION_INT, "Revive", REV_VERSION_INT, XR_CURRENT_API_VERSION };
