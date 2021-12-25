@@ -80,8 +80,10 @@ struct ovrHmdStruct
 	std::unique_ptr<InputManager> Input;
 
 	ovrResult InitSession(XrInstance instance);
-	ovrResult BeginSession(void* graphicsBinding, bool beginFrame = true);
+	ovrResult StartSession(void* graphicsBinding);
+	ovrResult BeginSession();
 	ovrResult EndSession();
+	ovrResult DestroySession();
 
 	ovrResult UpdateStencil(ovrEyeType view, XrVisibilityMaskTypeKHR type);
 	ovrResult LocateViews(XrView out_Views[ovrEye_Count], XrViewStateFlags* out_Flags = nullptr) const;

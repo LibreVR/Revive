@@ -88,7 +88,8 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 
 		XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
 		graphicsBinding.device = pDevice.Get();
-		CHK_OVR(BeginSession(&graphicsBinding, false));
+		CHK_OVR(StartSession(&graphicsBinding));
+		CHK_OVR(BeginSession());
 
 		CHK_OVR(LocateViews(ViewPoses));
 		for (int i = 0; i < ovrEye_Count; i++)
@@ -97,7 +98,7 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 			ViewFov[i].maxMutableFov = ViewPoses[i].fov;
 		}
 
-		CHK_OVR(EndSession());
+		CHK_OVR(DestroySession());
 	}
 
 	// Calculate the pixels per tan angle
@@ -115,7 +116,7 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 	return ovrSuccess;
 }
 
-ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
+ovrResult ovrHmdStruct::StartSession(void* graphicsBinding)
 {
 	if (Session)
 		return ovrError_InvalidOperation;
@@ -153,10 +154,6 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 		}
 	}
 
-	XrSessionBeginInfo beginInfo = XR_TYPE(SESSION_BEGIN_INFO);
-	beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-	CHK_XR(xrBeginSession(Session, &beginInfo));
-
 	// Enumerate formats
 	uint32_t formatCount = 0;
 	CHK_XR(xrEnumerateSwapchainFormats(Session, 0, &formatCount, nullptr));
@@ -166,17 +163,29 @@ ovrResult ovrHmdStruct::BeginSession(void* graphicsBinding, bool beginFrame)
 
 	Running.second.notify_all();
 
-	// Start the first frame immediately if requested
-	if (beginFrame)
-	{
-		CHK_OVR(ovr_WaitToBeginFrame(this, 0));
-		RecenterSpace(ovrTrackingOrigin_EyeLevel, ViewSpace);
-		CHK_OVR(ovr_BeginFrame(this, 0));
-	}
+	return ovrSuccess;
+}
+
+ovrResult ovrHmdStruct::BeginSession()
+{
+	XrSessionBeginInfo beginInfo = XR_TYPE(SESSION_BEGIN_INFO);
+	beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+	CHK_XR(xrBeginSession(Session, &beginInfo));
+
+	// Start the first frame immediately in case the app uses SubmitFrame().
+	CHK_OVR(ovr_WaitToBeginFrame(this, 0));
+	RecenterSpace(ovrTrackingOrigin_EyeLevel, ViewSpace);
+	CHK_OVR(ovr_BeginFrame(this, 0));
 	return ovrSuccess;
 }
 
 ovrResult ovrHmdStruct::EndSession()
+{
+	CHK_XR(xrEndSession(Session));
+	return ovrSuccess;
+}
+
+ovrResult ovrHmdStruct::DestroySession()
 {
 	if (!Session)
 		return ovrError_InvalidOperation;

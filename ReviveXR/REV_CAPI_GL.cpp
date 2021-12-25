@@ -48,7 +48,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 		XrGraphicsBindingOpenGLWin32KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_OPENGL_WIN32_KHR);
 		graphicsBinding.hDC = wglGetCurrentDC();
 		graphicsBinding.hGLRC = wglGetCurrentContext();
-		session->BeginSession(&graphicsBinding);
+		session->StartSession(&graphicsBinding);
 	}
 	return ovrTextureSwapChainGL::Create(session, desc, out_TextureSwapChain);
 }

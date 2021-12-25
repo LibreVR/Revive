@@ -224,7 +224,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 {
 	REV_TRACE(ovr_Destroy);
 
-	session->EndSession();
+	session->DestroySession();
 
 	if (!session->HookedFunctions.empty())
 	{
@@ -252,7 +252,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	assert(session->SessionStatus.is_lock_free());
 	SessionStatusBits status = session->SessionStatus;
 	XrEventDataBuffer event = XR_TYPE(EVENT_DATA_BUFFER);
-	while (xrPollEvent(session->Instance, &event) == XR_SUCCESS)
+	while (XR_UNQUALIFIED_SUCCESS(xrPollEvent(session->Instance, &event)))
 	{
 		switch (event.type)
 		{
@@ -268,21 +268,22 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 					status.HmdPresent = true;
 					break;
 				case XR_SESSION_STATE_READY:
-					status.IsVisible = true;
 					status.HmdMounted = true;
+					session->BeginSession();
 					break;
 				case XR_SESSION_STATE_SYNCHRONIZED:
-					status.HmdMounted = false;
+					status.IsVisible = false;
 					break;
 				case XR_SESSION_STATE_VISIBLE:
-					status.HmdMounted = true;
+					status.IsVisible = true;
 					status.HasInputFocus = false;
 					break;
 				case XR_SESSION_STATE_FOCUSED:
 					status.HasInputFocus = true;
 					break;
 				case XR_SESSION_STATE_STOPPING:
-					status.IsVisible = false;
+					status.HmdMounted = false;
+					session->EndSession();
 					break;
 				case XR_SESSION_STATE_LOSS_PENDING:
 					status.DisplayLost = true;

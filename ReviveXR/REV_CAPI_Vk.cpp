@@ -203,7 +203,7 @@ ovr_CreateTextureSwapChainVk(
 			g_Binding.queueIndex = 0;
 		}
 
-		session->BeginSession(&g_Binding);
+		session->StartSession(&g_Binding);
 	}
 
 	return ovrTextureSwapChainVk::Create(session, desc, out_TextureSwapChain);
