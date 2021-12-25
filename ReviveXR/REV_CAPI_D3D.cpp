@@ -165,7 +165,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 			DetourTransactionBegin();
 			DetourUpdateThread(GetCurrentThread());
 			// Hook D3D11 functions so we can ensure NULL descriptors keep working on typeless formats
-			// This fixes Echo Arena, among others. May need to port this hack to D3D12 in the future.
+			// This fixes Echo Arena, among others.
 			DetourVirtual(pDevice.Get(), 7, (PVOID*)&TrueCreateShaderResourceView, HookCreateShaderResourceView);
 			session->HookedFunctions.insert(std::make_pair((PVOID*)&TrueCreateShaderResourceView, HookCreateShaderResourceView));
 			DetourVirtual(pDevice.Get(), 9, (PVOID*)&TrueCreateRenderTargetView, HookCreateRenderTargetView);
@@ -197,7 +197,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 				return ovrError_IncompatibleGPU;
 
 			// Hook D3D12 functions so we can ensure NULL descriptors keep working on typeless formats
-			// This fixes Echo Arena, among others. May need to port this hack to D3D12 in the future.
+			// This fixes Echo Arena, among others.
 			DetourTransactionBegin();
 			DetourUpdateThread(GetCurrentThread());
 			DetourVirtual(pDevice12.Get(), 18, (PVOID*)&TrueCreateShaderResourceView12, HookCreateShaderResourceView12);

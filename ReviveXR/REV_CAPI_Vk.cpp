@@ -216,7 +216,7 @@ ovr_GetTextureSwapChainBufferVk(
 	int index,
 	VkImage* out_Image)
 {
-	REV_TRACE(ovr_GetTextureSwapChainBufferDX);
+	REV_TRACE(ovr_GetTextureSwapChainBufferVk);
 
 	if (!session)
 		return ovrError_InvalidSession;
