@@ -38,6 +38,9 @@ ovrResult ovrTextureSwapChainData::Init(XrSession session, const ovrTextureSwapC
 	// All Oculus swapchains allow sampling
 	createInfo.usageFlags |= XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
 
+	// All Oculus swapchains allow transfers
+	createInfo.usageFlags |= XR_SWAPCHAIN_USAGE_TRANSFER_SRC_BIT | XR_SWAPCHAIN_USAGE_TRANSFER_DST_BIT;
+
 	if (desc->BindFlags & ovrTextureBind_DX_RenderTarget)
 		createInfo.usageFlags |= XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
 
@@ -47,12 +50,15 @@ ovrResult ovrTextureSwapChainData::Init(XrSession session, const ovrTextureSwapC
 	if (desc->BindFlags & ovrTextureBind_DX_DepthStencil)
 		createInfo.usageFlags |= XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
+	if (desc->MiscFlags & ovrTextureMisc_DX_Typeless)
+		createInfo.usageFlags |= XR_SWAPCHAIN_USAGE_MUTABLE_FORMAT_BIT;
+
 	createInfo.format = format;
 	createInfo.sampleCount = desc->SampleCount;
 	createInfo.width = desc->Width;
 	createInfo.height = desc->Height;
-	createInfo.faceCount = desc->ArraySize; // This is actually face count
-	createInfo.arraySize = 1;
+	createInfo.faceCount = desc->Type == ovrTexture_Cube ? desc->ArraySize : 1;
+	createInfo.arraySize = desc->Type == ovrTexture_Cube ? 1 : desc->ArraySize;
 	createInfo.mipCount = desc->MipLevels;
 	CHK_XR(xrCreateSwapchain(session, &createInfo, &Swapchain));
 
