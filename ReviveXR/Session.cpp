@@ -92,26 +92,28 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 		graphicsBinding.device = pDevice.Get();
 		CHK_OVR(StartSession(&graphicsBinding));
 
-		// Synchronously wait for the fake session to become ready.
-		XrEventDataBuffer event;
-		const XrEventDataSessionStateChanged& stateChanged =
-			reinterpret_cast<XrEventDataSessionStateChanged&>(event);
-		do
+		if (Runtime::Get().UseHack(Runtime::HACK_WAIT_FOR_SESSION_READY))
 		{
-			event = XR_TYPE(EVENT_DATA_BUFFER);
-			XrResult result = xrPollEvent(Instance, &event);
-			if (XR_FAILED(result))
-				break;
-			if (result == XR_EVENT_UNAVAILABLE)
-				std::this_thread::sleep_for(10ms);
-		}
-		while (event.type != XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED ||
-			stateChanged.state != XR_SESSION_STATE_READY);
-		assert(stateChanged.session == Session);
+			// Synchronously wait for the fake session to become ready.
+			XrEventDataBuffer event;
+			const XrEventDataSessionStateChanged& stateChanged =
+				reinterpret_cast<XrEventDataSessionStateChanged&>(event);
+			do
+			{
+				event = XR_TYPE(EVENT_DATA_BUFFER);
+				XrResult result = xrPollEvent(Instance, &event);
+				if (XR_FAILED(result))
+					break;
+				if (result == XR_EVENT_UNAVAILABLE)
+					std::this_thread::sleep_for(10ms);
+			} while (event.type != XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED ||
+				stateChanged.state != XR_SESSION_STATE_READY);
+			assert(stateChanged.session == Session);
 
-		XrSessionBeginInfo beginInfo = XR_TYPE(SESSION_BEGIN_INFO);
-		beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-		CHK_XR(xrBeginSession(Session, &beginInfo));
+			XrSessionBeginInfo beginInfo = XR_TYPE(SESSION_BEGIN_INFO);
+			beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+			CHK_XR(xrBeginSession(Session, &beginInfo));
+		}
 
 		CHK_OVR(LocateViews(ViewPoses));
 		for (int i = 0; i < ovrEye_Count; i++)

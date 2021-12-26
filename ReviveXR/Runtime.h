@@ -32,6 +32,9 @@ public:
 		// Hack: SteamVR runtime ignores haptic pulses with a long duration.
 		// Set the duration to the minimum duration as a workaround.
 		HACK_MIN_HAPTIC_DURATION,
+		// Hack: WMR runtime doesn't allow views to be located without the session running.
+		// Wait for the session to become ready instead.
+		HACK_WAIT_FOR_SESSION_READY,
 	};
 
 	bool UseHack(Hack hack);
