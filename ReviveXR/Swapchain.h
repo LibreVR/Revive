@@ -31,11 +31,12 @@ struct ovrTextureSwapChainData
 	ovrResult EnumerateImages(XrStructureType type)
 	{
 		CHK_XR(xrEnumerateSwapchainImages(Swapchain, 0, &Length, nullptr));
-		Images = (XrSwapchainImageBaseHeader*)new T[Length]();
+		T* chain = new T[Length]();
 		for (uint32_t i = 0; i < Length; i++)
-			Images[i].type = type;
+			chain[i].type = type;
+		Images = (XrSwapchainImageBaseHeader*)chain;
 
-		uint32_t finalLength;
+		uint32_t finalLength = 0;
 		CHK_XR(xrEnumerateSwapchainImages(Swapchain, Length, &finalLength, Images));
 		assert(Length == finalLength);
 		return ovrSuccess;
