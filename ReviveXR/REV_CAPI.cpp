@@ -788,7 +788,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session, ov
 	MICROPROFILE_META_CPU("Identifier", PtrToInt(chain->Swapchain));
 	MICROPROFILE_META_CPU("CurrentIndex", chain->CurrentIndex);
 
-	chain->Commit(session);
+	CHK_OVR(chain->Commit(session));
 
 	return ovrSuccess;
 }
