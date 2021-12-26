@@ -268,20 +268,22 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 					status.HmdPresent = true;
 					break;
 				case XR_SESSION_STATE_READY:
+					// Oculus apps won't synchronize before they're visible,
+					// so we have to set the IsVisible flag immediately.
+					status.IsVisible = true;
 					status.HmdMounted = true;
 					session->BeginSession();
 					break;
 				case XR_SESSION_STATE_SYNCHRONIZED:
-					status.IsVisible = false;
 					break;
 				case XR_SESSION_STATE_VISIBLE:
-					status.IsVisible = true;
 					status.HasInputFocus = false;
 					break;
 				case XR_SESSION_STATE_FOCUSED:
 					status.HasInputFocus = true;
 					break;
 				case XR_SESSION_STATE_STOPPING:
+					status.IsVisible = false;
 					status.HmdMounted = false;
 					session->EndSession();
 					break;
