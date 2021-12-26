@@ -94,6 +94,9 @@ void ProfileManager::Shutdown()
 
 bool ProfileManager::SetTexture(TextureBase* pTexture)
 {
+	if (!m_ProfileWindow)
+		return false;
+
 	HDC dc = wglGetCurrentDC();
 	HGLRC ctx = wglGetCurrentContext();
 	glfwMakeContextCurrent(m_ProfileWindow);
