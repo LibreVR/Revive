@@ -38,10 +38,10 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 	}
 
 	XrSystemGetInfo systemInfo = XR_TYPE(SYSTEM_GET_INFO);
-	if (Runtime::Get().ColorSpace)
-		systemInfo.next = &SystemColorSpace;
 	systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 	CHK_XR(xrGetSystem(Instance, &systemInfo, &System));
+	if (Runtime::Get().ColorSpace)
+		SystemProperties.next = &SystemColorSpace;
 	CHK_XR(xrGetSystemProperties(Instance, System, &SystemProperties));
 
 	uint32_t numViews;
