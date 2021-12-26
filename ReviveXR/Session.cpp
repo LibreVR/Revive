@@ -197,9 +197,10 @@ ovrResult ovrHmdStruct::BeginSession()
 	CHK_XR(xrBeginSession(Session, &beginInfo));
 
 	// Start the first frame immediately in case the app uses SubmitFrame().
-	CHK_OVR(ovr_WaitToBeginFrame(this, 0));
+	long long currentIndex = (*CurrentFrame).frameIndex;
+	CHK_OVR(ovr_WaitToBeginFrame(this, currentIndex));
 	RecenterSpace(ovrTrackingOrigin_EyeLevel, ViewSpace);
-	CHK_OVR(ovr_BeginFrame(this, 0));
+	CHK_OVR(ovr_BeginFrame(this, currentIndex));
 	return ovrSuccess;
 }
 
