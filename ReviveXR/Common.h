@@ -47,7 +47,7 @@ extern XrResult g_LastResult;
 	{ \
 		ovrResult __LastResult = (x); \
 		assert(OVR_SUCCESS(__LastResult)); \
-		if (OVR_FAILURE(__LastResult)) return __LastResult; \
+		if (!OVR_UNQUALIFIED_SUCCESS(__LastResult)) return __LastResult; \
 	}
 
 #define CHK_HR(x) \

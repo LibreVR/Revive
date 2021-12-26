@@ -272,7 +272,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 					// so we have to set the IsVisible flag immediately.
 					status.IsVisible = true;
 					status.HmdMounted = true;
-					session->BeginSession();
 					break;
 				case XR_SESSION_STATE_SYNCHRONIZED:
 					break;
@@ -285,7 +284,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 				case XR_SESSION_STATE_STOPPING:
 					status.IsVisible = false;
 					status.HmdMounted = false;
-					session->EndSession();
 					break;
 				case XR_SESSION_STATE_LOSS_PENDING:
 					status.DisplayLost = true;
@@ -294,6 +292,12 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 					status.ShouldQuit = true;
 					break;
 				}
+				session->SessionStatus = status;
+
+				if (stateChanged.state == XR_SESSION_STATE_READY)
+					session->BeginSession();
+				if (stateChanged.state == XR_SESSION_STATE_STOPPING)
+					session->EndSession();
 			}
 			break;
 		}
@@ -302,6 +306,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 			const XrEventDataInstanceLossPending& lossPending =
 				reinterpret_cast<XrEventDataInstanceLossPending&>(event);
 			status.ShouldQuit = true;
+			session->SessionStatus = status;
 			break;
 		}
 		case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
@@ -309,6 +314,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 			const XrEventDataReferenceSpaceChangePending& spaceChange =
 				reinterpret_cast<XrEventDataReferenceSpaceChangePending&>(event);
 			status.ShouldRecenter = true;
+			session->SessionStatus = status;
 			break;
 		}
 		case XR_TYPE_EVENT_DATA_VISIBILITY_MASK_CHANGED_KHR:
@@ -328,7 +334,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 		}
 		event = XR_TYPE(EVENT_DATA_BUFFER);
 	}
-	session->SessionStatus = status;
 
 	sessionStatus->IsVisible = status.IsVisible;
 	sessionStatus->HmdPresent = status.HmdPresent;
@@ -868,6 +873,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_WaitToBeginFrame(ovrSession session, long lon
 	if (!session)
 		return ovrError_InvalidSession;
 
+	SessionStatusBits status = session->SessionStatus;
+	if (!status.IsVisible)
+		return ovrSuccess_NotVisible;
+
 	{
 		// Wait until the session is running, since the render thread may still be initializing
 		std::unique_lock<std::mutex> lk(session->Running.first);
@@ -894,6 +903,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 
 	if (!session)
 		return ovrError_InvalidSession;
+
+	SessionStatusBits status = session->SessionStatus;
+	if (!status.IsVisible)
+		return ovrSuccess_NotVisible;
 
 	assert(frameIndex == (*session->CurrentFrame).frameIndex);
 
@@ -924,6 +937,10 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 
 	if (!session)
 		return ovrError_InvalidSession;
+
+	SessionStatusBits status = session->SessionStatus;
+	if (!status.IsVisible)
+		return ovrSuccess_NotVisible;
 
 	// We are going to use some space handles here, don't destroy them
 	std::shared_lock<std::shared_mutex> lk(session->TrackingMutex);
@@ -1113,14 +1130,13 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		layers.push_back(&newLayer.Header);
 	}
 
-	// If this frame index is beyond the current frame, then discard the frame instead
-	// TODO: Should we allow apps to target frames that have not been waited on?
-	XrIndexedFrameState* CurrentFrame = session->CurrentFrame;
-	if (frameIndex > CurrentFrame->frameIndex)
-		return ovrSuccess_NotVisible;
+	// If this frame index is in the past, find the correct frame based on the index
+	XrIndexedFrameState* TargetFrame = session->CurrentFrame;
+	if (frameIndex < TargetFrame->frameIndex)
+		TargetFrame = &session->FrameStats[frameIndex % ovrMaxProvidedFrameStats];
 
 	XrFrameEndInfo endInfo = XR_TYPE(FRAME_END_INFO);
-	endInfo.displayTime = session->FrameStats[frameIndex % ovrMaxProvidedFrameStats].predictedDisplayTime;
+	endInfo.displayTime = TargetFrame->predictedDisplayTime;
 	endInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 	endInfo.layerCount = (uint32_t)layers.size();
 	endInfo.layers = layers.data();
