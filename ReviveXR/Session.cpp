@@ -13,6 +13,8 @@
 #include <wrl/client.h>
 #include <thread>
 
+using namespace std::chrono_literals;
+
 ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 {
 	XR_FUNCTION(instance, GetD3D11GraphicsRequirementsKHR);
@@ -89,7 +91,27 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 		XrGraphicsBindingD3D11KHR graphicsBinding = XR_TYPE(GRAPHICS_BINDING_D3D11_KHR);
 		graphicsBinding.device = pDevice.Get();
 		CHK_OVR(StartSession(&graphicsBinding));
-		CHK_OVR(BeginSession());
+
+		// Synchronously wait for the fake session to become ready.
+		XrEventDataBuffer event;
+		const XrEventDataSessionStateChanged& stateChanged =
+			reinterpret_cast<XrEventDataSessionStateChanged&>(event);
+		do
+		{
+			event = XR_TYPE(EVENT_DATA_BUFFER);
+			XrResult result = xrPollEvent(Instance, &event);
+			if (XR_FAILED(result))
+				break;
+			if (result == XR_EVENT_UNAVAILABLE)
+				std::this_thread::sleep_for(10ms);
+		}
+		while (event.type != XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED ||
+			stateChanged.state != XR_SESSION_STATE_READY);
+		assert(stateChanged.session == Session);
+
+		XrSessionBeginInfo beginInfo = XR_TYPE(SESSION_BEGIN_INFO);
+		beginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+		CHK_XR(xrBeginSession(Session, &beginInfo));
 
 		CHK_OVR(LocateViews(ViewPoses));
 		for (int i = 0; i < ovrEye_Count; i++)
