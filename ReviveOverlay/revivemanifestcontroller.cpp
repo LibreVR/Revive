@@ -402,7 +402,7 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
 
-	if (vr::VRApplications())
+	if (!m_LegacyRuntime && vr::VRApplications())
 	{
 		// Refresh the manifest after launching the application to aid application identification
 		vr::EVRApplicationError error = vr::VRApplications()->LaunchApplication(qPrintable(appKey));
