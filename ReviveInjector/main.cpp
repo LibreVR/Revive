@@ -216,7 +216,7 @@ int wmain(int argc, wchar_t *argv[]) {
 		}
 		else if (wcscmp(argv[i], L"/app") == 0)
 		{
-			appKey = "application.generated.revive.app." + std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(argv[++i]);
+			appKey = "revive.app." + std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(argv[++i]);
 		}
 		else if (wcscmp(argv[i], L"/base") == 0)
 		{
