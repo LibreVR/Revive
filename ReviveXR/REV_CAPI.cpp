@@ -378,8 +378,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	ovr_ClearShouldRecenterFlag(session);
-	return session->RecenterSpace(session->TrackingOrigin, session->ViewSpace);
+	ovr_ClearShouldRecenterFlag(session); 
+	if (session->ViewSpace != XR_NULL_HANDLE)
+		return session->RecenterSpace(session->TrackingOrigin, session->ViewSpace);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovrPosef originPose)
