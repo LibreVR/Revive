@@ -43,7 +43,12 @@ build_script:
         msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x64
         msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x86
       }
-      
+  # build the overlay
+  - ps: |
+      cd C:\Projects\ReviveOverlay
+      qmake
+      nmake
+
 after_build:
   # copy additional files to the build folder
   - ps: |
