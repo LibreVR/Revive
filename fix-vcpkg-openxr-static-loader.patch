@@ -1,14 +1,14 @@
 diff --git a/ports/openxr-loader/fix-static-loader.patch b/ports/openxr-loader/fix-static-loader.patch
 new file mode 100644
-index 000000000..4bf5c8950
+index 000000000..d06ee8cc7
 --- /dev/null
 +++ b/ports/openxr-loader/fix-static-loader.patch
 @@ -0,0 +1,32 @@
 +diff --git a/src/loader/CMakeLists.txt b/src/loader/CMakeLists.txt
-+index 3a6ff44..c9b1c38 100644
++index 9add93809..d125180e7 100644
 +--- a/src/loader/CMakeLists.txt
 ++++ b/src/loader/CMakeLists.txt
-+@@ -165,27 +165,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
++@@ -174,27 +174,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 +     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/openxr.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 + elseif(WIN32)
 +     if(MSVC)
@@ -35,12 +35,12 @@ index 000000000..4bf5c8950
 +-
 +         target_compile_options(openxr_loader PRIVATE /wd6386)
 +     endif()
-+
++ 
 diff --git a/ports/openxr-loader/portfile.cmake b/ports/openxr-loader/portfile.cmake
-index f68094d18..ff32d1335 100644
+index 04a518602..0bac03b83 100644
 --- a/ports/openxr-loader/portfile.cmake
 +++ b/ports/openxr-loader/portfile.cmake
-@@ -8,6 +8,7 @@ vcpkg_from_github(
+@@ -7,6 +7,7 @@ vcpkg_from_github(
      HEAD_REF master
      PATCHES
          fix-openxr-sdk-jsoncpp.patch
@@ -49,9 +49,9 @@ index f68094d18..ff32d1335 100644
  
  vcpkg_from_github(
 @@ -18,6 +19,7 @@ vcpkg_from_github(
-     HEAD_REF master
      PATCHES
          fix-openxr-sdk-jsoncpp.patch
+         fix-jinja2.patch
 +        fix-static-loader.patch
  )
  
@@ -61,7 +61,7 @@ index f68094d18..ff32d1335 100644
  )
  
 -# Weird behavior inside the OpenXR loader.  On Windows they force shared libraries to use static crt, and
--# vice-versa.  Might be better in future iterations to patch the CMakeLists.txt for OpenXR
+-# vice-versa. Might be better in future iterations to patch the CMakeLists.txt for OpenXR
  if (VCPKG_TARGET_IS_UWP OR VCPKG_TARGET_IS_WINDOWS)
      if(VCPKG_LIBRARY_LINKAGE STREQUAL static)
          set(DYNAMIC_LOADER OFF)
