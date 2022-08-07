@@ -209,7 +209,7 @@ CReviveManifestController::CReviveManifestController()
 	, m_manifestFile(QCoreApplication::applicationDirPath() + "/revive.vrmanifest")
 	, m_supportFile(QCoreApplication::applicationDirPath() + "/support.vrmanifest")
 	, m_bLibraryFound(false)
-	, m_LegacyRuntime(false)
+	, m_LegacyRuntime(true)
 {
 	m_supportArgs["revive.app.oculus-dreamdeck-nux"] = R"(/base Support\oculus-dreamdeck-nux\Dreamdeck\Binaries\Win64\Dreamdeck-Win64-Shipping.exe -vr -dreamdeck=NUX)";
 	m_supportArgs["revive.app.oculus-touch-tutorial"] = R"(/base Support\oculus-touch-tutorial\WindowsNoEditor\TouchNUX\Binaries\Win64\TouchNUX-Win64-Shipping.exe -gamemode=nux)";

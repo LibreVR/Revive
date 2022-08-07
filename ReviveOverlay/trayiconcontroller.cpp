@@ -42,7 +42,7 @@ CTrayIconController::~CTrayIconController()
 bool CTrayIconController::Init()
 {
 	m_trayIcon = std::make_unique<QSystemTrayIcon>(QIcon(":/revive_white.ico"));
-	QAction* action = m_trayIconMenu.addAction("Use OpenVR runtime");
+	QAction* action = m_trayIconMenu.addAction("Use OpenXR runtime");
 	action->setCheckable(true);
 	QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(openxr(bool)));
 	m_trayIconMenu.addSeparator();
@@ -103,7 +103,7 @@ void CTrayIconController::quit()
 
 void CTrayIconController::openxr(bool checked)
 {
-	CReviveManifestController::SharedInstance()->UseLegacyRuntime(checked);
+	CReviveManifestController::SharedInstance()->UseLegacyRuntime(!checked);
 }
 
 void CTrayIconController::inject()
