@@ -44,9 +44,9 @@ build_script:
       }
   # build the overlay
   - ps: |
-      cd C:\Projects\ReviveOverlay
-      qmake
-      nmake
+      cd C:\Projects\Revive\ReviveOverlay
+      C:\Qt\5.15.2\msvc2019_64\bin\qmake.exe
+      C:\Qt\Tools\QtCreator\bin\jom.exe
 
 after_build:
   # copy additional files to the build folder
