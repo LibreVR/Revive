@@ -8,7 +8,6 @@ install:
   # update vcpkg to the latest version
   - cd C:\Tools\vcpkg
   - git pull
-  - git checkout 05e56b2c86c9a9409d0935d0646fc05d8c4e9d30
   - git apply %APPVEYOR_BUILD_FOLDER%\fix-vcpkg-openxr-static-loader.patch
   - .\bootstrap-vcpkg.bat
   - cd %APPVEYOR_BUILD_FOLDER%
