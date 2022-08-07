@@ -43,10 +43,10 @@ build_script:
         msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x86
       }
   # build the overlay
-  - ps: |
-      cd C:\Projects\Revive\ReviveOverlay
-      C:\Qt\5.15.2\msvc2019_64\bin\qmake.exe
-      C:\Qt\Tools\QtCreator\bin\jom.exe
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - cd C:\Projects\Revive\ReviveOverlay
+  - C:\Qt\5.15.2\msvc2019_64\bin\qmake.exe
+  - nmake
 
 after_build:
   # copy additional files to the build folder
