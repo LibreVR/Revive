@@ -47,10 +47,7 @@ Release:DESTDIR = ../Release
 RESOURCES += \
     overlay.qrc
 
-win32 {
-RC_ICONS += revive_white.ico
-QMAKE_POST_LINK = $${QTDIR}/windeployqt $$shell_path($${DESTDIR}/$${TARGET}.exe)
-}
+win32:RC_ICONS += revive_white.ico
 
 images.path    = $${DESTDIR}/SupportAssets
 images.files   += SupportAssets/*

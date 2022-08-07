@@ -35,13 +35,8 @@ build_script:
   # build the solution
   - ps: |
       cd C:\Projects\Revive
-      If ($env:APPVEYOR_REPO_TAG -eq "true") {
-        msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x64
-        msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x86
-      } Else {
-        msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x64
-        msbuild Revive.sln /t:Build /p:Configuration=Nightly /p:Platform=x86
-      }
+      msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x64
+      msbuild Revive.sln /t:Build /p:Configuration=Release /p:Platform=x86
   # build the overlay
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
   - cd C:\Projects\Revive\ReviveOverlay
@@ -49,24 +44,18 @@ build_script:
   - nmake
 
 after_build:
+  # copy dependencies using windeployqt
+  - C:\Qt\5.15.2\msvc2019_64\bin\windeployqt.exe --no-translations C:\Projects\Revive\Release\ReviveOverlay.exe
   # copy additional files to the build folder
   - ps: |
-      If ($env:APPVEYOR_REPO_TAG -eq "true") {
-        cd C:\Projects\Revive\Release
-      } Else {
-        cd C:\Projects\Revive\Nightly
-      }
+      cd C:\Projects\Revive\Release
       copy ..\Externals\WinSparkle\x64\Release\WinSparkle.dll .
       copy ..\ReviveOverlay\SupportAssets . -Filter "*.jpg" -Recurse -Container
       copy C:\openssl-v111-win64\bin\libcrypto-1_1-x64.dll .
       copy C:\openssl-v111-win64\bin\libssl-1_1-x64.dll .
   # gather build artifacts
   - ps: |
-      If ($env:APPVEYOR_REPO_TAG -eq "true") {
-        cd C:\Projects\Revive\Release
-      } Else {
-        cd C:\Projects\Revive\Nightly
-      }
+      cd C:\Projects\Revive\Release
       7z a ..\Installer\Revive.zip ReviveInjector.exe LibRevive32.dll LibRevive64.dll LibReviveXR64.dll LibReviveXR32.dll
   # run NSIS to generate installer
   - ps: |
