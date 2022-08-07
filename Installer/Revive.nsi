@@ -1,8 +1,4 @@
-!ifdef NIGHTLY
-!define BASE_DIR "..\Nightly"
-!else
 !define BASE_DIR "..\Release"
-!endif
 !define SRC_DIR "..\Revive"
 !define DASH_DIR "..\ReviveOverlay"
 
