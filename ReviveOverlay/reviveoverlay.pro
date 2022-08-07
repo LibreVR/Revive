@@ -49,7 +49,7 @@ RESOURCES += \
 
 win32 {
 RC_ICONS += revive_white.ico
-QMAKE_POST_LINK = windeployqt $$shell_path($$DESTDIR/$${TARGET}.exe)
+QMAKE_POST_LINK = $${QTDIR}/windeployqt $$shell_path($${DESTDIR}/$${TARGET}.exe)
 }
 
 images.path    = $${DESTDIR}/SupportAssets
@@ -63,4 +63,4 @@ winsparkle.files   += ../Externals/WinSparkle/x64/Release/WinSparkle.dll
 
 INSTALLS       += winsparkle images manifests
 
-VERSION = 1.0.0.0
+VERSION = 3.0.0.0
