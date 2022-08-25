@@ -39,7 +39,7 @@ INCLUDEPATH += ../Externals/openvr/headers ../Externals/WinSparkle/include ../Ex
 Debug:LIBS += -L../Debug
 Release:LIBS += -L../Release
 
-LIBS += -L../Externals/WinSparkle/x64/Release -L../Externals/openvr/lib/win64 -lopenvr_api -lWinSparkle -lCredui -lAdvapi32
+LIBS += -L../Externals/WinSparkle/x64/Release -L../Externals/openvr/lib/win64 -lopenvr_api64 -lWinSparkle -lCredui -lAdvapi32
 
 Debug:DESTDIR = ../Debug
 Release:DESTDIR = ../Release
