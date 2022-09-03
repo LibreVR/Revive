@@ -67,6 +67,7 @@ struct ovrHmdStruct
 	XrViewConfigurationView ViewConfigs[ovrEye_Count];
 	XrViewConfigurationViewFovEPIC ViewFov[ovrEye_Count];
 	XrView ViewPoses[ovrEye_Count];
+	XrExtent2Df bounds;
 	ovrVector2f PixelsPerTan[ovrEye_Count];
 	std::vector<int64_t> SupportedFormats;
 

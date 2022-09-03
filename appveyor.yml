@@ -45,7 +45,7 @@ build_script:
 
 after_build:
   # copy dependencies using windeployqt
-  - C:\Qt\5.15.2\msvc2019_64\bin\windeployqt.exe --no-translations C:\Projects\Revive\Release\ReviveOverlay.exe
+  - C:\Qt\5.15.2\msvc2019_64\bin\windeployqt.exe --no-translations --qmldir C:\Projects\Revive\ReviveOverlay C:\Projects\Revive\Release\ReviveOverlay.exe
   # copy additional files to the build folder
   - ps: |
       cd C:\Projects\Revive\Release

@@ -122,6 +122,7 @@ ovrResult ovrHmdStruct::InitSession(XrInstance instance)
 			ViewFov[i].maxMutableFov = ViewPoses[i].fov;
 		}
 
+		CHK_XR(xrGetReferenceSpaceBoundsRect(Session, XR_REFERENCE_SPACE_TYPE_STAGE, &bounds));
 		CHK_OVR(DestroySession());
 	}
 

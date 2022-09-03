@@ -557,12 +557,15 @@ OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession sess
 	ovrTouchHapticsDesc desc = { 0 };
 	if (session && controllerType & ovrControllerType_Touch)
 	{
-		desc.SampleRateHz = (int)(1000000000i64 / (*session->CurrentFrame).predictedDisplayPeriod);
-		desc.SampleSizeInBytes = sizeof(uint8_t);
-		desc.SubmitMaxSamples = OVR_HAPTICS_BUFFER_SAMPLES_MAX;
-		desc.SubmitMinSamples = 1;
-		desc.SubmitOptimalSamples = 20;
-		desc.QueueMinSizeToAvoidStarvation = 5;
+		if ((*session->CurrentFrame).predictedDisplayPeriod == 0)
+			desc.SampleRateHz = 0;
+		else
+			desc.SampleRateHz = (int)(1000000000i64 / (*session->CurrentFrame).predictedDisplayPeriod);
+			desc.SampleSizeInBytes = sizeof(uint8_t);
+			desc.SubmitMaxSamples = OVR_HAPTICS_BUFFER_SAMPLES_MAX;
+			desc.SubmitMinSamples = 1;
+			desc.SubmitOptimalSamples = 20;
+			desc.QueueMinSizeToAvoidStarvation = 5;
 	}
 	return desc;
 }
@@ -717,6 +720,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetBoundaryDimensions(ovrSession session, ovr
 
 	if (!session)
 		return ovrError_InvalidSession;
+
+	if (session->Session == NULL)
+	{
+		outDimensions->x = session->bounds.width;
+		outDimensions->y = 0.0f; // TODO: Find some good default height
+		outDimensions->z = session->bounds.height;
+		return ovrSuccess;
+	}
 
 	XrExtent2Df bounds;
 	CHK_XR(xrGetReferenceSpaceBoundsRect(session->Session, XR_REFERENCE_SPACE_TYPE_STAGE, &bounds));
