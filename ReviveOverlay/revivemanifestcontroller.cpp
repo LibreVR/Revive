@@ -1,7 +1,7 @@
 #include "revivemanifestcontroller.h"
 #include "trayiconcontroller.h"
 #include "openvroverlaycontroller.h"
-#include "oculusplatform.h"
+#include "oculusoauthtokencontroller.h"
 #include "openvr.h"
 #include "OVR_CAPI_Keys.h"
 #include <qt_windows.h>
@@ -401,6 +401,12 @@ bool CReviveManifestController::launchApplication(const QString &canonicalName)
 {
 	qDebug("Launching application: %s", qUtf8Printable(canonicalName));
 	QString appKey = AppPrefix + canonicalName;
+	QStringList multiplayerAppKeys = {"facebook-vr-facebook-horizon", "gunslinger-games-lls-fos", "harmonix-dance-central-vr",
+									  "hidden-path-entertainment-brass-tactics", "hidden-path-entertainment-phoenix", "insomniac-games-i-28",
+									  "ready-at-dawn-echo-arena", "twisted-pixel-games-path-of-the-warrior"};
+
+	if (multiplayerAppKeys.indexOf(canonicalName) != -1 && !COculusOauthTokenController::SharedInstance()->Connected())
+		CTrayIconController::SharedInstance()->ShowInformation(TrayInfo_OculusAccessTokenNotFound);
 
 	if (!m_LegacyRuntime && vr::VRApplications())
 	{

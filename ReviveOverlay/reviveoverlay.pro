@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets
+QT       += core gui widgets sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += quick
 
@@ -13,7 +13,7 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-    oculusplatform.cpp \
+    oculusoauthtokencontroller.cpp \
     openvroverlaycontroller.cpp \
     qquickwindowscaled.cpp \
     revivemanifestcontroller.cpp \
@@ -21,7 +21,7 @@ SOURCES += main.cpp\
     windowsservices.cpp
 
 HEADERS  += \
-    oculusplatform.h \
+    oculusoauthtokencontroller.h \
     openvroverlaycontroller.h \
     qquickwindowscaled.h \
     revivemanifestcontroller.h \
