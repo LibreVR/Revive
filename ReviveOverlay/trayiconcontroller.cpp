@@ -86,8 +86,8 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 								   QSystemTrayIcon::Warning);
 		break;
 		case TrayInfo_OculusAccessTokenNotFound:
-			m_trayIcon->showMessage("Unable to load Oculus access token",
-								   "Multiplayer may have issues! Sign out & back in to the Oculus app, then restart OVRService OR your PC.",
+			m_trayIcon->showMessage("Unable to load Oculus OAuth token",
+								   "Multiplayer may have issues! Sign out & back in to the Oculus app, then reboot your PC or restart Revive & OVRService.",
 								   QSystemTrayIcon::Warning);
 		break;
 	}

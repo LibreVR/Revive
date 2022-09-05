@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 		qDebug("Failed to initialize the revive manifest");
 
 	if (!COculusOauthTokenController::SharedInstance()->Init())
-		qDebug("Failed to initialize the Oculus Oauth token");
+		qDebug("Failed to initialize the Oculus OAuth token");
 
 	// Create a QML engine.
 	QQmlEngine qmlEngine;

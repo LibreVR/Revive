@@ -39,6 +39,7 @@ protected slots:
 private:
 	QString m_strAccessToken;
 	QDir m_roamingAppDataPath;
+	QSqlDatabase m_sqliteDb;
 };
 
 #endif // OCULUSOAUTHTOKENCONTROLLER_H
