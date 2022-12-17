@@ -561,11 +561,11 @@ OVR_PUBLIC_FUNCTION(ovrTouchHapticsDesc) ovr_GetTouchHapticsDesc(ovrSession sess
 			desc.SampleRateHz = 0;
 		else
 			desc.SampleRateHz = (int)(1000000000i64 / (*session->CurrentFrame).predictedDisplayPeriod);
-			desc.SampleSizeInBytes = sizeof(uint8_t);
-			desc.SubmitMaxSamples = OVR_HAPTICS_BUFFER_SAMPLES_MAX;
-			desc.SubmitMinSamples = 1;
-			desc.SubmitOptimalSamples = 20;
-			desc.QueueMinSizeToAvoidStarvation = 5;
+		desc.SampleSizeInBytes = sizeof(uint8_t);
+		desc.SubmitMaxSamples = OVR_HAPTICS_BUFFER_SAMPLES_MAX;
+		desc.SubmitMinSamples = 1;
+		desc.SubmitOptimalSamples = 20;
+		desc.QueueMinSizeToAvoidStarvation = 5;
 	}
 	return desc;
 }
