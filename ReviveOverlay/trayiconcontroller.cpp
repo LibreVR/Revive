@@ -2,7 +2,7 @@
 #include "openvroverlaycontroller.h"
 #include "revivemanifestcontroller.h"
 #include "windowsservices.h"
-#include "oculusplatform.h"
+#include "oculusoauthtokencontroller.h"
 
 #include <qt_windows.h>
 #include <winsparkle.h>
@@ -49,7 +49,6 @@ bool CTrayIconController::Init()
 	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
 	m_trayIconMenu.addSeparator();
-	m_trayIconMenu.addAction("&Link Oculus Account", this, SLOT(login()));
 	m_trayIconMenu.addAction("Check for &updates", win_sparkle_check_update_with_ui);
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addAction("&Quit", this, SLOT(quit()));
@@ -86,10 +85,10 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 								   "No Oculus Library was found, click here to install the Oculus Software from oculus.com/setup.",
 								   QSystemTrayIcon::Warning);
 		break;
-		case TrayInfo_OculusNotLinked:
-			m_trayIcon->showMessage("Oculus account not linked",
-								   "Click here to log into your Oculus Account to enable joining multiplayer parties in Echo Arena.",
-								   QSystemTrayIcon::Information);
+		case TrayInfo_OculusAccessTokenNotFound:
+			m_trayIcon->showMessage("Unable to load Oculus OAuth token",
+								   "Multiplayer may have issues! Sign out & back in to the Oculus app, then reboot your PC or restart Revive & OVRService.",
+								   QSystemTrayIcon::Warning);
 		break;
 	}
 }
@@ -135,9 +134,6 @@ void CTrayIconController::messageClicked()
 		case TrayInfo_OculusLibraryNotFound:
 			QDesktopServices::openUrl(QUrl("https://oculus.com/setup"));
 		break;
-		case TrayInfo_OculusNotLinked:
-			login();
-		break;
 	}
 }
 
@@ -158,15 +154,4 @@ void CTrayIconController::activated(QSystemTrayIcon::ActivationReason reason)
 {
 	if (reason == QSystemTrayIcon::ActivationReason::DoubleClick)
 		show();
-}
-
-void CTrayIconController::login()
-{
-	QString user, password;
-	if (WindowsServices::PromptCredentials(user, password))
-		COculusPlatform::SharedInstance()->Login(user, password, COculusPlatform::platformID);
-
-	// Overwrite sensitive credential data
-	user.fill(0);
-	password.fill(0);
 }

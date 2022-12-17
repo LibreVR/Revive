@@ -2,7 +2,7 @@
 #include "openvroverlaycontroller.h"
 #include "revivemanifestcontroller.h"
 #include "windowsservices.h"
-#include "oculusplatform.h"
+#include "oculusoauthtokencontroller.h"
 #include <qt_windows.h>
 #include <winsparkle.h>
 
@@ -19,7 +19,7 @@
 #include <QSslSocket>
 
 extern "C" {
-    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 
@@ -81,14 +81,14 @@ int main(int argc, char *argv[])
 	if (!CReviveManifestController::SharedInstance()->Init())
 		qDebug("Failed to initialize the revive manifest");
 
-	if (!COculusPlatform::SharedInstance()->Init(CReviveManifestController::SharedInstance()->GetBasePath()))
-		qDebug("Failed to initialize the oculus platform");
+	if (!COculusOauthTokenController::SharedInstance()->Init())
+		qDebug("Failed to initialize the Oculus OAuth token");
 
 	// Create a QML engine.
 	QQmlEngine qmlEngine;
 	qmlEngine.rootContext()->setContextProperty("Revive", CReviveManifestController::SharedInstance());
 	qmlEngine.rootContext()->setContextProperty("OpenVR", COpenVROverlayController::SharedInstance());
-	qmlEngine.rootContext()->setContextProperty("Platform", COculusPlatform::SharedInstance());
+	qmlEngine.rootContext()->setContextProperty("Platform", COculusOauthTokenController::SharedInstance());
 
 	QQmlComponent qmlComponent( &qmlEngine, QUrl("qrc:/Overlay.qml"));
 	if (qmlComponent.isError())
