@@ -11,12 +11,6 @@ class SessionDetails
 public:
 	enum Hack
 	{
-		// Hack: Wait for running start in ovr_GetTrackingState().
-		// Games like Dirt Rally do a lot of rendering-independent work on the rendering thread.
-		// Calling WaitGetPoses() in ovr_GetTrackingState() allows Dirt Rally to do that work before
-		// we block waiting for running state.
-		HACK_WAIT_IN_TRACKING_STATE,
-
 		// Hack: Use a fake product name.
 		// Games like Ultrawings will actually check whether the product name contains the string
 		// "Oculus", so we use a fake name for the HMD to work around this issue.
@@ -45,10 +39,6 @@ public:
 		// Hack: Disable support for performance statistics.
 		// Dance Central VR crashes when any of the compositor statistics calls are made.
 		HACK_DISABLE_STATS,
-
-		// Hack: Wait as soon as the submit is done.
-		// Some apps like Dance Central VR don't handle waiting in the game thread very well.
-		HACK_WAIT_ON_SUBMIT,
 
 		// Hack: Use the same (mirrored) FOV for both eyes.
 		// Stormland renders certain effects at the wrong depth if the eye FOVs do not match.

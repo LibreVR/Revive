@@ -884,6 +884,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_BeginFrame(ovrSession session, long long fram
 	if (!session || !session->Compositor)
 		return ovrError_InvalidSession;
 
+	session->Compositor->SetTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
 	return session->Compositor->BeginFrame(session, frameIndex);
 }
 
@@ -913,16 +914,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 		frameIndex = session->FrameIndex;
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	ovrResult result = session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
-	if (OVR_SUCCESS(result))
-	{
-		// Begin the next frame
-		if (!session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
-			session->Compositor->WaitToBeginFrame(session, frameIndex + 1);
-		session->Compositor->BeginFrame(session, frameIndex + 1);
-	}
-
-	return result;
+	session->Compositor->SetTimingMode(vr::VRCompositorTimingMode_Implicit);
+	return session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
 }
 
 typedef struct OVR_ALIGNAS(4) ovrViewScaleDesc1_ {

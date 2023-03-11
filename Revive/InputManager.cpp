@@ -230,9 +230,6 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
 {
-	if (session->Details->UseHack(SessionDetails::HACK_WAIT_IN_TRACKING_STATE))
-		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-
 	// Calculate the relative prediction time
 	float relTime = 0.0f;
 	if (absTime > 0.0f)

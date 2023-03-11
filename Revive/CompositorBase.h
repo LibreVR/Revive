@@ -30,6 +30,7 @@ public:
 	ovrResult BeginFrame(ovrSession session, long long frameIndex);
 	ovrResult EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 
+	void SetTimingMode(vr::EVRCompositorTimingMode timingMode);
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
 	static vr::VRTextureBounds_t FovPortToTextureBounds(ovrFovPort eyeFov, ovrFovPort fov);
 
@@ -52,6 +53,9 @@ private:
 
 	// Call order enforcement
 	void* m_FrameEvents[MAX_QUEUE_AHEAD];
+
+	// Current timing mode
+	vr::EVRCompositorTimingMode m_TimingMode;
 
 #if MICROPROFILE_ENABLED
 	// Microprofile

@@ -25,6 +25,7 @@ MICROPROFILE_DEFINE(EndFrame, "Compositor", "EndFrame", 0x00ff00);
 MICROPROFILE_DEFINE(BlitLayers, "Compositor", "BlitLayers", 0x00ff00);
 MICROPROFILE_DEFINE(SubmitLayer, "Compositor", "SubmitLayer", 0x00ff00);
 MICROPROFILE_DEFINE(WaitGetPoses, "Compositor", "WaitGetPoses", 0x00ff00);
+MICROPROFILE_DEFINE(PostPresentHandoff, "Compositor", "PostPresentHandoff", 0x00ff00);
 
 ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
 {
@@ -52,6 +53,7 @@ CompositorBase::CompositorBase()
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
 	, m_FrameEvents()
+	, m_TimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff)
 #if MICROPROFILE_ENABLED
 	, m_ProfileTexture()
 #endif
@@ -142,7 +144,6 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	}
 
 	// Wait for the actual frame start
-	if (!session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
 	{
 		MICROPROFILE_SCOPE(WaitGetPoses);
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
@@ -257,9 +258,12 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	if (baseLayer)
 		error = SubmitLayer(session, baseLayer);
 
-	vr::VRCompositor()->PostPresentHandoff();
-
-	if (session->Details->UseHack(SessionDetails::HACK_WAIT_ON_SUBMIT))
+	if (m_TimingMode == vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff)
+	{
+		MICROPROFILE_SCOPE(PostPresentHandoff);
+		vr::VRCompositor()->PostPresentHandoff();
+	}
+	else
 	{
 		MICROPROFILE_SCOPE(WaitGetPoses);
 		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
@@ -471,6 +475,15 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 	MICROPROFILE_META_CPU("SwapChain Right", colorChain->Identifier);
 	MICROPROFILE_META_CPU("Submit Right", colorChain->SubmitIndex);
 	return err;
+}
+
+void CompositorBase::SetTimingMode(vr::EVRCompositorTimingMode timingMode)
+{
+	if (timingMode != m_TimingMode)
+	{
+		vr::VRCompositor()->SetExplicitTimingMode(timingMode);
+		m_TimingMode = timingMode;
+	}
 }
 
 void CompositorBase::SetMirrorTexture(ovrMirrorTexture mirrorTexture)
