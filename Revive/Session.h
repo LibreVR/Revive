@@ -13,27 +13,12 @@ class InputManager;
 class SessionDetails;
 class ProfileManager;
 
-struct SessionStatusBits {
-	bool IsVisible : 1;
-	bool HmdPresent : 1;
-	bool HmdMounted : 1;
-	bool DisplayLost : 1;
-	bool ShouldQuit : 1;
-	bool ShouldRecenter : 1;
-	bool HasInputFocus : 1;
-	bool OverlayPresent : 1;
-};
-
 struct ovrHmdStruct
 {
 	uint32_t MinorVersion;
 
-	// Session thread
-	std::thread SessionThread;
-	std::atomic_bool Running;
-
 	// Session status
-	std::atomic<SessionStatusBits> SessionStatus;
+	ovrSessionStatus Status;
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
 	vr::ETrackingUniverseOrigin TrackingOrigin;
 
@@ -48,5 +33,6 @@ struct ovrHmdStruct
 	std::unique_ptr<SessionDetails> Details;
 
 	ovrHmdStruct();
-	~ovrHmdStruct();
+
+	void UpdateStatus();
 };

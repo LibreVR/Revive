@@ -272,6 +272,17 @@ OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 	g_Sessions.erase(std::find_if(g_Sessions.begin(), g_Sessions.end(), [session](ovrHmdStruct const& o) { return &o == session; }));
 }
 
+typedef struct ovrSessionStatus1_ {
+	ovrBool IsVisible;
+	ovrBool HmdPresent;
+	ovrBool HmdMounted;
+	ovrBool DisplayLost;
+	ovrBool ShouldQuit;
+	ovrBool ShouldRecenter;
+	ovrBool HasInputFocus;
+	ovrBool OverlayPresent;
+} ovrSessionStatus1;
+
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessionStatus* sessionStatus)
 {
 	REV_TRACE(ovr_GetSessionStatus);
@@ -282,32 +293,19 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	if (!sessionStatus)
 		return ovrError_InvalidParameter;
 
-	// Detect if the application has focus, but only return false the first time the status is requested.
+	session->UpdateStatus();
+
+	if (g_MinorVersion > 20)
+		*sessionStatus = session->Status;
+	else
+		memcpy(sessionStatus, &session->Status, sizeof(ovrSessionStatus1));
+
+	// Detect if the application has focus, but return false the first time the status is requested.
 	// If this is true from the first call then Airmech will assume the Health-and-Safety warning
 	// is still being displayed.
 	static bool first_call = true;
 	sessionStatus->IsVisible = vr::VRCompositor()->CanRenderScene() && !first_call;
 	first_call = false;
-
-	SessionStatusBits status = session->SessionStatus;
-
-	// Don't use the activity level while debugging, so I don't have to put on the HMD
-#if MICROPROFILE_ENABLED
-	sessionStatus->HmdPresent = true;
-	sessionStatus->HmdMounted = true;
-#else
-	sessionStatus->HmdPresent = status.HmdPresent;
-	sessionStatus->HmdMounted = status.HmdMounted;
-#endif
-
-	// TODO: Detect if the display is lost, can this ever happen with OpenVR?
-	sessionStatus->DisplayLost = status.DisplayLost;
-	sessionStatus->ShouldQuit = status.ShouldQuit;
-	sessionStatus->ShouldRecenter = status.ShouldRecenter;
-	sessionStatus->HasInputFocus = status.HasInputFocus;
-	sessionStatus->OverlayPresent = status.OverlayPresent;
-	if (g_MinorVersion > 20)
-		sessionStatus->DepthRequested = false;
 
 	static const bool do_sleep = session->Details->UseHack(SessionDetails::HACK_SLEEP_IN_SESSION_STATUS);
 	if (do_sleep)
