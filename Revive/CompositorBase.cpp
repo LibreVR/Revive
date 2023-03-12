@@ -33,16 +33,16 @@ ovrResult CompositorBase::CompositorErrorToOvrError(vr::EVRCompositorError error
 	{
 	case vr::VRCompositorError_None: return ovrSuccess;
 	case vr::VRCompositorError_RequestFailed: return ovrError_InvalidOperation;
-	case vr::VRCompositorError_IncompatibleVersion: return ovrError_ServiceError;
+	case vr::VRCompositorError_IncompatibleVersion: return ovrError_ServiceVersion;
 	case vr::VRCompositorError_DoNotHaveFocus: return ovrSuccess_NotVisible;
 	case vr::VRCompositorError_InvalidTexture: return ovrError_TextureSwapChainInvalid;
-	case vr::VRCompositorError_IsNotSceneApplication: return ovrError_InvalidSession;
+	case vr::VRCompositorError_IsNotSceneApplication: return ovrSuccess_NotVisible;
 	case vr::VRCompositorError_TextureIsOnWrongDevice: return ovrError_TextureSwapChainInvalid;
 	case vr::VRCompositorError_TextureUsesUnsupportedFormat: return ovrError_TextureSwapChainInvalid;
 	case vr::VRCompositorError_SharedTexturesNotSupported: return ovrError_TextureSwapChainInvalid;
 	case vr::VRCompositorError_IndexOutOfRange: return ovrError_InvalidParameter;
 	case vr::VRCompositorError_AlreadySubmitted: return ovrSuccess_NotVisible;
-	case vr::VRCompositorError_InvalidBounds: return ovrError_InvalidParameter;
+	case vr::VRCompositorError_InvalidBounds: return ovrSuccess_BoundaryInvalid;
 	default: return ovrError_RuntimeException;
 	}
 }
