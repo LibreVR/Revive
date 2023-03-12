@@ -102,7 +102,7 @@ void CTrayIconController::quit()
 
 void CTrayIconController::openxr(bool checked)
 {
-	CReviveManifestController::SharedInstance()->UseLegacyRuntime(!checked);
+	CReviveManifestController::SharedInstance()->UseOpenXR(checked);
 }
 
 void CTrayIconController::inject()
@@ -111,9 +111,7 @@ void CTrayIconController::inject()
 	if (file.isNull())
 		return;
 
-	QStringList args;
-	args.append(QDir::toNativeSeparators(file));
-	QProcess::execute(QCoreApplication::applicationDirPath() + "/ReviveInjector.exe", args);
+	CReviveManifestController::SharedInstance()->LaunchInjector(QDir::toNativeSeparators(file));
 }
 
 void CTrayIconController::showHelp()

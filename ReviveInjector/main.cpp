@@ -205,10 +205,9 @@ int wmain(int argc, wchar_t *argv[]) {
 	wchar_t path[MAX_PATH] = { 0 };
 	for (int i = 1; i < argc; i++)
 	{
-		if (wcscmp(argv[i], L"/legacy") == 0)
+		if (wcscmp(argv[i], L"/openxr") == 0)
 		{
-			dlls.add(moduleDir + std::string("\\openvr_api64.dll"));
-			dlls.add(moduleDir + std::string("\\LibRevive64.dll"));
+			dlls.add(moduleDir + std::string("\\LibReviveXR64.dll"));
 		}
 		else if (wcscmp(argv[i], L"/proxy") == 0)
 		{
@@ -247,7 +246,10 @@ int wmain(int argc, wchar_t *argv[]) {
 	}
 
 	if (dlls.empty())
-		dlls.add(moduleDir + std::string("\\LibReviveXR64.dll"));
+	{
+		dlls.add(moduleDir + std::string("\\openvr_api64.dll"));
+		dlls.add(moduleDir + std::string("\\LibRevive64.dll"));
+	}
 	
 	LOG("Command for injector is: %ls\n", path);
 

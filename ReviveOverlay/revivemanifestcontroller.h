@@ -30,9 +30,10 @@ public:
 	CReviveManifestController();
 	virtual ~CReviveManifestController();
 
-	void UseLegacyRuntime(bool enabled) { m_LegacyRuntime = enabled; }
-
 	bool Init();
+	bool LaunchInjector(const QString& args);
+	void UseOpenXR(bool enabled) { m_bUseOpenXR = enabled; }
+
 	bool IsLibraryFound() { return m_bLibraryFound; }
 	QString GetLibraryURL() { return m_strLibraryURL; }
 	QString GetLibraryPath() { return m_strLibraryPath; }
@@ -57,7 +58,6 @@ private:
 	bool GetLibraries(QStringList &id_array, QStringList & path_array);
 	bool AddApplicationManifest(QFile& file);
 	bool LaunchSupportApp(const QString& appKey);
-	bool LaunchInjector(const QString& args);
 
 	QFile m_appFile;
 	QFile m_manifestFile;
@@ -73,7 +73,7 @@ private:
 	QString m_strBasePath;
 	QStringList m_lstLibraries;
 	QStringList m_lstLibrariesURL;
-	bool m_LegacyRuntime;
+	bool m_bUseOpenXR;
 };
 
 #endif // REVIVEMANIFESTCONTROLLER_H
