@@ -34,12 +34,12 @@ DISTFILES += \
     Oculus.js \
     Settings.qml
 
-INCLUDEPATH += ../Externals/openvr/headers ../Externals/WinSparkle/include ../Externals/LibOVR/Include ../Revive
+INCLUDEPATH += ../Externals/openvr/headers ../Externals/LibOVR/Include ../Revive
 
 Debug:LIBS += -L../Debug
 Release:LIBS += -L../Release
 
-LIBS += -L../Externals/WinSparkle/x64/Release -L../Externals/openvr/lib/win64 -lopenvr_api64 -lWinSparkle -lCredui -lAdvapi32
+LIBS += -L../Externals/openvr/lib/win64 -lopenvr_api64 -lCredui -lAdvapi32
 
 Debug:DESTDIR = ../Debug
 Release:DESTDIR = ../Release
@@ -55,9 +55,6 @@ images.files   += SupportAssets/*
 manifests.path    = $${DESTDIR}
 manifests.files   += *.vrmanifest
 
-winsparkle.path    = $${DESTDIR}
-winsparkle.files   += ../Externals/WinSparkle/x64/Release/WinSparkle.dll
-
-INSTALLS       += winsparkle images manifests
+INSTALLS       += images manifests
 
 VERSION = 3.0.0.0

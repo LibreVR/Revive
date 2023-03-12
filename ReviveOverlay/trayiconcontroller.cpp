@@ -5,7 +5,6 @@
 #include "oculusoauthtokencontroller.h"
 
 #include <qt_windows.h>
-#include <winsparkle.h>
 
 #include <QCoreApplication>
 #include <QDesktopServices>
@@ -49,7 +48,6 @@ bool CTrayIconController::Init()
 	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
 	m_trayIconMenu.addSeparator();
-	m_trayIconMenu.addAction("Check for &updates", win_sparkle_check_update_with_ui);
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addAction("&Quit", this, SLOT(quit()));
 	m_trayIcon->setContextMenu(&m_trayIconMenu);
@@ -95,7 +93,6 @@ void CTrayIconController::ShowInformation(ETrayInfo info)
 
 void CTrayIconController::quit()
 {
-	win_sparkle_cleanup();
 	m_trayIcon.reset();
 	QCoreApplication::quit();
 }
