@@ -258,7 +258,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 		MICROPROFILE_SCOPE(PostPresentHandoff);
 		vr::VRCompositor()->PostPresentHandoff();
 	}
-	else if (error == vr::VRCompositorError_None)
+	else if (m_TimingMode == vr::VRCompositorTimingMode_Implicit)
 	{
 		MICROPROFILE_SCOPE(WaitGetPoses);
 		error = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
