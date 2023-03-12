@@ -52,7 +52,8 @@ CompositorBase::CompositorBase()
 	, m_MirrorTexture(nullptr)
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
-	, m_FrameEvents()
+	, m_FrameEvent()
+	, m_Timeout(100)
 	, m_TimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff)
 #if MICROPROFILE_ENABLED
 	, m_ProfileTexture()
@@ -61,15 +62,14 @@ CompositorBase::CompositorBase()
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
 	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
 
-	// Create a ring buffer of events
-	for (int i = 0; i < MAX_QUEUE_AHEAD; i++)
-		m_FrameEvents[i] = CreateEvent(nullptr, true, i == 0, nullptr);
+	// Create the frame completion event
+	m_FrameEvent = CreateEvent(nullptr, true, true, nullptr);
+	m_Timeout = (DWORD)ceilf(1000.0f / vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float));
 }
 
 CompositorBase::~CompositorBase()
 {
-	for (int i = 0; i < MAX_QUEUE_AHEAD; i++)
-		CloseHandle(m_FrameEvents[i]);
+	CloseHandle(m_FrameEvent);
 
 	if (m_MirrorTexture)
 		delete m_MirrorTexture;
@@ -135,28 +135,26 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
-	bool timeout = false;
-	if (frameIndex > 0)
+	// Keep waiting for the targeted frame as long as we don't timeout
+	while (session->FrameIndex < frameIndex - 1)
 	{
-		// Wait on the last frame completion with a 500ms timeout
-		assert(frameIndex - session->FrameIndex < MAX_QUEUE_AHEAD);
-		timeout = WaitForSingleObject(m_FrameEvents[(frameIndex - 1) % MAX_QUEUE_AHEAD], 500) != WAIT_OBJECT_0;
+		// Wait on the last frame completion
+		if (WaitForSingleObject(m_FrameEvent, m_Timeout) != WAIT_OBJECT_0)
+			break;
 	}
 
 	// Wait for the actual frame start
 	MICROPROFILE_SCOPE(WaitGetPoses);
-	vr::EVRCompositorError error = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-	return timeout ? ovrError_Timeout : CompositorErrorToOvrError(error);
+	return CompositorErrorToOvrError(vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0));
 }
 
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
 
-	// Reset the event in the frame ring buffer
-	ResetEvent(m_FrameEvents[frameIndex % MAX_QUEUE_AHEAD]);
+	// Reset the frame completion event
+	ResetEvent(m_FrameEvent);
 
-	session->FrameIndex = frameIndex;
 	return CompositorErrorToOvrError(vr::VRCompositor()->SubmitExplicitTimingData());
 }
 
@@ -259,15 +257,17 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	{
 		MICROPROFILE_SCOPE(PostPresentHandoff);
 		vr::VRCompositor()->PostPresentHandoff();
-
-		// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
-		SetEvent(m_FrameEvents[frameIndex % MAX_QUEUE_AHEAD]);
 	}
 	else if (error == vr::VRCompositorError_None)
 	{
 		MICROPROFILE_SCOPE(WaitGetPoses);
 		error = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 	}
+
+	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
+	session->FrameIndex = frameIndex;
+	if (m_TimingMode != vr::VRCompositorTimingMode_Implicit)
+		SetEvent(m_FrameEvent);
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);

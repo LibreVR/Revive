@@ -6,8 +6,6 @@
 #include <openvr.h>
 #include <vector>
 
-#define MAX_QUEUE_AHEAD 5
-
 class CompositorBase
 {
 public:
@@ -52,8 +50,9 @@ private:
 	unsigned int m_OverlayCount;
 	std::vector<vr::VROverlayHandle_t> m_ActiveOverlays;
 
-	// Call order enforcement
-	void* m_FrameEvents[MAX_QUEUE_AHEAD];
+	// Frame completion event
+	void* m_FrameEvent;
+	unsigned long m_Timeout;
 
 	// Current timing mode
 	vr::EVRCompositorTimingMode m_TimingMode;
