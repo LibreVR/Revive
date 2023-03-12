@@ -49,7 +49,6 @@ after_build:
   # copy additional files to the build folder
   - ps: |
       cd C:\Projects\Revive\Release
-      copy ..\Externals\WinSparkle\x64\Release\WinSparkle.dll .
       copy ..\ReviveOverlay\SupportAssets . -Filter "*.jpg" -Recurse -Container
       copy C:\openssl-v111-win64\bin\libcrypto-1_1-x64.dll .
       copy C:\openssl-v111-win64\bin\libssl-1_1-x64.dll .
