@@ -47,7 +47,6 @@ ovrResult CompositorBase::CompositorErrorToOvrError(vr::EVRCompositorError error
 	}
 }
 
-
 CompositorBase::CompositorBase()
 	: m_ChainCount(0)
 	, m_MirrorTexture(nullptr)
@@ -260,15 +259,15 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	{
 		MICROPROFILE_SCOPE(PostPresentHandoff);
 		vr::VRCompositor()->PostPresentHandoff();
+
+		// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
+		SetEvent(m_FrameEvents[frameIndex % MAX_QUEUE_AHEAD]);
 	}
-	else
+	else if (error == vr::VRCompositorError_None)
 	{
 		MICROPROFILE_SCOPE(WaitGetPoses);
-		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+		error = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 	}
-
-	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
-	SetEvent(m_FrameEvents[frameIndex % MAX_QUEUE_AHEAD]);
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
