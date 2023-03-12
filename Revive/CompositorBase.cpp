@@ -27,11 +27,12 @@ MICROPROFILE_DEFINE(SubmitLayer, "Compositor", "SubmitLayer", 0x00ff00);
 MICROPROFILE_DEFINE(WaitGetPoses, "Compositor", "WaitGetPoses", 0x00ff00);
 MICROPROFILE_DEFINE(PostPresentHandoff, "Compositor", "PostPresentHandoff", 0x00ff00);
 
-ovrResult rev_CompositorErrorToOvrError(vr::EVRCompositorError error)
+ovrResult CompositorBase::CompositorErrorToOvrError(vr::EVRCompositorError error)
 {
 	switch (error)
 	{
 	case vr::VRCompositorError_None: return ovrSuccess;
+	case vr::VRCompositorError_RequestFailed: return ovrError_InvalidOperation;
 	case vr::VRCompositorError_IncompatibleVersion: return ovrError_ServiceError;
 	case vr::VRCompositorError_DoNotHaveFocus: return ovrSuccess_NotVisible;
 	case vr::VRCompositorError_InvalidTexture: return ovrError_TextureSwapChainInvalid;
@@ -144,11 +145,9 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	}
 
 	// Wait for the actual frame start
-	{
-		MICROPROFILE_SCOPE(WaitGetPoses);
-		vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-	}
-	return timeout ? ovrError_Timeout : ovrSuccess;
+	MICROPROFILE_SCOPE(WaitGetPoses);
+	vr::EVRCompositorError error = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	return timeout ? ovrError_Timeout : CompositorErrorToOvrError(error);
 }
 
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
@@ -159,8 +158,7 @@ ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 	ResetEvent(m_FrameEvents[frameIndex % MAX_QUEUE_AHEAD]);
 
 	session->FrameIndex = frameIndex;
-	vr::VRCompositor()->SubmitExplicitTimingData();
-	return session->Input->UpdateInputState();
+	return CompositorErrorToOvrError(vr::VRCompositor()->SubmitExplicitTimingData());
 }
 
 const ovrLayer_Union& CompositorBase::ToUnion(const ovrLayerHeader* layerPtr)
@@ -279,7 +277,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 	g_ProfileManager.Flip();
 #endif
 
-	return rev_CompositorErrorToOvrError(error);
+	return CompositorErrorToOvrError(error);
 }
 
 vr::VROverlayHandle_t CompositorBase::CreateOverlay()

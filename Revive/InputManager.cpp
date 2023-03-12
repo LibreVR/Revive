@@ -11,6 +11,32 @@
 #include <Shlobj.h>
 #include <atlbase.h>
 
+ovrResult InputManager::InputErrorToOvrError(vr::EVRInputError error)
+{
+	switch (error)
+	{
+	case vr::VRInputError_None: return ovrSuccess;
+	case vr::VRInputError_NameNotFound: return ovrSuccess;
+	case vr::VRInputError_WrongType: return ovrError_InvalidParameter;
+	case vr::VRInputError_InvalidHandle: return ovrError_InvalidParameter;
+	case vr::VRInputError_InvalidParam: return ovrError_InvalidParameter;
+	case vr::VRInputError_NoSteam: return ovrError_NotInitialized;
+	case vr::VRInputError_MaxCapacityReached: return ovrError_MemoryAllocationFailure;
+	case vr::VRInputError_IPCError: return ovrError_ServiceError;
+	case vr::VRInputError_NoActiveActionSet: return ovrError_InvalidOperation;
+	case vr::VRInputError_InvalidDevice: return ovrError_InvalidParameter;
+	case vr::VRInputError_InvalidSkeleton: return ovrError_InvalidParameter;
+	case vr::VRInputError_InvalidBoneCount: return ovrError_InvalidParameter;
+	case vr::VRInputError_InvalidCompressedData: return ovrError_InvalidParameter;
+	case vr::VRInputError_NoData: return ovrError_InvalidParameter;
+	case vr::VRInputError_BufferTooSmall: return ovrError_InsufficientArraySize;
+	case vr::VRInputError_MismatchedActionManifest: return ovrSuccess;
+	case vr::VRInputError_MissingSkeletonData: return ovrError_NotInitialized;
+	case vr::VRInputError_InvalidBoneIndex: return ovrError_InvalidParameter;
+	default: return ovrError_RuntimeException;
+	}
+}
+
 InputManager::InputManager()
 	: m_InputDevices()
 	, m_LastPoses()
@@ -107,8 +133,9 @@ ovrResult InputManager::SetControllerVibration(ovrSession session, ovrController
 	return ovrSuccess;
 }
 
-ovrResult InputManager::UpdateInputState()
+ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
+	memset(inputState, 0, sizeof(ovrInputState));
 	std::vector<vr::VRActiveActionSet_t> sets;
 	for (InputDevice* device : m_InputDevices)
 	{
@@ -120,14 +147,7 @@ ovrResult InputManager::UpdateInputState()
 		sets.push_back(set);
 	}
 
-	vr::EVRInputError err = vr::VRInput()->UpdateActionState(sets.data(), sizeof(vr::VRActiveActionSet_t), (uint32_t)sets.size());
-	return err == vr::VRInputError_None ? ovrSuccess : ovrError_RuntimeException;
-}
-
-ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
-{
-	memset(inputState, 0, sizeof(ovrInputState));
-
+	vr::EVRInputError error = vr::VRInput()->UpdateActionState(sets.data(), sizeof(vr::VRActiveActionSet_t), (uint32_t)sets.size());
 	uint32_t types = 0;
 	for (InputDevice* device : m_InputDevices)
 	{
@@ -140,7 +160,7 @@ ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType cont
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
 	inputState->ControllerType = (ovrControllerType)types;
-	return ovrSuccess;
+	return InputErrorToOvrError(error);
 }
 
 ovrResult InputManager::SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer)

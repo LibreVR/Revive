@@ -28,7 +28,7 @@ std::list<ovrHmdStruct> g_Sessions;
 ProfileManager g_ProfileManager;
 #endif
 
-ovrResult rev_InitErrorToOvrError(vr::EVRInitError error)
+ovrResult InitErrorToOvrError(vr::EVRInitError error)
 {
 	switch (error)
 	{
@@ -133,7 +133,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 	g_ProfileManager.Initialize();
 #endif
 
-	return rev_InitErrorToOvrError(g_InitError);
+	return InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
@@ -157,7 +157,7 @@ OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
 
 	const char* error = VR_GetVRInitErrorAsEnglishDescription(g_InitError);
 	strcpy_s(errorInfo->ErrorString, sizeof(ovrErrorInfo::ErrorString), error);
-	errorInfo->Result = rev_InitErrorToOvrError(g_InitError);
+	errorInfo->Result = InitErrorToOvrError(g_InitError);
 }
 
 OVR_PUBLIC_FUNCTION(const char*) ovr_GetVersionString()

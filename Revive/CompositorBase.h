@@ -40,6 +40,7 @@ protected:
 
 	vr::VROverlayHandle_t CreateOverlay();
 	vr::VRTextureBounds_t ViewportToTextureBounds(ovrRecti viewport, ovrTextureSwapChain swapChain, unsigned int flags);
+	ovrResult CompositorErrorToOvrError(vr::EVRCompositorError error);
 
 	const ovrLayer_Union& ToUnion(const ovrLayerHeader* layerPtr);
 

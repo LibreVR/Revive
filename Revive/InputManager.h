@@ -174,7 +174,6 @@ public:
 	ovrTouchHapticsDesc GetTouchHapticsDesc(ovrControllerType controllerType);
 
 	ovrResult SetControllerVibration(ovrSession session, ovrControllerType controllerType, float frequency, float amplitude);
-	ovrResult UpdateInputState();
 	ovrResult GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState);
 	ovrResult SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer);
 	ovrResult GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState);
@@ -191,6 +190,7 @@ private:
 	vr::VRInputValueHandle_t m_Hands[ovrHand_Count];
 	vr::VRActionHandle_t m_ActionPose;
 
+	ovrResult InputErrorToOvrError(vr::EVRInputError error);
 	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
 	ovrPoseStatef TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t pose, ovrPoseStatef& lastPose, double time);
 };
