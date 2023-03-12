@@ -496,10 +496,10 @@ vr::VRTextureBounds_t CompositorBase::FovPortToTextureBounds(ovrFovPort eyeFov, 
 	vr::VRTextureBounds_t result;
 
 	// Adjust the bounds based on the field-of-view in the game
-	result.uMin = 0.5f - 0.5f * eyeFov.LeftTan / fov.LeftTan;
-	result.uMax = 0.5f + 0.5f * eyeFov.RightTan / fov.RightTan;
-	result.vMin = 0.5f - 0.5f * eyeFov.UpTan / fov.UpTan;
-	result.vMax = 0.5f + 0.5f * eyeFov.DownTan / fov.DownTan;
+	result.uMin = (fov.LeftTan - eyeFov.LeftTan) / (fov.LeftTan + fov.RightTan);
+	result.uMax = 1.0f - (fov.RightTan - eyeFov.RightTan) / (fov.LeftTan + fov.RightTan);
+	result.vMin = (fov.UpTan - eyeFov.UpTan) / (fov.UpTan + fov.DownTan);
+	result.vMax = 1.0f - (fov.DownTan - eyeFov.DownTan) / (fov.UpTan + fov.DownTan);
 
 	return result;
 }
