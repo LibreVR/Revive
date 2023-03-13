@@ -177,8 +177,6 @@ bool COpenVROverlayController::Init()
 		vr::VROverlay()->SetOverlayAlpha( m_ulOverlayHandle, 0.9f );
 		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, VROverlayInputMethod_Mouse );
 		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_SendVRDiscreteScrollEvents, true );
-		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_AcceptsGamepadEvents, true );
-		vr::VROverlay()->SetOverlayFlag( m_ulOverlayHandle, VROverlayFlags_ShowGamepadFocus, true );
 		UpdateThumbnail();
 
 		m_pPumpEventsTimer = new QTimer( this );
@@ -403,15 +401,8 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 	{
 		switch( vrEvent.eventType )
 		{
-		case vr::VREvent_SceneApplicationChanged:
-			// Ignore changed-to-compositor event
-			if (vrEvent.data.process.pid != 0)
-				SetLoading(false);
-			break;
-
-		case vr::VREvent_ApplicationTransitionStarted:
-		case vr::VREvent_ApplicationTransitionNewAppStarted:
-			SetLoading(true);
+		case vr::VREvent_SceneApplicationStateChanged:
+			SetLoading(vr::VRApplications()->GetSceneApplicationState() == vr::EVRSceneApplicationState_Starting);
 			break;
 		}
 	}
