@@ -8,17 +8,25 @@
 			<title>Version 2.1.1</title>
 			<description>
 			<![CDATA[
+<h3>Changes</h3>
+
+<ul>
+    <li>Oculus Account linking has been replaced by an automatic login method that's compatible with Meta accounts thanks to @ahmanwoods</li>
+    <li>Automatic updater has been removed as version releases have become much less frequent</li>
+    <li>Updated the OVR SDK to 32.0.0</li>
+</ul>
+
 <h3>Bug fixes</h3>
 
 <ul>
-    <li>ReviveOverlay: Fixed crash when attempting to link an Oculus Account</li>
+    <li>Revive: Fixed incorrect field-of-view handling (#1716)</li>
 </ul>
 			]]>
 			</description>
-			<pubDate>29 June 2020</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/2.1.1/ReviveInstaller.exe"
+			<pubDate>12 March 2023</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/3.1.1/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="2.1.1.0"
+					   sparkle:version="3.1.1.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
