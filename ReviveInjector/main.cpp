@@ -247,8 +247,15 @@ int wmain(int argc, wchar_t *argv[]) {
 
 	if (dlls.empty())
 	{
-		dlls.add(moduleDir + std::string("\\openvr_api64.dll"));
-		dlls.add(moduleDir + std::string("\\LibRevive64.dll"));
+		if (vr::VR_IsRuntimeInstalled())
+		{
+			dlls.add(moduleDir + std::string("\\openvr_api64.dll"));
+			dlls.add(moduleDir + std::string("\\LibRevive64.dll"));
+		}
+		else
+		{
+			dlls.add(moduleDir + std::string("\\LibReviveXR64.dll"));
+		}
 	}
 	
 	LOG("Command for injector is: %ls\n", path);
