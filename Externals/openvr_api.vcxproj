@@ -29,23 +29,23 @@
   <ItemGroup>
     <ClCompile Include="openvr\src\jsoncpp.cpp" />
     <ClCompile Include="openvr\src\openvr_api_public.cpp" />
-    <ClCompile Include="openvr\src\vrcommon\dirtools_public.cpp" />
-    <ClCompile Include="openvr\src\vrcommon\envvartools_public.cpp" />
-    <ClCompile Include="openvr\src\vrcommon\hmderrors_public.cpp" />
-    <ClCompile Include="openvr\src\vrcommon\pathtools_public.cpp" />
-    <ClCompile Include="openvr\src\vrcommon\sharedlibtools_public.cpp" />
-    <ClCompile Include="openvr\src\vrcommon\strtools_public.cpp" />
-    <ClCompile Include="openvr\src\vrcommon\vrpathregistry_public.cpp" />
+    <ClCompile Include="openvr\src\vrcore\dirtools_public.cpp" />
+    <ClCompile Include="openvr\src\vrcore\envvartools_public.cpp" />
+    <ClCompile Include="openvr\src\vrcore\hmderrors_public.cpp" />
+    <ClCompile Include="openvr\src\vrcore\pathtools_public.cpp" />
+    <ClCompile Include="openvr\src\vrcore\sharedlibtools_public.cpp" />
+    <ClCompile Include="openvr\src\vrcore\strtools_public.cpp" />
+    <ClCompile Include="openvr\src\vrcore\vrpathregistry_public.cpp" />
     <ClCompile Include="openvr_dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="openvr\src\vrcommon\dirtools_public.h" />
-    <ClInclude Include="openvr\src\vrcommon\envvartools_public.h" />
-    <ClInclude Include="openvr\src\vrcommon\hmderrors_public.h" />
-    <ClInclude Include="openvr\src\vrcommon\pathtools_public.h" />
-    <ClInclude Include="openvr\src\vrcommon\sharedlibtools_public.h" />
-    <ClInclude Include="openvr\src\vrcommon\strtools_public.h" />
-    <ClInclude Include="openvr\src\vrcommon\vrpathregistry_public.h" />
+    <ClInclude Include="openvr\src\vrcore\dirtools_public.h" />
+    <ClInclude Include="openvr\src\vrcore\envvartools_public.h" />
+    <ClInclude Include="openvr\src\vrcore\hmderrors_public.h" />
+    <ClInclude Include="openvr\src\vrcore\pathtools_public.h" />
+    <ClInclude Include="openvr\src\vrcore\sharedlibtools_public.h" />
+    <ClInclude Include="openvr\src\vrcore\strtools_public.h" />
+    <ClInclude Include="openvr\src\vrcore\vrpathregistry_public.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="openvr_api.def" />
@@ -189,9 +189,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;WIN64;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VRCORE_NO_PLATFORM;VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;WIN64;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcore</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -205,9 +205,9 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VRCORE_NO_PLATFORM;VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcore</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -223,9 +223,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VRCORE_NO_PLATFORM;VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcore</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -243,9 +243,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VRCORE_NO_PLATFORM;VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcore</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -263,9 +263,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;WIN64;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VRCORE_NO_PLATFORM;VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;WIN64;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcore</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -283,9 +283,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;WIN64;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VRCORE_NO_PLATFORM;VR_API_PUBLIC;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;WIN32;WIN64;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcommon</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Externals)openvr\headers;$(Externals)openvr\src;$(Externals)openvr\src\vrcore</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>

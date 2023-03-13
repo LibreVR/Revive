@@ -13,10 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\vrcommon">
+    <Filter Include="Source Files\vrcore">
       <UniqueIdentifier>{395fd13f-b7a2-41cf-9c3b-8d28f3981cfe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\vrcommon">
+    <Filter Include="Header Files\vrcore">
       <UniqueIdentifier>{da9e2667-d8c8-471c-8193-ffdc310b563b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -27,52 +27,52 @@
     <ClCompile Include="openvr\src\openvr_api_public.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="openvr\src\vrcommon\dirtools_public.cpp">
-      <Filter>Source Files\vrcommon</Filter>
+    <ClCompile Include="openvr\src\vrcore\dirtools_public.cpp">
+      <Filter>Source Files\vrcore</Filter>
     </ClCompile>
-    <ClCompile Include="openvr\src\vrcommon\envvartools_public.cpp">
-      <Filter>Source Files\vrcommon</Filter>
+    <ClCompile Include="openvr\src\vrcore\envvartools_public.cpp">
+      <Filter>Source Files\vrcore</Filter>
     </ClCompile>
-    <ClCompile Include="openvr\src\vrcommon\hmderrors_public.cpp">
-      <Filter>Source Files\vrcommon</Filter>
+    <ClCompile Include="openvr\src\vrcore\hmderrors_public.cpp">
+      <Filter>Source Files\vrcore</Filter>
     </ClCompile>
-    <ClCompile Include="openvr\src\vrcommon\pathtools_public.cpp">
-      <Filter>Source Files\vrcommon</Filter>
+    <ClCompile Include="openvr\src\vrcore\pathtools_public.cpp">
+      <Filter>Source Files\vrcore</Filter>
     </ClCompile>
-    <ClCompile Include="openvr\src\vrcommon\sharedlibtools_public.cpp">
-      <Filter>Source Files\vrcommon</Filter>
+    <ClCompile Include="openvr\src\vrcore\sharedlibtools_public.cpp">
+      <Filter>Source Files\vrcore</Filter>
     </ClCompile>
-    <ClCompile Include="openvr\src\vrcommon\strtools_public.cpp">
-      <Filter>Source Files\vrcommon</Filter>
+    <ClCompile Include="openvr\src\vrcore\strtools_public.cpp">
+      <Filter>Source Files\vrcore</Filter>
     </ClCompile>
-    <ClCompile Include="openvr\src\vrcommon\vrpathregistry_public.cpp">
-      <Filter>Source Files\vrcommon</Filter>
+    <ClCompile Include="openvr\src\vrcore\vrpathregistry_public.cpp">
+      <Filter>Source Files\vrcore</Filter>
     </ClCompile>
     <ClCompile Include="openvr_dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="openvr\src\vrcommon\dirtools_public.h">
-      <Filter>Header Files\vrcommon</Filter>
+    <ClInclude Include="openvr\src\vrcore\dirtools_public.h">
+      <Filter>Header Files\vrcore</Filter>
     </ClInclude>
-    <ClInclude Include="openvr\src\vrcommon\envvartools_public.h">
-      <Filter>Header Files\vrcommon</Filter>
+    <ClInclude Include="openvr\src\vrcore\envvartools_public.h">
+      <Filter>Header Files\vrcore</Filter>
     </ClInclude>
-    <ClInclude Include="openvr\src\vrcommon\hmderrors_public.h">
-      <Filter>Header Files\vrcommon</Filter>
+    <ClInclude Include="openvr\src\vrcore\hmderrors_public.h">
+      <Filter>Header Files\vrcore</Filter>
     </ClInclude>
-    <ClInclude Include="openvr\src\vrcommon\pathtools_public.h">
-      <Filter>Header Files\vrcommon</Filter>
+    <ClInclude Include="openvr\src\vrcore\pathtools_public.h">
+      <Filter>Header Files\vrcore</Filter>
     </ClInclude>
-    <ClInclude Include="openvr\src\vrcommon\sharedlibtools_public.h">
-      <Filter>Header Files\vrcommon</Filter>
+    <ClInclude Include="openvr\src\vrcore\sharedlibtools_public.h">
+      <Filter>Header Files\vrcore</Filter>
     </ClInclude>
-    <ClInclude Include="openvr\src\vrcommon\strtools_public.h">
-      <Filter>Header Files\vrcommon</Filter>
+    <ClInclude Include="openvr\src\vrcore\strtools_public.h">
+      <Filter>Header Files\vrcore</Filter>
     </ClInclude>
-    <ClInclude Include="openvr\src\vrcommon\vrpathregistry_public.h">
-      <Filter>Header Files\vrcommon</Filter>
+    <ClInclude Include="openvr\src\vrcore\vrpathregistry_public.h">
+      <Filter>Header Files\vrcore</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
