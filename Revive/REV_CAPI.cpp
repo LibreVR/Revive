@@ -963,18 +963,17 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 	if (session->Details->UseHack(SessionDetails::HACK_DISABLE_STATS))
 		return ovrSuccess;
 
-	ovrPerfStatsPerCompositorFrame FrameStats[ovrMaxProvidedFrameStats];
+	ovrPerfStatsPerCompositorFrame FrameStats[ovrMaxProvidedFrameStats] = { 0 };
 
 	// TODO: Implement performance scale heuristics
 	float AdaptiveGpuPerformanceScale = 1.0f;
 	ovrBool AnyFrameStatsDropped = (session->FrameIndex - session->StatsIndex) > ovrMaxProvidedFrameStats;
-	ovrBool ReprojectionEnabled = false;
 	int FrameStatsCount = AnyFrameStatsDropped ? ovrMaxProvidedFrameStats : int(session->FrameIndex - session->StatsIndex);
 	session->StatsIndex = session->FrameIndex;
 
 	vr::Compositor_FrameTiming TimingStats[ovrMaxProvidedFrameStats];
 	TimingStats[0].m_nSize = sizeof(vr::Compositor_FrameTiming);
-	vr::VRCompositor()->GetFrameTimings(TimingStats, FrameStatsCount);
+	FrameStatsCount = vr::VRCompositor()->GetFrameTimings(TimingStats, FrameStatsCount);
 
 	vr::Compositor_CumulativeStats TotalStats;
 	vr::VRCompositor()->GetCumulativeStats(&TotalStats, sizeof(vr::Compositor_CumulativeStats));
@@ -1023,9 +1022,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 		stats.AswActivatedToggleCount = 0;
 		stats.AswPresentedFrameCount = TotalStats.m_nNumReprojectedFrames;
 		stats.AswFailedFrameCount = TotalStats.m_nNumDroppedFrames;
-
-		if (TimingStats[i].m_nReprojectionFlags & vr::VRCompositor_ReprojectionAsync)
-			ReprojectionEnabled = ovrTrue;
 	}
 
 	// We need to make sure we don't write outside of the bounds of the struct in older version of the runtime
@@ -1045,7 +1041,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 		out->AdaptiveGpuPerformanceScale = AdaptiveGpuPerformanceScale;
 		out->AnyFrameStatsDropped = AnyFrameStatsDropped;
 		out->FrameStatsCount = FrameStatsCount;
-		out->AswIsAvailable = ReprojectionEnabled;
+		out->AswIsAvailable = vr::VRCompositor()->IsMotionSmoothingSupported();
 
 		if (g_MinorVersion >= 14)
 			out->VisibleProcessId = vr::VRCompositor()->GetCurrentSceneFocusProcess();
