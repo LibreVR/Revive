@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common.h"
-#include "OVR_CAPI.h"
+#include "OVR_ErrorCode.h"
 
 #include <openxr/openxr.h>
 #include <map>
@@ -45,6 +45,7 @@ public:
 	bool CompositionDepth;
 	bool CompositionCube;
 	bool CompositionCylinder;
+	bool AudioDevice;
 	bool ColorSpace;
 
 	uint32_t MinorVersion;
