@@ -309,10 +309,12 @@ int wmain(int argc, wchar_t *argv[]) {
 	{
 		vr::EVRInitError err;
 		vr::VR_Init(&err, vr::VRApplication_Utility);
-		vr::VRApplications()->IdentifyApplication(pi.dwProcessId, appKey.c_str());
-		if (err == vr::VRApplicationError_None)
-			LOG("Identified application as: %s\n", appKey.c_str());
-		vr::VR_Shutdown();
+		if (err == vr::VRInitError_None)
+		{
+			if (vr::VRApplications()->IdentifyApplication(pi.dwProcessId, appKey.c_str()) == vr::VRApplicationError_None)
+				LOG("Identified application as: %s\n", appKey.c_str());
+			vr::VR_Shutdown();
+		}
 	}
 	return 0;
 }
