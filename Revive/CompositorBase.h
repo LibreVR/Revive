@@ -26,7 +26,7 @@ public:
 
 	ovrResult WaitToBeginFrame(ovrSession session, long long frameIndex);
 	ovrResult BeginFrame(ovrSession session, long long frameIndex);
-	ovrResult EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
+	ovrResult EndFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount);
 
 	void SetTimingMode(vr::EVRCompositorTimingMode timingMode);
 	void SetMirrorTexture(ovrMirrorTexture mirrorTexture);
@@ -43,7 +43,7 @@ protected:
 	const ovrLayer_Union& ToUnion(const ovrLayerHeader* layerPtr);
 
 	void BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHeader* srcLayer);
-	vr::VRCompositorError SubmitLayer(ovrSession session, const ovrLayerHeader* baseLayer);
+	vr::VRCompositorError SubmitLayer(ovrSession session, const ovrLayerHeader* baseLayer, const ovrViewScaleDesc* viewScaleDesc = nullptr);
 
 private:
 	// Overlays

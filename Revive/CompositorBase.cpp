@@ -168,7 +168,7 @@ const ovrLayer_Union& CompositorBase::ToUnion(const ovrLayerHeader* layerPtr)
 		return *(ovrLayer_Union*)layerPtr;
 }
 
-ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
+ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc, ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
 	MICROPROFILE_SCOPE(EndFrame);
 
@@ -251,7 +251,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, ovr
 
 	vr::EVRCompositorError error = vr::VRCompositorError_None;
 	if (baseLayer)
-		error = SubmitLayer(session, baseLayer);
+		error = SubmitLayer(session, baseLayer, viewScaleDesc);
 
 	if (m_TimingMode == vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff)
 	{
@@ -378,7 +378,7 @@ void CompositorBase::BlitLayers(const ovrLayerHeader* dstLayer, const ovrLayerHe
 	MICROPROFILE_META_CPU("Submit Right", srcChain->SubmitIndex);
 }
 
-vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrLayerHeader* baseLayer)
+vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrLayerHeader* baseLayer, const ovrViewScaleDesc* viewScaleDesc)
 {
 	MICROPROFILE_SCOPE(SubmitLayer);
 
@@ -428,9 +428,9 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		// Add the pose data to the eye texture
 		if (!session->Details->UseHack(SessionDetails::HACK_STRICT_POSES))
 		{
-			OVR::Matrix4f hmdToEye(desc->HmdToEyePose);
-			REV::Matrix4f pose = baseLayer->Type == ovrLayerType_EyeMatrix ?
-				REV::Matrix4f(layer.EyeMatrix.RenderPose[i]) : REV::Matrix4f(layer.EyeFov.RenderPose[i]);
+			OVR::Matrix4f hmdToEye(viewScaleDesc ? viewScaleDesc->HmdToEyePose[i] : desc->HmdToEyePose);
+			OVR::Matrix4f pose(baseLayer->Type == ovrLayerType_EyeMatrix ?
+				layer.EyeMatrix.RenderPose[i] : layer.EyeFov.RenderPose[i]);
 			if (session->TrackingOrigin == vr::TrackingUniverseSeated)
 			{
 				REV::Matrix4f offset(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());

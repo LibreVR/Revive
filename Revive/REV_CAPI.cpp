@@ -891,7 +891,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		return ovrError_InvalidSession;
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
-	return session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
+	return session->Compositor->EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long frameIndex, const ovrViewScaleDesc* viewScaleDesc,
@@ -908,7 +908,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
 	session->Compositor->SetTimingMode(vr::VRCompositorTimingMode_Implicit);
-	return session->Compositor->EndFrame(session, frameIndex, layerPtrList, layerCount);
+	return session->Compositor->EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
 }
 
 typedef struct OVR_ALIGNAS(4) ovrViewScaleDesc1_ {
@@ -919,7 +919,14 @@ typedef struct OVR_ALIGNAS(4) ovrViewScaleDesc1_ {
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long frameIndex, const ovrViewScaleDesc1* viewScaleDesc,
 	ovrLayerHeader const * const * layerPtrList, unsigned int layerCount)
 {
-	// TODO: We don't ever use viewScaleDesc so no need to do any conversion.
+	if (viewScaleDesc)
+	{
+		ovrViewScaleDesc viewScale;
+		viewScale.HmdToEyePose[ovrEye_Left] = OVR::Posef(session->Details->GetRenderDesc(ovrEye_Left)->HmdToEyePose.Orientation, viewScaleDesc->HmdToEyeOffset[ovrEye_Left]);
+		viewScale.HmdToEyePose[ovrEye_Right] = OVR::Posef(session->Details->GetRenderDesc(ovrEye_Right)->HmdToEyePose.Orientation, viewScaleDesc->HmdToEyeOffset[ovrEye_Right]);
+		viewScale.HmdSpaceToWorldScaleInMeters = viewScaleDesc->HmdSpaceToWorldScaleInMeters;
+		return ovr_SubmitFrame2(session, frameIndex, &viewScale, layerPtrList, layerCount);
+	}
 	return ovr_SubmitFrame2(session, frameIndex, nullptr, layerPtrList, layerCount);
 }
 
