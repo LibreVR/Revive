@@ -137,6 +137,12 @@
     <ClCompile Include="SwapchainGL.cpp">
       <Filter>Source Files\LibRevive</Filter>
     </ClCompile>
+    <ClCompile Include="..\Externals\LibOVR\Shim\OVR_CAPI_Util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Externals\LibOVR\Shim\OVR_StereoProjection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

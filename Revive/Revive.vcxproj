@@ -355,6 +355,7 @@
   <ItemGroup>
     <ClCompile Include="..\Externals\glad\src\glad.c" />
     <ClCompile Include="..\Externals\glad\src\glad_wgl.c" />
+    <ClCompile Include="..\Externals\LibOVR\Shim\OVR_CAPI_Util.cpp" />
     <ClCompile Include="..\Externals\LibOVR\Shim\OVR_StereoProjection.cpp" />
     <ClCompile Include="CompositorBase.cpp" />
     <ClCompile Include="CompositorD3D.cpp" />

@@ -1790,3 +1790,59 @@ ovr_QueryDistortion()
 {
 	return ovrError_Unsupported;
 }
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetControllerPositionUncertainty()
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetCurrentHandInputState()
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetHandMesh()
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetHandPose()
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetHandSkeleton()
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_ReportClientInfo()
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_ReportCompilerInfo()
+{
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_EnumerateInstanceExtensionProperties()
+{
+	// TODO: Passthrough to xrEnumerateInstanceExtensionProperties
+	return ovrError_Unsupported;
+}
+
+OVR_PUBLIC_FUNCTION(ovrResult)
+ovr_GetInstanceProcAddr()
+{
+	// TODO: Passthrough to xrGetInstanceProcAddr
+	return ovrError_Unsupported;
+}
