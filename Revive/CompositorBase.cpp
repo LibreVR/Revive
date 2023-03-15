@@ -1,7 +1,6 @@
 #include "CompositorBase.h"
 #include "Common.h"
 #include "Session.h"
-#include "SessionDetails.h"
 #include "InputManager.h"
 #include "ProfileManager.h"
 #include "TextureBase.h"
@@ -393,10 +392,10 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		vr::VRTextureBounds_t bounds = ViewportToTextureBounds(layer.EyeFov.Viewport[i], colorChain, baseLayer->Flags);
 
 		// Get the descriptor for this eye
-		const ovrEyeRenderDesc* desc = session->Details->GetRenderDesc((ovrEyeType)i);
+		const ovrEyeRenderDesc& desc = session->RenderDesc[i];
 
 		// Shrink the bounds to account for the overlapping fov
-		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc->Fov, fov);
+		vr::VRTextureBounds_t fovBounds = FovPortToTextureBounds(desc.Fov, fov);
 
 		// Combine the fov bounds with the viewport bounds
 		bounds.uMin += fovBounds.uMin * (bounds.uMax - bounds.uMin);
@@ -415,7 +414,7 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		texture.Color = colorTexture;
 
 		// Add the pose data to the eye texture
-		OVR::Matrix4f hmdToEye(viewScaleDesc ? viewScaleDesc->HmdToEyePose[i] : desc->HmdToEyePose);
+		OVR::Matrix4f hmdToEye(viewScaleDesc ? viewScaleDesc->HmdToEyePose[i] : desc.HmdToEyePose);
 		OVR::Matrix4f pose(baseLayer->Type == ovrLayerType_EyeMatrix ?
 			layer.EyeMatrix.RenderPose[i] : layer.EyeFov.RenderPose[i]);
 		texture.Pose.mDeviceToAbsoluteTracking = REV::Matrix4f(pose * hmdToEye.Inverted());

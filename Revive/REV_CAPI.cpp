@@ -5,7 +5,6 @@
 #include "Common.h"
 #include "Session.h"
 #include "CompositorBase.h"
-#include "SessionDetails.h"
 #include "InputManager.h"
 #include "ProfileManager.h"
 
@@ -182,7 +181,7 @@ OVR_PUBLIC_FUNCTION(ovrHmdDesc) ovr_GetHmdDesc(ovrSession session)
 		return desc;
 	}
 
-	return *session->Details->GetHmdDesc();
+	return session->HmdDesc;
 }
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
@@ -192,22 +191,16 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetTrackerCount(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	return (unsigned int)session->Details->TrackerCount;
+	return (unsigned int)session->TrackerCount;
 }
 
 OVR_PUBLIC_FUNCTION(ovrTrackerDesc) ovr_GetTrackerDesc(ovrSession session, unsigned int trackerDescIndex)
 {
 	REV_TRACE(ovr_GetTrackerDesc);
 
-	if (!session)
-		return ovrTrackerDesc();
-
-	const ovrTrackerDesc* pDesc = session->Details->GetTrackerDesc(trackerDescIndex);
-
-	if (!pDesc)
-		return ovrTrackerDesc();
-
-	return *pDesc;
+	if (session && trackerDescIndex < session->TrackerCount)
+		return session->TrackerDesc[trackerDescIndex];
+	return ovrTrackerDesc();
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid* pLuid)
@@ -302,7 +295,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetSessionStatus(ovrSession session, ovrSessi
 	sessionStatus->IsVisible = vr::VRCompositor()->CanRenderScene() && !first_call;
 	first_call = false;
 
-	static const bool do_sleep = session->Details->UseHack(SessionDetails::HACK_SLEEP_IN_SESSION_STATUS);
+	static const bool do_sleep = session->UseHack(HACK_SLEEP_IN_SESSION_STATUS);
 	if (do_sleep)
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
@@ -397,7 +390,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackerPose) ovr_GetTrackerPose(ovrSession session, unsig
 	if (!session)
 		return tracker;
 
-	if (session->Details->UseHack(SessionDetails::HACK_SPOOF_SENSORS))
+	if (session->UseHack(HACK_SPOOF_SENSORS))
 	{
 		if (trackerPoseIndex < ovr_GetTrackerCount(session))
 		{
@@ -812,12 +805,12 @@ OVR_PUBLIC_FUNCTION(ovrSizei) ovr_GetFovTextureSize(ovrSession session, ovrEyeTy
 	REV_TRACE(ovr_GetFovTextureSize);
 
 	// Get the descriptor for this eye
-	const ovrEyeRenderDesc* desc = session->Details->GetRenderDesc(eye);
-	ovrSizei size = desc->DistortedViewport.Size;
+	const ovrEyeRenderDesc& desc = session->RenderDesc[eye];
+	ovrSizei size = desc.DistortedViewport.Size;
 
 	// Grow the recommended size to account for the overlapping fov
 	// TODO: Add a setting to ignore pixelsPerDisplayPixel
-	vr::VRTextureBounds_t bounds = CompositorBase::FovPortToTextureBounds(desc->Fov, fov);
+	vr::VRTextureBounds_t bounds = CompositorBase::FovPortToTextureBounds(desc.Fov, fov);
 	size.w = int(size.w / (bounds.uMax - bounds.uMin));
 	size.h = int(size.h / (bounds.vMax - bounds.vMin));
 
@@ -829,7 +822,7 @@ OVR_PUBLIC_FUNCTION(ovrEyeRenderDesc) ovr_GetRenderDesc2(ovrSession session, ovr
 	REV_TRACE(ovr_GetRenderDesc);
 
 	// Make a copy so we can adjust a few parameters
-	ovrEyeRenderDesc desc = *session->Details->GetRenderDesc(eyeType);
+	ovrEyeRenderDesc desc = session->RenderDesc[eyeType];
 
 	// Adjust the descriptor for the supplied field-of-view
 	desc.Fov = fov;
@@ -928,8 +921,8 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame(ovrSession session, long long fra
 	if (viewScaleDesc)
 	{
 		ovrViewScaleDesc viewScale;
-		viewScale.HmdToEyePose[ovrEye_Left] = OVR::Posef(session->Details->GetRenderDesc(ovrEye_Left)->HmdToEyePose.Orientation, viewScaleDesc->HmdToEyeOffset[ovrEye_Left]);
-		viewScale.HmdToEyePose[ovrEye_Right] = OVR::Posef(session->Details->GetRenderDesc(ovrEye_Right)->HmdToEyePose.Orientation, viewScaleDesc->HmdToEyeOffset[ovrEye_Right]);
+		viewScale.HmdToEyePose[ovrEye_Left] = OVR::Posef(session->RenderDesc[ovrEye_Left].HmdToEyePose.Orientation, viewScaleDesc->HmdToEyeOffset[ovrEye_Left]);
+		viewScale.HmdToEyePose[ovrEye_Right] = OVR::Posef(session->RenderDesc[ovrEye_Right].HmdToEyePose.Orientation, viewScaleDesc->HmdToEyeOffset[ovrEye_Right]);
 		viewScale.HmdSpaceToWorldScaleInMeters = viewScaleDesc->HmdSpaceToWorldScaleInMeters;
 		return ovr_SubmitFrame2(session, frameIndex, &viewScale, layerPtrList, layerCount);
 	}
@@ -966,7 +959,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetPerfStats(ovrSession session, ovrPerfStats
 {
 	REV_TRACE(ovr_GetPerfStats);
 
-	if (session->Details->UseHack(SessionDetails::HACK_DISABLE_STATS))
+	if (session->UseHack(HACK_DISABLE_STATS))
 		return ovrSuccess;
 
 	ovrPerfStatsPerCompositorFrame FrameStats[ovrMaxProvidedFrameStats] = { 0 };
@@ -1072,7 +1065,7 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 	uint32_t predictionID = 0;
 	vr::VRCompositor()->GetLastPosePredictionIDs(&predictionID, nullptr);
 	predictionID += (uint32_t)(frameIndex - session->FrameIndex);
-	return (double)predictionID / session->Details->GetRefreshRate();
+	return (double)predictionID / session->HmdDesc.DisplayRefreshRate;
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()

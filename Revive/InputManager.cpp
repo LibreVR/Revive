@@ -1,6 +1,5 @@
 #include "InputManager.h"
 #include "Session.h"
-#include "SessionDetails.h"
 #include "CompositorBase.h"
 #include "OVR_CAPI.h"
 #include "REV_Math.h"
@@ -258,7 +257,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	if (absTime > 0.0f)
 	{
-		uint32_t predictionID = (uint32_t)floor(absTime * session->Details->GetRefreshRate());
+		uint32_t predictionID = (uint32_t)floor(absTime * session->HmdDesc.DisplayRefreshRate);
 		vr::VRCompositor()->GetPosesForFrame(predictionID, poses, vr::k_unMaxTrackedDeviceCount);
 	}
 	else
@@ -299,7 +298,7 @@ ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType*
 {
 	// Get the device poses
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	uint32_t predictionID = (uint32_t)floor(absTime * session->Details->GetRefreshRate());
+	uint32_t predictionID = (uint32_t)floor(absTime * session->HmdDesc.DisplayRefreshRate);
 	vr::VRCompositor()->GetPosesForFrame(predictionID, poses, vr::k_unMaxTrackedDeviceCount);
 
 	// Get the generic tracker indices

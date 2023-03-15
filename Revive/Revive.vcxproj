@@ -342,7 +342,6 @@
     <ClInclude Include="OVR_CAPI.h" />
     <ClInclude Include="ProfileManager.h" />
     <ClInclude Include="REV_Math.h" />
-    <ClInclude Include="SessionDetails.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Common.h" />
@@ -364,7 +363,6 @@
     <ClCompile Include="HapticsBuffer.cpp" />
     <ClCompile Include="ProfileManager.cpp" />
     <ClCompile Include="REV_CAPI_Vk.cpp" />
-    <ClCompile Include="SessionDetails.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="microprofile.cpp" />
