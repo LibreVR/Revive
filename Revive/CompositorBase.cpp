@@ -143,6 +143,7 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	MICROPROFILE_SCOPE(WaitGetPoses);
 	vr::VRCompositorError error = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
 	session->FrameIndex = frameIndex;
+	session->Input->UpdateInputState();
 	return CompositorErrorToOvrError(error);
 }
 

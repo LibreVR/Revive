@@ -39,6 +39,7 @@ ovrResult InputManager::InputErrorToOvrError(vr::EVRInputError error)
 
 InputManager::InputManager()
 	: m_InputDevices()
+	, m_LastError(vr::VRInputError_None)
 	, m_LastPoses()
 	, m_LastHandPose()
 {
@@ -62,6 +63,7 @@ InputManager::InputManager()
 		m_InputDevices.push_back(new OculusTouch(handle, vr::TrackedControllerRole_LeftHand));
 		m_InputDevices.push_back(new OculusTouch(handle, vr::TrackedControllerRole_RightHand));
 	}
+	m_LastError = err;
 
 	UpdateConnectedControllers();
 }
@@ -103,6 +105,22 @@ void InputManager::LoadActionManifest()
 
 }
 
+void InputManager::UpdateInputState()
+{
+	std::vector<vr::VRActiveActionSet_t> sets;
+	for (InputDevice* device : m_InputDevices)
+	{
+		vr::VRActiveActionSet_t set;
+		set.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
+		set.ulActionSet = device->ActionSet;
+		set.ulSecondaryActionSet = vr::k_ulInvalidActionSetHandle;
+		set.nPriority = 0;
+		sets.push_back(set);
+	}
+
+	m_LastError = vr::VRInput()->UpdateActionState(sets.data(), sizeof(vr::VRActiveActionSet_t), (uint32_t)sets.size());
+}
+
 void InputManager::UpdateConnectedControllers()
 {
 	uint32_t types = 0;
@@ -132,18 +150,7 @@ ovrResult InputManager::SetControllerVibration(ovrSession session, ovrController
 ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType controllerType, ovrInputState* inputState)
 {
 	memset(inputState, 0, sizeof(ovrInputState));
-	std::vector<vr::VRActiveActionSet_t> sets;
-	for (InputDevice* device : m_InputDevices)
-	{
-		vr::VRActiveActionSet_t set;
-		set.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
-		set.ulActionSet = device->ActionSet;
-		set.ulSecondaryActionSet = vr::k_ulInvalidActionSetHandle;
-		set.nPriority = 0;
-		sets.push_back(set);
-	}
 
-	vr::EVRInputError error = vr::VRInput()->UpdateActionState(sets.data(), sizeof(vr::VRActiveActionSet_t), (uint32_t)sets.size());
 	uint32_t types = 0;
 	for (InputDevice* device : m_InputDevices)
 	{
@@ -156,7 +163,7 @@ ovrResult InputManager::GetInputState(ovrSession session, ovrControllerType cont
 
 	inputState->TimeInSeconds = ovr_GetTimeInSeconds();
 	inputState->ControllerType = (ovrControllerType)types;
-	return InputErrorToOvrError(error);
+	return InputErrorToOvrError(m_LastError);
 }
 
 ovrResult InputManager::SubmitControllerVibration(ovrSession session, ovrControllerType controllerType, const ovrHapticsBuffer* buffer)
