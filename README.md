@@ -19,9 +19,3 @@ This is a compatibility layer between the Oculus SDK and OpenVR/OpenXR. It allow
 
 - Newly installed applications may refuse to start when you try to launch them for the first time, [simply follow these instructions to fix it](https://github.com/LibreVR/Revive/wiki/Troubleshooting#im-getting-an-entitlement-error-or-oculus-rift-not-found) or reboot your PC.
 - If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard. Or check the Applications tab in the SteamVR settings to see if the tab is enabled.
-
-## Beta Version
-
-If you want the latest and greatest changes you can [download an early version of the next release.](https://ci.appveyor.com/project/librevr/revive/build/artifacts)
-
-![Revive Logo](Images/revive_black.png)
