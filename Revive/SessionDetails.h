@@ -47,6 +47,7 @@ public:
 
 	std::atomic_uint32_t TrackerCount;
 	void UpdateTrackerDesc();
+	void UpdateHmdDesc();
 
 	const ovrHmdDesc* GetHmdDesc() const { return &HmdDesc; }
 	const ovrEyeRenderDesc* GetRenderDesc(ovrEyeType eye) const { return &RenderDesc[eye]; }
@@ -74,6 +75,4 @@ private:
 	ovrHmdDesc HmdDesc;
 	ovrEyeRenderDesc RenderDesc[ovrEye_Count];
 	ovrTrackerDesc TrackerDesc[vr::k_unMaxTrackedDeviceCount];
-
-	void UpdateHmdDesc();
 };

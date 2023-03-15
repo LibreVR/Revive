@@ -21,7 +21,8 @@ void ovrHmdStruct::UpdateStatus()
 				Input->UpdateConnectedControllers();
 			else if (deviceClass == vr::TrackedDeviceClass_TrackingReference)
 				Details->UpdateTrackerDesc();
-			assert(deviceClass != vr::TrackedDeviceClass_HMD);
+			else if (deviceClass == vr::TrackedDeviceClass_HMD)
+				Details->UpdateHmdDesc();
 		}
 		break;
 		case vr::VREvent_TrackedDeviceRoleChanged:
