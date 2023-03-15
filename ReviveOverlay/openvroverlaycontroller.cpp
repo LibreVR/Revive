@@ -341,17 +341,16 @@ void COpenVROverlayController::OnTimeoutPumpEvents()
 		case vr::VREvent_ScrollDiscrete:
 			{
 				// Wheel speed is defined in 1/8 of a degree
-				QPoint ptNewWheel( vrEvent.data.scroll.xdelta * 360.0f * 8.0f, vrEvent.data.scroll.ydelta * 360.0f * 8.0f );
+				QPoint ptNewWheel( vrEvent.data.scroll.xdelta * 15.0f * 8.0f, vrEvent.data.scroll.ydelta * 15.0f * 8.0f );
 				QPoint ptGlobal = m_ptLastMouse.toPoint();
 				QWheelEvent wheelEvent( m_ptLastMouse,
 										ptGlobal,
 										QPoint(),
 										ptNewWheel,
-										0,
-										Qt::Vertical,
 										m_lastMouseButtons,
-										0,
+										Qt::NoModifier,
 										Qt::NoScrollPhase,
+										false,
 										Qt::MouseEventSynthesizedByApplication );
 
 				QCoreApplication::sendEvent( m_pWindow, &wheelEvent );
