@@ -131,12 +131,12 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
 	// Wait the expected number of frames
-	long long frames = frameIndex - session->FrameIndex;
-	for (long long i = 0; i < frames; i++)
-	{
-		if (vr::VROverlay()->WaitFrameSync(m_Timeout) != vr::VROverlayError_None)
-			break;
-	}
+	//long long frames = frameIndex - session->FrameIndex;
+	//for (long long i = 0; i < frames; i++)
+	//{
+	//	if (vr::VROverlay()->WaitFrameSync(m_Timeout) != vr::VROverlayError_None)
+	//		break;
+	//}
 
 	// Wait for the actual frame start
 	MICROPROFILE_SCOPE(WaitGetPoses);
