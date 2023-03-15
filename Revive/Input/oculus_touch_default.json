@@ -18,19 +18,6 @@
               "click"
             ]
           ]
-        },
-        {
-          "output": "/actions/touch/in/button_enter",
-          "inputs": [
-            [
-              "/user/hand/right/input/a",
-              "click"
-            ],
-            [
-              "/user/hand/right/input/b",
-              "click"
-            ]
-          ]
         }
       ],
       "poses": [
