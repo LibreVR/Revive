@@ -52,7 +52,6 @@ CompositorBase::CompositorBase()
 	, m_MirrorTexture(nullptr)
 	, m_OverlayCount(0)
 	, m_ActiveOverlays()
-	, m_FrameEvent()
 	, m_Timeout(100)
 	, m_TimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff)
 #if MICROPROFILE_ENABLED
@@ -60,17 +59,14 @@ CompositorBase::CompositorBase()
 #endif
 {
 	// We want to handle all graphics tasks explicitly instead of implicitly letting WaitGetPoses execute them
-	vr::VRCompositor()->SetExplicitTimingMode(vr::VRCompositorTimingMode_Explicit_ApplicationPerformsPostPresentHandoff);
+	vr::VRCompositor()->SetExplicitTimingMode(m_TimingMode);
 
-	// Create the frame completion event
-	m_FrameEvent = CreateEvent(nullptr, true, true, nullptr);
+	// Set the timeout based on the display frequency
 	m_Timeout = (DWORD)ceilf(1000.0f / vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float));
 }
 
 CompositorBase::~CompositorBase()
 {
-	CloseHandle(m_FrameEvent);
-
 	if (m_MirrorTexture)
 		delete m_MirrorTexture;
 
@@ -135,25 +131,27 @@ ovrResult CompositorBase::WaitToBeginFrame(ovrSession session, long long frameIn
 {
 	MICROPROFILE_SCOPE(WaitToBeginFrame);
 
-	// Keep waiting for the targeted frame as long as we don't timeout
-	while (session->FrameIndex < frameIndex - 1)
+	// Wait the expected number of frames
+	long long frames = frameIndex - session->FrameIndex;
+	for (long long i = 0; i < frames; i++)
 	{
-		// Wait on the last frame completion
-		if (WaitForSingleObject(m_FrameEvent, m_Timeout) != WAIT_OBJECT_0)
+		if (vr::VROverlay()->WaitFrameSync(m_Timeout) != vr::VROverlayError_None)
 			break;
 	}
 
 	// Wait for the actual frame start
 	MICROPROFILE_SCOPE(WaitGetPoses);
-	return CompositorErrorToOvrError(vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0));
+	vr::VRCompositorError error = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
+	session->FrameIndex = frameIndex;
+	return CompositorErrorToOvrError(error);
 }
 
 ovrResult CompositorBase::BeginFrame(ovrSession session, long long frameIndex)
 {
 	MICROPROFILE_SCOPE(BeginFrame);
 
-	// Reset the frame completion event
-	ResetEvent(m_FrameEvent);
+	if (m_TimingMode == vr::VRCompositorTimingMode_Implicit)
+		return ovrSuccess;
 
 	return CompositorErrorToOvrError(vr::VRCompositor()->SubmitExplicitTimingData());
 }
@@ -258,16 +256,6 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, con
 		MICROPROFILE_SCOPE(PostPresentHandoff);
 		vr::VRCompositor()->PostPresentHandoff();
 	}
-	else if (m_TimingMode == vr::VRCompositorTimingMode_Implicit)
-	{
-		MICROPROFILE_SCOPE(WaitGetPoses);
-		error = vr::VRCompositor()->WaitGetPoses(nullptr, 0, nullptr, 0);
-	}
-
-	// Frame now completed so we can let anyone waiting on the next frame call WaitGetPoses
-	session->FrameIndex = frameIndex;
-	if (m_TimingMode != vr::VRCompositorTimingMode_Implicit)
-		SetEvent(m_FrameEvent);
 
 	if (m_MirrorTexture && error == vr::VRCompositorError_None)
 		RenderMirrorTexture(m_MirrorTexture);
@@ -426,22 +414,11 @@ vr::VRCompositorError CompositorBase::SubmitLayer(ovrSession session, const ovrL
 		texture.Color = colorTexture;
 
 		// Add the pose data to the eye texture
-		if (!session->Details->UseHack(SessionDetails::HACK_STRICT_POSES))
-		{
-			OVR::Matrix4f hmdToEye(viewScaleDesc ? viewScaleDesc->HmdToEyePose[i] : desc->HmdToEyePose);
-			OVR::Matrix4f pose(baseLayer->Type == ovrLayerType_EyeMatrix ?
-				layer.EyeMatrix.RenderPose[i] : layer.EyeFov.RenderPose[i]);
-			if (session->TrackingOrigin == vr::TrackingUniverseSeated)
-			{
-				REV::Matrix4f offset(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose());
-				texture.Pose.mDeviceToAbsoluteTracking = REV::Matrix4f(offset * (pose * hmdToEye.Inverted()));
-			}
-			else
-			{
-				texture.Pose.mDeviceToAbsoluteTracking = REV::Matrix4f(pose * hmdToEye.Inverted());
-			}
-			submitFlags |= vr::Submit_TextureWithPose;
-		}
+		OVR::Matrix4f hmdToEye(viewScaleDesc ? viewScaleDesc->HmdToEyePose[i] : desc->HmdToEyePose);
+		OVR::Matrix4f pose(baseLayer->Type == ovrLayerType_EyeMatrix ?
+			layer.EyeMatrix.RenderPose[i] : layer.EyeFov.RenderPose[i]);
+		texture.Pose.mDeviceToAbsoluteTracking = REV::Matrix4f(pose * hmdToEye.Inverted());
+		submitFlags |= vr::Submit_TextureWithPose;
 
 		// Add the depth data if present in the layer
 		if (baseLayer->Type == ovrLayerType_EyeFovDepth)

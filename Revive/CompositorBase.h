@@ -50,9 +50,8 @@ private:
 	unsigned int m_OverlayCount;
 	std::vector<vr::VROverlayHandle_t> m_ActiveOverlays;
 
-	// Frame completion event
-	void* m_FrameEvent;
-	unsigned long m_Timeout;
+	// Frame sync timeout
+	uint32_t m_Timeout;
 
 	// Current timing mode
 	vr::EVRCompositorTimingMode m_TimingMode;

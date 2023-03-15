@@ -318,8 +318,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 
 	// Both enums match exactly, so we can just cast them
 	session->TrackingOrigin = (vr::ETrackingUniverseOrigin)origin;
-	if (session->Details->UseHack(SessionDetails::HACK_STRICT_POSES))
-		vr::VRCompositor()->SetTrackingSpace(session->TrackingOrigin);
+	vr::VRCompositor()->SetTrackingSpace(session->TrackingOrigin);
 	return ovrSuccess;
 }
 
@@ -373,7 +372,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetDevicePoses(ovrSession session, ovrTracked
 	if (!session)
 		return ovrError_InvalidSession;
 
-	return session->Input->GetDevicePoses(deviceTypes, deviceCount, absTime, outDevicePoses);
+	return session->Input->GetDevicePoses(session, deviceTypes, deviceCount, absTime, outDevicePoses);
 }
 
 struct ovrSensorData_;
@@ -908,7 +907,14 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SubmitFrame2(ovrSession session, long long fr
 
 	// Use our own intermediate compositor to convert the frame to OpenVR.
 	session->Compositor->SetTimingMode(vr::VRCompositorTimingMode_Implicit);
-	return session->Compositor->EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
+	ovrResult result = session->Compositor->EndFrame(session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
+	if (OVR_SUCCESS(result))
+	{
+		// Begin the next frame
+		session->Compositor->WaitToBeginFrame(session, frameIndex + 1);
+		session->Compositor->BeginFrame(session, frameIndex + 1);
+	}
+	return result;
 }
 
 typedef struct OVR_ALIGNAS(4) ovrViewScaleDesc1_ {
@@ -1063,37 +1069,22 @@ OVR_PUBLIC_FUNCTION(double) ovr_GetPredictedDisplayTime(ovrSession session, long
 
 	MICROPROFILE_META_CPU("Predict Frame", (int)frameIndex);
 
-	if (session->FrameIndex == 0)
-		return ovr_GetTimeInSeconds();
-
-	double predictAhead = vr::VRCompositor()->GetFrameTimeRemaining() + session->Details->GetVsyncToPhotons();
-	if (session)
-	{
-		// Some applications ask for frames ahead of the current frame
-		float refreshRate = session->Details->GetRefreshRate();
-		if (frameIndex > 0)
-			predictAhead += double(frameIndex - session->FrameIndex) / refreshRate;
-		else
-			predictAhead += 1.0 / refreshRate;
-	}
-	return ovr_GetTimeInSeconds() + predictAhead;
+	uint32_t predictionID = 0;
+	vr::VRCompositor()->GetLastPosePredictionIDs(&predictionID, nullptr);
+	predictionID += (uint32_t)(frameIndex - session->FrameIndex);
+	return (double)predictionID / session->Details->GetRefreshRate();
 }
 
 OVR_PUBLIC_FUNCTION(double) ovr_GetTimeInSeconds()
 {
 	REV_TRACE(ovr_GetTimeInSeconds);
 
-	static double PerfFrequencyInverse = 0.0;
-	if (PerfFrequencyInverse == 0.0)
-	{
-		LARGE_INTEGER freq;
-		QueryPerformanceFrequency(&freq);
-		PerfFrequencyInverse = 1.0 / (double)freq.QuadPart;
-	}
+	float freq = vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
+	float elapsed = 1.0f / freq - vr::VRCompositor()->GetFrameTimeRemaining();
 
-	LARGE_INTEGER li;
-	QueryPerformanceCounter(&li);
-	return li.QuadPart * PerfFrequencyInverse;
+	uint32_t predictionID = 0;
+	vr::VRCompositor()->GetLastPosePredictionIDs(&predictionID, nullptr);
+	return (double)predictionID / freq + elapsed;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_GetBool(ovrSession session, const char* propertyName, ovrBool defaultVal)

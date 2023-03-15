@@ -63,10 +63,6 @@ InputManager::InputManager()
 		m_InputDevices.push_back(new OculusTouch(handle, vr::TrackedControllerRole_RightHand));
 	}
 
-	vr::VRInput()->GetActionHandle("/actions/touch/in/Pose", &m_ActionPose);
-	vr::VRInput()->GetInputSourceHandle("/user/hand/left", &m_Hands[ovrHand_Left]);
-	vr::VRInput()->GetInputSourceHandle("/user/hand/right", &m_Hands[ovrHand_Right]);
-
 	UpdateConnectedControllers();
 }
 
@@ -250,21 +246,17 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
 {
-	// Calculate the relative prediction time
-	float relTime = 0.0f;
-	if (absTime > 0.0f)
-		relTime = float(absTime - ovr_GetTimeInSeconds());
-
 	// Get the device poses
 	vr::ETrackingUniverseOrigin origin = session->TrackingOrigin;
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	if (absTime > 0.0f && session->Details->UseHack(SessionDetails::HACK_STRICT_POSES))
+	if (absTime > 0.0f)
 	{
-		vr::VRCompositor()->GetLastPoses(poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+		uint32_t predictionID = (uint32_t)floor(absTime * session->Details->GetRefreshRate());
+		vr::VRCompositor()->GetPosesForFrame(predictionID, poses, vr::k_unMaxTrackedDeviceCount);
 	}
 	else
 	{
-		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(origin, relTime, poses, vr::k_unMaxTrackedDeviceCount);
+		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(origin, 0.0f, poses, vr::k_unMaxTrackedDeviceCount);
 	}
 
 	// Convert the head pose
@@ -276,9 +268,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand) };
 	for (int i = 0; i < ovrHand_Count; i++)
 	{
-		vr::InputPoseActionData_t handPose;
-		vr::EVRInputError err = vr::VRInput()->GetPoseActionDataRelativeToNow(m_ActionPose, origin, relTime, &handPose, sizeof(vr::InputPoseActionData_t), m_Hands[i]);
-		if (err != vr::VRInputError_None || hands[i] == vr::k_unTrackedDeviceIndexInvalid)
+		if (hands[i] == vr::k_unTrackedDeviceIndexInvalid)
 		{
 			outState->HandPoses[i].ThePose = OVR::Posef::Identity();
 			continue;
@@ -287,16 +277,10 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		// Apply a 45-degree offset to better fit the Oculus Touch pose
 		vr::TrackedDevicePose_t pose;
 		vr::HmdMatrix34_t offset = REV::Matrix4f(OVR::Matrix4f::RotationX(-MATH_FLOAT_PIOVER4));
-		vr::VRSystem()->ApplyTransform(&pose, &handPose.pose, &offset);
-
-		// Velocity data from SteamVR Input is in the wrong tracking space
-		vr::TrackedDevicePose_t rawPose;
-		vr::VRSystem()->ApplyTransform(&rawPose, &poses[hands[i]], &offset);
-		pose.vAngularVelocity = rawPose.vAngularVelocity;
-		pose.vVelocity = rawPose.vVelocity;
+		vr::VRSystem()->ApplyTransform(&pose, &poses[hands[i]], &offset);
 
 		outState->HandPoses[i] = TrackedDevicePoseToOVRPose(pose, m_LastHandPose[i], absTime);
-		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(handPose.pose);
+		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(pose);
 	}
 
 	// TODO: Calibrate the origin ourselves instead of relying on OpenVR.
@@ -304,13 +288,12 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	outState->CalibratedOrigin.Position = OVR::Vector3f();
 }
 
-ovrResult InputManager::GetDevicePoses(ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
+ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)
 {
 	// Get the device poses
-	vr::ETrackingUniverseOrigin space = vr::VRCompositor()->GetTrackingSpace();
-	float relTime = float(absTime - ovr_GetTimeInSeconds());
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(space, relTime, poses, vr::k_unMaxTrackedDeviceCount);
+	uint32_t predictionID = (uint32_t)floor(absTime * session->Details->GetRefreshRate());
+	vr::VRCompositor()->GetPosesForFrame(predictionID, poses, vr::k_unMaxTrackedDeviceCount);
 
 	// Get the generic tracker indices
 	vr::TrackedDeviceIndex_t trackers[vr::k_unMaxTrackedDeviceCount];

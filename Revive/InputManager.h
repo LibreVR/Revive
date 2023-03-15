@@ -179,7 +179,7 @@ public:
 	ovrResult GetControllerVibrationState(ovrSession session, ovrControllerType controllerType, ovrHapticsPlaybackState* outState);
 
 	void GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime);
-	ovrResult GetDevicePoses(ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses);
+	ovrResult GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses);
 
 protected:
 	std::vector<InputDevice*> m_InputDevices;
@@ -187,8 +187,6 @@ protected:
 private:
 	ovrPoseStatef m_LastPoses[vr::k_unMaxTrackedDeviceCount];
 	ovrPoseStatef m_LastHandPose[ovrHand_Count];
-	vr::VRInputValueHandle_t m_Hands[ovrHand_Count];
-	vr::VRActionHandle_t m_ActionPose;
 
 	ovrResult InputErrorToOvrError(vr::EVRInputError error);
 	unsigned int TrackedDevicePoseToOVRStatusFlags(vr::TrackedDevicePose_t pose);
