@@ -23,9 +23,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainGL(ovrSession session,
 	if (!desc || !out_TextureSwapChain || desc->Type == ovrTexture_2D_External)
 		return ovrError_InvalidParameter;
 
-	if (desc->Type == ovrTexture_Cube && !Runtime::Get().CompositionCube)
-		return ovrError_Unsupported;
-
 	if (!session->Session)
 	{
 		if (!Runtime::Get().Supports(XR_KHR_OPENGL_ENABLE_EXTENSION_NAME))

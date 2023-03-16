@@ -161,9 +161,6 @@ ovr_CreateTextureSwapChainVk(
 	if (!device || !desc || !out_TextureSwapChain || desc->Type == ovrTexture_2D_External)
 		return ovrError_InvalidParameter;
 
-	if (desc->Type == ovrTexture_Cube && !Runtime::Get().CompositionCube)
-		return ovrError_Unsupported;
-
 	if (!session->Session)
 	{
 		if (!Runtime::Get().Supports(XR_KHR_VULKAN_ENABLE_EXTENSION_NAME))

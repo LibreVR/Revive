@@ -140,9 +140,6 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CreateTextureSwapChainDX(ovrSession session,
 	if (!d3dPtr || !desc || !out_TextureSwapChain || desc->Type == ovrTexture_2D_External)
 		return ovrError_InvalidParameter;
 
-	if (desc->Type == ovrTexture_Cube && !Runtime::Get().CompositionCube)
-		return ovrError_Unsupported;
-
 	ComPtr<ID3D11Device> pDevice = nullptr;
 	ComPtr<ID3D12CommandQueue> pQueue = nullptr;
 	if (FAILED(d3dPtr->QueryInterface(IID_PPV_ARGS(&pDevice))))
