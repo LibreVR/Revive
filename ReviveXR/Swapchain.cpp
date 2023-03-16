@@ -146,31 +146,18 @@ DXGI_FORMAT ovrTextureSwapChainData::NegotiateFormat(ovrSession session, DXGI_FO
 	if (session->SupportsFormat(format))
 		return format;
 
-	// We may need to use a lower percision format and rely on data conversion rules
+	// Upgrade R11G11B10F to RGBA16F if it's available
+	if (format == DXGI_FORMAT_R11G11B10_FLOAT && session->SupportsFormat(DXGI_FORMAT_R16G16B16A16_FLOAT))
+			return DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+	// If RGBA16F is not available, then attempt downgrading it to an 8-bit linear format
 	if (format == DXGI_FORMAT_R11G11B10_FLOAT || format == DXGI_FORMAT_R16G16B16A16_FLOAT)
-	{
-		if (session->SupportsFormat(DXGI_FORMAT_R10G10B10A2_UNORM))
-			return DXGI_FORMAT_R10G10B10A2_UNORM;
-		else if (session->SupportsFormat(DXGI_FORMAT_R8G8B8A8_UNORM_SRGB))
-			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	}
+		return DXGI_FORMAT_R8G8B8A8_UNORM;
 
-	// No runtime supports 8-bit formats without alpha, but easy to convert
+	// No runtime supports 8-bit formats without alpha, but easy to convert to one with alpha
 	if (format == DXGI_FORMAT_B8G8R8X8_UNORM)
-		return session->SupportsFormat(DXGI_FORMAT_B8G8R8A8_UNORM) ?
-		DXGI_FORMAT_B8G8R8A8_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+		return DXGI_FORMAT_B8G8R8A8_UNORM;
 	else if (format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB)
-		return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-
-	// Some runtimes don't support 8-bit linear, but most apps shouldn't be using it anyway
-	// Most apps will be fine if we convert their values from linear to sRGB
-	if (format == DXGI_FORMAT_R8G8B8A8_UNORM)
-		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	else if (format == DXGI_FORMAT_R8G8B8A8_UNORM)
-		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	else if (format == DXGI_FORMAT_B8G8R8A8_UNORM)
-		return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-	else if (format == DXGI_FORMAT_B8G8R8A8_UNORM)
 		return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
 
 	return format;
