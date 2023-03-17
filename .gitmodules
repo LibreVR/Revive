@@ -9,4 +9,4 @@
 	url = https://github.com/zeux/microprofile.git
 [submodule "Vulkan"]
 	path = Externals/Vulkan
-	url = https://github.com/KhronosGroup/Vulkan-Docs.git
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
