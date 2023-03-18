@@ -248,6 +248,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Create(ovrSession* pSession, ovrGraphicsLuid*
 			memcpy(pLuid, &desc.AdapterLuid, sizeof(ovrGraphicsLuid));
 	}
 
+	// Oculus games expect a seated tracking space by default
+	vr::VRCompositor()->SetTrackingSpace(vr::TrackingUniverseSeated);
+
 	*pSession = &g_Sessions.back();
 	return ovrSuccess;
 }
@@ -310,8 +313,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetTrackingOriginType(ovrSession session, ovr
 		return ovrError_InvalidSession;
 
 	// Both enums match exactly, so we can just cast them
-	session->TrackingOrigin = (vr::ETrackingUniverseOrigin)origin;
-	vr::VRCompositor()->SetTrackingSpace(session->TrackingOrigin);
+	vr::VRCompositor()->SetTrackingSpace((vr::ETrackingUniverseOrigin)origin);
 	return ovrSuccess;
 }
 
@@ -323,7 +325,7 @@ OVR_PUBLIC_FUNCTION(ovrTrackingOrigin) ovr_GetTrackingOriginType(ovrSession sess
 		return ovrTrackingOrigin_EyeLevel;
 
 	// Both enums match exactly, so we can just cast them
-	return (ovrTrackingOrigin)session->TrackingOrigin;
+	return (ovrTrackingOrigin)vr::VRCompositor()->GetTrackingSpace();
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
@@ -333,7 +335,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 	if (!session)
 		return ovrError_InvalidSession;
 
-	vr::VRChaperone()->ResetZeroPose(session->TrackingOrigin);
+	vr::VRChaperone()->ResetZeroPose(vr::VRCompositor()->GetTrackingSpace());
 	return ovrSuccess;
 }
 

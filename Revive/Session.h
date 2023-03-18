@@ -50,7 +50,6 @@ struct ovrHmdStruct
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
 
 	// Session status
-	vr::ETrackingUniverseOrigin TrackingOrigin;
 	std::atomic_uint32_t TrackerCount;
 	ovrSessionStatus Status;
 

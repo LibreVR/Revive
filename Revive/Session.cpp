@@ -30,16 +30,12 @@ ovrHmdStruct::ovrHmdStruct()
 	: Status()
 	, AppKey()
 	, StringBuffer()
-	, TrackingOrigin(vr::TrackingUniverseSeated)
 	, FrameIndex(0)
 	, StatsIndex(0)
 	, BaseStats()
 	, Compositor(nullptr)
 	, Input(new InputManager())
 {
-	// Oculus games expect a seated tracking space by default
-	vr::VRCompositor()->SetTrackingSpace(TrackingOrigin);
-
 	Status.HmdPresent = vr::VR_IsHmdPresent();
 	Status.HmdMounted = true;
 	Status.HasInputFocus = vr::VRSystem()->IsInputAvailable();
