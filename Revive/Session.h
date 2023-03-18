@@ -52,6 +52,7 @@ struct ovrHmdStruct
 	// Session status
 	std::atomic_uint32_t TrackerCount;
 	ovrSessionStatus Status;
+	std::vector<char> ChaperoneBuffer;
 
 	// Description structs
 	ovrHmdDesc HmdDesc;
@@ -68,6 +69,7 @@ struct ovrHmdStruct
 	std::unique_ptr<InputManager> Input;
 
 	ovrHmdStruct();
+	~ovrHmdStruct();
 
 	bool UseHack(Hack hack) const;
 	void UpdateStatus();

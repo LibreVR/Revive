@@ -27,9 +27,14 @@ HackInfo g_known_hacks[] = {
 std::map<Hack, HackInfo> g_hacks;
 
 ovrHmdStruct::ovrHmdStruct()
-	: Status()
-	, AppKey()
+	: AppKey()
 	, StringBuffer()
+	, TrackerCount(0)
+	, Status()
+	, ChaperoneBuffer()
+	, HmdDesc()
+	, RenderDesc()
+	, TrackerDesc()
 	, FrameIndex(0)
 	, StatsIndex(0)
 	, BaseStats()
@@ -45,16 +50,13 @@ ovrHmdStruct::ovrHmdStruct()
 	GetModuleFileNameA(NULL, filepath, MAX_PATH);
 	char* filename = PathFindFileNameA(filepath);
 
-	uint32_t size = vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
-		vr::Prop_TrackingSystemName_String, nullptr, 0);
-	std::vector<char> driver(size);
 	vr::VRSystem()->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
-		vr::Prop_TrackingSystemName_String, driver.data(), size);
+		vr::Prop_TrackingSystemName_String, StringBuffer, sizeof(StringBuffer));
 
 	for (auto& hack : g_known_hacks)
 	{
 		if ((!hack.m_filename || _stricmp(filename, hack.m_filename) == 0) &&
-			(!hack.m_driver || strcmp(driver.data(), hack.m_driver) == 0))
+			(!hack.m_driver || strcmp(StringBuffer, hack.m_driver) == 0))
 		{
 			if (hack.m_usehack)
 				g_hacks.emplace(hack.m_hack, hack);
@@ -67,8 +69,25 @@ ovrHmdStruct::ovrHmdStruct()
 
 	vr::VRApplications()->GetApplicationKeyByProcessId(GetCurrentProcessId(), AppKey, sizeof(AppKey));
 
+	// Export the chaperone buffer so we can reset the tracking origin on graceful shutdown
+	uint32_t size = 0;
+	vr::VRChaperoneSetup()->ExportLiveToBuffer(nullptr, &size);
+	ChaperoneBuffer.resize(size);
+	vr::VRChaperoneSetup()->ExportLiveToBuffer(ChaperoneBuffer.data(), &size);
+	assert(size == ChaperoneBuffer.size());
+
+	// Oculus games expect a seated tracking space by default
+	vr::VRCompositor()->SetTrackingSpace(vr::TrackingUniverseSeated);
+
 	UpdateHmdDesc();
 	UpdateTrackerDesc();
+}
+
+ovrHmdStruct::~ovrHmdStruct()
+{
+	// Restore chaperone buffer to reset tracking origin
+	vr::VRChaperoneSetup()->ImportFromBufferToWorking(ChaperoneBuffer.data(), 0);
+	vr::VRChaperoneSetup()->CommitWorkingCopy(vr::EChaperoneConfigFile_Live);
 }
 
 bool ovrHmdStruct::UseHack(Hack hack) const
