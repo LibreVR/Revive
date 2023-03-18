@@ -7,12 +7,13 @@
 #include "Extras\OVR_CAPI_Util.h"
 #include "OVR_Version.h"
 
-static HMODULE(WINAPI* TrueLoadLibrary)(LPCWSTR lpFileName) = LoadLibraryW;
+static HMODULE(WINAPI* TrueLoadLibraryW)(LPCWSTR lpFileName) = LoadLibraryW;
+static HMODULE(WINAPI* TrueLoadLibraryExW)(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags) = LoadLibraryExW;
 
 WCHAR revModuleName[MAX_PATH];
 WCHAR ovrModuleName[MAX_PATH];
 
-HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
+HMODULE WINAPI HookLoadLibraryW(LPCWSTR lpFileName)
 {
 	LPCWSTR name = PathFindFileNameW(lpFileName);
 	LPCWSTR ext = PathFindExtensionW(name);
@@ -20,16 +21,30 @@ HMODULE WINAPI HookLoadLibrary(LPCWSTR lpFileName)
 
 	// Load our own library again so the ref count is incremented.
 	if (wcsncmp(name, ovrModuleName, length) == 0)
-		return TrueLoadLibrary(revModuleName);
+		return TrueLoadLibraryW(revModuleName);
 
-	return TrueLoadLibrary(lpFileName);
+	return TrueLoadLibraryW(lpFileName);
+}
+
+HMODULE WINAPI HookLoadLibraryExW(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
+{
+	LPCWSTR name = PathFindFileNameW(lpLibFileName);
+	LPCWSTR ext = PathFindExtensionW(name);
+	size_t length = ext - name;
+
+	// Load our own library again so the ref count is incremented.
+	if (wcsncmp(name, ovrModuleName, length) == 0)
+		return TrueLoadLibraryExW(revModuleName, hFile, dwFlags);
+
+	return TrueLoadLibraryExW(lpLibFileName, hFile, dwFlags);
 }
 
 void AttachDetours()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)TrueLoadLibrary, HookLoadLibrary);
+	DetourAttach((PVOID*)&TrueLoadLibraryW, HookLoadLibraryW);
+	DetourAttach((PVOID*)&TrueLoadLibraryExW, HookLoadLibraryExW);
 	DetourTransactionCommit();
 }
 
@@ -37,7 +52,8 @@ void DetachDetours()
 {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
-	DetourDetach(&(PVOID&)TrueLoadLibrary, HookLoadLibrary);
+	DetourDetach((PVOID*)&TrueLoadLibraryW, HookLoadLibraryW);
+	DetourDetach((PVOID*)&TrueLoadLibraryExW, HookLoadLibraryExW);
 	DetourTransactionCommit();
 }
 
