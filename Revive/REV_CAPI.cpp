@@ -1120,6 +1120,13 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 		return vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_UserIpdMeters_Float);
 	else if (strcmp(propertyName, "VsyncToNextVsync") == 0)
 		return 1.0f / vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
+	else if (strcmp(propertyName, "CpuStartToGpuEndSeconds") == 0)
+	{
+		vr::Compositor_FrameTiming timing;
+		timing.m_nSize = sizeof(timing);
+		if (vr::VRCompositor()->GetFrameTiming(&timing))
+			return (timing.m_flClientFrameIntervalMs + timing.m_flTotalRenderGpuMs) / 1000.0f;
+	}
 
 	// Override defaults, we should always return a valid value for these
 	if (strcmp(propertyName, OVR_KEY_PLAYER_HEIGHT) == 0)
