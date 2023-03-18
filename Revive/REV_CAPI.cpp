@@ -1118,6 +1118,8 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 
 	if (strcmp(propertyName, "IPD") == 0)
 		return vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_UserIpdMeters_Float);
+	else if (strcmp(propertyName, "VsyncToNextVsync") == 0)
+		return 1.0f / vr::VRSystem()->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float);
 
 	// Override defaults, we should always return a valid value for these
 	if (strcmp(propertyName, OVR_KEY_PLAYER_HEIGHT) == 0)
