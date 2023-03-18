@@ -253,6 +253,7 @@ ovrPoseStatef InputManager::TrackedDevicePoseToOVRPose(vr::TrackedDevicePose_t p
 void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outState, double absTime)
 {
 	// Get the device poses
+	vr::ETrackingUniverseOrigin origin = vr::VRCompositor()->GetTrackingSpace();
 	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 	if (absTime > 0.0f)
 	{
@@ -261,7 +262,7 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 	}
 	else
 	{
-		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::VRCompositor()->GetTrackingSpace(), 0.0f, poses, vr::k_unMaxTrackedDeviceCount);
+		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(origin, 0.0f, poses, vr::k_unMaxTrackedDeviceCount);
 	}
 
 	// Convert the head pose
@@ -288,9 +289,11 @@ void InputManager::GetTrackingState(ovrSession session, ovrTrackingState* outSta
 		outState->HandStatusFlags[i] = TrackedDevicePoseToOVRStatusFlags(pose);
 	}
 
-	// TODO: Calibrate the origin ourselves instead of relying on OpenVR.
-	outState->CalibratedOrigin.Orientation = OVR::Quatf::Identity();
-	outState->CalibratedOrigin.Position = OVR::Vector3f();
+	REV::Matrix4f calibratedOrigin = REV::Matrix4f(vr::VRSystem()->GetRawZeroPoseToStandingAbsoluteTrackingPose());
+	if (origin == vr::TrackingUniverseSeated)
+		calibratedOrigin *= REV::Matrix4f(vr::VRSystem()->GetSeatedZeroPoseToStandingAbsoluteTrackingPose()).Inverted();
+	outState->CalibratedOrigin.Orientation = OVR::Quatf(calibratedOrigin);
+	outState->CalibratedOrigin.Position = calibratedOrigin.GetTranslation();
 }
 
 ovrResult InputManager::GetDevicePoses(ovrSession session, ovrTrackedDeviceType* deviceTypes, int deviceCount, double absTime, ovrPoseStatef* outDevicePoses)

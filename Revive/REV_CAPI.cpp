@@ -341,7 +341,31 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_RecenterTrackingOrigin(ovrSession session)
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SpecifyTrackingOrigin(ovrSession session, ovrPosef originPose)
 {
-	// TODO: Implement through ApplyTransform()
+	vr::ChaperoneCalibrationState calibrationState = vr::VRChaperone()->GetCalibrationState();
+	if (calibrationState >= vr::ChaperoneCalibrationState_Error)
+		return ovrSuccess_BoundaryInvalid;
+
+	float yaw = 0.0f;
+	OVR::Posef(originPose).Rotation.GetYawPitchRoll(&yaw, nullptr, nullptr);
+	if (yaw == 0.0f && OVR::Posef(originPose).Rotation != OVR::Quatf::Identity())
+		return ovrError_InvalidParameter;
+
+	vr::HmdMatrix34_t workingPose;
+	vr::ETrackingUniverseOrigin origin = vr::VRCompositor()->GetTrackingSpace();
+	vr::VRChaperoneSetup()->RevertWorkingCopy();
+	if (origin == vr::TrackingUniverseOrigin::TrackingUniverseSeated)
+		vr::VRChaperoneSetup()->GetWorkingSeatedZeroPoseToRawTrackingPose(&workingPose);
+	else
+		vr::VRChaperoneSetup()->GetWorkingStandingZeroPoseToRawTrackingPose(&workingPose);
+
+	workingPose = REV::Matrix4f(OVR::Matrix4f::RotationY(yaw) * REV::Matrix4f(workingPose) *
+		OVR::Matrix4f::Translation(originPose.Position));
+
+	if (origin == vr::TrackingUniverseOrigin::TrackingUniverseSeated)
+		vr::VRChaperoneSetup()->SetWorkingSeatedZeroPoseToRawTrackingPose(&workingPose);
+	else
+		vr::VRChaperoneSetup()->SetWorkingStandingZeroPoseToRawTrackingPose(&workingPose);
+	vr::VRChaperoneSetup()->CommitWorkingCopy(vr::EChaperoneConfigFile_Live);
 	return ovrSuccess;
 }
 

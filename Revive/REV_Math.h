@@ -40,7 +40,7 @@ namespace REV {
 			z = s.v[2];
 		}
 
-		operator const vr::HmdVector3_t& () const
+		operator const vr::HmdVector3_t&() const
 		{
 			return reinterpret_cast<const vr::HmdVector3_t&>(*this);
 		}
@@ -66,7 +66,7 @@ namespace REV {
 			M[3][0] = M[3][1] = M[3][2] = 0.f; M[3][3] = 1.f;
 		}
 
-		operator const vr::HmdMatrix34_t() const
+		operator vr::HmdMatrix34_t() const
 		{
 			vr::HmdMatrix34_t s;
 			memcpy(s.m, M, sizeof(s.m));
@@ -79,7 +79,7 @@ namespace REV {
 			memcpy(M, s.m, sizeof(s.m));
 		}
 
-		operator const vr::HmdMatrix44_t& () const
+		operator const vr::HmdMatrix44_t&() const
 		{
 			return reinterpret_cast<const vr::HmdMatrix44_t&>(*this);
 		}
@@ -110,5 +110,26 @@ namespace REV {
 			return projection;
 		}
 #endif
+	};
+
+	class Posef : public OVR::Posef
+	{
+	public:
+		// Inherit constructors
+		using OVR::Posef::Pose;
+		Posef() : OVR::Posef() { }
+
+		// OpenVR-interop support
+		Posef(const vr::HmdMatrix34_t& s)
+		{
+			REV::Matrix4f m(s);
+			Translation = m.GetTranslation();
+			Rotation = OVR::Quatf(m);
+		}
+
+		operator vr::HmdMatrix34_t() const
+		{
+			return REV::Matrix4f(*this);
+		}
 	};
 }
