@@ -103,7 +103,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutWaveId(UINT* deviceOutId)
 		uint32_t size = vr::VRSystem()->GetStringTrackedDeviceProperty(
 			vr::k_unTrackedDeviceIndex_Hmd,
 			vr::Prop_Audio_DefaultPlaybackDeviceId_String,
-			endpoint, OVR_AUDIO_MAX_DEVICE_STR_SIZE);
+			endpoint, OVR_AUDIO_MAX_DEVICE_STR_SIZE, &error);
 		if (error != vr::TrackedProp_Success)
 		{
 			// Return the default without caching so we can attempt again later
@@ -274,7 +274,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuidStr(WCHAR deviceOutStrBu
 	uint32_t size = vr::VRSystem()->GetStringTrackedDeviceProperty(
 		vr::k_unTrackedDeviceIndex_Hmd,
 		vr::Prop_Audio_DefaultPlaybackDeviceId_String,
-		endpoint, OVR_AUDIO_MAX_DEVICE_STR_SIZE);
+		endpoint, OVR_AUDIO_MAX_DEVICE_STR_SIZE, &error);
 	if (error == vr::TrackedProp_Success)
 	{
 		if (size > OVR_AUDIO_MAX_DEVICE_STR_SIZE)
