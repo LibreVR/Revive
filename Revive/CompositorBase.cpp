@@ -170,7 +170,7 @@ ovrResult CompositorBase::EndFrame(ovrSession session, long long frameIndex, con
 {
 	MICROPROFILE_SCOPE(EndFrame);
 
-	if (layerCount == 0 || !layerPtrList || frameIndex < session->FrameIndex)
+	if (layerCount == 0 || !layerPtrList)
 		return ovrError_InvalidParameter;
 
 	const ovrLayerHeader* baseLayer = nullptr;
