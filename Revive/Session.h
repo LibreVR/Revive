@@ -4,6 +4,7 @@
 #include <openvr.h>
 #include <memory>
 #include <atomic>
+#include <vector>
 
 // Forward declarations
 class CompositorBase;
@@ -44,8 +45,11 @@ struct ovrHmdStruct
 {
 	uint32_t MinorVersion;
 
-	// Session status
+	// Property management
+	char AppKey[vr::k_unMaxApplicationKeyLength];
 	char StringBuffer[vr::k_unMaxPropertyStringSize];
+
+	// Session status
 	vr::ETrackingUniverseOrigin TrackingOrigin;
 	std::atomic_uint32_t TrackerCount;
 	ovrSessionStatus Status;

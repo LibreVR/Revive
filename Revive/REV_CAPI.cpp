@@ -1102,6 +1102,13 @@ OVR_PUBLIC_FUNCTION(int) ovr_GetInt(ovrSession session, const char* propertyName
 	if (strcmp("TextureSwapChainDepth", propertyName) == 0)
 		return REV_SWAPCHAIN_MAX_LENGTH;
 
+	if (session)
+	{
+		vr::EVRSettingsError error = vr::VRSettingsError_None;
+		int prop = vr::VRSettings()->GetInt32(session->AppKey, propertyName, &error);
+		if (error == vr::VRSettingsError_None)
+			return prop;
+	}
 	return defaultVal;
 }
 
@@ -1134,6 +1141,13 @@ OVR_PUBLIC_FUNCTION(float) ovr_GetFloat(ovrSession session, const char* property
 	else if (strcmp(propertyName, OVR_KEY_EYE_HEIGHT) == 0)
 		defaultVal = OVR_DEFAULT_EYE_HEIGHT;
 
+	if (session)
+	{
+		vr::EVRSettingsError error = vr::VRSettingsError_None;
+		float prop = vr::VRSettings()->GetFloat(session->AppKey, propertyName);
+		if (error = vr::VRSettingsError_None)
+			return prop;
+	}
 	return defaultVal;
 }
 
@@ -1141,7 +1155,12 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloat(ovrSession session, const char* proper
 {
 	REV_TRACE(ovr_SetFloat);
 
-	return false;
+	if (!session)
+		return false;
+
+	vr::EVRSettingsError error = vr::VRSettingsError_None;
+	vr::VRSettings()->SetFloat(session->AppKey, propertyName, value);
+	return error == vr::VRSettingsError_None;
 }
 
 OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const char* propertyName, float values[], unsigned int valuesCapacity)
@@ -1159,14 +1178,38 @@ OVR_PUBLIC_FUNCTION(unsigned int) ovr_GetFloatArray(ovrSession session, const ch
 		return 2;
 	}
 
-	return 0;
+	if (!session)
+		return 0;
+
+	unsigned int valuesFound = 0;
+	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
+	for (vr::EVRSettingsError error = vr::VRSettingsError_None; error != vr::VRSettingsError_None && valuesFound < valuesCapacity; valuesFound++)
+	{
+		sprintf_s(key, "%s[%d]", propertyName, valuesFound);
+		values[valuesFound] = vr::VRSettings()->GetFloat(session->AppKey, key, &error);
+		if (error != vr::VRSettingsError_None)
+			break;
+	}
+	return valuesFound;
 }
 
 OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetFloatArray(ovrSession session, const char* propertyName, const float values[], unsigned int valuesSize)
 {
 	REV_TRACE(ovr_SetFloatArray);
 
-	return false;
+	if (!session)
+		return false;
+
+	char key[vr::k_unMaxSettingsKeyLength] = { 0 };
+	for (unsigned int i = 0; i < valuesSize; i++)
+	{
+		vr::EVRSettingsError error = vr::VRSettingsError_None;
+		sprintf_s(key, "%s[%d]", propertyName, i);
+		vr::VRSettings()->SetFloat(session->AppKey, key, values[i], &error);
+		if (error != vr::VRSettingsError_None)
+			return false;
+	}
+	return true;
 }
 
 OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* propertyName, const char* defaultVal)
@@ -1180,6 +1223,13 @@ OVR_PUBLIC_FUNCTION(const char*) ovr_GetString(ovrSession session, const char* p
 	if (strcmp(propertyName, OVR_KEY_GENDER) == 0)
 		defaultVal = OVR_DEFAULT_GENDER;
 
+	if (session)
+	{
+		vr::EVRSettingsError error = vr::VRSettingsError_None;
+		vr::VRSettings()->GetString(session->AppKey, propertyName, session->StringBuffer, sizeof(session->StringBuffer), &error);
+		if (error != vr::VRSettingsError_None)
+			return session->StringBuffer;
+	}
 	return defaultVal;
 }
 
@@ -1187,7 +1237,12 @@ OVR_PUBLIC_FUNCTION(ovrBool) ovr_SetString(ovrSession session, const char* prope
 {
 	REV_TRACE(ovr_SetString);
 
-	return false;
+	if (!session)
+		return false;
+
+	vr::EVRSettingsError error = vr::VRSettingsError_None;
+	vr::VRSettings()->SetString(session->AppKey, propertyName, value, &error);
+	return error != vr::VRSettingsError_None;
 }
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_Lookup(const char* name, void** data)

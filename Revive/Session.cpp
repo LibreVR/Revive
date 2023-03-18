@@ -28,6 +28,7 @@ std::map<Hack, HackInfo> g_hacks;
 
 ovrHmdStruct::ovrHmdStruct()
 	: Status()
+	, AppKey()
 	, StringBuffer()
 	, TrackingOrigin(vr::TrackingUniverseSeated)
 	, FrameIndex(0)
@@ -67,6 +68,8 @@ ovrHmdStruct::ovrHmdStruct()
 			g_hacks.emplace(hack.m_hack, hack);
 		}
 	}
+
+	vr::VRApplications()->GetApplicationKeyByProcessId(GetCurrentProcessId(), AppKey, sizeof(AppKey));
 
 	UpdateHmdDesc();
 	UpdateTrackerDesc();
