@@ -74,16 +74,19 @@ unsigned int TextureGL::TextureFormatToGLFormat(ovrTextureFormat format)
 	}
 }
 
-bool TextureGL::Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
-	ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
+bool TextureGL::Init(ovrTextureType Type, int Width, int Height, int MipLevels, int SampleCount,
+	int ArraySize, ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
 {
 	GLenum internalFormat = TextureFormatToInternalFormat(Format);
 	GLenum format = TextureFormatToGLFormat(Format);
 
-	glCreateTextures(GL_TEXTURE_2D, 1, &Texture);
+	glCreateTextures(SampleCount > 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D, 1, &Texture);
 	glTextureParameteri(Texture, GL_TEXTURE_BASE_LEVEL, 0);
 	glTextureParameteri(Texture, GL_TEXTURE_MAX_LEVEL, 0);
-	glTextureStorage2D(Texture, 1, internalFormat, Width, Height);
+	if (SampleCount > 1)
+		glTextureStorage2DMultisample(Texture, SampleCount, internalFormat, Width, Height, GL_FALSE);
+	else
+		glTextureStorage2D(Texture, 1, internalFormat, Width, Height);
 
 	m_Width = Width;
 	m_Height = Height;

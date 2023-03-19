@@ -106,8 +106,8 @@ bool TextureVk::GetMemoryType(uint32_t typeBits, VkFlags requirements_mask, uint
 	return false;
 }
 
-bool TextureVk::Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
-	ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
+bool TextureVk::Init(ovrTextureType Type, int Width, int Height, int MipLevels, int SampleCount,
+	int ArraySize, ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags)
 {
 	VK_DEVICE_FUNCTION(m_device, vkCreateImage);
 	VK_DEVICE_FUNCTION(m_device, vkGetImageMemoryRequirements);
@@ -128,7 +128,7 @@ bool TextureVk::Init(ovrTextureType type, int Width, int Height, int MipLevels, 
 	create_info.extent.depth = 1;
 	create_info.mipLevels = MipLevels;
 	create_info.arrayLayers = ArraySize;
-	create_info.samples = VK_SAMPLE_COUNT_1_BIT;
+	create_info.samples = (VkSampleCountFlagBits)SampleCount;
 	create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 	create_info.usage = BindFlagsToVkImageUsageFlags(BindFlags);
 	create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;

@@ -15,8 +15,8 @@ public:
 	virtual ~TextureVk();
 
 	virtual void ToVRTexture(vr::Texture_t& texture);
-	virtual bool Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
-		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
+	virtual bool Init(ovrTextureType Type, int Width, int Height, int MipLevels, int SampleCount,
+		int ArraySize, ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
 
 	virtual bool CreateSharedTextureGL(unsigned int* outName) override;
 	virtual void DeleteSharedTextureGL(unsigned int name) override;

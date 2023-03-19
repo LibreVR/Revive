@@ -81,7 +81,7 @@ ovrResult CompositorBase::CreateTextureSwapChain(const ovrTextureSwapChainDesc* 
 	{
 		// Create the profiler render target texture.
 		m_ProfileTexture.reset(CreateTexture());
-		m_ProfileTexture->Init(ovrTexture_2D, PROFILE_WINDOW_WIDTH, PROFILE_WINDOW_HEIGHT, 1, 1, OVR_FORMAT_R8G8B8A8_UNORM, ovrTextureMisc_None, ovrTextureBind_DX_RenderTarget);
+		m_ProfileTexture->Init(ovrTexture_2D, PROFILE_WINDOW_WIDTH, PROFILE_WINDOW_HEIGHT, 1, 1, 1, OVR_FORMAT_R8G8B8A8_UNORM, ovrTextureMisc_None, ovrTextureBind_DX_RenderTarget);
 		g_ProfileManager.SetTexture(m_ProfileTexture.get());
 	}
 #endif
@@ -96,7 +96,7 @@ ovrResult CompositorBase::CreateTextureSwapChain(const ovrTextureSwapChainDesc* 
 	{
 		TextureBase* texture = CreateTexture();
 		bool success = texture->Init(desc->Type, desc->Width, desc->Height, desc->MipLevels,
-			desc->ArraySize, desc->Format, desc->MiscFlags, desc->BindFlags);
+			desc->SampleCount, desc->ArraySize, desc->Format, desc->MiscFlags, desc->BindFlags);
 		if (!success)
 			return ovrError_RuntimeException;
 		swapChain->Textures[i].reset(texture);
@@ -115,7 +115,7 @@ ovrResult CompositorBase::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, 
 	// TODO: Support ovrMirrorOptions
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(*desc);
 	TextureBase* texture = CreateTexture();
-	bool success = texture->Init(ovrTexture_2D, desc->Width, desc->Height, 1, 1, desc->Format,
+	bool success = texture->Init(ovrTexture_2D, desc->Width, desc->Height, 1, 1, 1, desc->Format,
 		desc->MiscFlags | ovrTextureMisc_AllowGenerateMips, ovrTextureBind_DX_RenderTarget);
 	if (!success)
 		return ovrError_RuntimeException;

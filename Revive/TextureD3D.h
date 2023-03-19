@@ -14,8 +14,8 @@ public:
 	virtual ~TextureD3D();
 
 	virtual void ToVRTexture(vr::Texture_t& texture) override;
-	virtual bool Init(ovrTextureType type, int Width, int Height, int MipLevels, int ArraySize,
-		ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags) override;
+	virtual bool Init(ovrTextureType Type, int Width, int Height, int MipLevels, int SampleCount,
+		int ArraySize, ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags) override;
 
 	virtual bool LockSharedTexture() override;
 	virtual bool UnlockSharedTexture() override;
