@@ -18,6 +18,8 @@ public:
 
 	unsigned int Texture;
 	unsigned int Framebuffer;
+	unsigned int ResolveTexture;
+	unsigned int ResolveFramebuffer;
 
 protected:
 	static unsigned int TextureFormatToInternalFormat(ovrTextureFormat format);

@@ -7,6 +7,8 @@
 TextureGL::TextureGL()
 	: Texture(0)
 	, Framebuffer(0)
+	, ResolveTexture(0)
+	, ResolveFramebuffer(0)
 	, m_Width(0)
 	, m_Height(0)
 	, m_InteropTexture(0)
@@ -21,10 +23,18 @@ TextureGL::~TextureGL()
 
 void TextureGL::ToVRTexture(vr::Texture_t& texture)
 {
+	if (ResolveTexture)
+	{
+		glBlitNamedFramebuffer(Framebuffer, ResolveFramebuffer,
+			0, 0, m_Width, m_Height, 0, 0, m_Width, m_Height,
+			GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	}
+
 	texture.eColorSpace = vr::ColorSpace_Auto; // TODO: Set this from the texture format
 	texture.eType = vr::TextureType_OpenGL;
 #pragma warning( disable : 4312 )
-	texture.handle = (void*)static_cast<uintptr_t>(m_InteropTexture ? m_InteropTexture : Texture);
+	texture.handle = (void*)static_cast<uintptr_t>(m_InteropTexture ? m_InteropTexture :
+		ResolveTexture ? ResolveTexture : Texture);
 #pragma warning( default : 4312 )
 }
 
@@ -91,13 +101,34 @@ bool TextureGL::Init(ovrTextureType Type, int Width, int Height, int MipLevels, 
 	m_Width = Width;
 	m_Height = Height;
 
-	if (BindFlags & ovrTextureBind_DX_RenderTarget)
+	if (SampleCount > 1 || Type == ovrTexture_2D_External)
 	{
+		GLenum attachment = format == GL_DEPTH_COMPONENT || format == GL_DEPTH_STENCIL ?
+			GL_DEPTH_ATTACHMENT : GL_COLOR_ATTACHMENT0;
+
 		glCreateFramebuffers(1, &Framebuffer);
-		glNamedFramebufferTexture(Framebuffer, GL_COLOR_ATTACHMENT0, Texture, 0);
-		glNamedFramebufferReadBuffer(Framebuffer, GL_COLOR_ATTACHMENT0);
-		glNamedFramebufferDrawBuffer(Framebuffer, GL_COLOR_ATTACHMENT0);
-		return glCheckNamedFramebufferStatus(Framebuffer, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+		glNamedFramebufferTexture(Framebuffer, attachment, Texture, 0);
+		glNamedFramebufferReadBuffer(Framebuffer, attachment);
+		glNamedFramebufferDrawBuffer(Framebuffer, attachment);
+		GLenum completeness = glCheckNamedFramebufferStatus(Framebuffer, GL_FRAMEBUFFER);
+		if (completeness != GL_FRAMEBUFFER_COMPLETE)
+			return false;
+
+		if (SampleCount > 1)
+		{
+			// SteamVR doesn't support OpenGL MSAA textures, so we have to resolve it before returning a VR texture
+			glCreateTextures(GL_TEXTURE_2D, 1, &ResolveTexture);
+			glTextureParameteri(ResolveTexture, GL_TEXTURE_BASE_LEVEL, 0);
+			glTextureParameteri(ResolveTexture, GL_TEXTURE_MAX_LEVEL, 0);
+			glTextureStorage2D(ResolveTexture, 1, internalFormat, Width, Height);
+
+			glCreateFramebuffers(1, &ResolveFramebuffer);
+			glNamedFramebufferTexture(ResolveFramebuffer, attachment, ResolveTexture, 0);
+			glNamedFramebufferReadBuffer(ResolveFramebuffer, attachment);
+			glNamedFramebufferDrawBuffer(ResolveFramebuffer, attachment);
+			if (glCheckNamedFramebufferStatus(ResolveFramebuffer, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				return false;
+		}
 	}
 
 	return true;
