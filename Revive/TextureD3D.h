@@ -22,7 +22,7 @@ public:
 	virtual bool CreateSharedTextureGL(unsigned int* outName) override;
 	virtual void DeleteSharedTextureGL(unsigned int name) override;
 
-	IUnknown* Texture() { if (m_pDevice) return m_pTexture.Get(); else return m_pResource12.Get(); };
+	IUnknown* Texture() { if (m_pDevice) return m_pTexture.Get(); else return m_pResource.Get(); };
 	ID3D11ShaderResourceView* Resource() { return m_pSRV.Get(); };
 	ID3D11RenderTargetView* Target() { return m_pRTV.Get(); };
 
@@ -31,7 +31,8 @@ protected:
 	static UINT BindFlagsToD3DBindFlags(unsigned int flags);
 	static UINT MiscFlagsToD3DMiscFlags(unsigned int flags);
 	static D3D12_RESOURCE_FLAGS BindFlagsToD3DResourceFlags(unsigned int flags);
-	static ovrTextureFormat ToLinearFormat(ovrTextureFormat format);
+	static DXGI_FORMAT ToLinearFormat(DXGI_FORMAT format);
+	static DXGI_FORMAT ToColorFormat(DXGI_FORMAT format);
 
 	// DirectX 11
 	Microsoft::WRL::ComPtr<ID3D11Device> m_pDevice;
@@ -40,10 +41,13 @@ protected:
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_pRTV;
 
 	// DirectX 12
-	vr::D3D12TextureData_t m_data;
 	Microsoft::WRL::ComPtr<ID3D12Device> m_pDevice12;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_pResource12;
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_pResource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_pResolve;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_pQueue;
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_pAllocator;
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_pResolveList;
+	vr::D3D12TextureData_t m_data;
 
 	// OpenGL interop
 	void* m_hInteropDevice;

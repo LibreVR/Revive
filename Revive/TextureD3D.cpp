@@ -9,18 +9,16 @@
 TextureD3D::TextureD3D(ID3D11Device* pDevice)
 	: m_pDevice(pDevice)
 	, m_data()
-	, m_pDevice12()
-	, m_pQueue()
 	, m_hInteropDevice(nullptr)
 	, m_hInteropTarget(nullptr)
 {
 }
 
 TextureD3D::TextureD3D(ID3D12CommandQueue* pQueue)
-	: m_pDevice()
+	: m_pQueue(pQueue)
 	, m_data()
-	, m_pDevice12()
-	, m_pQueue(pQueue)
+	, m_hInteropDevice(nullptr)
+	, m_hInteropTarget(nullptr)
 {
 	m_pQueue->GetDevice(IID_PPV_ARGS(&m_pDevice12));
 	m_data.m_pCommandQueue = m_pQueue.Get();
@@ -36,6 +34,9 @@ void TextureD3D::ToVRTexture(vr::Texture_t& texture)
 
 	if (m_pDevice12)
 	{
+		if (m_pResolveList)
+			m_pQueue->ExecuteCommandLists(1, (ID3D12CommandList**)m_pResolveList.GetAddressOf());
+
 		texture.eType = vr::TextureType_DirectX12;
 		texture.handle = &m_data;
 	}
@@ -126,19 +127,32 @@ DXGI_FORMAT TextureD3D::TextureFormatToDXGIFormat(ovrTextureFormat format, bool 
 	}
 }
 
-ovrTextureFormat TextureD3D::ToLinearFormat(ovrTextureFormat format)
+DXGI_FORMAT TextureD3D::ToLinearFormat(DXGI_FORMAT format)
 {
 	switch (format)
 	{
-		case OVR_FORMAT_R8G8B8A8_UNORM_SRGB:  return OVR_FORMAT_R8G8B8A8_UNORM;
-		case OVR_FORMAT_B8G8R8A8_UNORM_SRGB:  return OVR_FORMAT_B8G8R8A8_UNORM;
-		case OVR_FORMAT_B8G8R8X8_UNORM_SRGB:  return OVR_FORMAT_B8G8R8X8_UNORM;
+		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:  return DXGI_FORMAT_R8G8B8A8_UNORM;
+		case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8A8_UNORM;
+		case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:  return DXGI_FORMAT_B8G8R8X8_UNORM;
 
 		// Added in 1.5 compressed formats can be used for static layers
-		case OVR_FORMAT_BC1_UNORM_SRGB:       return OVR_FORMAT_BC1_UNORM;
-		case OVR_FORMAT_BC2_UNORM_SRGB:       return OVR_FORMAT_BC2_UNORM;
-		case OVR_FORMAT_BC3_UNORM_SRGB:       return OVR_FORMAT_BC3_UNORM;
-		case OVR_FORMAT_BC7_UNORM_SRGB:       return OVR_FORMAT_BC7_UNORM;
+		case DXGI_FORMAT_BC1_UNORM_SRGB:       return DXGI_FORMAT_BC1_UNORM;
+		case DXGI_FORMAT_BC2_UNORM_SRGB:       return DXGI_FORMAT_BC2_UNORM;
+		case DXGI_FORMAT_BC3_UNORM_SRGB:       return DXGI_FORMAT_BC3_UNORM;
+		case DXGI_FORMAT_BC7_UNORM_SRGB:       return DXGI_FORMAT_BC7_UNORM;
+
+		default: return format;
+	}
+}
+
+DXGI_FORMAT TextureD3D::ToColorFormat(DXGI_FORMAT format)
+{
+	switch (format)
+	{
+		case DXGI_FORMAT_D16_UNORM:            return DXGI_FORMAT_R16_UNORM;
+		case DXGI_FORMAT_D24_UNORM_S8_UINT:    return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		case DXGI_FORMAT_D32_FLOAT:            return DXGI_FORMAT_R32_FLOAT;
+		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT: return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 
 		default: return format;
 	}
@@ -191,7 +205,7 @@ bool TextureD3D::Init(ovrTextureType Type, int Width, int Height, int MipLevels,
 		desc.DepthOrArraySize = ArraySize;
 		desc.MipLevels = MipLevels;
 		desc.Format = TextureFormatToDXGIFormat(Format, typeless);
-		desc.SampleDesc.Count = 1; // FIXME: Unsupported in SteamVR
+		desc.SampleDesc.Count = SampleCount;
 		desc.SampleDesc.Quality = 0;
 		desc.Flags = BindFlagsToD3DResourceFlags(BindFlags);
 
@@ -201,7 +215,7 @@ bool TextureD3D::Init(ovrTextureType Type, int Width, int Height, int MipLevels,
 		heap.VisibleNodeMask = 1;
 
 		D3D12_CLEAR_VALUE clear = {};
-		clear.Format = TextureFormatToDXGIFormat(ToLinearFormat(Format));
+		clear.Format = ToLinearFormat(TextureFormatToDXGIFormat(Format));
 		if (BindFlags & ovrTextureBind_DX_DepthStencil)
 		{
 			clear.DepthStencil.Depth = 1.0f;
@@ -215,13 +229,58 @@ bool TextureD3D::Init(ovrTextureType Type, int Width, int Height, int MipLevels,
 		HRESULT hr = m_pDevice12->CreateCommittedResource(&heap,
 			D3D12_HEAP_FLAG_NONE,
 			&desc,
-			D3D12_RESOURCE_STATE_COMMON,
+			Type == ovrTexture_2D_External ? D3D12_RESOURCE_STATE_RENDER_TARGET : D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 			&clear,
-			IID_PPV_ARGS(&m_pResource12));
+			IID_PPV_ARGS(&m_pResource));
 		if (FAILED(hr))
 			return false;
 
-		m_data.m_pResource = m_pResource12.Get();
+		if (SampleCount > 1)
+		{
+			// SteamVR doesn't support D3D12 MSAA resources, so we have to resolve it before returning a VR texture
+			desc.SampleDesc.Count = 1;
+			hr = m_pDevice12->CreateCommittedResource(&heap,
+				D3D12_HEAP_FLAG_NONE,
+				&desc,
+				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+				&clear,
+				IID_PPV_ARGS(&m_pResolve));
+			if (FAILED(hr))
+				return false;
+
+			hr = m_pDevice12->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_pAllocator));
+			if (FAILED(hr))
+				return false;
+
+			hr = m_pDevice12->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_pAllocator.Get(), nullptr, IID_PPV_ARGS(&m_pResolveList));
+			if (FAILED(hr))
+				return false;
+
+			// Do the resolve ensuring both resources are transitioned back to D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+			D3D12_RESOURCE_BARRIER barriers[2] = { { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION }, { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION } };
+			barriers[0].Transition.pResource = m_pResource.Get();
+			barriers[0].Transition.Subresource = 0;
+			barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
+			barriers[1].Transition.pResource = m_pResolve.Get();
+			barriers[1].Transition.Subresource = 0;
+			barriers[1].Transition.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			barriers[1].Transition.StateAfter = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+			m_pResolveList->ResourceBarrier(2, barriers);
+			m_pResolveList->ResolveSubresource(m_pResolve.Get(), 0, m_pResource.Get(), 0, ToColorFormat(TextureFormatToDXGIFormat(Format)));
+			barriers[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
+			barriers[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			barriers[1].Transition.StateBefore = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+			barriers[1].Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			m_pResolveList->ResourceBarrier(2, barriers);
+			m_pResolveList->Close();
+
+			m_data.m_pResource = m_pResolve.Get();
+		}
+		else
+		{
+			m_data.m_pResource = m_pResource.Get();
+		}
 	}
 	else
 	{

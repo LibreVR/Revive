@@ -115,7 +115,7 @@ ovrResult CompositorBase::CreateMirrorTexture(const ovrMirrorTextureDesc* desc, 
 	// TODO: Support ovrMirrorOptions
 	ovrMirrorTexture mirrorTexture = new ovrMirrorTextureData(*desc);
 	TextureBase* texture = CreateTexture();
-	bool success = texture->Init(ovrTexture_2D, desc->Width, desc->Height, 1, 1, 1, desc->Format,
+	bool success = texture->Init(ovrTexture_2D_External, desc->Width, desc->Height, 1, 1, 1, desc->Format,
 		desc->MiscFlags | ovrTextureMisc_AllowGenerateMips, ovrTextureBind_DX_RenderTarget);
 	if (!success)
 		return ovrError_RuntimeException;
