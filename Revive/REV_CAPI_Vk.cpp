@@ -59,7 +59,10 @@ ovr_GetInstanceExtensionsVk(
 	extensions << VK_EXT_DEBUG_UTILS_EXTENSION_NAME << ' ';
 #endif
 	extensions << VK_KHR_SURFACE_EXTENSION_NAME << ' ';
-	extensions << VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+	extensions << VK_KHR_WIN32_SURFACE_EXTENSION_NAME << ' ';
+
+	// SteamVR forgets to specify the semaphore capabilities extensions
+	extensions << VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME;
 
 	std::string result = extensions.str();
 	uint32_t size = *inoutExtensionNamesSize;
