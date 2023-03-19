@@ -120,7 +120,8 @@ bool TextureVk::Init(ovrTextureType Type, int Width, int Height, int MipLevels, 
 	external_create_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR;
 
 	VkImageCreateInfo create_info = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-	create_info.pNext = &external_create_info;
+	if (Type == ovrTexture_2D_External)
+		create_info.pNext = &external_create_info;
 	create_info.imageType = VK_IMAGE_TYPE_2D;
 	create_info.format = TextureFormatToVkFormat(Format);
 	create_info.extent.width = Width;
@@ -143,7 +144,8 @@ bool TextureVk::Init(ovrTextureType Type, int Width, int Height, int MipLevels, 
 	export_allocate_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR;
 
 	VkMemoryAllocateInfo memAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
-	memAlloc.pNext = &export_allocate_info;
+	if (Type == ovrTexture_2D_External)
+		memAlloc.pNext = &export_allocate_info;
 	memAlloc.allocationSize = memReqs.size;
 	if (!GetMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memAlloc.memoryTypeIndex))
 		return false;

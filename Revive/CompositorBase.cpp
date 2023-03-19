@@ -81,7 +81,7 @@ ovrResult CompositorBase::CreateTextureSwapChain(const ovrTextureSwapChainDesc* 
 	{
 		// Create the profiler render target texture.
 		m_ProfileTexture.reset(CreateTexture());
-		m_ProfileTexture->Init(ovrTexture_2D, PROFILE_WINDOW_WIDTH, PROFILE_WINDOW_HEIGHT, 1, 1, 1, OVR_FORMAT_R8G8B8A8_UNORM, ovrTextureMisc_None, ovrTextureBind_DX_RenderTarget);
+		m_ProfileTexture->Init(ovrTexture_2D_External, PROFILE_WINDOW_WIDTH, PROFILE_WINDOW_HEIGHT, 1, 1, 1, OVR_FORMAT_R8G8B8A8_UNORM, ovrTextureMisc_None, ovrTextureBind_DX_RenderTarget);
 		g_ProfileManager.SetTexture(m_ProfileTexture.get());
 	}
 #endif
