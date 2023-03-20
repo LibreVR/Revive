@@ -1,4 +1,4 @@
-version: '3.1.1.{build}'
+version: '3.2.0.{build}'
 image: Visual Studio 2019
 clone_folder: c:\projects\revive
 
@@ -76,7 +76,7 @@ artifacts:
 deploy:
   provider: GitHub
   auth_token:
-    secure: RJL9lEOsUrSTf/CQu7woP0CR2zGXjurIw5MgrcCG7XuhBizOblpukL76zjNkxcqC
+    secure: 9ktb/rF39gcllEG+9tZgsNz5nU57xL517ki2bOnhGuGAmbNetV91B8lFBEjDC41UXEzzy4WqPTxYBl/9v/F9OkoO1ZDUk9wAS8Uo873Eq+UP/BTVQCskrK8YP4kE6Hhl
   artifact: 'Revive Installer'
   draft: true
   prerelease: false
