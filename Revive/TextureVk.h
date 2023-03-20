@@ -18,6 +18,8 @@ public:
 	virtual bool Init(ovrTextureType Type, int Width, int Height, int MipLevels, int SampleCount,
 		int ArraySize, ovrTextureFormat Format, unsigned int MiscFlags, unsigned int BindFlags);
 
+	virtual bool LockSharedTexture() override;
+	virtual bool UnlockSharedTexture() override;
 	virtual bool CreateSharedTextureGL(unsigned int* outName) override;
 	virtual void DeleteSharedTextureGL(unsigned int name) override;
 
@@ -35,6 +37,9 @@ private:
 
 	void* m_hMemoryHandle;
 	unsigned int m_MemoryObject;
+	VkCommandPool m_CmdPool;
+	VkCommandBuffer m_LockCmd;
+	VkCommandBuffer m_UnlockCmd;
 
 	VkFormat TextureFormatToVkFormat(ovrTextureFormat format);
 	VkImageUsageFlags BindFlagsToVkImageUsageFlags(unsigned int flags);
@@ -46,6 +51,15 @@ private:
 	VK_DEFINE_FUNCTION(vkBindImageMemory)
 	VK_DEFINE_FUNCTION(vkFreeMemory)
 	VK_DEFINE_FUNCTION(vkDestroyImage)
+
+	// Needed for external textures
 	VK_DEFINE_FUNCTION(vkGetMemoryWin32HandleKHR)
+	VK_DEFINE_FUNCTION(vkCreateCommandPool)
+	VK_DEFINE_FUNCTION(vkDestroyCommandPool)
+	VK_DEFINE_FUNCTION(vkAllocateCommandBuffers)
+	VK_DEFINE_FUNCTION(vkCmdPipelineBarrier)
+	VK_DEFINE_FUNCTION(vkQueueSubmit)
+	VK_DEFINE_FUNCTION(vkBeginCommandBuffer)
+	VK_DEFINE_FUNCTION(vkEndCommandBuffer)
 };
 

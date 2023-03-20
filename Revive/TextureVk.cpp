@@ -13,6 +13,9 @@ TextureVk::TextureVk(VkDevice device, VkPhysicalDevice physicalDevice,
 	, m_pQueue(pQueue)
 	, m_hMemoryHandle(nullptr)
 	, m_MemoryObject()
+	, m_CmdPool()
+	, m_LockCmd()
+	, m_UnlockCmd()
 {
 	// Update the texture data
 	m_data.m_pDevice = device;
@@ -26,6 +29,8 @@ TextureVk::~TextureVk()
 {
 	vkFreeMemory(m_device, m_memory, nullptr);
 	vkDestroyImage(m_device, m_image, nullptr);
+	if (m_CmdPool)
+		vkDestroyCommandPool(m_device, m_CmdPool, nullptr);
 }
 
 void TextureVk::ToVRTexture(vr::Texture_t& texture)
@@ -156,6 +161,56 @@ bool TextureVk::Init(ovrTextureType Type, int Width, int Height, int MipLevels, 
 	if (vkBindImageMemory(m_device, m_image, m_memory, 0) != VK_SUCCESS)
 		return false;
 
+	if (Type == ovrTexture_2D_External)
+	{
+		VK_DEVICE_FUNCTION(m_device, vkCreateCommandPool);
+		VK_DEVICE_FUNCTION(m_device, vkDestroyCommandPool);
+		VK_DEVICE_FUNCTION(m_device, vkAllocateCommandBuffers);
+		VK_DEVICE_FUNCTION(m_device, vkCmdPipelineBarrier);
+		VK_DEVICE_FUNCTION(m_device, vkQueueSubmit);
+		VK_DEVICE_FUNCTION(m_device, vkBeginCommandBuffer);
+		VK_DEVICE_FUNCTION(m_device, vkEndCommandBuffer);
+
+		VkCommandPoolCreateInfo pool_info = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+		if (vkCreateCommandPool(m_device, &pool_info, nullptr, &m_CmdPool) != VK_SUCCESS)
+			return false;
+
+		VkCommandBuffer cmdBufs[3];
+		VkCommandBufferAllocateInfo cmd_allocate_info = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+		cmd_allocate_info.commandPool = m_CmdPool;
+		cmd_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		cmd_allocate_info.commandBufferCount = 2;
+		if (vkAllocateCommandBuffers(m_device, &cmd_allocate_info, cmdBufs) != VK_SUCCESS)
+			return false;
+		m_LockCmd = cmdBufs[0];
+		m_UnlockCmd = cmdBufs[1];
+
+		VkCommandBufferBeginInfo begin_info = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
+		vkBeginCommandBuffer(m_LockCmd, &begin_info);
+		vkBeginCommandBuffer(m_UnlockCmd, &begin_info);
+
+		VkImageMemoryBarrier barrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = m_image;
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+		vkCmdPipelineBarrier(m_LockCmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		vkCmdPipelineBarrier(m_UnlockCmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+		vkEndCommandBuffer(m_LockCmd);
+		vkEndCommandBuffer(m_UnlockCmd);
+	}
+
 	// Update texture data
 	m_data.m_nImage = (uint64_t)m_image;
 	m_data.m_nWidth = create_info.extent.width;
@@ -164,6 +219,22 @@ bool TextureVk::Init(ovrTextureType Type, int Width, int Height, int MipLevels, 
 	m_data.m_nSampleCount = create_info.samples;
 
 	return true;
+}
+
+bool TextureVk::LockSharedTexture()
+{
+	VkSubmitInfo submit_info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers = &m_LockCmd;
+	return vkQueueSubmit(*m_pQueue, 1, &submit_info, 0) == VK_SUCCESS;
+}
+
+bool TextureVk::UnlockSharedTexture()
+{
+	VkSubmitInfo submit_info = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers = &m_UnlockCmd;
+	return vkQueueSubmit(*m_pQueue, 1, &submit_info, 0) == VK_SUCCESS;
 }
 
 bool TextureVk::CreateSharedTextureGL(unsigned int* outName)
