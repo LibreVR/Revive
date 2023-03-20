@@ -36,6 +36,7 @@ public slots:
 protected slots:
 	void openxr(bool checked);
 	void inject();
+	void shortcut();
 	void show();
 	void showHelp();
 	void messageClicked();

@@ -47,6 +47,7 @@ bool CTrayIconController::Init()
 	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("&Open library", this, SLOT(show()));
 	m_trayIconMenu.addAction("&Inject...", this, SLOT(inject()));
+	m_trayIconMenu.addAction("&Shortcut...", this, SLOT(shortcut()));
 	m_trayIconMenu.addSeparator();
 	m_trayIconMenu.addAction("&Help", this, SLOT(showHelp()));
 	m_trayIconMenu.addAction("&Quit", this, SLOT(quit()));
@@ -109,6 +110,25 @@ void CTrayIconController::inject()
 		return;
 
 	CReviveManifestController::SharedInstance()->LaunchInjector(QDir::toNativeSeparators(file));
+}
+
+void CTrayIconController::shortcut()
+{
+	QString file = openDialog();
+	if (file.isNull())
+		return;
+
+	QString args = file;
+	if (CReviveManifestController::SharedInstance()->UsingOpenXR())
+		args.prepend("/openxr ");
+
+	if (!WindowsServices::CreateShortcut(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + "/" + QFileInfo(file).baseName() + ".lnk",
+									QCoreApplication::applicationDirPath() + "/ReviveInjector.exe", args, file))
+		return;
+
+	m_trayIcon->showMessage("Shortcut created on desktop",
+						   "You can use this shortcut to launch the executable with Revive directly.",
+						   QSystemTrayIcon::Information);
 }
 
 void CTrayIconController::showHelp()

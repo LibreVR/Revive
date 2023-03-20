@@ -6,16 +6,22 @@
 
 #include <QDir>
 
-bool WindowsServices::CreateShortcut(QString shortcutPath, QString exePath)
+bool WindowsServices::CreateShortcut(QString shortcutPath, QString exePath, QString arguments, QString icon)
 {
 	QString shortcut = QDir::toNativeSeparators(shortcutPath);
 	QString exe = QDir::toNativeSeparators(exePath);
+	QString args = QDir::toNativeSeparators(arguments);
+	QString ico = QDir::toNativeSeparators(icon);
 
 	Microsoft::WRL::ComPtr<IShellLink> shellLink;
 	HRESULT hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&shellLink));
 	if (SUCCEEDED(hr))
 	{
 		hr = shellLink->SetPath(qUtf16Printable(exe));
+		if (SUCCEEDED(hr) && !args.isEmpty())
+			hr = shellLink->SetArguments(qUtf16Printable(args));
+		if (SUCCEEDED(hr) && !icon.isEmpty())
+			shellLink->SetIconLocation(qUtf16Printable(ico), 0);
 		if (SUCCEEDED(hr))
 		{
 			Microsoft::WRL::ComPtr<IPersistFile> persistFile;

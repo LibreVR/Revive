@@ -33,6 +33,7 @@ public:
 	bool Init();
 	bool LaunchInjector(const QString& args);
 	void UseOpenXR(bool enabled) { m_bUseOpenXR = enabled; }
+	bool UsingOpenXR() const { return m_bUseOpenXR; }
 
 	bool IsLibraryFound() { return m_bLibraryFound; }
 	QString GetLibraryURL() { return m_strLibraryURL; }
