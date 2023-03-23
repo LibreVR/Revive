@@ -5,28 +5,33 @@
 		<link>https://raw.githubusercontent.com/LibreVR/Revive/master/appcast.xml</link>
 		<language>en</language>
 		<item>
-			<title>Version 3.1.1</title>
+			<title>Version 3.2.0</title>
 			<description>
 			<![CDATA[
 <h3>Changes</h3>
 
 <ul>
-    <li>Oculus Account linking has been replaced by an automatic login method that's compatible with Meta accounts thanks to @ahmanwoods</li>
-    <li>Automatic updater has been removed as version releases have become much less frequent</li>
-    <li>Updated the OVR SDK to 32.0.0</li>
+    <li>Updated OpenVR to v1.23.7</li>
+    <li>Pose prediction has been rewritten resulting in improved motion smoothing</li>
+    <li>Allow games to recenter room-scale experiences</li>
+    <li>In-game recentering is no longer persistent</li>
+    <li>Implemented automatic HMD audio device selection</li>
+    <li>Decreased scrolling speed in Revive Dashboard</li>
+    <li>Added tray icon menu item to create a Revive Injector shortcut</li>
 </ul>
 
 <h3>Bug fixes</h3>
 
 <ul>
-    <li>Revive: Fixed incorrect field-of-view handling (#1716)</li>
+    <li>Revive: Golf+ doesn't launch correctly in headset (#1804)</li>
+    <li>Revive: Bonelab extreme stutters and low performance (#1788)</li>
 </ul>
 			]]>
 			</description>
-			<pubDate>12 March 2023</pubDate>
-			<enclosure url="https://github.com/LibreVR/Revive/releases/download/3.1.1/ReviveInstaller.exe"
+			<pubDate>23 March 2023</pubDate>
+			<enclosure url="https://github.com/LibreVR/Revive/releases/download/3.2.0/ReviveInstaller.exe"
 					   type="application/exe"
-					   sparkle:version="3.1.1.0"
+					   sparkle:version="3.2.0.0"
 					   sparkle:os="windows-x64"/>
 		</item>
 	</channel>
