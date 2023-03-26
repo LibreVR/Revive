@@ -14,14 +14,16 @@ TextureD3D::TextureD3D(ID3D11Device* pDevice)
 {
 }
 
-TextureD3D::TextureD3D(ID3D12CommandQueue* pQueue)
-	: m_pQueue(pQueue)
+TextureD3D::TextureD3D(ID3D11Device* pDevice, ID3D12CommandQueue* pQueue)
+	: m_pDevice(pDevice)
+	, m_pQueue(pQueue)
 	, m_data()
 	, m_hInteropDevice(nullptr)
 	, m_hInteropTarget(nullptr)
 {
-	m_pQueue->GetDevice(IID_PPV_ARGS(&m_pDevice12));
-	m_data.m_pCommandQueue = m_pQueue.Get();
+	m_data.m_pCommandQueue = pQueue;
+	pQueue->GetDevice(IID_PPV_ARGS(&m_pDevice12));
+	pDevice->QueryInterface(IID_PPV_ARGS(&m_pDevice11on12));
 }
 
 TextureD3D::~TextureD3D()
@@ -214,8 +216,7 @@ bool TextureD3D::Init(ovrTextureType Type, int Width, int Height, int MipLevels,
 		heap.CreationNodeMask = 1;
 		heap.VisibleNodeMask = 1;
 
-		D3D12_CLEAR_VALUE clear = {};
-		clear.Format = ToLinearFormat(TextureFormatToDXGIFormat(Format));
+		D3D12_CLEAR_VALUE clear = { ToLinearFormat(TextureFormatToDXGIFormat(Format)) };
 		if (BindFlags & ovrTextureBind_DX_DepthStencil)
 		{
 			clear.DepthStencil.Depth = 1.0f;
@@ -223,6 +224,7 @@ bool TextureD3D::Init(ovrTextureType Type, int Width, int Height, int MipLevels,
 		}
 		else
 		{
+			clear.Color[0] = clear.Color[1] = clear.Color[2] = 0.0f;
 			clear.Color[3] = 1.0f;
 		}
 
@@ -281,6 +283,11 @@ bool TextureD3D::Init(ovrTextureType Type, int Width, int Height, int MipLevels,
 		{
 			m_data.m_pResource = m_pResource.Get();
 		}
+
+		D3D11_RESOURCE_FLAGS flags = { BindFlagsToD3DBindFlags(BindFlags), MiscFlagsToD3DMiscFlags(MiscFlags) };
+		hr = m_pDevice11on12->CreateWrappedResource(m_pResource.Get(), &flags, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RENDER_TARGET, IID_PPV_ARGS(&m_pTexture));
+		if (FAILED(hr))
+			return false;
 	}
 	else
 	{

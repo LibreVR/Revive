@@ -4,6 +4,7 @@
 #include <openvr.h>
 #include <d3d11.h>
 #include <d3d12.h>
+#include <d3d11on12.h>
 #include <wrl/client.h>
 
 #include "VertexShader.hlsl.h"
@@ -20,24 +21,35 @@ CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 {
 	// Get the device for this context
 	// TODO: DX12 support
-	ID3D11Device* pDevice = nullptr;
-	HRESULT hr = d3dPtr->QueryInterface(&pDevice);
+	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
+	HRESULT hr = d3dPtr->QueryInterface(IID_PPV_ARGS(&pDevice));
 	if (SUCCEEDED(hr))
-		return new CompositorD3D(pDevice);
+	{
+		pDevice->GetImmediateContext(&pContext);
+		return new CompositorD3D(pDevice.Get(), pContext.Get());
+	}
 
-	ID3D12CommandQueue* pQueue = nullptr;
-	hr = d3dPtr->QueryInterface(&pQueue);
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> pQueue;
+	hr = d3dPtr->QueryInterface(IID_PPV_ARGS(&pQueue));
 	if (SUCCEEDED(hr))
-		return new CompositorD3D(pQueue);
+	{
+		Microsoft::WRL::ComPtr<ID3D12Device> pDevice12;
+		HRESULT hr = pQueue->GetDevice(IID_PPV_ARGS(&pDevice12));
+		if (SUCCEEDED(hr))
+		{
+			hr = D3D11On12CreateDevice(pDevice12.Get(), 0, nullptr, 0, (IUnknown**)pQueue.GetAddressOf(), 1, 0, &pDevice, &pContext, nullptr);
+		}
+		return new CompositorD3D(pQueue.Get(), pDevice.Get(), pContext.Get());
+	}
 
 	return nullptr;
 }
 
-CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
+CompositorD3D::CompositorD3D(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+	: m_pDevice(pDevice)
+	, m_pContext(pContext)
 {
-	m_pDevice = pDevice;
-	m_pDevice->GetImmediateContext(m_pContext.GetAddressOf());
-
 	// Create the shaders.
 	m_pDevice->CreateVertexShader(g_VertexShader, sizeof(g_VertexShader), NULL, m_VertexShader.GetAddressOf());
 	m_pDevice->CreatePixelShader(g_MirrorShader, sizeof(g_MirrorShader), NULL, m_MirrorShader.GetAddressOf());
@@ -77,10 +89,10 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice)
 	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, m_pDevice.Get(), (void**)&m_pMirror[ovrEye_Right]);
 }
 
-CompositorD3D::CompositorD3D(ID3D12CommandQueue* pQueue)
-	: m_pQueue(pQueue)
-	, m_pMirror()
+CompositorD3D::CompositorD3D(ID3D12CommandQueue* pQueue, ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+	: CompositorD3D(pDevice, pContext)
 {
+	m_pQueue = pQueue;
 }
 
 CompositorD3D::~CompositorD3D()
@@ -93,18 +105,14 @@ CompositorD3D::~CompositorD3D()
 
 TextureBase* CompositorD3D::CreateTexture()
 {
-	if (m_pDevice)
-		return new TextureD3D(m_pDevice.Get());
+	if (m_pQueue)
+		return new TextureD3D(m_pDevice.Get(), m_pQueue.Get());
 	else
-		return new TextureD3D(m_pQueue.Get());
+		return new TextureD3D(m_pDevice.Get());
 }
 
 void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 {
-	// TODO: Support mirror textures in DX12
-	if (!m_pDevice)
-		return;
-
 	// Get the current state objects
 	Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
 	float blend_factor[4];
@@ -119,6 +127,7 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 
 	// Get the mirror texture
 	TextureD3D* texture = (TextureD3D*)mirrorTexture->Texture.get();
+	texture->Acquire();
 
 	// Set the mirror shaders
 	m_pContext->VSSetShader(m_VertexShader.Get(), NULL, 0);
@@ -138,7 +147,7 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_pContext->Unmap(m_VertexBuffer.Get(), 0);
 
 	// Prepare the render target
-	FLOAT clear[4] = { 0.0f };
+	FLOAT clear[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (float)mirrorTexture->Desc.Width, (float)mirrorTexture->Desc.Height, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	m_pContext->RSSetViewports(1, &viewport);
 
@@ -160,14 +169,14 @@ void CompositorD3D::RenderMirrorTexture(ovrMirrorTexture mirrorTexture)
 	m_pContext->RSSetState(ras_state);
 	m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
 	m_pContext->IASetPrimitiveTopology(topology);
+
+	// Flush and release
+	m_pContext->Flush();
+	texture->Release();
 }
 
 void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, TextureBase* src, TextureBase* dst, ovrRecti viewport, vr::VRTextureBounds_t bounds, vr::HmdVector4_t quad)
 {
-	// TODO: Support compositing layers in DX12
-	if (!m_pDevice)
-		return;
-
 	// Get the current state objects
 	Microsoft::WRL::ComPtr<ID3D11BlendState> blend_state;
 	float blend_factor[4];
@@ -199,6 +208,8 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, TextureBase* src, Tex
 	m_pContext->Unmap(m_VertexBuffer.Get(), 0);
 
 	// Prepare the render target
+	((TextureD3D*)src)->Acquire();
+	((TextureD3D*)dst)->Acquire();
 	D3D11_VIEWPORT vp = { (float)viewport.Pos.x, (float)viewport.Pos.y, (float)viewport.Size.w, (float)viewport.Size.h, D3D11_MIN_DEPTH, D3D11_MIN_DEPTH };
 	m_pContext->RSSetViewports(1, &vp);
 	ID3D11RenderTargetView* target = ((TextureD3D*)dst)->Target();
@@ -218,4 +229,9 @@ void CompositorD3D::RenderTextureSwapChain(vr::EVREye eye, TextureBase* src, Tex
 	m_pContext->RSSetState(ras_state);
 	m_pContext->OMSetBlendState(blend_state.Get(), blend_factor, sample_mask);
 	m_pContext->IASetPrimitiveTopology(topology);
+
+	// Flush and release
+	m_pContext->Flush();
+	((TextureD3D*)src)->Release();
+	((TextureD3D*)dst)->Release();
 }
