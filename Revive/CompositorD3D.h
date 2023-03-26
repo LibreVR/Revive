@@ -10,8 +10,8 @@ class CompositorD3D :
 	public CompositorBase
 {
 public:
-	CompositorD3D(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
-	CompositorD3D(ID3D12CommandQueue* pQueue, ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+	CompositorD3D(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ID3D12CommandQueue* pQueue = nullptr);
+	CompositorD3D(ID3D12CommandQueue* pQueue);
 	virtual ~CompositorD3D();
 
 	static CompositorD3D* Create(IUnknown* d3dPtr);

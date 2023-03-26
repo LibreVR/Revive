@@ -17,10 +17,11 @@ struct Vertex
 	ovrVector2f TexCoord;
 };
 
+extern HMODULE g_D3D11;
+
 CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 {
 	// Get the device for this context
-	// TODO: DX12 support
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
 	HRESULT hr = d3dPtr->QueryInterface(IID_PPV_ARGS(&pDevice));
@@ -36,19 +37,26 @@ CompositorD3D* CompositorD3D::Create(IUnknown* d3dPtr)
 	{
 		Microsoft::WRL::ComPtr<ID3D12Device> pDevice12;
 		HRESULT hr = pQueue->GetDevice(IID_PPV_ARGS(&pDevice12));
-		if (SUCCEEDED(hr))
+		if (SUCCEEDED(hr) && g_D3D11)
 		{
-			hr = D3D11On12CreateDevice(pDevice12.Get(), 0, nullptr, 0, (IUnknown**)pQueue.GetAddressOf(), 1, 0, &pDevice, &pContext, nullptr);
+			PFN_D3D11ON12_CREATE_DEVICE pD3D11On12CreateDevice = (PFN_D3D11ON12_CREATE_DEVICE)GetProcAddress(g_D3D11, "D3D11On12CreateDevice");
+			if (pD3D11On12CreateDevice)
+			{
+				hr = pD3D11On12CreateDevice(pDevice12.Get(), 0, nullptr, 0, (IUnknown**)pQueue.GetAddressOf(), 1, 0, &pDevice, &pContext, nullptr);
+				if (SUCCEEDED(hr))
+					return new CompositorD3D(pDevice.Get(), pContext.Get(), pQueue.Get());
+			}
 		}
-		return new CompositorD3D(pQueue.Get(), pDevice.Get(), pContext.Get());
+		return new CompositorD3D(pQueue.Get());
 	}
 
 	return nullptr;
 }
 
-CompositorD3D::CompositorD3D(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+CompositorD3D::CompositorD3D(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, ID3D12CommandQueue* pQueue)
 	: m_pDevice(pDevice)
 	, m_pContext(pContext)
+	, m_pQueue(pQueue)
 {
 	// Create the shaders.
 	m_pDevice->CreateVertexShader(g_VertexShader, sizeof(g_VertexShader), NULL, m_VertexShader.GetAddressOf());
@@ -89,10 +97,9 @@ CompositorD3D::CompositorD3D(ID3D11Device* pDevice, ID3D11DeviceContext* pContex
 	vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, m_pDevice.Get(), (void**)&m_pMirror[ovrEye_Right]);
 }
 
-CompositorD3D::CompositorD3D(ID3D12CommandQueue* pQueue, ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
-	: CompositorD3D(pDevice, pContext)
+CompositorD3D::CompositorD3D(ID3D12CommandQueue* pQueue)
+	: m_pQueue(pQueue)
 {
-	m_pQueue = pQueue;
 }
 
 CompositorD3D::~CompositorD3D()

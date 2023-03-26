@@ -19,6 +19,7 @@
 
 #define REV_DEFAULT_TIMEOUT 10000
 
+HMODULE g_D3D11 = nullptr;
 unsigned int g_MinorVersion = OVR_MINOR_VERSION;
 vr::EVRInitError g_InitError = vr::VRInitError_Init_NotInitialized;
 std::list<ovrHmdStruct> g_Sessions;
@@ -98,6 +99,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_Initialize(const ovrInitParams* params)
 #if 0
 	LoadRenderDoc();
 #endif
+	g_D3D11 = LoadLibraryA("d3d11.dll");
 
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetForceEnable(true);
@@ -145,6 +147,8 @@ OVR_PUBLIC_FUNCTION(void) ovr_Shutdown()
 	vr::VR_Shutdown();
 	MicroProfileShutdown();
 	g_InitError = vr::VRInitError_Init_NotInitialized;
+	if (g_D3D11)
+		FreeLibrary(g_D3D11);
 }
 
 OVR_PUBLIC_FUNCTION(void) ovr_GetLastErrorInfo(ovrErrorInfo* errorInfo)
