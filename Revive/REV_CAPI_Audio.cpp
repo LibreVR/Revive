@@ -104,7 +104,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutWaveId(UINT* deviceOutId)
 			vr::k_unTrackedDeviceIndex_Hmd,
 			vr::Prop_Audio_DefaultPlaybackDeviceId_String,
 			endpoint, OVR_AUDIO_MAX_DEVICE_STR_SIZE, &error);
-		if (error != vr::TrackedProp_Success)
+		if (error != vr::TrackedProp_Success || size <= 0)
 		{
 			// Return the default without caching so we can attempt again later
 			mmr = waveOutMessage((HWAVEOUT)UIntToPtr(WAVE_MAPPER), DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)deviceOutId, NULL);
@@ -192,7 +192,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInWaveId(UINT* deviceInId)
 			vr::k_unTrackedDeviceIndex_Hmd,
 			vr::Prop_Audio_DefaultRecordingDeviceId_String,
 			endpoint, OVR_AUDIO_MAX_DEVICE_STR_SIZE, &error);
-		if (error != vr::TrackedProp_Success)
+		if (error != vr::TrackedProp_Success || size <= 0)
 		{
 			// Return the default without caching so we can attempt again later
 			mmr = waveInMessage((HWAVEIN)UIntToPtr(WAVE_MAPPER), DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)deviceInId, NULL);
@@ -275,7 +275,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuidStr(WCHAR deviceOutStrBu
 		vr::k_unTrackedDeviceIndex_Hmd,
 		vr::Prop_Audio_DefaultPlaybackDeviceId_String,
 		endpoint, OVR_AUDIO_MAX_DEVICE_STR_SIZE, &error);
-	if (error == vr::TrackedProp_Success)
+	if (error == vr::TrackedProp_Success && size > 0)
 	{
 		if (size > OVR_AUDIO_MAX_DEVICE_STR_SIZE)
 			return ovrError_InsufficientArraySize;
@@ -308,7 +308,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceOutGuid(GUID* deviceOutGuid)
 			vr::k_unTrackedDeviceIndex_Hmd,
 			vr::Prop_Audio_DefaultPlaybackDeviceId_String,
 			endpoint, OVR_AUDIO_MAX_DEVICE_STR_SIZE, &error);
-		if (error == vr::TrackedProp_Success)
+		if (error == vr::TrackedProp_Success && size > 0)
 		{
 			HRESULT com = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 			ovrResult result = AudioEndPointToGuid(endpoint, size, &cachedGuid);
@@ -341,7 +341,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuidStr(WCHAR deviceInStrBuff
 		vr::k_unTrackedDeviceIndex_Hmd,
 		vr::Prop_Audio_DefaultRecordingDeviceId_String,
 		endpoint, OVR_AUDIO_MAX_DEVICE_STR_SIZE, &error);
-	if (error == vr::TrackedProp_Success)
+	if (error == vr::TrackedProp_Success && size > 0)
 	{
 		if (size > OVR_AUDIO_MAX_DEVICE_STR_SIZE)
 			return ovrError_InsufficientArraySize;
@@ -374,7 +374,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetAudioDeviceInGuid(GUID* deviceInGuid)
 			vr::k_unTrackedDeviceIndex_Hmd,
 			vr::Prop_Audio_DefaultRecordingDeviceId_String,
 			endpoint, OVR_AUDIO_MAX_DEVICE_STR_SIZE, &error);
-		if (error == vr::TrackedProp_Success)
+		if (error == vr::TrackedProp_Success && size > 0)
 		{
 			HRESULT com = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 			ovrResult result = AudioEndPointToGuid(endpoint, size, &cachedGuid);
