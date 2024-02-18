@@ -1,21 +1,32 @@
-# Revive Compatibility Layer
+# Revive Compatibility Layer for Oculus SDK and OpenVR/OpenXR
+Revive is a compatibility layer that bridges the Oculus SDK with OpenVR/OpenXR, enabling users to enjoy Oculus-exclusive games on their HTC Vive or Valve Index VR systems.
 
-This is a compatibility layer between the Oculus SDK and OpenVR/OpenXR. It allows you to play Oculus-exclusive games on your HTC Vive or Valve Index.
+## What does Revive offer?
+- **Unlock Oculus Exclusives**: Expand your VR library by accessing Oculus-exclusive games previously restricted to Oculus hardware.
+- **Enhanced Compatibility**: Seamlessly bridge the Oculus SDK with OpenVR/OpenXR, ensuring smooth gameplay experiences.
+- **Community Collaboration**: Join a vibrant community of VR enthusiasts contributing to a [comprehensive list of supported games](https://github.com/LibreVR/Revive/wiki/Compatibility-list) on the [wiki](https://github.com/LibreVR/Revive/wiki).
 
-[Refer to the wiki](https://github.com/LibreVR/Revive/wiki) if you run into any problems. You can also find a [community-compiled list of working games on the wiki](https://github.com/LibreVR/Revive/wiki/Compatibility-list), feel free to add your own results.
+## Installation Guide
+*Always check the [compatibility list](https://github.com/LibreVR/Revive/wiki/Compatibility-list) before making any game purchases.*
+ - ### Preperation:
+   1. Download [Oculus Rift Software](https://www.oculus.com/rift/setup/) -- Install the Oculus Rift Software but choose "Skip" when prompted to select your headset.
+  
+ - ### Install Revive:
+   2. [Download the latest Revive installer](https://github.com/LibreVR/Revive/releases/latest).
+   3. Install Revive in your preferred directory.
+  
+ - ### Launching:
+   5. Launch SteamVR and **ensure SteamVR is running**.
+   6. Put on your VR headset, open the dashboard, and ***click on the new Revive tab***.
 
-## Installation
+## Troubleshooting:
+For any issues encountered, consult the known issues section below or refer to the [wiki](https://github.com/LibreVR/Revive/wiki) for solutions.
 
-*Always check the [compatibility list](https://github.com/LibreVR/Revive/wiki/Compatibility-list) before making a purchase.*
+## Known Issues and Troubleshooting
+- **Application Launch Failure**: Newly installed applications may fail to start initially. 
+  - [Simply follow these instructions to fix it](https://github.com/LibreVR/Revive/wiki/Troubleshooting#im-getting-an-entitlement-error-or-oculus-rift-not-found) or simply reboot your PC.
+- **Missing Revive Tab**: If the Revive tab is not visible, access the Revive Dashboard from the start menu on your desktop.
+  - Alternatively, check the Applications tab in SteamVR settings to ensure the tab is enabled.
 
-1. Download and install [Oculus Rift Software](https://www.oculus.com/rift/setup/). When you get to "Select Your Headset", choose to "Skip".
-2. [Download the latest Revive installer.](https://github.com/LibreVR/Revive/releases/latest)
-3. Install Revive in your preferred directory.
-4. Start SteamVR if it's not already running.
-5. Put on the headset, open the dashboard and click the new Revive tab.
-6. If you run into any problems, read the known issues below or refer to the [wiki](https://github.com/LibreVR/Revive/wiki).
 
-## Known Issues
-
-- Newly installed applications may refuse to start when you try to launch them for the first time, [simply follow these instructions to fix it](https://github.com/LibreVR/Revive/wiki/Troubleshooting#im-getting-an-entitlement-error-or-oculus-rift-not-found) or reboot your PC.
-- If you don't see the Revive tab, go to the start menu on your desktop and start the Revive Dashboard. Or check the Applications tab in the SteamVR settings to see if the tab is enabled.
+For further assistance, refer to the [Revive Wiki](https://github.com/LibreVR/Revive/wiki) or join the community discussions.
